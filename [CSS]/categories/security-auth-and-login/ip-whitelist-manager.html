@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Whitelist Manager - JaZeR Security</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(255, 0, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-size: 1rem;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: rgba(0, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .whitelist-container {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 700px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.2);
+            animation: fadeIn 0.5s ease;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        h1 {
+            color: var(--jazer-cyan);
+            font-family: var(--font-primary);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .current-ip-box {
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .current-ip-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .current-ip-value {
+            color: var(--jazer-cyan);
+            font-weight: 700;
+            font-family: var(--font-primary);
+            font-size: 1.1rem;
+        }
+
+        .add-ip-form {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-title {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        input {
+            padding: 0.875rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            font-family: var(--font-body);
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+
+        .btn {
+            padding: 0.875rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: var(--jazer-cyan);
+            font-family: var(--font-body);
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .ip-list-title {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .ip-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .ip-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .ip-item:hover {
+            background: rgba(0, 255, 255, 0.05);
+            border-color: rgba(0, 255, 255, 0.3);
+        }
+
+        .ip-info {
+            flex: 1;
+        }
+
+        .ip-address {
+            color: var(--jazer-cyan);
+            font-weight: 700;
+            font-family: var(--font-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .ip-note {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+        }
+
+        .ip-meta {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .ip-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-icon:hover {
+            border-color: #ff3366;
+            color: #ff3366;
+            box-shadow: 0 0 10px rgba(255, 51, 102, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .back-button { top: 1rem; left: 1rem; padding: 0.5rem 1rem; font-size: 0.9rem; }
+            .whitelist-container { padding: 2rem 1.5rem; max-height: 90vh; }
+            h1 { font-size: 1.5rem; }
+            .form-row { grid-template-columns: 1fr; }
+            .current-ip-box { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <div class="whitelist-container">
+        <h1>IP Whitelist Manager</h1>
+        <p class="subtitle">Restrict account access to specific IP addresses</p>
+
+        <div class="current-ip-box">
+            <div class="current-ip-label">Your Current IP Address:</div>
+            <div class="current-ip-value">192.168.1.100</div>
+        </div>
+
+        <div class="add-ip-form">
+            <div class="form-title">Add New IP Address</div>
+            <div class="form-row">
+                <input type="text" id="ipInput" placeholder="Enter IP address (e.g., 192.168.1.1)">
+                <button class="btn" onclick="addIP()">Add IP</button>
+            </div>
+            <input type="text" id="noteInput" placeholder="Optional: Add a note (e.g., Home Office)">
+        </div>
+
+        <div class="ip-list-title">Whitelisted IP Addresses (3)</div>
+        <div class="ip-list" id="ipList">
+            <div class="ip-item">
+                <div class="ip-info">
+                    <div class="ip-address">192.168.1.100</div>
+                    <div class="ip-note">Home Network</div>
+                    <div class="ip-meta">Added on Dec 1, 2025 • Last used: Today</div>
+                </div>
+                <div class="ip-actions">
+                    <button class="btn-icon" onclick="removeIP(this)" title="Remove">✕</button>
+                </div>
+            </div>
+
+            <div class="ip-item">
+                <div class="ip-info">
+                    <div class="ip-address">10.0.0.50</div>
+                    <div class="ip-note">Office VPN</div>
+                    <div class="ip-meta">Added on Nov 28, 2025 • Last used: 2 days ago</div>
+                </div>
+                <div class="ip-actions">
+                    <button class="btn-icon" onclick="removeIP(this)" title="Remove">✕</button>
+                </div>
+            </div>
+
+            <div class="ip-item">
+                <div class="ip-info">
+                    <div class="ip-address">172.16.0.25</div>
+                    <div class="ip-note">Coffee Shop WiFi</div>
+                    <div class="ip-meta">Added on Nov 15, 2025 • Last used: 1 week ago</div>
+                </div>
+                <div class="ip-actions">
+                    <button class="btn-icon" onclick="removeIP(this)" title="Remove">✕</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ipInput = document.getElementById('ipInput');
+        const noteInput = document.getElementById('noteInput');
+        const ipList = document.getElementById('ipList');
+
+        function validateIP(ip) {
+            const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+            if (!ipRegex.test(ip)) return false;
+            
+            const parts = ip.split('.');
+            return parts.every(part => {
+                const num = parseInt(part);
+                return num >= 0 && num <= 255;
+            });
+        }
+
+        function addIP() {
+            const ip = ipInput.value.trim();
+            const note = noteInput.value.trim() || 'No description';
+
+            if (!ip) {
+                alert('Please enter an IP address');
+                return;
+            }
+
+            if (!validateIP(ip)) {
+                alert('Please enter a valid IP address');
+                return;
+            }
+
+            // Check for duplicates
+            const existingIPs = Array.from(document.querySelectorAll('.ip-address')).map(el => el.textContent);
+            if (existingIPs.includes(ip)) {
+                alert('This IP address is already whitelisted');
+                return;
+            }
+
+            const ipItem = document.createElement('div');
+            ipItem.className = 'ip-item';
+            ipItem.style.animation = 'fadeIn 0.3s ease';
+            ipItem.innerHTML = `
+                <div class="ip-info">
+                    <div class="ip-address">${ip}</div>
+                    <div class="ip-note">${note}</div>
+                    <div class="ip-meta">Added on ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} • Last used: Just now</div>
+                </div>
+                <div class="ip-actions">
+                    <button class="btn-icon" onclick="removeIP(this)" title="Remove">✕</button>
+                </div>
+            `;
+
+            ipList.appendChild(ipItem);
+
+            // Clear inputs
+            ipInput.value = '';
+            noteInput.value = '';
+
+            // Update count
+            updateCount();
+        }
+
+        function removeIP(button) {
+            if (confirm('Are you sure you want to remove this IP address from the whitelist?')) {
+                const ipItem = button.closest('.ip-item');
+                ipItem.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => {
+                    ipItem.remove();
+                    updateCount();
+                }, 300);
+            }
+        }
+
+        function updateCount() {
+            const count = ipList.children.length;
+            document.querySelector('.ip-list-title').textContent = `Whitelisted IP Addresses (${count})`;
+        }
+
+        // Allow Enter key to add IP
+        ipInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addIP();
+            }
+        });
+    </script>
+</body>
+</html>

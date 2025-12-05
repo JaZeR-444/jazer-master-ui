@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inline Row Edit Form</title>
+  <style>
+    /* ==================== RESET ==================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 3rem;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 2rem;
+    }
+
+    p {
+      margin-bottom: 1.5rem;
+      color: #555;
+    }
+
+    /* ==================== INLINE EDIT TABLE ==================== */
+    .data-table-wrapper {
+      overflow-x: auto;
+      margin-top: 1.5rem;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px; /* Ensure table is scrollable on smaller screens */
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .data-table thead th {
+      background-color: #f8f8f8;
+      color: #555;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .data-table tbody tr:hover {
+      background-color: #f2f2f2;
+    }
+
+    /* Edit row specific styles */
+    .edit-row {
+      background-color: #e6f7ff;
+    }
+
+    .edit-row td {
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+    }
+
+    .edit-row input,
+    .edit-row select {
+        width: calc(100% - 10px); /* Adjust for padding/border */
+        padding: 8px 5px;
+        border: 1px solid #3498db;
+        border-radius: 4px;
+        font-family: inherit;
+        font-size: 1rem;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    }
+    .edit-row .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+    .edit-row .action-buttons button {
+        padding: 0.6rem 1rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    .edit-row .action-buttons .save-btn {
+        background-color: #2ecc71;
+        color: #fff;
+    }
+    .edit-row .action-buttons .cancel-btn {
+        background-color: #e0e0e0;
+        color: #555;
+    }
+
+    /* Action buttons for normal rows */
+    .row-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+    .row-actions button {
+        background-color: #3498db;
+        color: #fff;
+        border: none;
+        padding: 0.5rem 0.8rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: background-color 0.2s;
+    }
+    .row-actions button:hover {
+        background-color: #2980b9;
+    }
+    .row-actions .delete-btn {
+        background-color: #e74c3c;
+    }
+    .row-actions .delete-btn:hover {
+        background-color: #c0392b;
+    }
+
+    /* Status Message */
+    .table-status-message {
+        margin-top: 1.5rem;
+        padding: 0.8rem 1.5rem;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        text-align: center;
+        display: none;
+    }
+    .table-status-message.success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .table-status-message.error {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 600px) {
+        .data-table-wrapper {
+            width: 100%;
+            overflow-x: scroll;
+        }
+        .data-table {
+            min-width: 500px; /* Ensure table remains usable */
+        }
+        .edit-row .action-buttons {
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        .row-actions {
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../jazer-brand.css">
+  </head>
+<body>
+
+  <div class="container">
+    <h1>Inline Row Edit Form</h1>
+    <p>Click the "Edit" button on any row to modify its data directly within the table.</p>
+
+    <div class="table-status-message" id="tableStatusMessage"></div>
+
+    <div class="data-table-wrapper">
+      <table class="data-table" id="inlineEditTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data rows will be rendered by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const inlineEditTable = document.getElementById('inlineEditTable');
+      const tbody = inlineEditTable.querySelector('tbody');
+      const tableStatusMessage = document.getElementById('tableStatusMessage');
+
+      let currentData = [
+        { id: 1, name: 'Alice Smith', email: 'alice@example.com', role: 'Admin' },
+        { id: 2, name: 'Bob Johnson', email: 'bob@example.com', role: 'Editor' },
+        { id: 3, name: 'Charlie Brown', email: 'charlie@example.com', role: 'Viewer' },
+        { id: 4, name: 'Diana Prince', email: 'diana@example.com', role: 'Admin' },
+      ];
+
+      const roles = ['Admin', 'Editor', 'Viewer']; // Options for role select
+
+      /**
+       * Renders the table body with the current data.
+       */
+      function renderTable() {
+        tbody.innerHTML = ''; // Clear existing rows
+
+        currentData.forEach(item => {
+          const row = tbody.insertRow();
+          row.dataset.id = item.id;
+
+          row.innerHTML = `
+            <td>${item.id}</td>
+            <td data-column="name">${item.name}</td>
+            <td data-column="email">${item.email}</td>
+            <td data-column="role">${item.role}</td>
+            <td>
+                <div class="row-actions">
+                    <button class="edit-btn">Edit</button>
+                    <button class="delete-btn">Delete</button>
+                </div>
+            </td>
+          `;
+        });
+      }
+
+      /**
+       * Enters edit mode for a specific row.
+       * @param {HTMLElement} row - The table row to make editable.
+       */
+      function enterEditMode(row) {
+        row.classList.add('edit-row');
+        const itemId = row.dataset.id;
+        const itemData = currentData.find(d => String(d.id) === itemId);
+
+        row.innerHTML = `
+            <td>${itemData.id}</td>
+            <td><input type="text" name="name" value="${itemData.name}"></td>
+            <td><input type="email" name="email" value="${itemData.email}"></td>
+            <td>
+                <select name="role">
+                    ${roles.map(r => `<option value="${r}" ${itemData.role === r ? 'selected' : ''}>${r}</option>`).join('')}
+                </select>
+            </td>
+            <td>
+                <div class="action-buttons">
+                    <button class="save-btn">Save</button>
+                    <button class="cancel-btn">Cancel</button>
+                </div>
+            </td>
+        `;
+
+        // Add event listeners for new buttons
+        row.querySelector('.save-btn').addEventListener('click', () => saveEdit(row));
+        row.querySelector('.cancel-btn').addEventListener('click', () => cancelEdit(row, itemData));
+      }
+
+      /**
+       * Saves the edited row data.
+       * @param {HTMLElement} row - The table row being edited.
+       */
+      function saveEdit(row) {
+        const itemId = row.dataset.id;
+        const newName = row.querySelector('input[name="name"]').value.trim();
+        const newEmail = row.querySelector('input[name="email"]').value.trim();
+        const newRole = row.querySelector('select[name="role"]').value;
+
+        // Basic validation
+        if (!newName || !newEmail || !newRole) {
+          displayStatus('All fields are required.', 'error');
+          return;
+        }
+
+        displayStatus('Saving changes...', 'success');
+        // Simulate API call
+        setTimeout(() => {
+          if (Math.random() > 0.1) { // 90% success rate
+            const itemIndex = currentData.findIndex(d => String(d.id) === itemId);
+            if (itemIndex > -1) {
+              currentData[itemIndex] = { id: parseInt(itemId), name: newName, email: newEmail, role: newRole };
+            }
+            displayStatus('Row updated successfully!', 'success');
+          } else {
+            displayStatus('Failed to update row. Please try again.', 'error');
+          }
+          renderTable(); // Re-render table to reflect changes or revert
+        }, 800);
+      }
+
+      /**
+       * Cancels editing a row and reverts to original data.
+       * @param {HTMLElement} row - The table row.
+       * @param {object} originalData - The original data for the row.
+       */
+      function cancelEdit(row, originalData) {
+        displayStatus('Edit cancelled.', 'info');
+        renderTable(); // Re-render table to restore original data
+      }
+
+      /**
+       * Deletes a row.
+       * @param {string} itemId - The ID of the item to delete.
+       */
+      function deleteRow(itemId) {
+        if (confirm(`Are you sure you want to delete item ID ${itemId}?`)) {
+          displayStatus('Deleting row...', 'success');
+          // Simulate API call
+          setTimeout(() => {
+            if (Math.random() > 0.1) {
+              currentData = currentData.filter(item => String(item.id) !== itemId);
+              displayStatus('Row deleted successfully!', 'success');
+            } else {
+              displayStatus('Failed to delete row. Please try again.', 'error');
+            }
+            renderTable();
+          }, 800);
+        }
+      }
+
+      /**
+       * Displays a status message in the table message area.
+       * @param {string} message - The message content.
+       * @param {string} type - 'success', 'error', or 'info'.
+       */
+      function displayStatus(message, type) {
+          tableStatusMessage.textContent = message;
+          tableStatusMessage.className = `table-status-message ${type}`;
+          tableStatusMessage.style.display = 'block';
+          setTimeout(() => {
+              tableStatusMessage.style.display = 'none';
+          }, 3000);
+      }
+
+      // --- Event Listener for row actions ---
+      tbody.addEventListener('click', (e) => {
+          const row = e.target.closest('tr');
+          if (!row) return;
+
+          if (e.target.classList.contains('edit-btn')) {
+              enterEditMode(row);
+          } else if (e.target.classList.contains('delete-btn')) {
+              deleteRow(row.dataset.id);
+          }
+      });
+
+      // Initial render
+      renderTable();
+    });
+  </script>
+
+</body>
+</html>

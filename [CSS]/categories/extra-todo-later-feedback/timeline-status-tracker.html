@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline Status Tracker - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%); 
+            min-height: 100vh; 
+            padding: 2rem; 
+            color: white; 
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        /* Header */
+        .back-button { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            padding: 0.75rem 1.5rem; 
+            border: 2px solid var(--jazer-cyan); 
+            border-radius: 12px; 
+            background: rgba(0, 255, 255, 0.1); 
+            transition: all 0.3s ease; 
+            margin-bottom: 2rem; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: #0a0a0a; 
+            transform: translateX(-5px); 
+        }
+        
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 3rem 2rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.1) 0%, rgba(147, 51, 234, 0.1) 50%, rgba(255, 0, 110, 0.1) 100%);
+            border-radius: 24px;
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink), transparent);
+        }
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            background: linear-gradient(135deg, #00f2ea, #9333ea, #ff006e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+        .control-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            background: rgba(0, 242, 234, 0.1);
+            color: var(--jazer-cyan);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-secondary);
+        }
+        .control-btn:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 242, 234, 0.3);
+        }
+        .control-btn.active {
+            background: var(--jazer-purple);
+            border-color: var(--jazer-purple);
+            color: white;
+        }
+        
+        /* Grid Layout */
+        .styles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 2rem;
+        }
+        
+        /* Style Card */
+        .style-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 20px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .style-card:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 40px rgba(0, 242, 234, 0.2);
+            transform: translateY(-5px);
+        }
+        .style-label {
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: var(--jazer-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .style-label::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--jazer-cyan);
+        }
+        
+        .demo-area {
+            min-height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Status Colors */
+        :root {
+            --status-complete: #00ff88;
+            --status-current: #00f2ea;
+            --status-pending: rgba(255, 255, 255, 0.3);
+            --status-error: #ff006e;
+            --status-warning: #ffaa00;
+        }
+
+        /* ==================== STYLE 1: Vertical Timeline ==================== */
+        .timeline-vertical {
+            width: 100%;
+            padding-left: 1.5rem;
+        }
+        .timeline-vertical__item {
+            position: relative;
+            padding-left: 2rem;
+            padding-bottom: 1.5rem;
+        }
+        .timeline-vertical__item:last-child { padding-bottom: 0; }
+        .timeline-vertical__item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            bottom: -8px;
+            width: 2px;
+            background: var(--status-pending);
+        }
+        .timeline-vertical__item:last-child::before { display: none; }
+        .timeline-vertical__item--complete::before {
+            background: linear-gradient(180deg, var(--status-complete), var(--status-complete));
+        }
+        .timeline-vertical__item--current::before {
+            background: linear-gradient(180deg, var(--status-current), var(--status-pending));
+        }
+        .timeline-vertical__dot {
+            position: absolute;
+            left: -6px;
+            top: 4px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--status-pending);
+            border: 2px solid rgba(10, 10, 20, 1);
+        }
+        .timeline-vertical__item--complete .timeline-vertical__dot {
+            background: var(--status-complete);
+            box-shadow: 0 0 15px var(--status-complete);
+        }
+        .timeline-vertical__item--current .timeline-vertical__dot {
+            background: var(--status-current);
+            box-shadow: 0 0 15px var(--status-current);
+            animation: pulse-dot 2s infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        .timeline-vertical__content {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            border-left: 3px solid transparent;
+        }
+        .timeline-vertical__item--complete .timeline-vertical__content {
+            border-left-color: var(--status-complete);
+        }
+        .timeline-vertical__item--current .timeline-vertical__content {
+            border-left-color: var(--status-current);
+            background: rgba(0, 242, 234, 0.05);
+        }
+        .timeline-vertical__title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+        .timeline-vertical__time {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* ==================== STYLE 2: Horizontal Timeline ==================== */
+        .timeline-horizontal {
+            width: 100%;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+        }
+        .timeline-horizontal__track {
+            display: flex;
+            align-items: flex-start;
+            min-width: max-content;
+            padding: 0 1rem;
+        }
+        .timeline-horizontal__item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 100px;
+            position: relative;
+        }
+        .timeline-horizontal__item::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background: var(--status-pending);
+        }
+        .timeline-horizontal__item:last-child::after { display: none; }
+        .timeline-horizontal__item--complete::after {
+            background: var(--status-complete);
+        }
+        .timeline-horizontal__dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(20, 20, 30, 0.9);
+            border: 2px solid var(--status-pending);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            z-index: 1;
+            margin-bottom: 0.5rem;
+        }
+        .timeline-horizontal__item--complete .timeline-horizontal__dot {
+            background: var(--status-complete);
+            border-color: var(--status-complete);
+            color: #0a0a0a;
+        }
+        .timeline-horizontal__item--current .timeline-horizontal__dot {
+            border-color: var(--status-current);
+            color: var(--status-current);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.5);
+        }
+        .timeline-horizontal__label {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+            max-width: 80px;
+        }
+        .timeline-horizontal__item--complete .timeline-horizontal__label,
+        .timeline-horizontal__item--current .timeline-horizontal__label {
+            color: white;
+        }
+
+        /* ==================== STYLE 3: Order Tracking ==================== */
+        .timeline-order {
+            width: 100%;
+        }
+        .timeline-order__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .timeline-order__title {
+            font-weight: 600;
+            color: white;
+        }
+        .timeline-order__id {
+            font-size: 0.8rem;
+            color: var(--jazer-cyan);
+            font-family: var(--font-secondary);
+        }
+        .timeline-order__steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .timeline-order__step {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 0.75rem 0;
+            position: relative;
+        }
+        .timeline-order__step::before {
+            content: '';
+            position: absolute;
+            left: 17px;
+            top: 35px;
+            bottom: -10px;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .timeline-order__step:last-child::before { display: none; }
+        .timeline-order__step--complete::before {
+            background: var(--status-complete);
+        }
+        .timeline-order__icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .timeline-order__step--complete .timeline-order__icon {
+            background: rgba(0, 255, 136, 0.15);
+            border-color: var(--status-complete);
+        }
+        .timeline-order__step--current .timeline-order__icon {
+            background: rgba(0, 242, 234, 0.15);
+            border-color: var(--status-current);
+            animation: icon-pulse 2s infinite;
+        }
+        @keyframes icon-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0, 242, 234, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(0, 242, 234, 0); }
+        }
+        .timeline-order__info {
+            flex: 1;
+        }
+        .timeline-order__step-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 0.15rem;
+        }
+        .timeline-order__step--complete .timeline-order__step-title,
+        .timeline-order__step--current .timeline-order__step-title {
+            color: white;
+        }
+        .timeline-order__step-time {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* ==================== STYLE 4: Activity Feed ==================== */
+        .timeline-feed {
+            width: 100%;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        .timeline-feed__item {
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.3s ease;
+        }
+        .timeline-feed__item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .timeline-feed__avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+        .timeline-feed__avatar--success { background: rgba(0, 255, 136, 0.2); color: var(--status-complete); }
+        .timeline-feed__avatar--info { background: rgba(0, 242, 234, 0.2); color: var(--status-current); }
+        .timeline-feed__avatar--warning { background: rgba(255, 170, 0, 0.2); color: var(--status-warning); }
+        .timeline-feed__avatar--error { background: rgba(255, 0, 110, 0.2); color: var(--status-error); }
+        .timeline-feed__content {
+            flex: 1;
+            min-width: 0;
+        }
+        .timeline-feed__text {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 0.25rem;
+        }
+        .timeline-feed__text strong {
+            color: white;
+        }
+        .timeline-feed__meta {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* ==================== STYLE 5: Progress Steps ==================== */
+        .timeline-progress {
+            width: 100%;
+        }
+        .timeline-progress__bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        .timeline-progress__fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--status-complete), var(--status-current));
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        .timeline-progress__steps {
+            display: flex;
+            justify-content: space-between;
+        }
+        .timeline-progress__step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+        .timeline-progress__number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .timeline-progress__step--complete .timeline-progress__number {
+            background: var(--status-complete);
+            color: #0a0a0a;
+        }
+        .timeline-progress__step--current .timeline-progress__number {
+            background: var(--status-current);
+            color: #0a0a0a;
+            box-shadow: 0 0 15px rgba(0, 242, 234, 0.5);
+        }
+        .timeline-progress__label {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+        }
+        .timeline-progress__step--complete .timeline-progress__label,
+        .timeline-progress__step--current .timeline-progress__label {
+            color: white;
+        }
+
+        /* ==================== STYLE 6: Milestone Cards ==================== */
+        .timeline-milestones {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .timeline-milestone {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .timeline-milestone:hover {
+            transform: translateX(5px);
+            border-color: rgba(0, 242, 234, 0.3);
+        }
+        .timeline-milestone--complete {
+            border-left: 3px solid var(--status-complete);
+        }
+        .timeline-milestone--current {
+            border-left: 3px solid var(--status-current);
+            background: rgba(0, 242, 234, 0.05);
+        }
+        .timeline-milestone__check {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+        .timeline-milestone--complete .timeline-milestone__check {
+            background: var(--status-complete);
+            color: #0a0a0a;
+        }
+        .timeline-milestone--current .timeline-milestone__check {
+            background: rgba(0, 242, 234, 0.2);
+            color: var(--status-current);
+        }
+        .timeline-milestone__info {
+            flex: 1;
+        }
+        .timeline-milestone__title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .timeline-milestone--complete .timeline-milestone__title,
+        .timeline-milestone--current .timeline-milestone__title {
+            color: white;
+        }
+        .timeline-milestone__date {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* ==================== STYLE 7: Compact Timeline ==================== */
+        .timeline-compact {
+            width: 100%;
+        }
+        .timeline-compact__header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .timeline-compact__title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: white;
+        }
+        .timeline-compact__count {
+            font-size: 0.8rem;
+            color: var(--jazer-cyan);
+        }
+        .timeline-compact__items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .timeline-compact__item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 6px;
+        }
+        .timeline-compact__item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .timeline-compact__dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .timeline-compact__dot--complete { background: var(--status-complete); }
+        .timeline-compact__dot--current { background: var(--status-current); animation: blink 1s infinite; }
+        .timeline-compact__dot--pending { background: var(--status-pending); }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .timeline-compact__text {
+            flex: 1;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .timeline-compact__time {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* ==================== STYLE 8: Cyberpunk Timeline ==================== */
+        .timeline-cyberpunk {
+            width: 100%;
+            background: linear-gradient(135deg, rgba(0, 10, 20, 0.9) 0%, rgba(20, 0, 40, 0.9) 100%);
+            border: 1px solid var(--jazer-cyan);
+            padding: 1rem;
+            position: relative;
+        }
+        .timeline-cyberpunk::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--jazer-cyan), var(--jazer-purple), transparent);
+        }
+        .timeline-cyberpunk__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(0, 242, 234, 0.2);
+        }
+        .timeline-cyberpunk__title {
+            font-family: var(--font-secondary);
+            font-size: 0.7rem;
+            color: var(--jazer-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .timeline-cyberpunk__live {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.6rem;
+            color: var(--status-complete);
+        }
+        .timeline-cyberpunk__live-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--status-complete);
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+        .timeline-cyberpunk__items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .timeline-cyberpunk__item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 2px solid;
+        }
+        .timeline-cyberpunk__item--complete { border-left-color: var(--status-complete); }
+        .timeline-cyberpunk__item--current { border-left-color: var(--status-current); }
+        .timeline-cyberpunk__item--pending { border-left-color: var(--status-pending); }
+        .timeline-cyberpunk__status {
+            font-family: var(--font-secondary);
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 60px;
+        }
+        .timeline-cyberpunk__item--complete .timeline-cyberpunk__status { color: var(--status-complete); }
+        .timeline-cyberpunk__item--current .timeline-cyberpunk__status { color: var(--status-current); }
+        .timeline-cyberpunk__item--pending .timeline-cyberpunk__status { color: var(--status-pending); }
+        .timeline-cyberpunk__text {
+            flex: 1;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .timeline-cyberpunk__time {
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            margin-top: 3rem;
+            border-top: 1px solid rgba(0, 242, 234, 0.2);
+        }
+        footer p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+        .keyboard-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--jazer-cyan);
+        }
+        .keyboard-hint kbd {
+            background: rgba(0, 242, 234, 0.2);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .styles-grid { grid-template-columns: 1fr; }
+            .hero { padding: 2rem 1rem; }
+            .hero h1 { font-size: 2rem; }
+            .controls { gap: 0.5rem; }
+            .control-btn { padding: 0.5rem 1rem; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back</a>
+        
+        <div class="hero">
+            <h1>Timeline Status Tracker</h1>
+            <p>8 stylish timeline components for tracking progress, orders, and activities over time</p>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn active" onclick="showAll()">Show All</button>
+            <button class="control-btn" onclick="advanceTimelines()">Advance Step</button>
+            <button class="control-btn" onclick="resetTimelines()">Reset</button>
+        </div>
+
+        <div class="styles-grid">
+            <!-- Style 1: Vertical Timeline -->
+            <div class="style-card">
+                <div class="style-label">Vertical Timeline</div>
+                <div class="demo-area">
+                    <div class="timeline-vertical">
+                        <div class="timeline-vertical__item timeline-vertical__item--complete">
+                            <div class="timeline-vertical__dot"></div>
+                            <div class="timeline-vertical__content">
+                                <div class="timeline-vertical__title">Order Placed</div>
+                                <div class="timeline-vertical__time">Dec 1, 2024 - 10:30 AM</div>
+                            </div>
+                        </div>
+                        <div class="timeline-vertical__item timeline-vertical__item--complete">
+                            <div class="timeline-vertical__dot"></div>
+                            <div class="timeline-vertical__content">
+                                <div class="timeline-vertical__title">Payment Confirmed</div>
+                                <div class="timeline-vertical__time">Dec 1, 2024 - 10:32 AM</div>
+                            </div>
+                        </div>
+                        <div class="timeline-vertical__item timeline-vertical__item--current">
+                            <div class="timeline-vertical__dot"></div>
+                            <div class="timeline-vertical__content">
+                                <div class="timeline-vertical__title">Processing</div>
+                                <div class="timeline-vertical__time">In progress...</div>
+                            </div>
+                        </div>
+                        <div class="timeline-vertical__item">
+                            <div class="timeline-vertical__dot"></div>
+                            <div class="timeline-vertical__content">
+                                <div class="timeline-vertical__title">Shipped</div>
+                                <div class="timeline-vertical__time">Pending</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 2: Horizontal Timeline -->
+            <div class="style-card">
+                <div class="style-label">Horizontal</div>
+                <div class="demo-area">
+                    <div class="timeline-horizontal">
+                        <div class="timeline-horizontal__track">
+                            <div class="timeline-horizontal__item timeline-horizontal__item--complete">
+                                <div class="timeline-horizontal__dot">✓</div>
+                                <div class="timeline-horizontal__label">Created</div>
+                            </div>
+                            <div class="timeline-horizontal__item timeline-horizontal__item--complete">
+                                <div class="timeline-horizontal__dot">✓</div>
+                                <div class="timeline-horizontal__label">Review</div>
+                            </div>
+                            <div class="timeline-horizontal__item timeline-horizontal__item--current">
+                                <div class="timeline-horizontal__dot">3</div>
+                                <div class="timeline-horizontal__label">Approval</div>
+                            </div>
+                            <div class="timeline-horizontal__item">
+                                <div class="timeline-horizontal__dot">4</div>
+                                <div class="timeline-horizontal__label">Complete</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 3: Order Tracking -->
+            <div class="style-card">
+                <div class="style-label">Order Tracking</div>
+                <div class="demo-area">
+                    <div class="timeline-order">
+                        <div class="timeline-order__header">
+                            <span class="timeline-order__title">Package Status</span>
+                            <span class="timeline-order__id">#JZR-2024-1234</span>
+                        </div>
+                        <div class="timeline-order__steps">
+                            <div class="timeline-order__step timeline-order__step--complete">
+                                <div class="timeline-order__icon">📦</div>
+                                <div class="timeline-order__info">
+                                    <div class="timeline-order__step-title">Order Confirmed</div>
+                                    <div class="timeline-order__step-time">Dec 1, 10:30 AM</div>
+                                </div>
+                            </div>
+                            <div class="timeline-order__step timeline-order__step--complete">
+                                <div class="timeline-order__icon">🏭</div>
+                                <div class="timeline-order__info">
+                                    <div class="timeline-order__step-title">Shipped from Warehouse</div>
+                                    <div class="timeline-order__step-time">Dec 2, 2:15 PM</div>
+                                </div>
+                            </div>
+                            <div class="timeline-order__step timeline-order__step--current">
+                                <div class="timeline-order__icon">🚚</div>
+                                <div class="timeline-order__info">
+                                    <div class="timeline-order__step-title">In Transit</div>
+                                    <div class="timeline-order__step-time">Arriving by Dec 5</div>
+                                </div>
+                            </div>
+                            <div class="timeline-order__step">
+                                <div class="timeline-order__icon">🏠</div>
+                                <div class="timeline-order__info">
+                                    <div class="timeline-order__step-title">Delivered</div>
+                                    <div class="timeline-order__step-time">Pending</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 4: Activity Feed -->
+            <div class="style-card">
+                <div class="style-label">Activity Feed</div>
+                <div class="demo-area">
+                    <div class="timeline-feed">
+                        <div class="timeline-feed__item">
+                            <div class="timeline-feed__avatar timeline-feed__avatar--success">✓</div>
+                            <div class="timeline-feed__content">
+                                <div class="timeline-feed__text"><strong>Build #247</strong> completed successfully</div>
+                                <div class="timeline-feed__meta">2 minutes ago • main branch</div>
+                            </div>
+                        </div>
+                        <div class="timeline-feed__item">
+                            <div class="timeline-feed__avatar timeline-feed__avatar--info">→</div>
+                            <div class="timeline-feed__content">
+                                <div class="timeline-feed__text"><strong>Deployment</strong> started to production</div>
+                                <div class="timeline-feed__meta">5 minutes ago • v2.4.1</div>
+                            </div>
+                        </div>
+                        <div class="timeline-feed__item">
+                            <div class="timeline-feed__avatar timeline-feed__avatar--warning">⚠</div>
+                            <div class="timeline-feed__content">
+                                <div class="timeline-feed__text"><strong>Warning:</strong> High memory usage detected</div>
+                                <div class="timeline-feed__meta">12 minutes ago • server-02</div>
+                            </div>
+                        </div>
+                        <div class="timeline-feed__item">
+                            <div class="timeline-feed__avatar timeline-feed__avatar--success">+</div>
+                            <div class="timeline-feed__content">
+                                <div class="timeline-feed__text"><strong>PR #156</strong> merged by @developer</div>
+                                <div class="timeline-feed__meta">1 hour ago • feature/auth</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 5: Progress Steps -->
+            <div class="style-card">
+                <div class="style-label">Progress Steps</div>
+                <div class="demo-area">
+                    <div class="timeline-progress">
+                        <div class="timeline-progress__bar">
+                            <div class="timeline-progress__fill" style="width: 60%"></div>
+                        </div>
+                        <div class="timeline-progress__steps">
+                            <div class="timeline-progress__step timeline-progress__step--complete">
+                                <div class="timeline-progress__number">1</div>
+                                <div class="timeline-progress__label">Info</div>
+                            </div>
+                            <div class="timeline-progress__step timeline-progress__step--complete">
+                                <div class="timeline-progress__number">2</div>
+                                <div class="timeline-progress__label">Details</div>
+                            </div>
+                            <div class="timeline-progress__step timeline-progress__step--current">
+                                <div class="timeline-progress__number">3</div>
+                                <div class="timeline-progress__label">Review</div>
+                            </div>
+                            <div class="timeline-progress__step">
+                                <div class="timeline-progress__number">4</div>
+                                <div class="timeline-progress__label">Submit</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 6: Milestone Cards -->
+            <div class="style-card">
+                <div class="style-label">Milestone Cards</div>
+                <div class="demo-area">
+                    <div class="timeline-milestones">
+                        <div class="timeline-milestone timeline-milestone--complete">
+                            <div class="timeline-milestone__check">✓</div>
+                            <div class="timeline-milestone__info">
+                                <div class="timeline-milestone__title">Project Kickoff</div>
+                                <div class="timeline-milestone__date">Completed Nov 15, 2024</div>
+                            </div>
+                        </div>
+                        <div class="timeline-milestone timeline-milestone--complete">
+                            <div class="timeline-milestone__check">✓</div>
+                            <div class="timeline-milestone__info">
+                                <div class="timeline-milestone__title">Design Phase</div>
+                                <div class="timeline-milestone__date">Completed Nov 28, 2024</div>
+                            </div>
+                        </div>
+                        <div class="timeline-milestone timeline-milestone--current">
+                            <div class="timeline-milestone__check">●</div>
+                            <div class="timeline-milestone__info">
+                                <div class="timeline-milestone__title">Development Sprint 1</div>
+                                <div class="timeline-milestone__date">In Progress - 60% complete</div>
+                            </div>
+                        </div>
+                        <div class="timeline-milestone">
+                            <div class="timeline-milestone__check">○</div>
+                            <div class="timeline-milestone__info">
+                                <div class="timeline-milestone__title">Testing & QA</div>
+                                <div class="timeline-milestone__date">Scheduled Dec 15, 2024</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 7: Compact Timeline -->
+            <div class="style-card">
+                <div class="style-label">Compact</div>
+                <div class="demo-area">
+                    <div class="timeline-compact">
+                        <div class="timeline-compact__header">
+                            <span class="timeline-compact__title">Recent Activity</span>
+                            <span class="timeline-compact__count">8 events</span>
+                        </div>
+                        <div class="timeline-compact__items">
+                            <div class="timeline-compact__item">
+                                <div class="timeline-compact__dot timeline-compact__dot--complete"></div>
+                                <span class="timeline-compact__text">User authentication completed</span>
+                                <span class="timeline-compact__time">2m</span>
+                            </div>
+                            <div class="timeline-compact__item">
+                                <div class="timeline-compact__dot timeline-compact__dot--complete"></div>
+                                <span class="timeline-compact__text">Data sync finished</span>
+                                <span class="timeline-compact__time">5m</span>
+                            </div>
+                            <div class="timeline-compact__item">
+                                <div class="timeline-compact__dot timeline-compact__dot--current"></div>
+                                <span class="timeline-compact__text">Processing request...</span>
+                                <span class="timeline-compact__time">now</span>
+                            </div>
+                            <div class="timeline-compact__item">
+                                <div class="timeline-compact__dot timeline-compact__dot--pending"></div>
+                                <span class="timeline-compact__text">Awaiting confirmation</span>
+                                <span class="timeline-compact__time">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 8: Cyberpunk Timeline -->
+            <div class="style-card">
+                <div class="style-label">Cyberpunk</div>
+                <div class="demo-area">
+                    <div class="timeline-cyberpunk">
+                        <div class="timeline-cyberpunk__header">
+                            <span class="timeline-cyberpunk__title">System Log</span>
+                            <div class="timeline-cyberpunk__live">
+                                <div class="timeline-cyberpunk__live-dot"></div>
+                                LIVE
+                            </div>
+                        </div>
+                        <div class="timeline-cyberpunk__items">
+                            <div class="timeline-cyberpunk__item timeline-cyberpunk__item--complete">
+                                <span class="timeline-cyberpunk__status">Complete</span>
+                                <span class="timeline-cyberpunk__text">INIT_SEQUENCE executed</span>
+                                <span class="timeline-cyberpunk__time">14:32:01</span>
+                            </div>
+                            <div class="timeline-cyberpunk__item timeline-cyberpunk__item--complete">
+                                <span class="timeline-cyberpunk__status">Complete</span>
+                                <span class="timeline-cyberpunk__text">AUTH_MODULE loaded</span>
+                                <span class="timeline-cyberpunk__time">14:32:03</span>
+                            </div>
+                            <div class="timeline-cyberpunk__item timeline-cyberpunk__item--current">
+                                <span class="timeline-cyberpunk__status">Active</span>
+                                <span class="timeline-cyberpunk__text">DATA_SYNC in progress</span>
+                                <span class="timeline-cyberpunk__time">14:32:05</span>
+                            </div>
+                            <div class="timeline-cyberpunk__item timeline-cyberpunk__item--pending">
+                                <span class="timeline-cyberpunk__status">Queued</span>
+                                <span class="timeline-cyberpunk__text">DEPLOY_PROD awaiting</span>
+                                <span class="timeline-cyberpunk__time">--:--:--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Timeline Status Tracker Components - JaZeR UI Library</p>
+            <div class="keyboard-hint">
+                <kbd>Space</kbd> to advance timelines
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        function showAll() {
+            updateActiveButton(0);
+        }
+
+        function advanceTimelines() {
+            // Simple animation to show interaction
+            const currentItems = document.querySelectorAll('[class*="--current"]');
+            currentItems.forEach(item => {
+                item.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    item.style.transform = '';
+                }, 300);
+            });
+            updateActiveButton(1);
+        }
+
+        function resetTimelines() {
+            updateActiveButton(2);
+        }
+
+        function updateActiveButton(index) {
+            document.querySelectorAll('.control-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+        }
+
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && e.target === document.body) {
+                e.preventDefault();
+                advanceTimelines();
+            }
+        });
+    </script>
+</body>
+</html>

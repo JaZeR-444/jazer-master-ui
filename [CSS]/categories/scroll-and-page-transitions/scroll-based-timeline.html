@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll Based Timeline - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+            background: #0a0a0a;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+        }
+
+        .header h1 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 1rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Timeline Container */
+        .timeline-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            position: relative;
+        }
+
+        /* Timeline Line */
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-50%);
+        }
+
+        .timeline-progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 0%;
+            background: var(--gradient-primary, linear-gradient(180deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            transition: height 0.1s linear;
+        }
+
+        /* Timeline Items */
+        .timeline-item {
+            position: relative;
+            margin-bottom: 6rem;
+            display: flex;
+            align-items: center;
+            opacity: 0.3;
+            transform: translateY(30px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .timeline-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .timeline-item:nth-child(odd) {
+            flex-direction: row;
+        }
+
+        .timeline-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        /* Timeline Content */
+        .timeline-content {
+            width: calc(50% - 60px);
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(0, 242, 234, 0.2);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .timeline-item.visible .timeline-content {
+            border-color: rgba(0, 242, 234, 0.4);
+        }
+
+        .timeline-content:hover {
+            border-color: var(--jazer-cyan, #00f2ea);
+            box-shadow: 0 10px 40px rgba(0, 242, 234, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .timeline-date {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid var(--jazer-cyan, #00f2ea);
+            border-radius: 20px;
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 0.875rem;
+            color: var(--jazer-cyan, #00f2ea);
+            margin-bottom: 1rem;
+        }
+
+        .timeline-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .timeline-description {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.7;
+        }
+
+        /* Timeline Marker */
+        .timeline-marker {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 24px;
+            background: #0a0a0a;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            z-index: 10;
+            transition: all 0.4s ease;
+        }
+
+        .timeline-item.visible .timeline-marker {
+            border-color: var(--jazer-cyan, #00f2ea);
+            background: var(--jazer-cyan, #00f2ea);
+            box-shadow: 0 0 20px var(--jazer-cyan, #00f2ea);
+        }
+
+        .timeline-marker::before {
+            content: '';
+            position: absolute;
+            inset: 4px;
+            background: #0a0a0a;
+            border-radius: 50%;
+            transition: all 0.4s ease;
+        }
+
+        .timeline-item.visible .timeline-marker::before {
+            background: var(--jazer-cyan, #00f2ea);
+        }
+
+        /* Progress Indicator */
+        .progress-indicator {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            min-width: 150px;
+        }
+
+        .progress-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 0.75rem;
+            color: var(--jazer-cyan, #00f2ea);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--gradient-primary, linear-gradient(90deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            border-radius: 3px;
+            transition: width 0.1s linear;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .progress-current {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            color: var(--jazer-cyan, #00f2ea);
+        }
+
+        /* Footer Section */
+        .footer-section {
+            padding: 6rem 2rem;
+            text-align: center;
+            background: linear-gradient(180deg, transparent 0%, #0a0a0a 100%);
+        }
+
+        .footer-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            margin-bottom: 1rem;
+            color: var(--jazer-cyan, #00f2ea);
+        }
+
+        .footer-text {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .timeline-line {
+                left: 30px;
+            }
+
+            .timeline-item,
+            .timeline-item:nth-child(odd),
+            .timeline-item:nth-child(even) {
+                flex-direction: row;
+                padding-left: 80px;
+            }
+
+            .timeline-content {
+                width: 100%;
+            }
+
+            .timeline-marker {
+                left: 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .back-button {
+                top: 1rem;
+                left: 1rem;
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .header {
+                padding: 6rem 1rem 3rem;
+            }
+
+            .timeline-container {
+                padding: 3rem 1rem;
+            }
+
+            .timeline-content {
+                padding: 1.5rem;
+            }
+
+            .timeline-title {
+                font-size: 1.25rem;
+            }
+
+            .progress-indicator {
+                top: auto;
+                bottom: 1rem;
+                right: 1rem;
+                left: 1rem;
+            }
+
+            .timeline-item {
+                margin-bottom: 4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <!-- Progress Indicator -->
+    <div class="progress-indicator">
+        <div class="progress-title">Timeline Progress</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text">
+            <span class="progress-current" id="currentEvent">0/8</span>
+            <span id="progressPercent">0%</span>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Scroll Based Timeline</h1>
+        <p>An animated timeline that reveals events as you scroll, perfect for company histories, project milestones, and chronological storytelling</p>
+    </div>
+
+    <!-- Timeline -->
+    <div class="timeline-container">
+        <div class="timeline-line">
+            <div class="timeline-progress" id="timelineProgress"></div>
+        </div>
+
+        <!-- Timeline Item 1 -->
+        <div class="timeline-item" data-index="1">
+            <div class="timeline-content">
+                <span class="timeline-date">2020 Q1</span>
+                <h3 class="timeline-title">Project Inception</h3>
+                <p class="timeline-description">The initial concept was born from a desire to create more engaging web experiences. Research and planning phase began with extensive user testing and prototyping.</p>
+            </div>
+            <div class="timeline-marker"></div>
+        </div>
+
+        <!-- Timeline Item 2 -->
+        <div class="timeline-item" data-index="2">
+            <div class="timeline-content">
+                <span class="timeline-date">2020 Q3</span>
+                <h3 class="timeline-title">Foundation Built</h3>
+                <p class="timeline-description">Core architecture established with focus on performance and scalability. Key technologies selected and development infrastructure deployed.</p>
+            </div>
+            <div class="timeline-marker"></div>
+        </div>
+
+        <!-- Timeline Item 3 -->
+        <div class="timeline-item" data-index="3">
+            <div class="timeline-content">
+                <span class="timeline-date">2021 Q1</span>
+                <h3 class="timeline-title">Alpha Release</h3>
+                <p class="timeline-description">First internal release with basic functionality. Gathered feedback from early adopters and identified key areas for improvement.</p>
+            </div>
+            <div class="timeline-marker"></div>
+        </div>
+
+        <!-- Timeline Item 4 -->
+        <div class="timeline-item" data-index="4">
+            <div class="timeline-content">
+                <span class="timeline-date">2021 Q3</span>
+                <h3 class="timeline-title">Beta Launch</h3>
+                <p class="timeline-description">Public beta released to select users. Major features completed including scroll animations, transitions, and interactive elements.</p>
+            </div>
+            <div class="timeline-marker"></div>
+        </div>
+
+        <!-- Timeline Item 5 -->
+        <div class="timeline-item" data-index="5">
+            <div class="timeline-content">
+                <span class="timeline-date">2022 Q1</span>
+                <h3 class="timeline-title">1.0 Release</h3>
+                <p class="timeline-description">Official version 1.0 launched with full feature set. Comprehensive documentation and examples provided for developers.</p>
+            </div>
+            <div class="timeline-marker"></div>
+        </div>
+
+        <!-- Timeline Item 6 -->
+        <div class="timeline-item" data-index="6">
+            <div class="timeline-content">
+                <span class="timeline-date">2022 Q4</span>
+                <h3 class="timeline-title">Community Growth</h3>
+                <p class="timeline-description">Growing adoption and community contributions. Plugin ecosystem expanded with third-party integrations and extensions.</p>
+            </div>
+            <div class="timeline-marker"></div>
+        </div>
+
+        <!-- Timeline Item 7 -->
+        <div class="timeline-item" data-index="7">
+            <div class="timeline-content">
+                <span class="timeline-date">2023 Q2</span>
+                <h3 class="timeline-title">Version 2.0</h3>
+                <p class="timeline-description">Major update with performance improvements, new animation types, and enhanced accessibility features based on community feedback.</p>
+            </div>
+            <div class="timeline-marker"></div>
+        </div>
+
+        <!-- Timeline Item 8 -->
+        <div class="timeline-item" data-index="8">
+            <div class="timeline-content">
+                <span class="timeline-date">2024 Q1</span>
+                <h3 class="timeline-title">Future Vision</h3>
+                <p class="timeline-description">Continuing innovation with AI-powered animations, advanced scroll physics, and deeper browser integration for next-generation experiences.</p>
+            </div>
+            <div class="timeline-marker"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-section">
+        <h2 class="footer-title">The Journey Continues</h2>
+        <p class="footer-text">Every great project has a story. Use scroll-based timelines to tell yours in an engaging, interactive way.</p>
+    </div>
+
+    <script>
+        // Elements
+        const timelineItems = document.querySelectorAll('.timeline-item');
+        const timelineProgress = document.getElementById('timelineProgress');
+        const progressFill = document.getElementById('progressFill');
+        const currentEvent = document.getElementById('currentEvent');
+        const progressPercent = document.getElementById('progressPercent');
+
+        const totalItems = timelineItems.length;
+
+        // Intersection Observer for timeline items
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -20% 0px',
+            threshold: 0.5
+        };
+
+        const itemObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        timelineItems.forEach(item => {
+            itemObserver.observe(item);
+        });
+
+        // Update progress based on scroll
+        function updateProgress() {
+            const container = document.querySelector('.timeline-container');
+            const rect = container.getBoundingClientRect();
+            const containerTop = window.scrollY + rect.top;
+            const containerHeight = container.offsetHeight;
+            const scrolled = window.scrollY - containerTop + window.innerHeight / 2;
+            const progress = Math.max(0, Math.min(1, scrolled / containerHeight));
+
+            // Update timeline line progress
+            timelineProgress.style.height = `${progress * 100}%`;
+
+            // Update progress bar
+            progressFill.style.width = `${progress * 100}%`;
+            progressPercent.textContent = `${Math.round(progress * 100)}%`;
+
+            // Count visible items
+            const visibleCount = document.querySelectorAll('.timeline-item.visible').length;
+            currentEvent.textContent = `${visibleCount}/${totalItems}`;
+        }
+
+        // Optimized scroll handler
+        let ticking = false;
+
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                requestAnimationFrame(() => {
+                    updateProgress();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }, { passive: true });
+
+        // Initialize
+        updateProgress();
+    </script>
+</body>
+</html>

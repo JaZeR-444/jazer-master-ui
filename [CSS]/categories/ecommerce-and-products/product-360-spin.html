@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product 360° Spin - JaZeR E-commerce Patterns</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-body); background: var(--bg-dark); color: var(--text-light); line-height: 1.6; padding: 1.5rem; min-height: 100vh; }
+    .back-button { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-gray); text-decoration: none; font-family: var(--font-secondary); font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 12px; border: 2px solid var(--border-default); background: var(--bg-card); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-bottom: 1.5rem; }
+    .back-button:hover { border-color: var(--jazer-cyan); color: var(--jazer-cyan); transform: translateX(-5px); box-shadow: var(--shadow-cyan); }
+    h1 { font-family: var(--font-primary); font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; background: var(--gradient-text); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .description { color: var(--text-gray); font-size: 1.1rem; margin-bottom: 1.5rem; max-width: 700px; }
+    .hero-keys { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .key-hint { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-gray); font-size: 0.875rem; }
+    .key-hint kbd { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 6px; padding: 0.25rem 0.5rem; font-family: var(--font-secondary); font-size: 0.75rem; color: var(--jazer-cyan); }
+    .style-selector { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 2rem; }
+    .style-btn { padding: 0.625rem 1.25rem; font-family: var(--font-secondary); font-weight: 600; font-size: 0.875rem; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px; border: 2px solid var(--border-default); background: var(--bg-card); color: var(--text-gray); }
+    .style-btn:hover { border-color: var(--jazer-cyan); color: var(--jazer-cyan); transform: translateY(-2px); }
+    .style-btn.active { background: var(--gradient-primary); border-color: var(--jazer-cyan); color: var(--text-light); box-shadow: var(--shadow-cyan); }
+    .demo-container { padding: 3rem; background: var(--bg-card); border: 2px solid var(--border-default); border-radius: 16px; min-height: 500px; display: flex; align-items: center; justify-content: center; }
+
+    /* 360 Spin Base Styles */
+    .spin-widget { max-width: 400px; width: 100%; }
+    .spin-card { padding: 1.5rem; border-radius: 16px; transition: all 0.3s ease; }
+    .spin-viewer { position: relative; aspect-ratio: 1; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 8rem; cursor: grab; user-select: none; overflow: hidden; margin-bottom: 1rem; }
+    .spin-viewer:active { cursor: grabbing; }
+    .spin-viewer .product { transition: transform 0.1s ease; }
+    .spin-progress-wrap { height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 1rem; }
+    .spin-progress { height: 100%; width: 0%; transition: width 0.1s ease; }
+    .spin-info { display: flex; justify-content: space-between; align-items: center; }
+    .spin-hint { font-size: 0.8rem; opacity: 0.6; }
+    .spin-angle { font-family: var(--font-primary); font-weight: 700; font-size: 1.25rem; }
+    .spin-controls { display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: center; }
+    .spin-ctrl-btn { width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer; font-size: 1rem; transition: all 0.3s ease; }
+
+    /* Style 1: Neon */
+    .style-neon .spin-card { background: rgba(6, 182, 212, 0.05); border: 2px solid var(--jazer-cyan); box-shadow: 0 0 30px rgba(6, 182, 212, 0.2); }
+    .style-neon .spin-viewer { background: rgba(6, 182, 212, 0.1); border: 2px solid var(--border-default); }
+    .style-neon .spin-viewer:hover { border-color: var(--jazer-cyan); box-shadow: 0 0 20px rgba(6, 182, 212, 0.3); }
+    .style-neon .spin-progress-wrap { background: var(--bg-dark); }
+    .style-neon .spin-progress { background: var(--gradient-primary); }
+    .style-neon .spin-angle { background: var(--gradient-text); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .style-neon .spin-ctrl-btn { background: var(--bg-dark); border: 2px solid var(--jazer-cyan); color: var(--jazer-cyan); }
+    .style-neon .spin-ctrl-btn:hover { background: var(--jazer-cyan); color: white; }
+
+    /* Style 2: Gradient */
+    .style-gradient .spin-card { background: linear-gradient(145deg, rgba(102, 126, 234, 0.15), rgba(240, 147, 251, 0.15)); border: 1px solid rgba(167, 139, 250, 0.3); }
+    .style-gradient .spin-viewer { background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(240, 147, 251, 0.2)); border: 1px solid rgba(167, 139, 250, 0.3); }
+    .style-gradient .spin-progress-wrap { background: rgba(102, 126, 234, 0.2); }
+    .style-gradient .spin-progress { background: linear-gradient(90deg, #667eea, #f093fb); }
+    .style-gradient .spin-angle { background: linear-gradient(90deg, #f093fb, #667eea); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .style-gradient .spin-ctrl-btn { background: linear-gradient(135deg, #667eea, #f093fb); color: white; }
+
+    /* Style 3: Minimal */
+    .style-minimal .spin-card { background: #1a1a2e; border: 1px solid #2a2a4e; }
+    .style-minimal .spin-viewer { background: #151525; border: 1px solid #333; }
+    .style-minimal .spin-progress-wrap { background: #222; }
+    .style-minimal .spin-progress { background: #555; }
+    .style-minimal .spin-angle { color: #888; -webkit-text-fill-color: #888; }
+    .style-minimal .spin-ctrl-btn { background: #333; color: #888; }
+
+    /* Style 4: Neumorphic */
+    .style-neumorphic .spin-card { background: #2d2d3a; border: none; box-shadow: 12px 12px 24px #1a1a24, -12px -12px 24px #404050; border-radius: 24px; }
+    .style-neumorphic .spin-viewer { background: #2d2d3a; border: none; box-shadow: inset 6px 6px 12px #1a1a24, inset -6px -6px 12px #404050; border-radius: 16px; }
+    .style-neumorphic .spin-progress-wrap { background: #2d2d3a; box-shadow: inset 2px 2px 4px #1a1a24, inset -2px -2px 4px #404050; }
+    .style-neumorphic .spin-progress { background: #8b5cf6; }
+    .style-neumorphic .spin-angle { color: #8b5cf6; -webkit-text-fill-color: #8b5cf6; }
+    .style-neumorphic .spin-ctrl-btn { background: #2d2d3a; color: #8b5cf6; box-shadow: 4px 4px 8px #1a1a24, -4px -4px 8px #404050; }
+
+    /* Style 5: Outline */
+    .style-outline .spin-card { background: transparent; border: 3px solid var(--jazer-pink); }
+    .style-outline .spin-viewer { background: transparent; border: 3px solid var(--jazer-cyan); }
+    .style-outline .spin-progress-wrap { background: transparent; border: 2px solid var(--jazer-purple); }
+    .style-outline .spin-progress { background: var(--jazer-purple); }
+    .style-outline .spin-angle { color: var(--jazer-cyan); -webkit-text-fill-color: var(--jazer-cyan); }
+    .style-outline .spin-ctrl-btn { background: transparent; border: 2px solid var(--jazer-pink); color: var(--jazer-pink); }
+    .style-outline .spin-ctrl-btn:hover { background: var(--jazer-pink); color: white; }
+
+    /* Style 6: Retro */
+    .style-retro .spin-card { background: #2a1f4e; border: 4px solid #ff6b6b; box-shadow: 8px 8px 0 #ff6b6b; border-radius: 0; }
+    .style-retro .spin-viewer { background: #1a1333; border: 4px solid #5f27cd; border-radius: 0; }
+    .style-retro .spin-progress-wrap { background: #1a1333; border: 2px solid #5f27cd; border-radius: 0; }
+    .style-retro .spin-progress { background: #feca57; }
+    .style-retro .spin-angle { color: #ff6b6b; -webkit-text-fill-color: #ff6b6b; }
+    .style-retro .spin-ctrl-btn { background: #ff6b6b; color: #222; border-radius: 0; }
+
+    /* Style 7: Glass */
+    .style-glass .spin-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+    .style-glass .spin-viewer { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
+    .style-glass .spin-progress-wrap { background: rgba(255, 255, 255, 0.05); }
+    .style-glass .spin-progress { background: rgba(255, 255, 255, 0.5); }
+    .style-glass .spin-angle { color: rgba(255, 255, 255, 0.9); -webkit-text-fill-color: rgba(255, 255, 255, 0.9); }
+    .style-glass .spin-ctrl-btn { background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2); }
+
+    /* Style 8: Cyberpunk */
+    .style-cyberpunk .spin-card { background: linear-gradient(135deg, #0a0a0a, #1a0a2e); border: 2px solid #ff00ff; box-shadow: 0 0 30px rgba(255, 0, 255, 0.4); clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px)); border-radius: 0; }
+    .style-cyberpunk .spin-viewer { background: rgba(0, 255, 255, 0.05); border: 2px solid #00ffff; border-radius: 0; box-shadow: inset 0 0 30px rgba(0, 255, 255, 0.1); }
+    .style-cyberpunk .spin-progress-wrap { background: rgba(255, 0, 255, 0.2); border-radius: 0; }
+    .style-cyberpunk .spin-progress { background: linear-gradient(90deg, #ff00ff, #00ffff); box-shadow: 0 0 10px #00ffff; }
+    .style-cyberpunk .spin-angle { color: #00ffff; -webkit-text-fill-color: #00ffff; text-shadow: 0 0 10px #00ffff; }
+    .style-cyberpunk .spin-ctrl-btn { background: #ff00ff; color: #000; border-radius: 0; box-shadow: 0 0 15px rgba(255, 0, 255, 0.5); }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to E-commerce Patterns</a>
+  <h1>Product 360° Spin</h1>
+  <p class="description">Interactive 360-degree product viewer with drag-to-rotate functionality and angle indicator.</p>
+  <div class="hero-keys">
+    <span class="key-hint"><kbd>Space</kbd> Auto-rotate</span>
+    <span class="key-hint"><kbd>R</kbd> Reset angle</span>
+  </div>
+
+  <div class="style-selector">
+    <button class="style-btn active" data-style="neon">Neon</button>
+    <button class="style-btn" data-style="gradient">Gradient</button>
+    <button class="style-btn" data-style="minimal">Minimal</button>
+    <button class="style-btn" data-style="neumorphic">Neumorphic</button>
+    <button class="style-btn" data-style="outline">Outline</button>
+    <button class="style-btn" data-style="retro">Retro</button>
+    <button class="style-btn" data-style="glass">Glass</button>
+    <button class="style-btn" data-style="cyberpunk">Cyberpunk</button>
+  </div>
+
+  <div class="demo-container">
+    <div id="demoContent"></div>
+  </div>
+
+  <script>
+    let currentStyle = 'neon';
+    let angle = 0;
+    let isDragging = false;
+    let startX = 0;
+    let autoRotate = false;
+    let rotateInterval = null;
+
+    const templates = {
+      neon: () => renderSpin('style-neon'),
+      gradient: () => renderSpin('style-gradient'),
+      minimal: () => renderSpin('style-minimal'),
+      neumorphic: () => renderSpin('style-neumorphic'),
+      outline: () => renderSpin('style-outline'),
+      retro: () => renderSpin('style-retro'),
+      glass: () => renderSpin('style-glass'),
+      cyberpunk: () => renderSpin('style-cyberpunk')
+    };
+
+    function renderSpin(styleClass) {
+      return `
+        <div class="${styleClass}">
+          <div class="spin-widget">
+            <div class="spin-card">
+              <div class="spin-viewer" id="spinViewer">
+                <span class="product" style="transform: rotateY(${angle}deg);">👟</span>
+              </div>
+              <div class="spin-progress-wrap">
+                <div class="spin-progress" style="width: ${(angle % 360) / 360 * 100}%;"></div>
+              </div>
+              <div class="spin-info">
+                <span class="spin-hint">↔ Drag to rotate</span>
+                <span class="spin-angle">${Math.round(angle % 360)}°</span>
+              </div>
+              <div class="spin-controls">
+                <button class="spin-ctrl-btn" onclick="rotateBy(-45)">←</button>
+                <button class="spin-ctrl-btn" onclick="toggleAutoRotate()">${autoRotate ? '⏸' : '▶'}</button>
+                <button class="spin-ctrl-btn" onclick="rotateBy(45)">→</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function rotateBy(deg) {
+      angle += deg;
+      if (angle < 0) angle += 360;
+      render();
+    }
+
+    function toggleAutoRotate() {
+      autoRotate = !autoRotate;
+      if (autoRotate) {
+        rotateInterval = setInterval(() => {
+          angle = (angle + 2) % 360;
+          render();
+        }, 50);
+      } else {
+        clearInterval(rotateInterval);
+      }
+      render();
+    }
+
+    function resetAngle() {
+      angle = 0;
+      autoRotate = false;
+      clearInterval(rotateInterval);
+      render();
+    }
+
+    function render() {
+      document.getElementById('demoContent').innerHTML = templates[currentStyle]();
+      attachDragListeners();
+    }
+
+    function attachDragListeners() {
+      const viewer = document.getElementById('spinViewer');
+      if (!viewer) return;
+
+      viewer.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+      });
+
+      viewer.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const deltaX = e.clientX - startX;
+        angle += deltaX * 0.5;
+        if (angle < 0) angle += 360;
+        angle = angle % 360;
+        startX = e.clientX;
+        render();
+      });
+
+      viewer.addEventListener('mouseup', () => isDragging = false);
+      viewer.addEventListener('mouseleave', () => isDragging = false);
+    }
+
+    // Style selector
+    document.querySelectorAll('.style-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentStyle = btn.dataset.style;
+        render();
+      });
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        toggleAutoRotate();
+      } else if (e.code === 'KeyR') {
+        resetAngle();
+      }
+    });
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>

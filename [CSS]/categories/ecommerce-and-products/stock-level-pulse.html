@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Level Pulse - JaZeR E-commerce Patterns</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: var(--bg-card);
+      transition: all 0.3s ease;
+      margin-bottom: 2rem;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      transform: translateX(-5px);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero { text-align: center; margin-bottom: 3rem; }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: clamp(2rem, 5vw, 3rem);
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 1.1rem; max-width: 600px; margin: 0 auto 1.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem; }
+    .key-hint { display: flex; align-items: center; gap: 0.5rem; color: var(--text-gray); font-size: 0.9rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      padding: 0.25rem 0.5rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+    }
+    .style-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-bottom: 3rem;
+    }
+    .style-btn {
+      padding: 0.75rem 1.5rem;
+      border: 2px solid var(--border-default);
+      border-radius: 10px;
+      background: var(--bg-card);
+      color: var(--text-gray);
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .style-btn:hover, .style-btn.active {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .demo-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* Base Stock Level Component */
+    .stock-level {
+      padding: 1.25rem;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stock-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+    .stock-label {
+      font-family: var(--font-secondary);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .stock-count {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    .stock-bar {
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 0.75rem;
+      position: relative;
+    }
+    .stock-fill {
+      height: 100%;
+      border-radius: 4px;
+      width: var(--stock-percent, 0%);
+      transition: width 0.8s ease;
+      position: relative;
+    }
+    .stock-message {
+      font-size: 0.85rem;
+      display: block;
+    }
+
+    /* Pulse animation for low stock */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    @keyframes glow-pulse {
+      0%, 100% { box-shadow: 0 0 5px currentColor; }
+      50% { box-shadow: 0 0 20px currentColor, 0 0 30px currentColor; }
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    /* Style 1: Neon */
+    .neon .stock-level {
+      background: var(--bg-card);
+      border: 2px solid var(--border-default);
+    }
+    .neon .stock-level.high { border-color: #00ff88; box-shadow: 0 0 20px rgba(0, 255, 136, 0.2); }
+    .neon .stock-level.medium { border-color: var(--jazer-cyan); box-shadow: 0 0 20px rgba(0, 255, 255, 0.2); }
+    .neon .stock-level.low { border-color: #ff4444; box-shadow: 0 0 20px rgba(255, 68, 68, 0.3); animation: glow-pulse 1.5s ease-in-out infinite; }
+    .neon .stock-level.out { border-color: var(--text-gray); }
+    .neon .stock-label { color: var(--text-gray); }
+    .neon .high .stock-count { color: #00ff88; text-shadow: 0 0 10px #00ff88; }
+    .neon .medium .stock-count { color: var(--jazer-cyan); text-shadow: 0 0 10px var(--jazer-cyan); }
+    .neon .low .stock-count { color: #ff4444; text-shadow: 0 0 10px #ff4444; animation: pulse 1s ease-in-out infinite; }
+    .neon .out .stock-count { color: var(--text-gray); }
+    .neon .stock-bar { background: rgba(255,255,255,0.1); }
+    .neon .high .stock-fill { background: linear-gradient(90deg, #00ff88, #00cc6a); }
+    .neon .medium .stock-fill { background: linear-gradient(90deg, var(--jazer-cyan), #00cccc); }
+    .neon .low .stock-fill { background: linear-gradient(90deg, #ff4444, #ff6666); }
+    .neon .out .stock-fill { background: var(--text-gray); }
+    .neon .high .stock-message { color: #00ff88; }
+    .neon .medium .stock-message { color: var(--jazer-cyan); }
+    .neon .low .stock-message { color: #ff4444; }
+    .neon .out .stock-message { color: var(--text-gray); }
+
+    /* Style 2: Gradient */
+    .gradient .stock-level {
+      background: linear-gradient(135deg, var(--jazer-purple), var(--jazer-pink));
+      border: none;
+    }
+    .gradient .stock-level.low { animation: pulse 1.5s ease-in-out infinite; }
+    .gradient .stock-label { color: rgba(255,255,255,0.8); }
+    .gradient .stock-count { color: #fff; }
+    .gradient .stock-bar { background: rgba(255,255,255,0.2); }
+    .gradient .stock-fill { background: rgba(255,255,255,0.9); }
+    .gradient .stock-message { color: rgba(255,255,255,0.9); }
+
+    /* Style 3: Minimal */
+    .minimal .stock-level {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .minimal .stock-label { color: var(--text-gray); }
+    .minimal .stock-count { color: var(--text-light); font-weight: 400; }
+    .minimal .low .stock-count { color: #ff6b6b; }
+    .minimal .stock-bar { background: rgba(255,255,255,0.05); height: 4px; }
+    .minimal .high .stock-fill { background: #4ade80; }
+    .minimal .medium .stock-fill { background: var(--text-gray); }
+    .minimal .low .stock-fill { background: #ff6b6b; }
+    .minimal .out .stock-fill { background: #444; }
+    .minimal .stock-message { color: var(--text-gray); font-size: 0.8rem; }
+
+    /* Style 4: Neumorphic */
+    .neumorphic .stock-level {
+      background: #2a2a3e;
+      border: none;
+      box-shadow: 8px 8px 20px #1a1a28, -8px -8px 20px #3a3a54;
+    }
+    .neumorphic .stock-label { color: var(--text-gray); }
+    .neumorphic .stock-count { color: var(--jazer-purple); }
+    .neumorphic .low .stock-count { color: #e879f9; animation: pulse 1s ease-in-out infinite; }
+    .neumorphic .stock-bar {
+      background: #2a2a3e;
+      box-shadow: inset 4px 4px 8px #1a1a28, inset -4px -4px 8px #3a3a54;
+      height: 10px;
+    }
+    .neumorphic .high .stock-fill { background: linear-gradient(90deg, #a855f7, #8b5cf6); }
+    .neumorphic .medium .stock-fill { background: linear-gradient(90deg, #c084fc, #a855f7); }
+    .neumorphic .low .stock-fill { background: linear-gradient(90deg, #e879f9, #f0abfc); }
+    .neumorphic .out .stock-fill { background: #3a3a54; }
+    .neumorphic .stock-message { color: var(--text-gray); }
+
+    /* Style 5: Outline */
+    .outline .stock-level {
+      background: transparent;
+      border: 2px solid var(--jazer-pink);
+    }
+    .outline .stock-level.high { border-color: #22c55e; }
+    .outline .stock-level.medium { border-color: var(--jazer-pink); }
+    .outline .stock-level.low { border-color: #ef4444; animation: glow-pulse 1.5s ease-in-out infinite; color: #ef4444; }
+    .outline .stock-level.out { border-color: #666; }
+    .outline .stock-label { color: inherit; }
+    .outline .high .stock-count { color: #22c55e; }
+    .outline .medium .stock-count { color: var(--jazer-pink); }
+    .outline .low .stock-count { color: #ef4444; }
+    .outline .out .stock-count { color: #666; }
+    .outline .stock-bar { background: transparent; border: 1px solid currentColor; }
+    .outline .high .stock-fill { background: #22c55e; }
+    .outline .medium .stock-fill { background: var(--jazer-pink); }
+    .outline .low .stock-fill { background: #ef4444; }
+    .outline .stock-message { color: inherit; }
+
+    /* Style 6: Retro */
+    .retro .stock-level {
+      background: linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 100%);
+      border: 3px solid #ff6b35;
+      box-shadow: 4px 4px 0 #ff6b35;
+    }
+    .retro .stock-label { color: #ffde59; font-family: var(--font-primary); }
+    .retro .stock-count { color: #ff6b35; }
+    .retro .low .stock-count { animation: pulse 0.5s ease-in-out infinite; }
+    .retro .stock-bar { background: #1a0a2e; border: 2px solid #ff6b35; height: 12px; border-radius: 0; }
+    .retro .stock-fill { background: #ffde59; border-radius: 0; }
+    .retro .low .stock-fill { background: #ff6b35; }
+    .retro .stock-message { color: #ffde59; font-family: var(--font-secondary); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; }
+
+    /* Style 7: Glass */
+    .glass .stock-level {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .glass .stock-level.low { border-color: rgba(255, 100, 100, 0.5); }
+    .glass .stock-label { color: rgba(255,255,255,0.7); }
+    .glass .stock-count { color: var(--text-light); }
+    .glass .low .stock-count { color: #fca5a5; animation: pulse 1s ease-in-out infinite; }
+    .glass .stock-bar { background: rgba(255,255,255,0.1); }
+    .glass .high .stock-fill { background: rgba(74, 222, 128, 0.8); }
+    .glass .medium .stock-fill { background: rgba(0, 255, 255, 0.6); }
+    .glass .low .stock-fill { background: rgba(248, 113, 113, 0.8); }
+    .glass .out .stock-fill { background: rgba(255,255,255,0.2); }
+    .glass .stock-message { color: rgba(255,255,255,0.8); }
+
+    /* Style 8: Cyberpunk */
+    .cyberpunk .stock-level {
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a0a2e 100%);
+      border: 2px solid #ff00ff;
+      clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+      box-shadow: 0 0 20px rgba(255, 0, 255, 0.3), inset 0 0 20px rgba(255, 0, 255, 0.1);
+    }
+    .cyberpunk .stock-level.high { border-color: #00ff00; box-shadow: 0 0 20px rgba(0, 255, 0, 0.3); }
+    .cyberpunk .stock-level.low { border-color: #ff0000; animation: glow-pulse 1s ease-in-out infinite; color: #ff0000; }
+    .cyberpunk .stock-label { color: #00ffff; text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; }
+    .cyberpunk .high .stock-count { color: #00ff00; text-shadow: 0 0 10px #00ff00; }
+    .cyberpunk .medium .stock-count { color: #00ffff; text-shadow: 0 0 10px #00ffff; }
+    .cyberpunk .low .stock-count { color: #ff0000; text-shadow: 0 0 10px #ff0000; animation: pulse 0.5s ease-in-out infinite; }
+    .cyberpunk .out .stock-count { color: #666; }
+    .cyberpunk .stock-bar { background: rgba(0, 255, 255, 0.1); border: 1px solid rgba(0, 255, 255, 0.3); }
+    .cyberpunk .high .stock-fill { background: linear-gradient(90deg, #00ff00, #00cc00); }
+    .cyberpunk .medium .stock-fill { background: linear-gradient(90deg, #00ffff, #ff00ff); }
+    .cyberpunk .low .stock-fill { background: linear-gradient(90deg, #ff0000, #ff4444); }
+    .cyberpunk .stock-message { color: #ff00ff; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to E-commerce Patterns</a>
+
+  <section class="hero">
+    <h1>Stock Level Pulse</h1>
+    <p>Dynamic stock level indicators with pulsing animations for low inventory alerts. Visual urgency increases as stock decreases.</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Cycle stock levels</span>
+      <span class="key-hint"><kbd>R</kbd> Reset to defaults</span>
+    </div>
+  </section>
+
+  <div class="style-selector">
+    <button class="style-btn active" data-style="neon">Neon</button>
+    <button class="style-btn" data-style="gradient">Gradient</button>
+    <button class="style-btn" data-style="minimal">Minimal</button>
+    <button class="style-btn" data-style="neumorphic">Neumorphic</button>
+    <button class="style-btn" data-style="outline">Outline</button>
+    <button class="style-btn" data-style="retro">Retro</button>
+    <button class="style-btn" data-style="glass">Glass</button>
+    <button class="style-btn" data-style="cyberpunk">Cyberpunk</button>
+  </div>
+
+  <div class="demo-container neon" id="demo">
+    <!-- Rendered by JS -->
+  </div>
+
+  <script>
+    const stockLevels = [
+      { level: 'high', count: 127, percent: 95, message: 'Available for immediate shipping' },
+      { level: 'medium', count: 42, percent: 50, message: 'In stock - Ships within 24 hours' },
+      { level: 'low', count: 3, percent: 15, message: 'Only 3 left - Order soon!' },
+      { level: 'out', count: 0, percent: 0, message: 'Out of stock - Notify me when available' }
+    ];
+
+    let currentCycle = 0;
+
+    function renderStockLevels() {
+      const demo = document.getElementById('demo');
+      demo.innerHTML = stockLevels.map(s => `
+        <div class="stock-level ${s.level}">
+          <div class="stock-header">
+            <span class="stock-label">In Stock</span>
+            <span class="stock-count">${s.count}</span>
+          </div>
+          <div class="stock-bar">
+            <div class="stock-fill" style="--stock-percent: ${s.percent}%"></div>
+          </div>
+          <span class="stock-message">${s.message}</span>
+        </div>
+      `).join('');
+    }
+
+    // Style switcher
+    document.querySelectorAll('.style-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const demo = document.getElementById('demo');
+        demo.className = 'demo-container ' + btn.dataset.style;
+      });
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        currentCycle = (currentCycle + 1) % 4;
+        const levels = document.querySelectorAll('.stock-level');
+        levels.forEach((el, i) => {
+          const newIndex = (i + currentCycle) % stockLevels.length;
+          const s = stockLevels[newIndex];
+          el.className = 'stock-level ' + s.level;
+          el.querySelector('.stock-count').textContent = s.count;
+          el.querySelector('.stock-fill').style.setProperty('--stock-percent', s.percent + '%');
+          el.querySelector('.stock-message').textContent = s.message;
+        });
+      }
+      if (e.code === 'KeyR') {
+        currentCycle = 0;
+        renderStockLevels();
+      }
+    });
+
+    // Initialize
+    renderStockLevels();
+  </script>
+</body>
+</html>

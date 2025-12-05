@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layered Parallax Mountains - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="cyan"] { background: var(--jazer-cyan); }
+    .color-btn[data-color="purple"] { background: var(--jazer-purple); }
+    .color-btn[data-color="pink"] { background: var(--jazer-pink); }
+    .color-btn[data-color="rainbow"] { background: conic-gradient(#0ff, #f0f, #ff0, #0ff); }
+    .color-btn[data-color="mono"] { background: #888; }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .parallax-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    .parallax-layer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.1s ease-out;
+    }
+    .mountain-svg {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: auto;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 280px; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .controls { top: auto; bottom: 5rem; right: 1rem; min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Parallax Mountains</h1>
+    <p>Move mouse across the scene for depth effect</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Reset</span>
+      <span class="key-hint"><kbd>B</kbd> Auto-Pan</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn" data-color="cyan" title="Cyan"></button>
+      <button class="color-btn active" data-color="purple" title="Purple"></button>
+      <button class="color-btn" data-color="pink" title="Pink"></button>
+      <button class="color-btn" data-color="rainbow" title="Rainbow"></button>
+      <button class="color-btn" data-color="mono" title="Monochrome"></button>
+    </div>
+    <div class="slider-group">
+      <label>Parallax Speed: <span class="slider-value" id="speedValue">25</span></label>
+      <input type="range" id="speedSlider" min="5" max="50" step="5" value="25">
+    </div>
+    <div class="slider-group">
+      <label>Layer Count: <span class="slider-value" id="layerValue">5</span></label>
+      <input type="range" id="layerSlider" min="3" max="7" step="1" value="5">
+    </div>
+    <div class="slider-group">
+      <label>Smoothing: <span class="slider-value" id="smoothValue">0.1</span></label>
+      <input type="range" id="smoothSlider" min="0.05" max="0.3" step="0.05" value="0.1">
+    </div>
+  </div>
+
+  <div class="parallax-container" id="container"></div>
+  <div class="status" id="status">Move mouse to interact</div>
+
+  <script>
+    const container = document.getElementById('container');
+    const status = document.getElementById('status');
+
+    let config = {
+      parallaxSpeed: 25,
+      layerCount: 5,
+      smoothing: 0.1,
+      colorScheme: 'purple',
+      paused: false,
+      autoPan: false
+    };
+
+    const colorSchemes = {
+      cyan: [
+        { top: '#0a1520', bottom: '#051015' },
+        { top: '#0a2530', bottom: '#0a1520' },
+        { top: '#0a3545', bottom: '#0a2530' },
+        { top: '#0a4560', bottom: '#0a3545' },
+        { top: '#00f2ea', bottom: '#0a4560' },
+        { top: '#40ffff', bottom: '#00f2ea' },
+        { top: '#80ffff', bottom: '#40ffff' }
+      ],
+      purple: [
+        { top: '#1a0030', bottom: '#0a0020' },
+        { top: '#2a0050', bottom: '#1a0030' },
+        { top: '#4a0080', bottom: '#2a0050' },
+        { top: '#6a00a0', bottom: '#4a0080' },
+        { top: '#9333ea', bottom: '#6a00a0' },
+        { top: '#a855f7', bottom: '#9333ea' },
+        { top: '#c084fc', bottom: '#a855f7' }
+      ],
+      pink: [
+        { top: '#200015', bottom: '#100010' },
+        { top: '#400025', bottom: '#200015' },
+        { top: '#600040', bottom: '#400025' },
+        { top: '#800055', bottom: '#600040' },
+        { top: '#ff006e', bottom: '#800055' },
+        { top: '#ff4090', bottom: '#ff006e' },
+        { top: '#ff80b0', bottom: '#ff4090' }
+      ],
+      rainbow: [
+        { top: '#1a0020', bottom: '#0a0015' },
+        { top: '#002030', bottom: '#1a0020' },
+        { top: '#003040', bottom: '#002030' },
+        { top: '#9333ea', bottom: '#003040' },
+        { top: '#00f2ea', bottom: '#9333ea' },
+        { top: '#ff006e', bottom: '#00f2ea' },
+        { top: '#ffcc00', bottom: '#ff006e' }
+      ],
+      mono: [
+        { top: '#151515', bottom: '#0a0a0a' },
+        { top: '#202020', bottom: '#151515' },
+        { top: '#2a2a2a', bottom: '#202020' },
+        { top: '#353535', bottom: '#2a2a2a' },
+        { top: '#404040', bottom: '#353535' },
+        { top: '#555555', bottom: '#404040' },
+        { top: '#707070', bottom: '#555555' }
+      ]
+    };
+
+    let layers = [];
+    let mouseX = 0;
+    let mouseY = 0;
+    let autoPanAngle = 0;
+    let animationId;
+
+    function generateMountainPath(complexity, heightVariance) {
+      const points = [];
+      const segments = 8 + complexity * 2;
+      
+      for (let i = 0; i <= segments; i++) {
+        const x = (i / segments) * 1200;
+        const baseHeight = 150 + Math.random() * heightVariance;
+        const variance = Math.sin(i * 0.5) * 30 + Math.random() * 40;
+        points.push({ x, y: 400 - baseHeight - variance });
+      }
+      
+      let path = `M0,400 L0,${points[0].y}`;
+      for (let i = 0; i < points.length - 1; i++) {
+        const cp1x = points[i].x + (points[i + 1].x - points[i].x) / 3;
+        const cp1y = points[i].y;
+        const cp2x = points[i].x + (points[i + 1].x - points[i].x) * 2 / 3;
+        const cp2y = points[i + 1].y;
+        path += ` C${cp1x},${cp1y} ${cp2x},${cp2y} ${points[i + 1].x},${points[i + 1].y}`;
+      }
+      path += ' L1200,400 Z';
+      
+      return path;
+    }
+
+    function createLayers() {
+      container.innerHTML = '';
+      layers = [];
+      const colors = colorSchemes[config.colorScheme];
+      
+      // Background gradient
+      const bgGrad = colors[0];
+      container.style.background = `linear-gradient(180deg, ${bgGrad.top} 0%, ${bgGrad.bottom} 100%)`;
+      
+      for (let i = 0; i < config.layerCount; i++) {
+        const layer = document.createElement('div');
+        layer.className = 'parallax-layer';
+        layer.style.zIndex = i + 1;
+        layer.style.opacity = 0.3 + (i / config.layerCount) * 0.7;
+        
+        const colorIdx = Math.min(i + 1, colors.length - 1);
+        const gradColors = colors[colorIdx];
+        const gradId = `grad${i}`;
+        const heightVariance = 50 + i * 30;
+        const path = generateMountainPath(i, heightVariance);
+        
+        layer.innerHTML = `
+          <svg class="mountain-svg" viewBox="0 0 1200 400" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="${gradId}" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:${gradColors.top};stop-opacity:1" />
+                <stop offset="100%" style="stop-color:${gradColors.bottom};stop-opacity:1" />
+              </linearGradient>
+            </defs>
+            <path d="${path}" fill="url(#${gradId})"/>
+          </svg>
+        `;
+        
+        container.appendChild(layer);
+        layers.push(layer);
+      }
+    }
+
+    function animate() {
+      if (!config.paused) {
+        if (config.autoPan) {
+          autoPanAngle += 0.01;
+          mouseX = Math.sin(autoPanAngle) * 0.3;
+          mouseY = Math.cos(autoPanAngle * 0.7) * 0.2;
+        }
+        
+        layers.forEach((layer, index) => {
+          const layerSpeed = (config.layerCount - index) * config.parallaxSpeed;
+          const targetX = mouseX * layerSpeed;
+          const targetY = mouseY * layerSpeed * 0.5;
+          
+          layer.style.transform = `translate(${targetX}px, ${targetY}px)`;
+        });
+      }
+      
+      animationId = requestAnimationFrame(animate);
+    }
+
+    // Event listeners
+    container.addEventListener('mousemove', (e) => {
+      if (!config.autoPan) {
+        const rect = container.getBoundingClientRect();
+        mouseX = (e.clientX - rect.left) / rect.width - 0.5;
+        mouseY = (e.clientY - rect.top) / rect.height - 0.5;
+      }
+    });
+
+    container.addEventListener('mouseleave', () => {
+      if (!config.autoPan) {
+        mouseX = 0;
+        mouseY = 0;
+      }
+    });
+
+    // Touch support
+    container.addEventListener('touchmove', (e) => {
+      if (!config.autoPan) {
+        const touch = e.touches[0];
+        const rect = container.getBoundingClientRect();
+        mouseX = (touch.clientX - rect.left) / rect.width - 0.5;
+        mouseY = (touch.clientY - rect.top) / rect.height - 0.5;
+      }
+    });
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+        createLayers();
+      });
+    });
+
+    // Sliders
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.parallaxSpeed = parseInt(e.target.value);
+      document.getElementById('speedValue').textContent = config.parallaxSpeed;
+    });
+
+    document.getElementById('layerSlider').addEventListener('input', e => {
+      config.layerCount = parseInt(e.target.value);
+      document.getElementById('layerValue').textContent = config.layerCount;
+      createLayers();
+    });
+
+    document.getElementById('smoothSlider').addEventListener('input', e => {
+      config.smoothing = parseFloat(e.target.value);
+      document.getElementById('smoothValue').textContent = config.smoothing.toFixed(2);
+      layers.forEach(layer => {
+        layer.style.transition = `transform ${config.smoothing}s ease-out`;
+      });
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Move mouse to interact';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        createLayers();
+      }
+      if (e.code === 'KeyB') {
+        config.autoPan = !config.autoPan;
+        status.textContent = config.autoPan ? 'Auto-Pan Active' : 'Move mouse to interact';
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['cyan', 'purple', 'pink', 'rainbow', 'mono'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+        createLayers();
+      }
+    });
+
+    // Initialize
+    createLayers();
+    animate();
+  </script>
+</body>
+</html>

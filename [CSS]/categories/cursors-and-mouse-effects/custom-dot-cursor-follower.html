@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Dot Cursor Follower</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a, #1a0a2a, #0a1a2a);
+            font-family: var(--font-body);
+            color: #fff;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Custom cursor styles */
+        .custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease-out;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .cursor-trail {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: var(--jazer-purple);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0.6;
+        }
+
+        .cursor-trail-fade {
+            animation: fadeOut 1s ease-out forwards;
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: scale(0);
+            }
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+
+        /* Main content */
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        /* Demo sections */
+        .demo-section {
+            margin-bottom: 4rem;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        /* Interactive elements */
+        .interactive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .interactive-card {
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .interactive-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .interactive-card:hover::before {
+            left: 100%;
+        }
+
+        .interactive-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            color: var(--jazer-pink);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* Button styles */
+        .button-grid {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .demo-button {
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, var(--jazer-cyan), var(--jazer-purple));
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .demo-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(0, 255, 255, 0.3);
+        }
+
+        /* Control panel */
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid var(--jazer-cyan);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+        }
+
+        .control-title {
+            color: var(--jazer-cyan);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .control-group {
+            margin-bottom: 1rem;
+        }
+
+        .control-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .color-picker {
+            width: 100%;
+            height: 40px;
+            border: none;
+            border-radius: 5px;
+            cursor: none;
+        }
+
+        .size-slider {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        .size-value {
+            color: var(--jazer-pink);
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 0.25rem;
+        }
+
+        .toggle-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-radius: 5px;
+            cursor: none;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .toggle-btn:hover {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+        }
+
+        .toggle-btn.active {
+            background: var(--jazer-purple);
+            border-color: var(--jazer-purple);
+        }
+
+        /* Back navigation */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 25px;
+            border: 1px solid var(--jazer-cyan);
+            z-index: 10001;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                top: auto;
+                bottom: 20px;
+                right: 20px;
+                left: 20px;
+                max-width: none;
+            }
+            
+            .interactive-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back navigation -->
+    <a href="../index.html" class="back-button">← Back to Cursors</a>
+
+    <!-- Custom cursor -->
+    <div class="custom-cursor" id="customCursor"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <h1 class="title">Custom Dot Cursor Follower</h1>
+        <p class="subtitle">Smooth cursor following with customizable dot trails and effects</p>
+    </header>
+
+    <!-- Main content -->
+    <main class="content">
+        <!-- Interactive demo section -->
+        <section class="demo-section">
+            <h2 class="section-title">🎯 Interactive Demo</h2>
+            <div class="interactive-grid">
+                <div class="interactive-card">
+                    <span class="card-icon">⚡</span>
+                    <h3 class="card-title">Smooth Following</h3>
+                    <p class="card-description">Experience smooth cursor tracking with customizable easing and trail effects</p>
+                </div>
+                
+                <div class="interactive-card">
+                    <span class="card-icon">🎨</span>
+                    <h3 class="card-title">Custom Colors</h3>
+                    <p class="card-description">Personalize cursor colors to match your design preferences</p>
+                </div>
+                
+                <div class="interactive-card">
+                    <span class="card-icon">✨</span>
+                    <h3 class="card-title">Trail Effects</h3>
+                    <p class="card-description">Choose from various trail styles and animation patterns</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Button demo section -->
+        <section class="demo-section">
+            <h2 class="section-title">🎮 Interactive Elements</h2>
+            <div class="button-grid">
+                <button class="demo-button">Hover Over Me</button>
+                <button class="demo-button">Click for Effect</button>
+                <button class="demo-button">Interactive Button</button>
+            </div>
+        </section>
+
+        <!-- Feature showcase -->
+        <section class="demo-section">
+            <h2 class="section-title">🌟 Features</h2>
+            <div class="interactive-grid">
+                <div class="interactive-card">
+                    <span class="card-icon">🎯</span>
+                    <h3 class="card-title">Precision Tracking</h3>
+                    <p class="card-description">High-precision mouse tracking with 60fps performance optimization</p>
+                </div>
+                
+                <div class="interactive-card">
+                    <span class="card-icon">🔄</span>
+                    <h3 class="card-title">Smooth Animations</h3>
+                    <p class="card-description">Fluid transitions and easing functions for natural movement</p>
+                </div>
+                
+                <div class="interactive-card">
+                    <span class="card-icon">📱</span>
+                    <h3 class="card-title">Mobile Support</h3>
+                    <p class="card-description">Touch-friendly with graceful degradation on mobile devices</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Control panel -->
+    <div class="controls">
+        <h3 class="control-title">⚙️ Cursor Controls</h3>
+        
+        <div class="control-group">
+            <label class="control-label">Cursor Color:</label>
+            <input type="color" class="color-picker" id="cursorColor" value="#00ffff">
+        </div>
+        
+        <div class="control-group">
+            <label class="control-label">Trail Color:</label>
+            <input type="color" class="color-picker" id="trailColor" value="#ff00ff">
+        </div>
+        
+        <div class="control-group">
+            <label class="control-label">Cursor Size:</label>
+            <input type="range" class="size-slider" id="cursorSize" min="10" max="50" value="20">
+            <div class="size-value" id="cursorSizeValue">20px</div>
+        </div>
+        
+        <div class="control-group">
+            <label class="control-label">Trail Length:</label>
+            <input type="range" class="size-slider" id="trailLength" min="0" max="20" value="10">
+            <div class="size-value" id="trailLengthValue">10</div>
+        </div>
+        
+        <div class="control-group">
+            <label class="control-label">Trail Style:</label>
+            <div class="toggle-buttons">
+                <button class="toggle-btn active" data-trail="dots">Dots</button>
+                <button class="toggle-btn" data-trail="line">Line</button>
+                <button class="toggle-btn" data-trail="none">None</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Custom cursor controller
+        class CustomCursorController {
+            constructor() {
+                this.cursor = document.getElementById('customCursor');
+                this.cursorColorInput = document.getElementById('cursorColor');
+                this.trailColorInput = document.getElementById('trailColor');
+                this.cursorSizeInput = document.getElementById('cursorSize');
+                this.cursorSizeValue = document.getElementById('cursorSizeValue');
+                this.trailLengthInput = document.getElementById('trailLength');
+                this.trailLengthValue = document.getElementById('trailLengthValue');
+                
+                this.mouseX = 0;
+                this.mouseY = 0;
+                this.cursorX = 0;
+                this.cursorY = 0;
+                this.trails = [];
+                this.trailStyle = 'dots';
+                this.maxTrailLength = 10;
+                
+                this.init();
+            }
+            
+            init() {
+                // Mouse move handler
+                document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                
+                // Touch move handler for mobile
+                document.addEventListener('touchmove', (e) => this.handleTouchMove(e));
+                
+                // Control handlers
+                this.cursorColorInput.addEventListener('input', (e) => this.updateCursorColor(e.target.value));
+                this.trailColorInput.addEventListener('input', (e) => this.updateTrailColor(e.target.value));
+                this.cursorSizeInput.addEventListener('input', (e) => this.updateCursorSize(e.target.value));
+                this.trailLengthInput.addEventListener('input', (e) => this.updateTrailLength(e.target.value));
+                
+                // Trail style buttons
+                document.querySelectorAll('[data-trail]').forEach(btn => {
+                    btn.addEventListener('click', (e) => this.changeTrailStyle(e));
+                });
+                
+                // Button hover effects
+                document.querySelectorAll('.demo-button, .interactive-card').forEach(element => {
+                    element.addEventListener('mouseenter', () => this.handleElementHover(element, true));
+                    element.addEventListener('mouseleave', () => this.handleElementHover(element, false));
+                });
+                
+                // Hide default cursor
+                document.body.style.cursor = 'none';
+                
+                // Start animation loop
+                this.animate();
+            }
+            
+            handleMouseMove(e) {
+                this.mouseX = e.clientX;
+                this.mouseY = e.clientY;
+            }
+            
+            handleTouchMove(e) {
+                if (e.touches.length > 0) {
+                    const touch = e.touches[0];
+                    this.mouseX = touch.clientX;
+                    this.mouseY = touch.clientY;
+                }
+            }
+            
+            handleElementHover(element, isHovering) {
+                if (isHovering) {
+                    this.cursor.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                    this.cursor.style.background = 'var(--jazer-pink)';
+                } else {
+                    this.cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+                    this.cursor.style.background = this.cursorColorInput.value;
+                }
+            }
+            
+            updateCursorColor(color) {
+                this.cursor.style.background = color;
+            }
+            
+            updateTrailColor(color) {
+                // Update existing trails
+                this.trails.forEach(trail => {
+                    if (trail.element) {
+                        trail.element.style.background = color;
+                    }
+                });
+            }
+            
+            updateCursorSize(size) {
+                this.cursor.style.width = `${size}px`;
+                this.cursor.style.height = `${size}px`;
+                this.cursorSizeValue.textContent = `${size}px`;
+            }
+            
+            updateTrailLength(length) {
+                this.maxTrailLength = parseInt(length);
+                this.trailLengthValue.textContent = length;
+                
+                // Remove excess trails
+                while (this.trails.length > this.maxTrailLength) {
+                    const trail = this.trails.shift();
+                    if (trail.element) {
+                        trail.element.remove();
+                    }
+                }
+            }
+            
+            changeTrailStyle(e) {
+                const btn = e.target;
+                const style = btn.dataset.trail;
+                
+                // Update active button
+                document.querySelectorAll('[data-trail]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                this.trailStyle = style;
+                
+                // Clear existing trails
+                this.trails.forEach(trail => {
+                    if (trail.element) {
+                        trail.element.remove();
+                    }
+                });
+                this.trails = [];
+            }
+            
+            createTrail() {
+                if (this.trailStyle === 'none' || this.maxTrailLength === 0) return;
+                
+                const trail = document.createElement('div');
+                trail.className = 'cursor-trail';
+                
+                if (this.trailStyle === 'dots') {
+                    trail.style.width = '10px';
+                    trail.style.height = '10px';
+                    trail.style.borderRadius = '50%';
+                } else if (this.trailStyle === 'line') {
+                    trail.style.width = '2px';
+                    trail.style.height = '20px';
+                    trail.style.borderRadius = '1px';
+                }
+                
+                trail.style.left = `${this.cursorX}px`;
+                trail.style.top = `${this.cursorY}px`;
+                trail.style.background = this.trailColorInput.value;
+                trail.classList.add('cursor-trail-fade');
+                
+                document.body.appendChild(trail);
+                
+                // Add to trails array
+                this.trails.push({
+                    element: trail,
+                    x: this.cursorX,
+                    y: this.cursorY,
+                    time: Date.now()
+                });
+                
+                // Remove excess trails
+                while (this.trails.length > this.maxTrailLength) {
+                    const oldTrail = this.trails.shift();
+                    if (oldTrail.element) {
+                        oldTrail.element.remove();
+                    }
+                }
+                
+                // Remove trail after animation
+                setTimeout(() => {
+                    trail.remove();
+                    this.trails = this.trails.filter(t => t.element !== trail);
+                }, 1000);
+            }
+            
+            animate() {
+                // Smooth cursor following with easing
+                const easing = 0.15;
+                this.cursorX += (this.mouseX - this.cursorX) * easing;
+                this.cursorY += (this.mouseY - this.cursorY) * easing;
+                
+                // Update cursor position
+                this.cursor.style.left = `${this.cursorX}px`;
+                this.cursor.style.top = `${this.cursorY}px`;
+                
+                // Create trail
+                if (Math.random() > 0.7) { // Create trail occasionally
+                    this.createTrail();
+                }
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+        
+        // Initialize cursor controller
+        const cursorController = new CustomCursorController();
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'c' || e.key === 'C') {
+                const cursor = document.getElementById('customCursor');
+                cursor.style.display = cursor.style.display === 'none' ? 'block' : 'none';
+            }
+            
+            if (e.key === 'r' || e.key === 'R') {
+                // Reset to defaults
+                document.getElementById('cursorColor').value = '#00ffff';
+                document.getElementById('trailColor').value = '#ff00ff';
+                document.getElementById('cursorSize').value = 20;
+                document.getElementById('trailLength').value = 10;
+                
+                cursorController.updateCursorColor('#00ffff');
+                cursorController.updateTrailColor('#ff00ff');
+                cursorController.updateCursorSize(20);
+                cursorController.updateTrailLength(10);
+            }
+        });
+        
+        // Add click effect
+        document.addEventListener('click', (e) => {
+            const ripple = document.createElement('div');
+            ripple.style.cssText = `
+                position: fixed;
+                width: 30px;
+                height: 30px;
+                background: radial-gradient(circle, var(--jazer-cyan), transparent);
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 99999;
+                left: ${e.clientX - 15}px;
+                top: ${e.clientY - 15}px;
+                transform: scale(0);
+                animation: ripple-effect 0.6s ease-out;
+            `;
+            
+            document.body.appendChild(ripple);
+            
+            setTimeout(() => ripple.remove(), 600);
+        });
+        
+        // Add ripple animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple-effect {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

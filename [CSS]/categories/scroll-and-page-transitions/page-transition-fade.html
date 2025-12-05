@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Transition Fade - Scroll & Page Transitions</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            background: rgba(0, 217, 255, 0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateX(-5px);
+        }
+        h1 {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 2.5rem;
+        }
+        .page-intro {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+        .component-section {
+            max-width: 1000px;
+            margin: 0 auto 3rem;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        .section-title {
+            color: var(--jazer-cyan);
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section-description {
+            color: #888;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+        .style-number {
+            background: var(--gradient-primary);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        /* Demo Container */
+        .demo-container {
+            position: relative;
+            height: 300px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #0a0a0a;
+        }
+        .demo-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        .demo-page--a {
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.2), rgba(139, 92, 246, 0.2));
+        }
+        .demo-page--b {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2));
+        }
+        .demo-page__title {
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        .demo-page__subtitle {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .demo-page__icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .trigger-btn {
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        .trigger-btn:hover {
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 217, 255, 0.4);
+        }
+
+        /* ========================================
+           STYLE 1: Crossfade
+        ======================================== */
+        .crossfade .demo-page {
+            transition: opacity 0.6s ease;
+        }
+        .crossfade .demo-page--b {
+            opacity: 0;
+        }
+        .crossfade.active .demo-page--a {
+            opacity: 0;
+        }
+        .crossfade.active .demo-page--b {
+            opacity: 1;
+        }
+
+        /* ========================================
+           STYLE 2: Fade to Black
+        ======================================== */
+        .fade-black .demo-page {
+            transition: opacity 0.4s ease;
+        }
+        .fade-black__overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 5;
+        }
+        .fade-black .demo-page--b {
+            opacity: 0;
+        }
+        .fade-black.active .fade-black__overlay {
+            animation: fadeBlackSequence 0.8s ease forwards;
+        }
+        .fade-black.active .demo-page--a {
+            opacity: 0;
+            transition-delay: 0.3s;
+        }
+        .fade-black.active .demo-page--b {
+            opacity: 1;
+            transition-delay: 0.5s;
+        }
+        @keyframes fadeBlackSequence {
+            0% { opacity: 0; }
+            40% { opacity: 1; }
+            60% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* ========================================
+           STYLE 3: Fade to White (Glow)
+        ======================================== */
+        .fade-white .demo-page {
+            transition: opacity 0.4s ease;
+        }
+        .fade-white__overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 5;
+        }
+        .fade-white .demo-page--b {
+            opacity: 0;
+        }
+        .fade-white.active .fade-white__overlay {
+            animation: fadeWhiteSequence 0.8s ease forwards;
+        }
+        .fade-white.active .demo-page--a {
+            opacity: 0;
+            transition-delay: 0.3s;
+        }
+        .fade-white.active .demo-page--b {
+            opacity: 1;
+            transition-delay: 0.5s;
+        }
+        @keyframes fadeWhiteSequence {
+            0% { opacity: 0; }
+            40% { opacity: 0.9; }
+            60% { opacity: 0.9; }
+            100% { opacity: 0; }
+        }
+
+        /* ========================================
+           STYLE 4: Fade with Blur
+        ======================================== */
+        .fade-blur .demo-page {
+            transition: opacity 0.5s ease, filter 0.5s ease;
+        }
+        .fade-blur .demo-page--b {
+            opacity: 0;
+            filter: blur(20px);
+        }
+        .fade-blur.active .demo-page--a {
+            opacity: 0;
+            filter: blur(20px);
+        }
+        .fade-blur.active .demo-page--b {
+            opacity: 1;
+            filter: blur(0);
+        }
+
+        /* ========================================
+           STYLE 5: Opacity with Scale
+        ======================================== */
+        .opacity-scale .demo-page {
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .opacity-scale .demo-page--b {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        .opacity-scale.active .demo-page--a {
+            opacity: 0;
+            transform: scale(1.1);
+        }
+        .opacity-scale.active .demo-page--b {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* ========================================
+           STYLE 6: Directional Fade (Gradient Wipe)
+        ======================================== */
+        .directional-fade .demo-page--a {
+            z-index: 2;
+        }
+        .directional-fade .demo-page--b {
+            z-index: 1;
+        }
+        .directional-fade .demo-page--a {
+            -webkit-mask-image: linear-gradient(to right, black 0%, black 100%);
+            mask-image: linear-gradient(to right, black 0%, black 100%);
+            -webkit-mask-size: 200% 100%;
+            mask-size: 200% 100%;
+            -webkit-mask-position: 0% 0%;
+            mask-position: 0% 0%;
+            transition: -webkit-mask-position 0.8s ease, mask-position 0.8s ease;
+        }
+        .directional-fade.active .demo-page--a {
+            -webkit-mask-position: 200% 0%;
+            mask-position: 200% 0%;
+        }
+
+        /* ========================================
+           STYLE 7: Glow Fade (Neon Pulse)
+        ======================================== */
+        .glow-fade .demo-page {
+            transition: opacity 0.6s ease;
+        }
+        .glow-fade .demo-page--b {
+            opacity: 0;
+        }
+        .glow-fade__glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, var(--jazer-cyan) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            z-index: 5;
+            transition: all 0.6s ease;
+        }
+        .glow-fade.active .glow-fade__glow {
+            animation: glowPulse 0.8s ease forwards;
+        }
+        .glow-fade.active .demo-page--a {
+            opacity: 0;
+            transition-delay: 0.3s;
+        }
+        .glow-fade.active .demo-page--b {
+            opacity: 1;
+            transition-delay: 0.4s;
+        }
+        @keyframes glowPulse {
+            0% { width: 0; height: 0; opacity: 0; }
+            50% { width: 150%; height: 150%; opacity: 0.8; }
+            100% { width: 200%; height: 200%; opacity: 0; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            h1 { font-size: 1.8rem; }
+            .component-section { padding: 1.5rem; }
+            .demo-container { height: 250px; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    
+    <h1>Page Transition Fade</h1>
+    <p class="page-intro">Smooth opacity-based transitions between pages and views</p>
+
+    <!-- Style 1: Crossfade -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">1</span> Crossfade</h2>
+        <p class="section-description">Simple opacity crossfade between two pages - clean and minimal</p>
+        
+        <div class="demo-container crossfade" id="demo1">
+            <div class="demo-page demo-page--a">
+                <span class="demo-page__icon">🏠</span>
+                <h3 class="demo-page__title">Home Page</h3>
+                <p class="demo-page__subtitle">Welcome to our platform</p>
+            </div>
+            <div class="demo-page demo-page--b">
+                <span class="demo-page__icon">📊</span>
+                <h3 class="demo-page__title">Dashboard</h3>
+                <p class="demo-page__subtitle">View your analytics</p>
+            </div>
+            <button class="trigger-btn" onclick="toggleDemo('demo1')">Trigger Transition</button>
+        </div>
+    </section>
+
+    <!-- Style 2: Fade to Black -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">2</span> Fade to Black</h2>
+        <p class="section-description">Fades through black for a cinematic transition effect</p>
+        
+        <div class="demo-container fade-black" id="demo2">
+            <div class="fade-black__overlay"></div>
+            <div class="demo-page demo-page--a">
+                <span class="demo-page__icon">🎬</span>
+                <h3 class="demo-page__title">Scene One</h3>
+                <p class="demo-page__subtitle">The beginning</p>
+            </div>
+            <div class="demo-page demo-page--b">
+                <span class="demo-page__icon">🌟</span>
+                <h3 class="demo-page__title">Scene Two</h3>
+                <p class="demo-page__subtitle">The continuation</p>
+            </div>
+            <button class="trigger-btn" onclick="toggleDemo('demo2')">Trigger Transition</button>
+        </div>
+    </section>
+
+    <!-- Style 3: Fade to White (Glow) -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">3</span> Fade to Glow</h2>
+        <p class="section-description">Fades through a gradient glow for an energetic transition</p>
+        
+        <div class="demo-container fade-white" id="demo3">
+            <div class="fade-white__overlay"></div>
+            <div class="demo-page demo-page--a">
+                <span class="demo-page__icon">⚡</span>
+                <h3 class="demo-page__title">Power Up</h3>
+                <p class="demo-page__subtitle">Charging systems</p>
+            </div>
+            <div class="demo-page demo-page--b">
+                <span class="demo-page__icon">🚀</span>
+                <h3 class="demo-page__title">Launch Ready</h3>
+                <p class="demo-page__subtitle">All systems go</p>
+            </div>
+            <button class="trigger-btn" onclick="toggleDemo('demo3')">Trigger Transition</button>
+        </div>
+    </section>
+
+    <!-- Style 4: Fade with Blur -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">4</span> Fade with Blur</h2>
+        <p class="section-description">Combines opacity fade with blur for depth-of-field effect</p>
+        
+        <div class="demo-container fade-blur" id="demo4">
+            <div class="demo-page demo-page--a">
+                <span class="demo-page__icon">🔍</span>
+                <h3 class="demo-page__title">Focus Here</h3>
+                <p class="demo-page__subtitle">Sharp and clear</p>
+            </div>
+            <div class="demo-page demo-page--b">
+                <span class="demo-page__icon">🎯</span>
+                <h3 class="demo-page__title">New Focus</h3>
+                <p class="demo-page__subtitle">Attention shifted</p>
+            </div>
+            <button class="trigger-btn" onclick="toggleDemo('demo4')">Trigger Transition</button>
+        </div>
+    </section>
+
+    <!-- Style 5: Opacity with Scale -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">5</span> Opacity with Scale</h2>
+        <p class="section-description">Fade combined with scale for zoom-like transition</p>
+        
+        <div class="demo-container opacity-scale" id="demo5">
+            <div class="demo-page demo-page--a">
+                <span class="demo-page__icon">📱</span>
+                <h3 class="demo-page__title">App View</h3>
+                <p class="demo-page__subtitle">Current screen</p>
+            </div>
+            <div class="demo-page demo-page--b">
+                <span class="demo-page__icon">💻</span>
+                <h3 class="demo-page__title">Desktop View</h3>
+                <p class="demo-page__subtitle">Expanded layout</p>
+            </div>
+            <button class="trigger-btn" onclick="toggleDemo('demo5')">Trigger Transition</button>
+        </div>
+    </section>
+
+    <!-- Style 6: Directional Fade -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">6</span> Directional Fade</h2>
+        <p class="section-description">Gradient mask wipe that reveals the next page directionally</p>
+        
+        <div class="demo-container directional-fade" id="demo6">
+            <div class="demo-page demo-page--a">
+                <span class="demo-page__icon">◀️</span>
+                <h3 class="demo-page__title">Previous</h3>
+                <p class="demo-page__subtitle">Going back</p>
+            </div>
+            <div class="demo-page demo-page--b">
+                <span class="demo-page__icon">▶️</span>
+                <h3 class="demo-page__title">Next</h3>
+                <p class="demo-page__subtitle">Moving forward</p>
+            </div>
+            <button class="trigger-btn" onclick="toggleDemo('demo6')">Trigger Transition</button>
+        </div>
+    </section>
+
+    <!-- Style 7: Glow Fade -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">7</span> Glow Fade (Neon Pulse)</h2>
+        <p class="section-description">Radial glow pulse emanates from center during transition</p>
+        
+        <div class="demo-container glow-fade" id="demo7">
+            <div class="glow-fade__glow"></div>
+            <div class="demo-page demo-page--a">
+                <span class="demo-page__icon">💎</span>
+                <h3 class="demo-page__title">Standard Mode</h3>
+                <p class="demo-page__subtitle">Normal operation</p>
+            </div>
+            <div class="demo-page demo-page--b">
+                <span class="demo-page__icon">✨</span>
+                <h3 class="demo-page__title">Premium Mode</h3>
+                <p class="demo-page__subtitle">Enhanced features</p>
+            </div>
+            <button class="trigger-btn" onclick="toggleDemo('demo7')">Trigger Transition</button>
+        </div>
+    </section>
+
+    <script>
+        function toggleDemo(id) {
+            const demo = document.getElementById(id);
+            demo.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

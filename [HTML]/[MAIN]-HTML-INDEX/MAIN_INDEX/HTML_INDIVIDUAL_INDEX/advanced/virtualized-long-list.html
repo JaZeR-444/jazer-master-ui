@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtualized Long List</title>
+  <style>
+    /* ==================== RESET ==================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 700px;
+      background-color: #fff;
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      margin-top: 2rem;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 2rem;
+    }
+
+    /* ==================== VIRTUALIZED LIST ==================== */
+    .virtual-list-container {
+      height: 500px; /* Fixed height for the scrollable area */
+      overflow-y: auto;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      position: relative; /* For absolute positioning of items */
+    }
+
+    .virtual-list-content {
+      position: relative;
+      width: 100%;
+    }
+
+    .virtual-list-item {
+      position: absolute; /* Essential for virtualization */
+      width: 100%;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #eee;
+      background-color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: background-color 0.1s;
+    }
+
+    .virtual-list-item:hover {
+      background-color: #f9f9f9;
+    }
+
+    .virtual-list-item__avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #ccc;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .virtual-list-item__text {
+      flex-grow: 1;
+    }
+
+    .virtual-list-item__title {
+      font-weight: 600;
+      color: #34495e;
+      margin-bottom: 0.2rem;
+    }
+
+    .virtual-list-item__description {
+      font-size: 0.9rem;
+      color: #777;
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../jazer-brand.css">
+  </head>
+<body>
+
+  <div class="container">
+    <h1>Virtualized Long List</h1>
+    <p>Displays a very long list efficiently by only rendering visible items.</p>
+
+    <div class="virtual-list-container" id="virtualizedList">
+      <div class="virtual-list-content" id="virtualListContent">
+        <!-- Virtualized items will be rendered here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const listContainer = document.getElementById('virtualizedList');
+      const listContent = document.getElementById('virtualListContent');
+
+      // Configuration
+      const totalItems = 10000; // Simulate a very long list
+      const itemHeight = 80;    // Height of each list item in pixels
+      const overscan = 5;       // Number of items to render above/below the visible viewport
+
+      let data = [];
+      for (let i = 0; i < totalItems; i++) {
+        data.push({
+          id: i,
+          title: `Item ${i + 1}`,
+          description: `This is the description for item number ${i + 1}. A longer text to test overflow.`
+        });
+      }
+
+      // Set the total height of the content div to allow scrolling for all items
+      listContent.style.height = `${totalItems * itemHeight}px`;
+
+      /**
+       * Renders the visible items in the list.
+       */
+      function renderVisibleItems() {
+        const scrollTop = listContainer.scrollTop;
+        const containerHeight = listContainer.clientHeight;
+
+        // Calculate start and end index of visible items
+        const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
+        const endIndex = Math.min(
+          totalItems - 1,
+          Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan
+        );
+
+        // Clear existing items (except for performance, we'd update existing ones)
+        listContent.innerHTML = '';
+
+        const fragment = document.createDocumentFragment();
+        for (let i = startIndex; i <= endIndex; i++) {
+          const item = data[i];
+          const itemElement = document.createElement('div');
+          itemElement.classList.add('virtual-list-item');
+          itemElement.style.top = `${i * itemHeight}px`;
+          itemElement.style.height = `${itemHeight}px`; // Ensure item has correct height
+          itemElement.innerHTML = `
+            <div class="virtual-list-item__avatar" style="background-color: hsl(${item.id * 137 % 360}, 70%, 50%);">
+              ${item.id + 1}
+            </div>
+            <div class="virtual-list-item__text">
+              <div class="virtual-list-item__title">${item.title}</div>
+              <div class="virtual-list-item__description">${item.description}</div>
+            </div>
+          `;
+          fragment.appendChild(itemElement);
+        }
+        listContent.appendChild(fragment);
+      }
+
+      // Initial render
+      renderVisibleItems();
+
+      // Event listener for scroll
+      listContainer.addEventListener('scroll', renderVisibleItems);
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor Leaves Ink/Paint Strokes</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0b2e 100%);
+            color: var(--jazer-cyan);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            cursor: none;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 50%, rgba(255, 0, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: backgroundPulse 10s ease-in-out infinite;
+        }
+
+        @keyframes backgroundPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        .container, .back-button, .controls, .stats {
+            position: relative;
+            z-index: 1;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            font-size: 0.9rem;
+            border: 1px solid var(--jazer-cyan);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--gradient-primary);
+            box-shadow: 0 0 20px var(--jazer-cyan);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: var(--font-primary);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .paint-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: var(--jazer-cyan);
+            box-shadow: 0 0 20px var(--jazer-cyan);
+            transition: none;
+        }
+
+        .paint-stroke {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            transform-origin: center;
+        }
+
+        .ink-stroke {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .demo-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .demo-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-section h2 {
+            font-family: var(--font-primary);
+            margin-bottom: 1rem;
+            color: var(--jazer-purple);
+        }
+
+        .canvas-zone {
+            width: 100%;
+            height: 250px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px dashed var(--jazer-pink);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1rem 0;
+            position: relative;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        .canvas-zone::before {
+            content: 'Draw here';
+            color: var(--jazer-pink);
+            font-family: var(--font-secondary);
+            opacity: 0.5;
+            pointer-events: none;
+            position: absolute;
+        }
+
+        .controls {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            min-width: 250px;
+            z-index: 1001;
+        }
+
+        .control-group {
+            margin: 1rem 0;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--jazer-purple);
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 0.25rem;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 0.25rem;
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 0.25rem;
+        }
+
+        .control-group input[type="color"] {
+            width: 100%;
+            height: 30px;
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 0.25rem;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .stats {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            font-size: 0.9rem;
+        }
+
+        .stats div {
+            margin: 0.25rem 0;
+        }
+
+        .clear-button {
+            background: var(--gradient-accent);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+
+        .clear-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px var(--jazer-pink);
+        }
+
+        .instructions {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 2rem;
+            border-left: 4px solid var(--jazer-purple);
+        }
+
+        .instructions h3 {
+            font-family: var(--font-primary);
+            color: var(--jazer-purple);
+            margin-top: 0;
+        }
+
+        .instructions ul {
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .instructions li {
+            margin: 0.5rem 0;
+        }
+
+        .brush-preview {
+            width: 50px;
+            height: 50px;
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 0.25rem;
+            margin: 0.5rem auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin: 1rem 0;
+        }
+
+        .color-swatch {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.2);
+            border-color: white;
+        }
+
+        .color-swatch.active {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+        }
+
+        .splatter {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9997;
+            border-radius: 50%;
+            animation: splatterExpand 0.6s ease-out forwards;
+        }
+
+        @keyframes splatterExpand {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(2);
+                opacity: 0;
+            }
+        }
+
+        .drip {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9997;
+            width: 4px;
+            background: var(--jazer-cyan);
+            border-radius: 0 0 50% 50%;
+            animation: dripFall 1s ease-in forwards;
+        }
+
+        @keyframes dripFall {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+
+    <div class="controls">
+        <h3 style="margin-top: 0; color: var(--jazer-cyan);">Paint Controls</h3>
+        
+        <div class="control-group">
+            <label for="brushSize">Brush Size: <span id="sizeValue">5</span>px</label>
+            <input type="range" id="brushSize" min="1" max="20" step="1" value="5">
+        </div>
+        
+        <div class="control-group">
+            <label for="brushOpacity">Opacity: <span id="opacityValue">80</span>%</label>
+            <input type="range" id="brushOpacity" min="10" max="100" step="10" value="80">
+        </div>
+        
+        <div class="control-group">
+            <label for="brushStyle">Brush Style:</label>
+            <select id="brushStyle">
+                <option value="round">Round</option>
+                <option value="square">Square</option>
+                <option value="spray">Spray</option>
+                <option value="calligraphy">Calligraphy</option>
+                <option value="marker">Marker</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="paintType">Paint Type:</label>
+            <select id="paintType">
+                <option value="ink">Ink</option>
+                <option value="paint">Paint</option>
+                <option value="neon">Neon</option>
+                <option value="watercolor">Watercolor</option>
+                <option value="chalk">Chalk</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="customColor">Custom Color:</label>
+            <input type="color" id="customColor" value="#00ffff">
+        </div>
+        
+        <div class="control-group">
+            <label>Quick Colors:</label>
+            <div class="color-palette">
+                <div class="color-swatch active" style="background: var(--jazer-cyan);" data-color="var(--jazer-cyan)"></div>
+                <div class="color-swatch" style="background: var(--jazer-purple);" data-color="var(--jazer-purple)"></div>
+                <div class="color-swatch" style="background: var(--jazer-pink);" data-color="var(--jazer-pink)"></div>
+                <div class="color-swatch" style="background: #ff0000;" data-color="#ff0000"></div>
+                <div class="color-swatch" style="background: #00ff00;" data-color="#00ff00"></div>
+                <div class="color-swatch" style="background: #0000ff;" data-color="#0000ff"></div>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label for="fadeEffect">Fade Effect:</label>
+            <select id="fadeEffect">
+                <option value="none">None</option>
+                <option value="slow">Slow</option>
+                <option value="medium">Medium</option>
+                <option value="fast">Fast</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div>Strokes: <span id="strokeCount">0</span></div>
+        <div>Current Color: <span id="currentColor">Cyan</span></div>
+        <div>Brush: <span id="currentBrush">Round</span></div>
+        <div>Position: <span id="cursorPos">0, 0</span></div>
+    </div>
+
+    <div class="container">
+        <h1>Ink & Paint Strokes Cursor</h1>
+        <p class="description">
+            Creative cursor that leaves realistic ink and paint strokes as you move. 
+            Different brush styles, paint types, and effects for artistic expression.
+        </p>
+
+        <div class="demo-area">
+            <div class="demo-section">
+                <h2>Ink Drawing</h2>
+                <div class="canvas-zone" id="inkZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Draw with ink effect
+                    </div>
+                </div>
+                <button class="clear-button" onclick="clearZone('inkZone')">Clear</button>
+            </div>
+
+            <div class="demo-section">
+                <h2>Paint Strokes</h2>
+                <div class="canvas-zone" id="paintZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Paint with texture
+                    </div>
+                </div>
+                <button class="clear-button" onclick="clearZone('paintZone')">Clear</button>
+            </div>
+
+            <div class="demo-section">
+                <h2>Neon Glow</h2>
+                <div class="canvas-zone" id="neonZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Create neon art
+                    </div>
+                </div>
+                <button class="clear-button" onclick="clearZone('neonZone')">Clear</button>
+            </div>
+
+            <div class="demo-section">
+                <h2>Watercolor</h2>
+                <div class="canvas-zone" id="watercolorZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Soft watercolor effect
+                    </div>
+                </div>
+                <button class="clear-button" onclick="clearZone('watercolorZone')">Clear</button>
+            </div>
+
+            <div class="demo-section">
+                <h2>Spray Paint</h2>
+                <div class="canvas-zone" id="sprayZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Spray paint effect
+                    </div>
+                </div>
+                <button class="clear-button" onclick="clearZone('sprayZone')">Clear</button>
+            </div>
+
+            <div class="demo-section">
+                <h2>Calligraphy</h2>
+                <div class="canvas-zone" id="calligraphyZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                Elegant calligraphy strokes
+                    </div>
+                </div>
+                <button class="clear-button" onclick="clearZone('calligraphyZone')">Clear</button>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>How It Works:</h3>
+            <ul>
+                <li>Move cursor over canvas zones to create strokes</li>
+                <li>Adjust brush size and opacity for different effects</li>
+                <li>Choose from various brush styles and paint types</li>
+                <li>Custom colors and quick color palette available</li>
+                <li>Fade effects for temporary or permanent strokes</li>
+                <li>Click for splatter effects in some modes</li>
+                <li>Clear individual zones or all strokes at once</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="paint-cursor" id="paintCursor"></div>
+
+    <script>
+        class InkPaintCursor {
+            constructor() {
+                this.cursor = document.getElementById('paintCursor');
+                this.sizeInput = document.getElementById('brushSize');
+                this.opacityInput = document.getElementById('brushOpacity');
+                this.styleSelect = document.getElementById('brushStyle');
+                this.typeSelect = document.getElementById('paintType');
+                this.colorInput = document.getElementById('customColor');
+                this.fadeSelect = document.getElementById('fadeEffect');
+                
+                this.sizeValueDisplay = document.getElementById('sizeValue');
+                this.opacityValueDisplay = document.getElementById('opacityValue');
+                this.strokeCountDisplay = document.getElementById('strokeCount');
+                this.currentColorDisplay = document.getElementById('currentColor');
+                this.currentBrushDisplay = document.getElementById('currentBrush');
+                this.cursorPosDisplay = document.getElementById('cursorPos');
+                
+                this.brushSize = 5;
+                this.brushOpacity = 0.8;
+                this.brushStyle = 'round';
+                this.paintType = 'ink';
+                this.currentColor = 'var(--jazer-cyan)';
+                this.fadeEffect = 'none';
+                
+                this.currentX = 0;
+                this.currentY = 0;
+                this.previousX = 0;
+                this.previousY = 0;
+                this.isDrawing = false;
+                this.strokeCount = 0;
+                this.strokes = [];
+                
+                this.init();
+            }
+
+            init() {
+                // Set up event listeners
+                document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                document.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+                document.addEventListener('mouseup', () => this.handleMouseUp());
+                document.addEventListener('mouseenter', () => this.showCursor());
+                document.addEventListener('mouseleave', () => this.hideCursor());
+                
+                // Control listeners
+                this.sizeInput.addEventListener('input', (e) => this.updateBrushSize(e.target.value));
+                this.opacityInput.addEventListener('input', (e) => this.updateBrushOpacity(e.target.value));
+                this.styleSelect.addEventListener('change', (e) => this.updateBrushStyle(e.target.value));
+                this.typeSelect.addEventListener('change', (e) => this.updatePaintType(e.target.value));
+                this.colorInput.addEventListener('input', (e) => this.updateColor(e.target.value));
+                this.fadeSelect.addEventListener('change', (e) => this.updateFadeEffect(e.target.value));
+                
+                // Color swatches
+                document.querySelectorAll('.color-swatch').forEach(swatch => {
+                    swatch.addEventListener('click', () => {
+                        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+                        swatch.classList.add('active');
+                        this.currentColor = swatch.getAttribute('data-color');
+                        this.updateColorDisplay();
+                    });
+                });
+                
+                // Hide default cursor
+                document.body.style.cursor = 'none';
+                
+                // Set up canvas zones
+                this.setupCanvasZones();
+                
+                // Start animation loop
+                this.animate();
+            }
+
+            setupCanvasZones() {
+                const zones = document.querySelectorAll('.canvas-zone');
+                zones.forEach(zone => {
+                    zone.addEventListener('mouseenter', () => {
+                        this.isDrawing = true;
+                        this.currentZone = zone;
+                    });
+                    
+                    zone.addEventListener('mouseleave', () => {
+                        this.isDrawing = false;
+                        this.currentZone = null;
+                    });
+                });
+            }
+
+            handleMouseMove(e) {
+                this.previousX = this.currentX;
+                this.previousY = this.currentY;
+                this.currentX = e.clientX;
+                this.currentY = e.clientY;
+                
+                // Update cursor position
+                this.cursor.style.left = this.currentX + 'px';
+                this.cursor.style.top = this.currentY + 'px';
+                
+                // Update displays
+                this.cursorPosDisplay.textContent = `${Math.round(this.currentX)}, ${Math.round(this.currentY)}`;
+                
+                // Create strokes if drawing
+                if (this.isDrawing && this.currentZone) {
+                    this.createStroke();
+                }
+            }
+
+            handleMouseDown(e) {
+                if (this.currentZone) {
+                    this.createSplatter(e.clientX, e.clientY);
+                }
+            }
+
+            handleMouseUp() {
+                // Handle mouse up if needed
+            }
+
+            createStroke() {
+                const stroke = document.createElement('div');
+                stroke.className = this.getStrokeClass();
+                
+                // Calculate stroke properties
+                const dx = this.currentX - this.previousX;
+                const dy = this.currentY - this.previousY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+                
+                // Apply stroke style
+                this.applyStrokeStyle(stroke, distance, angle);
+                
+                // Position stroke
+                stroke.style.left = this.currentX + 'px';
+                stroke.style.top = this.currentY + 'px';
+                
+                // Add fade effect
+                if (this.fadeEffect !== 'none') {
+                    this.addFadeEffect(stroke);
+                }
+                
+                document.body.appendChild(stroke);
+                this.strokes.push(stroke);
+                
+                // Update stroke count
+                this.strokeCount++;
+                this.strokeCountDisplay.textContent = this.strokeCount;
+                
+                // Clean up old strokes if too many
+                if (this.strokes.length > 500) {
+                    const oldStroke = this.strokes.shift();
+                    if (oldStroke.parentNode) {
+                        oldStroke.remove();
+                    }
+                }
+            }
+
+            getStrokeClass() {
+                switch (this.paintType) {
+                    case 'ink':
+                        return 'ink-stroke';
+                    case 'paint':
+                    case 'neon':
+                    case 'watercolor':
+                    case 'chalk':
+                        return 'paint-stroke';
+                    default:
+                        return 'paint-stroke';
+                }
+            }
+
+            applyStrokeStyle(stroke, distance, angle) {
+                const size = this.brushSize;
+                const opacity = this.brushOpacity;
+                
+                switch (this.brushStyle) {
+                    case 'round':
+                        stroke.style.width = size + 'px';
+                        stroke.style.height = size + 'px';
+                        stroke.style.borderRadius = '50%';
+                        break;
+                    case 'square':
+                        stroke.style.width = size + 'px';
+                        stroke.style.height = size + 'px';
+                        stroke.style.borderRadius = '0';
+                        break;
+                    case 'spray':
+                        this.createSprayEffect(stroke, size);
+                        return;
+                    case 'calligraphy':
+                        stroke.style.width = (size * 3) + 'px';
+                        stroke.style.height = size + 'px';
+                        stroke.style.borderRadius = '50%';
+                        stroke.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+                        break;
+                    case 'marker':
+                        stroke.style.width = (size * 2) + 'px';
+                        stroke.style.height = size + 'px';
+                        stroke.style.borderRadius = '20%';
+                        break;
+                }
+                
+                // Apply paint type effects
+                switch (this.paintType) {
+                    case 'ink':
+                        stroke.style.background = this.currentColor;
+                        stroke.style.boxShadow = `0 0 ${size/2}px ${this.currentColor}`;
+                        break;
+                    case 'paint':
+                        stroke.style.background = this.currentColor;
+                        stroke.style.border = `1px solid ${this.currentColor}`;
+                        stroke.style.boxShadow = `0 0 ${size}px ${this.currentColor}40`;
+                        break;
+                    case 'neon':
+                        stroke.style.background = this.currentColor;
+                        stroke.style.boxShadow = `0 0 ${size*2}px ${this.currentColor}, 0 0 ${size*4}px ${this.currentColor}`;
+                        stroke.style.filter = 'brightness(1.5)';
+                        break;
+                    case 'watercolor':
+                        stroke.style.background = `${this.currentColor}40`;
+                        stroke.style.filter = 'blur(2px)';
+                        stroke.style.borderRadius = '50%';
+                        break;
+                    case 'chalk':
+                        stroke.style.background = this.currentColor;
+                        stroke.style.filter = 'contrast(2) brightness(1.2)';
+                        stroke.style.opacity = opacity * 0.7;
+                        break;
+                }
+                
+                stroke.style.opacity = opacity;
+            }
+
+            createSprayEffect(container, size) {
+                for (let i = 0; i < 5; i++) {
+                    const particle = document.createElement('div');
+                    particle.style.position = 'absolute';
+                    particle.style.width = Math.random() * size + 'px';
+                    particle.style.height = Math.random() * size + 'px';
+                    particle.style.borderRadius = '50%';
+                    particle.style.background = this.currentColor;
+                    particle.style.opacity = this.brushOpacity * Math.random();
+                    particle.style.left = (Math.random() * size - size/2) + 'px';
+                    particle.style.top = (Math.random() * size - size/2) + 'px';
+                    container.appendChild(particle);
+                }
+            }
+
+            createSplatter(x, y) {
+                if (this.paintType === 'paint' || this.paintType === 'ink') {
+                    const splatter = document.createElement('div');
+                    splatter.className = 'splatter';
+                    splatter.style.left = x + 'px';
+                    splatter.style.top = y + 'px';
+                    splatter.style.width = (this.brushSize * 4) + 'px';
+                    splatter.style.height = (this.brushSize * 4) + 'px';
+                    splatter.style.background = this.currentColor;
+                    
+                    document.body.appendChild(splatter);
+                    
+                    setTimeout(() => splatter.remove(), 600);
+                }
+            }
+
+            addFadeEffect(stroke) {
+                const fadeTime = this.getFadeTime();
+                stroke.style.animation = `fadeOut ${fadeTime}s ease-out forwards`;
+                
+                setTimeout(() => {
+                    if (stroke.parentNode) {
+                        stroke.remove();
+                    }
+                }, fadeTime * 1000);
+            }
+
+            getFadeTime() {
+                switch (this.fadeEffect) {
+                    case 'slow': return 10;
+                    case 'medium': return 5;
+                    case 'fast': return 2;
+                    default: return 0;
+                }
+            }
+
+            updateBrushSize(value) {
+                this.brushSize = parseInt(value);
+                this.sizeValueDisplay.textContent = value;
+                this.cursor.style.width = this.brushSize + 'px';
+                this.cursor.style.height = this.brushSize + 'px';
+            }
+
+            updateBrushOpacity(value) {
+                this.brushOpacity = parseInt(value) / 100;
+                this.opacityValueDisplay.textContent = value;
+                this.cursor.style.opacity = this.brushOpacity;
+            }
+
+            updateBrushStyle(value) {
+                this.brushStyle = value;
+                this.currentBrushDisplay.textContent = value.charAt(0).toUpperCase() + value.slice(1);
+            }
+
+            updatePaintType(value) {
+                this.paintType = value;
+                this.updateColorDisplay();
+            }
+
+            updateColor(value) {
+                this.currentColor = value;
+                this.updateColorDisplay();
+                this.cursor.style.background = value;
+            }
+
+            updateColorDisplay() {
+                const colorNames = {
+                    'var(--jazer-cyan)': 'Cyan',
+                    'var(--jazer-purple)': 'Purple',
+                    'var(--jazer-pink)': 'Pink',
+                    '#ff0000': 'Red',
+                    '#00ff00': 'Green',
+                    '#0000ff': 'Blue'
+                };
+                
+                const colorName = colorNames[this.currentColor] || this.currentColor;
+                this.currentColorDisplay.textContent = colorName;
+                this.cursor.style.background = this.currentColor;
+            }
+
+            updateFadeEffect(value) {
+                this.fadeEffect = value;
+            }
+
+            showCursor() {
+                this.cursor.style.display = 'block';
+            }
+
+            hideCursor() {
+                this.cursor.style.display = 'none';
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+            }
+
+            clearAllStrokes() {
+                this.strokes.forEach(stroke => {
+                    if (stroke.parentNode) {
+                        stroke.remove();
+                    }
+                });
+                this.strokes = [];
+                this.strokeCount = 0;
+                this.strokeCountDisplay.textContent = '0';
+            }
+        }
+
+        // Initialize the ink paint cursor
+        const inkPaintCursor = new InkPaintCursor();
+
+        // Global clear function for buttons
+        function clearZone(zoneId) {
+            const zone = document.getElementById(zoneId);
+            const strokes = zone.querySelectorAll('.paint-stroke, .ink-stroke');
+            strokes.forEach(stroke => stroke.remove());
+        }
+
+        // Add clear all button functionality
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'c' && e.ctrlKey) {
+                inkPaintCursor.clearAllStrokes();
+            }
+        });
+    </script>
+</body>
+</html>

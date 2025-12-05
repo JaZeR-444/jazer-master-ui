@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magnetic Button Pull</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a, #1a0a2a, #0a1a2a);
+            font-family: var(--font-body);
+            color: #fff;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Custom cursor */
+        .custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease-out;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .custom-cursor.magnetic {
+            transform: translate(-50%, -50%) scale(1.5);
+            background: var(--jazer-pink);
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.7);
+        }
+
+        /* Magnetic button styles */
+        .magnetic-button {
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, var(--jazer-cyan), var(--jazer-purple));
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            transform-origin: center;
+        }
+
+        .magnetic-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .magnetic-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .magnetic-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 30px rgba(0, 255, 255, 0.3);
+        }
+
+        .magnetic-button.pulled {
+            transform: scale(1.1);
+            box-shadow: 0 20px 40px rgba(255, 0, 255, 0.4);
+        }
+
+        /* Magnetic field visualization */
+        .magnetic-field {
+            position: absolute;
+            border: 2px dashed rgba(0, 255, 255, 0.3);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+
+        /* Main content */
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        /* Demo sections */
+        .demo-section {
+            margin-bottom: 4rem;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        /* Button grid */
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .button-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100px;
+        }
+
+        /* Interactive cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .magnetic-card {
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: none;
+            transform-origin: center;
+        }
+
+        .magnetic-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .magnetic-card:hover::before {
+            left: 100%;
+        }
+
+        .magnetic-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+        }
+
+        .magnetic-card.pulled {
+            transform: translateY(-8px) scale(1.05);
+            border-color: var(--jazer-pink);
+            box-shadow: 0 25px 50px rgba(255, 0, 255, 0.3);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            color: var(--jazer-pink);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* Feature showcase */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .feature-card {
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: scale(1.05);
+            border-color: var(--jazer-purple);
+            box-shadow: 0 10px 30px rgba(255, 0, 255, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--jazer-cyan);
+        }
+
+        .feature-title {
+            font-size: 1.1rem;
+            color: var(--jazer-purple);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-text {
+            color: #ccc;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Control panel */
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid var(--jazer-cyan);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+        }
+
+        .control-title {
+            color: var(--jazer-cyan);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .control-group {
+            margin-bottom: 1rem;
+        }
+
+        .control-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .slider {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        .slider-value {
+            color: var(--jazer-pink);
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 0.25rem;
+        }
+
+        .toggle-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-radius: 5px;
+            cursor: none;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .toggle-btn:hover {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+        }
+
+        .toggle-btn.active {
+            background: var(--jazer-purple);
+            border-color: var(--jazer-purple);
+        }
+
+        /* Info panel */
+        .info-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--jazer-purple);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+        }
+
+        .info-text {
+            color: var(--jazer-pink);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* Back navigation */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 25px;
+            border: 1px solid var(--jazer-cyan);
+            z-index: 10001;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                top: auto;
+                bottom: 20px;
+                right: 20px;
+                left: 20px;
+                max-width: none;
+            }
+            
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back navigation -->
+    <a href="../index.html" class="back-button">← Back to Cursors</a>
+
+    <!-- Custom cursor -->
+    <div class="custom-cursor" id="customCursor"></div>
+
+    <!-- Info panel -->
+    <div class="info-panel">
+        <div class="info-text">Magnetic Force: <span id="magneticForce">0</span>%</div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <h1 class="title">Magnetic Button Pull</h1>
+        <p class="subtitle">Experience physics-based button attraction that responds to cursor proximity with smooth animations</p>
+    </header>
+
+    <!-- Main content -->
+    <main class="content">
+        <!-- Button demo -->
+        <section class="demo-section">
+            <h2 class="section-title">🧲 Magnetic Buttons</h2>
+            <div class="button-grid">
+                <div class="button-container">
+                    <button class="magnetic-button" data-strength="100">Primary Button</button>
+                </div>
+                <div class="button-container">
+                    <button class="magnetic-button" data-strength="150">Stronger Pull</button>
+                </div>
+                <div class="button-container">
+                    <button class="magnetic-button" data-strength="200">Maximum Force</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Card demo -->
+        <section class="demo-section">
+            <h2 class="section-title">🎯 Interactive Cards</h2>
+            <div class="card-grid">
+                <div class="magnetic-card" data-strength="120">
+                    <span class="card-icon">🎨</span>
+                    <h3 class="card-title">Design Card</h3>
+                    <p class="card-description">Hover to feel the magnetic attraction pulling this card toward your cursor</p>
+                </div>
+                
+                <div class="magnetic-card" data-strength="180">
+                    <span class="card-icon">⚡</span>
+                    <h3 class="card-title">Power Card</h3>
+                    <p class="card-description">Stronger magnetic field creates more dramatic pull effects</p>
+                </div>
+                
+                <div class="magnetic-card" data-strength="80">
+                    <span class="card-icon">🌟</span>
+                    <h3 class="card-title">Gentle Card</h3>
+                    <p class="card-description">Subtle magnetic attraction for smooth, elegant interactions</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature showcase -->
+        <section class="demo-section">
+            <h2 class="section-title">⚡ Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🧲</div>
+                    <h3 class="feature-title">Physics Simulation</h3>
+                    <p class="feature-text">Realistic magnetic attraction based on distance calculations</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📏</div>
+                    <h3 class="feature-title">Variable Strength</h3>
+                    <p class="feature-text">Adjustable magnetic field intensity for different effects</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3 class="feature-title">Smooth Animation</h3>
+                    <p class="feature-text">Fluid transitions using easing functions for natural movement</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3 class="feature-title">Multi-Element Support</h3>
+                    <p class="feature-text">Multiple elements can have independent magnetic properties</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3 class="feature-title">Touch Compatible</h3>
+                    <p class="feature-text">Works on mobile devices with touch event handling</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⚙️</div>
+                    <h3 class="feature-title">Customizable</h3>
+                    <p class="feature-text">Fine-tune magnetic behavior with control panel</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Control panel -->
+    <div class="controls">
+        <h3 class="control-title">⚙️ Magnetic Controls</h3>
+        
+        <div class="control-group">
+            <label class="control-label">Field Strength:</label>
+            <input type="range" class="slider" id="fieldStrength" min="50" max="300" value="150">
+            <div class="slider-value" id="fieldStrengthValue">150px</div>
+        </div>
+        
+        <div class="control-group">
+            <label class="control-label">Pull Sensitivity:</label>
+            <input type="range" class="slider" id="sensitivity" min="1" max="10" value="5">
+            <div class="slider-value" id="sensitivityValue">5</div>
+        </div>
+        
+        <div class="control-group">
+            <label class="control-label">Animation Speed:</label>
+            <input type="range" class="slider" id="animSpeed" min="1" max="20" value="10">
+            <div class="slider-value" id="animSpeedValue">10</div>
+        </div>
+        
+        <div class="control-group">
+            <label class="control-label">Visual Effects:</label>
+            <div class="toggle-buttons">
+                <button class="toggle-btn active" id="fieldToggle">Show Field</button>
+                <button class="toggle-btn active" id="glowToggle">Show Glow</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Magnetic button controller
+        class MagneticButtonController {
+            constructor() {
+                this.cursor = document.getElementById('customCursor');
+                this.magneticForceSpan = document.getElementById('magneticForce');
+                this.fieldStrengthInput = document.getElementById('fieldStrength');
+                this.fieldStrengthValue = document.getElementById('fieldStrengthValue');
+                this.sensitivityInput = document.getElementById('sensitivity');
+                this.sensitivityValue = document.getElementById('sensitivityValue');
+                this.animSpeedInput = document.getElementById('animSpeed');
+                this.animSpeedValue = document.getElementById('animSpeedValue');
+                this.fieldToggle = document.getElementById('fieldToggle');
+                this.glowToggle = document.getElementById('glowToggle');
+                
+                this.mouseX = 0;
+                this.mouseY = 0;
+                this.magneticElements = [];
+                this.fieldStrength = 150;
+                this.sensitivity = 5;
+                this.animSpeed = 10;
+                this.showField = true;
+                this.showGlow = true;
+                
+                this.init();
+            }
+            
+            init() {
+                // Mouse move handler
+                document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                
+                // Touch move handler for mobile
+                document.addEventListener('touchmove', (e) => this.handleTouchMove(e));
+                
+                // Control handlers
+                this.fieldStrengthInput.addEventListener('input', (e) => this.updateFieldStrength(e.target.value));
+                this.sensitivityInput.addEventListener('input', (e) => this.updateSensitivity(e.target.value));
+                this.animSpeedInput.addEventListener('input', (e) => this.updateAnimSpeed(e.target.value));
+                this.fieldToggle.addEventListener('click', () => this.toggleField());
+                this.glowToggle.addEventListener('click', () => this.toggleGlow());
+                
+                // Hide default cursor
+                document.body.style.cursor = 'none';
+                
+                // Initialize magnetic elements
+                this.initializeMagneticElements();
+                
+                // Start animation loop
+                this.animate();
+            }
+            
+            handleMouseMove(e) {
+                this.mouseX = e.clientX;
+                this.mouseY = e.clientY;
+                
+                // Update cursor position
+                this.cursor.style.left = `${e.clientX}px`;
+                this.cursor.style.top = `${e.clientY}px`;
+            }
+            
+            handleTouchMove(e) {
+                if (e.touches.length > 0) {
+                    const touch = e.touches[0];
+                    this.mouseX = touch.clientX;
+                    this.mouseY = touch.clientY;
+                    
+                    this.cursor.style.left = `${touch.clientX}px`;
+                    this.cursor.style.top = `${touch.clientY}px`;
+                }
+            }
+            
+            initializeMagneticElements() {
+                // Get all magnetic elements
+                const buttons = document.querySelectorAll('.magnetic-button');
+                const cards = document.querySelectorAll('.magnetic-card');
+                
+                [...buttons, ...cards].forEach(element => {
+                    const rect = element.getBoundingClientRect();
+                    const strength = parseInt(element.dataset.strength) || 100;
+                    
+                    this.magneticElements.push({
+                        element: element,
+                        originalX: rect.left + rect.width / 2,
+                        originalY: rect.top + rect.height / 2,
+                        strength: strength,
+                        currentX: rect.left + rect.width / 2,
+                        currentY: rect.top + rect.height / 2,
+                        field: null
+                    });
+                });
+            }
+            
+            calculateMagneticForce(element) {
+                const dx = this.mouseX - element.originalX;
+                const dy = this.mouseY - element.originalY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < this.fieldStrength) {
+                    const force = (1 - distance / this.fieldStrength) * this.sensitivity;
+                    const pullX = dx * force * 0.1;
+                    const pullY = dy * force * 0.1;
+                    
+                    return {
+                        x: element.originalX + pullX,
+                        y: element.originalY + pullY,
+                        force: Math.round(force * 100),
+                        isInRange: true
+                    };
+                }
+                
+                return {
+                    x: element.originalX,
+                    y: element.originalY,
+                    force: 0,
+                    isInRange: false
+                };
+            }
+            
+            updateMagneticElements() {
+                let maxForce = 0;
+                
+                this.magneticElements.forEach(magElement => {
+                    const result = this.calculateMagneticForce(magElement);
+                    
+                    // Smooth transition to new position
+                    const easing = this.animSpeed / 100;
+                    magElement.currentX += (result.x - magElement.currentX) * easing;
+                    magElement.currentY += (result.y - magElement.currentY) * easing;
+                    
+                    // Apply transform
+                    const translateX = magElement.currentX - magElement.originalX;
+                    const translateY = magElement.currentY - magElement.originalY;
+                    
+                    magElement.element.style.transform = `translate(${translateX}px, ${translateY}px)`;
+                    
+                    // Update classes
+                    if (result.isInRange) {
+                        magElement.element.classList.add('pulled');
+                        this.cursor.classList.add('magnetic');
+                        maxForce = Math.max(maxForce, result.force);
+                    } else {
+                        magElement.element.classList.remove('pulled');
+                    }
+                    
+                    // Update magnetic field visualization
+                    if (this.showField && magElement.field) {
+                        magElement.field.style.left = `${magElement.currentX}px`;
+                        magElement.field.style.top = `${magElement.currentY}px`;
+                        magElement.field.style.width = `${this.fieldStrength * 2}px`;
+                        magElement.field.style.height = `${this.fieldStrength * 2}px`;
+                        magElement.field.style.marginLeft = `-${this.fieldStrength}px`;
+                        magElement.field.style.marginTop = `-${this.fieldStrength}px`;
+                        magElement.field.style.display = result.isInRange ? 'block' : 'none';
+                    }
+                });
+                
+                // Update force display
+                this.magneticForceSpan.textContent = maxForce;
+                
+                // Remove magnetic class if no elements in range
+                if (maxForce === 0) {
+                    this.cursor.classList.remove('magnetic');
+                }
+            }
+            
+            updateFieldStrength(strength) {
+                this.fieldStrength = parseInt(strength);
+                this.fieldStrengthValue.textContent = `${strength}px`;
+            }
+            
+            updateSensitivity(sensitivity) {
+                this.sensitivity = parseInt(sensitivity);
+                this.sensitivityValue.textContent = sensitivity;
+            }
+            
+            updateAnimSpeed(speed) {
+                this.animSpeed = parseInt(speed);
+                this.animSpeedValue.textContent = speed;
+            }
+            
+            toggleField() {
+                this.showField = !this.showField;
+                this.fieldToggle.classList.toggle('active');
+                this.fieldToggle.textContent = this.showField ? 'Show Field' : 'Show Field';
+                
+                // Create or remove field visualizations
+                if (this.showField) {
+                    this.createFieldVisualizations();
+                } else {
+                    this.removeFieldVisualizations();
+                }
+            }
+            
+            toggleGlow() {
+                this.showGlow = !this.showGlow;
+                this.glowToggle.classList.toggle('active');
+                this.glowToggle.textContent = this.showGlow ? 'Show Glow' : 'Show Glow';
+            }
+            
+            createFieldVisualizations() {
+                this.magneticElements.forEach(magElement => {
+                    if (!magElement.field) {
+                        const field = document.createElement('div');
+                        field.className = 'magnetic-field';
+                        document.body.appendChild(field);
+                        magElement.field = field;
+                    }
+                });
+            }
+            
+            removeFieldVisualizations() {
+                this.magneticElements.forEach(magElement => {
+                    if (magElement.field) {
+                        magElement.field.remove();
+                        magElement.field = null;
+                    }
+                });
+            }
+            
+            animate() {
+                this.updateMagneticElements();
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+        
+        // Initialize magnetic button controller
+        const magneticController = new MagneticButtonController();
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'c' || e.key === 'C') {
+                const cursor = document.getElementById('customCursor');
+                cursor.style.display = cursor.style.display === 'none' ? 'block' : 'none';
+            }
+            
+            if (e.key === 'r' || e.key === 'R') {
+                // Reset to defaults
+                document.getElementById('fieldStrength').value = 150;
+                document.getElementById('sensitivity').value = 5;
+                document.getElementById('animSpeed').value = 10;
+                
+                magneticController.updateFieldStrength(150);
+                magneticController.updateSensitivity(5);
+                magneticController.updateAnimSpeed(10);
+            }
+            
+            if (e.key === 'f' || e.key === 'F') {
+                // Toggle field visualization
+                magneticController.toggleField();
+            }
+            
+            if (e.key === 'g' || e.key === 'G') {
+                // Toggle glow effect
+                magneticController.toggleGlow();
+            }
+        });
+        
+        // Add click effect
+        document.addEventListener('click', (e) => {
+            // Don't create effect on control panel clicks
+            if (e.target.closest('.controls') || e.target.closest('.back-button') || e.target.closest('.info-panel')) {
+                return;
+            }
+            
+            const burst = document.createElement('div');
+            burst.style.cssText = `
+                position: fixed;
+                width: 40px;
+                height: 40px;
+                background: radial-gradient(circle, var(--jazer-pink), transparent);
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 99999;
+                left: ${e.clientX - 20}px;
+                top: ${e.clientY - 20}px;
+                transform: scale(0);
+                animation: magnetic-burst 0.6s ease-out forwards;
+            `;
+            
+            document.body.appendChild(burst);
+            
+            setTimeout(() => burst.remove(), 600);
+        });
+        
+        // Add burst animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes magnetic-burst {
+                to {
+                    transform: scale(3);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

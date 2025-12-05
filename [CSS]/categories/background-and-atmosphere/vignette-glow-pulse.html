@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vignette Glow Pulse - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="cyan"] { background: var(--jazer-cyan); }
+    .color-btn[data-color="purple"] { background: var(--jazer-purple); }
+    .color-btn[data-color="pink"] { background: var(--jazer-pink); }
+    .color-btn[data-color="rainbow"] { background: conic-gradient(#0ff, #f0f, #ff0, #0ff); }
+    .color-btn[data-color="mono"] { background: #888; }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .vignette-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #050510 0%, #0a0a1f 50%, #0f0520 100%);
+      overflow: hidden;
+    }
+    .vignette-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      will-change: transform, opacity;
+    }
+    .corner-glow {
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 90%; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .hero-keys { gap: 0.5rem; }
+      .controls { top: auto; bottom: 4rem; right: 1rem; min-width: 140px; padding: 0.75rem; }
+      .corner-glow { width: 250px; height: 250px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Vignette Glow Pulse</h1>
+    <p>Breathing edge glows that pulse and expand with depth</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Reset</span>
+      <span class="key-hint"><kbd>B</kbd> Burst</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="cyan" title="Cyan"></button>
+      <button class="color-btn" data-color="purple" title="Purple"></button>
+      <button class="color-btn" data-color="pink" title="Pink"></button>
+      <button class="color-btn" data-color="rainbow" title="Rainbow"></button>
+      <button class="color-btn" data-color="mono" title="Monochrome"></button>
+    </div>
+    <div class="slider-group">
+      <label>Pulse Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.2" max="3" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Intensity: <span class="slider-value" id="intensityValue">1.0</span></label>
+      <input type="range" id="intensitySlider" min="0.3" max="2" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Spread: <span class="slider-value" id="spreadValue">50</span></label>
+      <input type="range" id="spreadSlider" min="20" max="80" step="5" value="50">
+    </div>
+  </div>
+
+  <div class="vignette-container" id="container">
+    <div class="vignette-layer" id="primaryGlow"></div>
+    <div class="vignette-layer" id="secondaryGlow"></div>
+    <div class="corner-glow" id="cornerTL"></div>
+    <div class="corner-glow" id="cornerTR"></div>
+    <div class="corner-glow" id="cornerBL"></div>
+    <div class="corner-glow" id="cornerBR"></div>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const status = document.getElementById('status');
+    const primaryGlow = document.getElementById('primaryGlow');
+    const secondaryGlow = document.getElementById('secondaryGlow');
+    const corners = {
+      tl: document.getElementById('cornerTL'),
+      tr: document.getElementById('cornerTR'),
+      bl: document.getElementById('cornerBL'),
+      br: document.getElementById('cornerBR')
+    };
+
+    let config = {
+      speed: 1,
+      intensity: 1,
+      spread: 50,
+      colorScheme: 'cyan',
+      paused: false,
+      burst: false,
+      burstTime: 0
+    };
+
+    const colorSchemes = {
+      cyan: {
+        primary: { r: 0, g: 242, b: 234 },
+        secondary: { r: 0, g: 180, b: 200 }
+      },
+      purple: {
+        primary: { r: 147, g: 51, b: 234 },
+        secondary: { r: 99, g: 102, b: 241 }
+      },
+      pink: {
+        primary: { r: 255, g: 0, b: 110 },
+        secondary: { r: 236, g: 72, b: 153 }
+      },
+      rainbow: {
+        primary: { r: 0, g: 242, b: 234 },
+        secondary: { r: 255, g: 0, b: 110 }
+      },
+      mono: {
+        primary: { r: 255, g: 255, b: 255 },
+        secondary: { r: 180, g: 180, b: 180 }
+      }
+    };
+
+    let time = 0;
+    let animationId;
+
+    function positionCorners() {
+      corners.tl.style.cssText = 'top: -200px; left: -200px;';
+      corners.tr.style.cssText = 'top: -200px; right: -200px;';
+      corners.bl.style.cssText = 'bottom: -200px; left: -200px;';
+      corners.br.style.cssText = 'bottom: -200px; right: -200px;';
+    }
+
+    function updateColors() {
+      const scheme = colorSchemes[config.colorScheme];
+      const p = scheme.primary;
+      const s = scheme.secondary;
+      const spread = config.spread;
+
+      primaryGlow.style.background = `radial-gradient(ellipse at center, transparent ${spread - 20}%, rgba(${p.r}, ${p.g}, ${p.b}, 0.3) ${spread + 20}%, rgba(${p.r}, ${p.g}, ${p.b}, 0.6) 100%)`;
+      secondaryGlow.style.background = `radial-gradient(ellipse at center, transparent ${spread - 10}%, rgba(${s.r}, ${s.g}, ${s.b}, 0.2) ${spread + 25}%, rgba(${s.r}, ${s.g}, ${s.b}, 0.4) 100%)`;
+
+      corners.tl.style.background = `radial-gradient(circle, rgba(${p.r}, ${p.g}, ${p.b}, 0.5) 0%, transparent 70%)`;
+      corners.tr.style.background = `radial-gradient(circle, rgba(${s.r}, ${s.g}, ${s.b}, 0.5) 0%, transparent 70%)`;
+      corners.bl.style.background = `radial-gradient(circle, rgba(${s.r}, ${s.g}, ${s.b}, 0.5) 0%, transparent 70%)`;
+      corners.br.style.background = `radial-gradient(circle, rgba(${p.r}, ${p.g}, ${p.b}, 0.5) 0%, transparent 70%)`;
+    }
+
+    function animate() {
+      if (config.paused) {
+        animationId = requestAnimationFrame(animate);
+        return;
+      }
+
+      time += 0.016 * config.speed;
+      const burstMultiplier = config.burst ? 1.5 + Math.sin(config.burstTime * 0.4) * 0.5 : 1;
+
+      // Update burst
+      if (config.burst) {
+        config.burstTime++;
+        if (config.burstTime > 60) {
+          config.burst = false;
+          config.burstTime = 0;
+        }
+      }
+
+      // Primary vignette pulse
+      const primaryPulse = 0.6 + Math.sin(time) * 0.4;
+      const primaryScale = 1 + Math.sin(time) * 0.05 * burstMultiplier;
+      primaryGlow.style.opacity = primaryPulse * config.intensity * burstMultiplier;
+      primaryGlow.style.transform = `scale(${primaryScale})`;
+
+      // Secondary vignette pulse (offset phase)
+      const secondaryPulse = 0.4 + Math.sin(time * 0.7 + 1) * 0.4;
+      const secondaryScale = 1 + Math.sin(time * 0.7 + 1) * 0.08 * burstMultiplier;
+      const secondaryRotate = Math.sin(time * 0.5) * 2;
+      secondaryGlow.style.opacity = secondaryPulse * config.intensity * burstMultiplier;
+      secondaryGlow.style.transform = `scale(${secondaryScale}) rotate(${secondaryRotate}deg)`;
+
+      // Corner glows with staggered pulses
+      const cornerPhases = [0, 1.5, 3, 4.5];
+      Object.values(corners).forEach((corner, i) => {
+        const phase = cornerPhases[i];
+        const cornerPulse = 0.5 + Math.sin(time * 0.8 + phase) * 0.5;
+        const cornerScale = 1 + Math.sin(time * 0.8 + phase) * 0.2 * burstMultiplier;
+        corner.style.opacity = cornerPulse * config.intensity * burstMultiplier;
+        corner.style.transform = `scale(${cornerScale})`;
+      });
+
+      animationId = requestAnimationFrame(animate);
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+        updateColors();
+      });
+    });
+
+    // Sliders
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('intensitySlider').addEventListener('input', e => {
+      config.intensity = parseFloat(e.target.value);
+      document.getElementById('intensityValue').textContent = config.intensity.toFixed(1);
+    });
+
+    document.getElementById('spreadSlider').addEventListener('input', e => {
+      config.spread = parseInt(e.target.value);
+      document.getElementById('spreadValue').textContent = config.spread;
+      updateColors();
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        time = 0;
+      }
+      if (e.code === 'KeyB') {
+        config.burst = true;
+        config.burstTime = 0;
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['cyan', 'purple', 'pink', 'rainbow', 'mono'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+        updateColors();
+      }
+    });
+
+    // Initialize
+    positionCorners();
+    updateColors();
+    animate();
+  </script>
+</body>
+</html>

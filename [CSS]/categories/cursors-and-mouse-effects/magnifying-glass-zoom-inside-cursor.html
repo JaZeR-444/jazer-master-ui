@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magnifying Glass Zoom Inside Cursor</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0b2e 100%);
+            color: var(--jazer-cyan);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            cursor: none;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 50%, rgba(255, 0, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: backgroundPulse 10s ease-in-out infinite;
+        }
+
+        @keyframes backgroundPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        .container, .back-button {
+            position: relative;
+            z-index: 1;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            font-size: 0.9rem;
+            border: 1px solid var(--jazer-cyan);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--gradient-primary);
+            box-shadow: 0 0 20px var(--jazer-cyan);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: var(--font-primary);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .magnifying-cursor {
+            position: fixed;
+            width: 120px;
+            height: 120px;
+            border: 3px solid var(--jazer-cyan);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            overflow: hidden;
+            box-shadow: 
+                0 0 30px rgba(0, 255, 255, 0.5),
+                inset 0 0 20px rgba(0, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(2px);
+        }
+
+        .magnifying-cursor::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 40px;
+            background: var(--jazer-cyan);
+            border-radius: 10px;
+            transform: rotate(45deg);
+            box-shadow: 0 0 10px var(--jazer-cyan);
+        }
+
+        .magnifying-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-origin: center;
+            transform: scale(2);
+            pointer-events: none;
+        }
+
+        .demo-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .demo-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-section h2 {
+            font-family: var(--font-primary);
+            margin-bottom: 1rem;
+            color: var(--jazer-purple);
+        }
+
+        .zoom-target {
+            width: 100%;
+            height: 250px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px dashed var(--jazer-pink);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1rem 0;
+            position: relative;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        .text-content {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            padding: 1rem;
+            color: var(--jazer-cyan);
+            font-family: var(--font-body);
+        }
+
+        .image-content {
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgb(0,255,255);stop-opacity:1" /><stop offset="50%" style="stop-color:rgb(255,0,255);stop-opacity:1" /><stop offset="100%" style="stop-color:rgb(255,255,0);stop-opacity:1" /></linearGradient></defs><rect width="400" height="300" fill="url(%23grad1)" /><circle cx="100" cy="100" r="50" fill="rgba(255,255,255,0.3)" /><rect x="200" y="150" width="80" height="80" fill="rgba(0,0,0,0.3)" /><polygon points="300,50 350,150 250,150" fill="rgba(255,255,255,0.2)" /></svg>') center/cover;
+            position: relative;
+        }
+
+        .pattern-content {
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0, 255, 255, 0.1) 10px, rgba(0, 255, 255, 0.1) 20px),
+                repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255, 0, 255, 0.1) 10px, rgba(255, 0, 255, 0.1) 20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-family: var(--font-primary);
+            color: var(--jazer-pink);
+        }
+
+        .controls {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            min-width: 250px;
+            z-index: 1001;
+        }
+
+        .control-group {
+            margin: 1rem 0;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--jazer-purple);
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 0.25rem;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 0.25rem;
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 0.25rem;
+        }
+
+        .zoom-indicator {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .zoom-level {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--jazer-pink);
+        }
+
+        .instructions {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 2rem;
+            border-left: 4px solid var(--jazer-purple);
+        }
+
+        .instructions h3 {
+            font-family: var(--font-primary);
+            color: var(--jazer-purple);
+            margin-top: 0;
+        }
+
+        .instructions ul {
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .instructions li {
+            margin: 0.5rem 0;
+        }
+
+        .mini-element {
+            position: absolute;
+            padding: 0.25rem 0.5rem;
+            background: var(--gradient-accent);
+            color: white;
+            border-radius: 0.25rem;
+            font-family: var(--font-primary);
+            font-size: 0.8rem;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .floating-element {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+
+    <div class="controls">
+        <h3 style="margin-top: 0; color: var(--jazer-cyan);">Magnifier Controls</h3>
+        
+        <div class="control-group">
+            <label for="zoomLevel">Zoom Level: <span id="zoomValue">2x</span></label>
+            <input type="range" id="zoomLevel" min="1.5" max="5" step="0.5" value="2">
+        </div>
+        
+        <div class="control-group">
+            <label for="lensSize">Lens Size: <span id="sizeValue">120px</span></label>
+            <input type="range" id="lensSize" min="80" max="200" step="10" value="120">
+        </div>
+        
+        <div class="control-group">
+            <label for="borderColor">Border Color:</label>
+            <select id="borderColor">
+                <option value="var(--jazer-cyan)">Cyan</option>
+                <option value="var(--jazer-purple)">Purple</option>
+                <option value="var(--jazer-pink)">Pink</option>
+                <option value="white">White</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="zoom-indicator">
+        <span>🔍</span>
+        <span>Zoom: <span class="zoom-level">2x</span></span>
+    </div>
+
+    <div class="container">
+        <h1>Magnifying Glass Cursor</h1>
+        <p class="description">
+            Interactive magnifying glass cursor that zooms content underneath. 
+            Move your cursor over different content areas to see the magnification effect.
+        </p>
+
+        <div class="demo-area">
+            <div class="demo-section">
+                <h2>Text Magnification</h2>
+                <div class="zoom-target" id="textTarget">
+                    <div class="text-content">
+                        <p>This is sample text that will be magnified when you hover over it with the magnifying glass cursor. Notice how the text becomes larger and more readable under the lens.</p>
+                        <p>The magnification effect works in real-time, following your cursor movement smoothly across the content.</p>
+                        <div class="mini-element floating-element" style="top: 20px; left: 30px;">Tiny Text</div>
+                        <div class="mini-element" style="bottom: 30px; right: 40px;">Small</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Pattern & Graphics</h2>
+                <div class="zoom-target" id="patternTarget">
+                    <div class="pattern-content">
+                        PATTERNS
+                        <div class="mini-element" style="top: 40px; left: 50px;">Zoom me!</div>
+                        <div class="mini-element floating-element" style="bottom: 60px; right: 80px;">Details</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Image Content</h2>
+                <div class="zoom-target" id="imageTarget">
+                    <div class="image-content">
+                        <div class="mini-element" style="top: 80px; left: 120px;">🎨</div>
+                        <div class="mini-element floating-element" style="bottom: 100px; right: 60px;">✨</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Mixed Content</h2>
+                <div class="zoom-target" id="mixedTarget">
+                    <div style="padding: 1rem; color: var(--jazer-cyan);">
+                        <h3 style="color: var(--jazer-pink); margin-top: 0;">Mixed Elements</h3>
+                        <p>Text with <span style="color: var(--jazer-purple);">colored</span> elements</p>
+                        <div style="display: flex; gap: 1rem; margin: 1rem 0;">
+                            <div style="width: 40px; height: 40px; background: var(--gradient-accent); border-radius: 50%;"></div>
+                            <div style="width: 40px; height: 40px; background: var(--jazer-cyan); border-radius: 0.25rem;"></div>
+                            <div style="width: 40px; height: 40px; background: var(--jazer-pink); clip-path: polygon(50% 0%, 0% 100%, 100% 100%);"></div>
+                        </div>
+                        <div class="mini-element" style="position: relative; top: 0; left: 0;">Micro</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>How It Works:</h3>
+            <ul>
+                <li>Move cursor over any content area to activate magnification</li>
+                <li>Adjust zoom level and lens size using controls</li>
+                <li>Magnifier shows 2x zoom of content underneath by default</li>
+                <li>Real-time rendering with smooth cursor tracking</li>
+                <li>Works with text, images, patterns, and mixed content</li>
+                <li>Customizable border colors and lens appearance</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="magnifying-cursor" id="magnifier">
+        <div class="magnifying-content" id="magnifyingContent"></div>
+    </div>
+
+    <script>
+        class MagnifyingGlassCursor {
+            constructor() {
+                this.magnifier = document.getElementById('magnifier');
+                this.magnifyingContent = document.getElementById('magnifyingContent');
+                this.zoomLevelInput = document.getElementById('zoomLevel');
+                this.lensSizeInput = document.getElementById('lensSize');
+                this.borderColorSelect = document.getElementById('borderColor');
+                this.zoomValueDisplay = document.getElementById('zoomValue');
+                this.sizeValueDisplay = document.getElementById('sizeValue');
+                this.zoomLevelDisplay = document.querySelector('.zoom-level');
+                
+                this.currentX = 0;
+                this.currentY = 0;
+                this.zoomLevel = 2;
+                this.lensSize = 120;
+                this.isActive = false;
+                
+                this.init();
+            }
+
+            init() {
+                document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                document.addEventListener('mouseenter', () => this.showCursor());
+                document.addEventListener('mouseleave', () => this.hideCursor());
+                
+                // Control event listeners
+                this.zoomLevelInput.addEventListener('input', (e) => this.updateZoomLevel(e.target.value));
+                this.lensSizeInput.addEventListener('input', (e) => this.updateLensSize(e.target.value));
+                this.borderColorSelect.addEventListener('change', (e) => this.updateBorderColor(e.target.value));
+                
+                // Hide default cursor
+                document.body.style.cursor = 'none';
+                
+                // Set up zoom targets
+                this.setupZoomTargets();
+            }
+
+            setupZoomTargets() {
+                const targets = document.querySelectorAll('.zoom-target');
+                targets.forEach(target => {
+                    target.addEventListener('mouseenter', () => this.activateMagnifier());
+                    target.addEventListener('mouseleave', () => this.deactivateMagnifier());
+                });
+            }
+
+            handleMouseMove(e) {
+                this.currentX = e.clientX;
+                this.currentY = e.clientY;
+                
+                // Update magnifier position
+                this.magnifier.style.left = this.currentX + 'px';
+                this.magnifier.style.top = this.currentY + 'px';
+                
+                if (this.isActive) {
+                    this.updateMagnifiedContent();
+                }
+            }
+
+            activateMagnifier() {
+                this.isActive = true;
+                this.magnifier.style.display = 'block';
+                this.updateMagnifiedContent();
+            }
+
+            deactivateMagnifier() {
+                this.isActive = false;
+                this.magnifier.style.display = 'none';
+                this.magnifyingContent.innerHTML = '';
+            }
+
+            updateMagnifiedContent() {
+                if (!this.isActive) return;
+                
+                // Get element under cursor
+                const elementUnderCursor = document.elementFromPoint(this.currentX, this.currentY);
+                const zoomTarget = elementUnderCursor?.closest('.zoom-target');
+                
+                if (zoomTarget) {
+                    // Clone the content of the zoom target
+                    const clonedContent = zoomTarget.cloneNode(true);
+                    clonedContent.style.position = 'absolute';
+                    clonedContent.style.top = '0';
+                    clonedContent.style.left = '0';
+                    clonedContent.style.width = '100%';
+                    clonedContent.style.height = '100%';
+                    clonedContent.style.transform = `scale(${this.zoomLevel})`;
+                    clonedContent.style.transformOrigin = 'center';
+                    
+                    // Calculate offset to keep the correct area magnified
+                    const rect = zoomTarget.getBoundingClientRect();
+                    const offsetX = (this.currentX - rect.left) * (this.zoomLevel - 1);
+                    const offsetY = (this.currentY - rect.top) * (this.zoomLevel - 1);
+                    
+                    clonedContent.style.transform = `scale(${this.zoomLevel}) translate(${-offsetX}px, ${-offsetY}px)`;
+                    
+                    this.magnifyingContent.innerHTML = '';
+                    this.magnifyingContent.appendChild(clonedContent);
+                }
+            }
+
+            updateZoomLevel(value) {
+                this.zoomLevel = parseFloat(value);
+                this.zoomValueDisplay.textContent = this.zoomLevel + 'x';
+                this.zoomLevelDisplay.textContent = this.zoomLevel + 'x';
+                this.magnifyingContent.style.transform = `scale(${this.zoomLevel})`;
+                
+                if (this.isActive) {
+                    this.updateMagnifiedContent();
+                }
+            }
+
+            updateLensSize(value) {
+                this.lensSize = parseInt(value);
+                this.sizeValueDisplay.textContent = this.lensSize + 'px';
+                this.magnifier.style.width = this.lensSize + 'px';
+                this.magnifier.style.height = this.lensSize + 'px';
+            }
+
+            updateBorderColor(color) {
+                this.magnifier.style.borderColor = color;
+                this.magnifier.style.boxShadow = `
+                    0 0 30px ${color}80,
+                    inset 0 0 20px ${color}40
+                `;
+                
+                // Update handle color
+                const handle = this.magnifier.querySelector('::before');
+                if (handle) {
+                    this.magnifier.style.setProperty('--handle-color', color);
+                }
+            }
+
+            showCursor() {
+                // Cursor is shown only when over zoom targets
+            }
+
+            hideCursor() {
+                this.deactivateMagnifier();
+            }
+        }
+
+        // Initialize the magnifying glass cursor
+        const magnifier = new MagnifyingGlassCursor();
+
+        // Add some interactive effects to mini elements
+        document.querySelectorAll('.mini-element').forEach(element => {
+            element.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.2)';
+                this.style.boxShadow = '0 0 15px var(--jazer-cyan)';
+            });
+            
+            element.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+                this.style.boxShadow = '';
+            });
+        });
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case '+':
+                case '=':
+                    if (magnifier.zoomLevel < 5) {
+                        magnifier.zoomLevelInput.value = Math.min(5, magnifier.zoomLevel + 0.5);
+                        magnifier.updateZoomLevel(magnifier.zoomLevelInput.value);
+                    }
+                    break;
+                case '-':
+                case '_':
+                    if (magnifier.zoomLevel > 1.5) {
+                        magnifier.zoomLevelInput.value = Math.max(1.5, magnifier.zoomLevel - 0.5);
+                        magnifier.updateZoomLevel(magnifier.zoomLevelInput.value);
+                    }
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>

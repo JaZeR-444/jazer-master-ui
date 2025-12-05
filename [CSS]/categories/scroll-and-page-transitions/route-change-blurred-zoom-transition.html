@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route Change Blurred Zoom Transition - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+            background: #0a0a0a;
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1001;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Router Container */
+        .router-container {
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* Route View */
+        .route-view {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            min-height: 100vh;
+            opacity: 0;
+            transform: scale(1.1);
+            filter: blur(20px);
+            pointer-events: none;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .route-view.active {
+            opacity: 1;
+            transform: scale(1);
+            filter: blur(0);
+            pointer-events: auto;
+            position: relative;
+        }
+
+        .route-view.exiting {
+            opacity: 0;
+            transform: scale(0.9);
+            filter: blur(20px);
+        }
+
+        /* Header */
+        .route-header {
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+        }
+
+        .route-header h1 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 1rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .route-header p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Navigation */
+        .route-nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .route-link {
+            padding: 1rem 2rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+        }
+
+        .route-link:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 242, 234, 0.4);
+        }
+
+        .route-link.active {
+            background: var(--jazer-cyan, #00f2ea);
+            color: #000000;
+            box-shadow: 0 0 30px rgba(0, 242, 234, 0.6);
+        }
+
+        /* Content */
+        .route-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .feature-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 16px;
+            padding: 2.5rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .feature-card:hover {
+            border-color: var(--jazer-cyan, #00f2ea);
+            box-shadow: 0 20px 60px rgba(0, 242, 234, 0.3);
+            transform: translateY(-8px);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .feature-card h3 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 1.5rem;
+            color: var(--jazer-cyan, #00f2ea);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card p {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.7;
+        }
+
+        /* Hero Section */
+        .route-hero {
+            text-align: center;
+            padding: 6rem 2rem;
+            background: linear-gradient(135deg, #1a0a2e 0%, #2a1a4e 50%, #1a0a2e 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .route-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 242, 234, 0.1) 0%, transparent 70%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 6vw, 4rem);
+            margin-bottom: 1.5rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-description {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.85);
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            line-height: 1.8;
+        }
+
+        .hero-cta {
+            display: inline-block;
+            padding: 1.25rem 2.5rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.125rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-cta:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Transition Settings */
+        .transition-settings {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            z-index: 100;
+            max-width: 250px;
+        }
+
+        .transition-settings h4 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 0.875rem;
+            color: var(--jazer-cyan, #00f2ea);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .setting-item {
+            margin-bottom: 1rem;
+        }
+
+        .setting-label {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .setting-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .setting-btn {
+            flex: 1;
+            padding: 0.5rem;
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid var(--jazer-purple, #9333ea);
+            color: var(--jazer-purple, #9333ea);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .setting-btn:hover {
+            background: rgba(147, 51, 234, 0.2);
+        }
+
+        .setting-btn.active {
+            background: var(--jazer-purple, #9333ea);
+            color: #000000;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .transition-settings {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .back-button {
+                top: 1rem;
+                left: 1rem;
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .route-header {
+                padding: 6rem 1rem 3rem;
+            }
+
+            .route-nav {
+                padding: 1rem;
+                gap: 0.75rem;
+            }
+
+            .route-link {
+                padding: 0.875rem 1.5rem;
+                font-size: 0.9375rem;
+            }
+
+            .route-content {
+                padding: 2rem 1rem;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .route-hero {
+                padding: 4rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <div class="transition-settings">
+        <h4>Transition</h4>
+        <div class="setting-item">
+            <div class="setting-label">Direction</div>
+            <div class="setting-buttons">
+                <button class="setting-btn active" data-direction="zoom-in">Zoom In</button>
+                <button class="setting-btn" data-direction="zoom-out">Zoom Out</button>
+            </div>
+        </div>
+        <div class="setting-item">
+            <div class="setting-label">Speed</div>
+            <div class="setting-buttons">
+                <button class="setting-btn" data-speed="fast">Fast</button>
+                <button class="setting-btn active" data-speed="normal">Normal</button>
+                <button class="setting-btn" data-speed="slow">Slow</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="router-container">
+        <!-- Home Route -->
+        <div class="route-view active" id="home">
+            <div class="route-header">
+                <h1>Route Transition Demo</h1>
+                <p>Experience smooth blurred zoom transitions when navigating between routes. Click the navigation links above to explore different pages.</p>
+            </div>
+
+            <nav class="route-nav">
+                <button class="route-link active" data-route="home">🏠 Home</button>
+                <button class="route-link" data-route="features">✨ Features</button>
+                <button class="route-link" data-route="about">📖 About</button>
+                <button class="route-link" data-route="contact">📧 Contact</button>
+            </nav>
+
+            <div class="route-hero">
+                <div class="hero-content">
+                    <h2 class="hero-title">Welcome Home</h2>
+                    <p class="hero-description">Discover seamless route transitions with blur and zoom effects that create a premium, app-like experience for your web application.</p>
+                    <a href="#" class="hero-cta" data-route="features">Explore Features</a>
+                </div>
+            </div>
+
+            <div class="route-content">
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <span class="feature-icon">⚡</span>
+                        <h3>Lightning Fast</h3>
+                        <p>Optimized transitions that complete in under 600ms for responsive feel.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">🎨</span>
+                        <h3>Beautiful Effects</h3>
+                        <p>Blur and zoom combinations create sophisticated visual transitions.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">📱</span>
+                        <h3>Mobile Ready</h3>
+                        <p>Smooth transitions across all devices with touch-optimized interactions.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Route -->
+        <div class="route-view" id="features">
+            <div class="route-header">
+                <h1>Amazing Features</h1>
+                <p>Explore the powerful capabilities and benefits of route-based transitions in modern web applications.</p>
+            </div>
+
+            <nav class="route-nav">
+                <button class="route-link" data-route="home">🏠 Home</button>
+                <button class="route-link active" data-route="features">✨ Features</button>
+                <button class="route-link" data-route="about">📖 About</button>
+                <button class="route-link" data-route="contact">📧 Contact</button>
+            </nav>
+
+            <div class="route-content">
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <span class="feature-icon">🔧</span>
+                        <h3>Customizable</h3>
+                        <p>Adjust transition speed, direction, and blur intensity to match your design.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">🎯</span>
+                        <h3>Precise Control</h3>
+                        <p>Fine-tune every aspect of the animation with simple configuration options.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">🚀</span>
+                        <h3>Production Ready</h3>
+                        <p>Battle-tested code that works reliably in real-world applications.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">💡</span>
+                        <h3>Smart Defaults</h3>
+                        <p>Works beautifully out of the box with sensible default settings.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">🔒</span>
+                        <h3>Type Safe</h3>
+                        <p>Written with modern JavaScript and TypeScript compatibility.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">📦</span>
+                        <h3>Zero Dependencies</h3>
+                        <p>Pure vanilla JavaScript with no external library requirements.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Route -->
+        <div class="route-view" id="about">
+            <div class="route-header">
+                <h1>About This Project</h1>
+                <p>Learn about the philosophy and design decisions behind these smooth route transitions.</p>
+            </div>
+
+            <nav class="route-nav">
+                <button class="route-link" data-route="home">🏠 Home</button>
+                <button class="route-link" data-route="features">✨ Features</button>
+                <button class="route-link active" data-route="about">📖 About</button>
+                <button class="route-link" data-route="contact">📧 Contact</button>
+            </nav>
+
+            <div class="route-hero">
+                <div class="hero-content">
+                    <h2 class="hero-title">Our Story</h2>
+                    <p class="hero-description">We believe web applications should feel as smooth and polished as native apps. These transitions are our contribution to making the web a more delightful place.</p>
+                </div>
+            </div>
+
+            <div class="route-content">
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <span class="feature-icon">🎭</span>
+                        <h3>User-Centric</h3>
+                        <p>Every decision made with the end user experience in mind.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">🌟</span>
+                        <h3>Quality First</h3>
+                        <p>No compromises on performance, accessibility, or visual appeal.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">🤝</span>
+                        <h3>Community Driven</h3>
+                        <p>Built with feedback from developers and designers worldwide.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Route -->
+        <div class="route-view" id="contact">
+            <div class="route-header">
+                <h1>Get In Touch</h1>
+                <p>Have questions or feedback? We'd love to hear from you about your experience.</p>
+            </div>
+
+            <nav class="route-nav">
+                <button class="route-link" data-route="home">🏠 Home</button>
+                <button class="route-link" data-route="features">✨ Features</button>
+                <button class="route-link" data-route="about">📖 About</button>
+                <button class="route-link active" data-route="contact">📧 Contact</button>
+            </nav>
+
+            <div class="route-hero">
+                <div class="hero-content">
+                    <h2 class="hero-title">Let's Connect</h2>
+                    <p class="hero-description">Whether you have questions, suggestions, or just want to say hello, we're here to listen and help make your project amazing.</p>
+                </div>
+            </div>
+
+            <div class="route-content">
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <span class="feature-icon">💬</span>
+                        <h3>Support</h3>
+                        <p>Get help with implementation, troubleshooting, and best practices.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">🐛</span>
+                        <h3>Bug Reports</h3>
+                        <p>Found an issue? Let us know so we can fix it quickly.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">💡</span>
+                        <h3>Feature Requests</h3>
+                        <p>Share your ideas for new features and improvements.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const routes = document.querySelectorAll('.route-view');
+        const routeLinks = document.querySelectorAll('.route-link');
+        const directionButtons = document.querySelectorAll('[data-direction]');
+        const speedButtons = document.querySelectorAll('[data-speed]');
+
+        let currentRoute = 'home';
+        let transitionDirection = 'zoom-in';
+        let transitionSpeed = 600; // ms
+        let isTransitioning = false;
+
+        // Speed map
+        const speedMap = {
+            fast: 400,
+            normal: 600,
+            slow: 900
+        };
+
+        // Navigate to route
+        function navigateToRoute(routeName) {
+            if (isTransitioning || routeName === currentRoute) return;
+            
+            isTransitioning = true;
+
+            const currentRouteEl = document.getElementById(currentRoute);
+            const nextRouteEl = document.getElementById(routeName);
+
+            // Exit current route
+            currentRouteEl.classList.add('exiting');
+            currentRouteEl.classList.remove('active');
+
+            // Apply transition direction
+            if (transitionDirection === 'zoom-out') {
+                nextRouteEl.style.transform = 'scale(0.9)';
+            } else {
+                nextRouteEl.style.transform = 'scale(1.1)';
+            }
+
+            // Update transition duration
+            routes.forEach(route => {
+                route.style.transition = `all ${transitionSpeed}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+            });
+
+            // Enter next route after delay
+            setTimeout(() => {
+                nextRouteEl.classList.add('active');
+                nextRouteEl.classList.remove('exiting');
+                currentRouteEl.style.display = 'none';
+                nextRouteEl.style.display = 'block';
+
+                // Reset previous route
+                setTimeout(() => {
+                    currentRouteEl.classList.remove('exiting');
+                    currentRouteEl.style.display = 'block';
+                    currentRoute = routeName;
+                    isTransitioning = false;
+                }, transitionSpeed);
+
+            }, 50);
+        }
+
+        // Event listeners for navigation
+        routeLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const route = link.dataset.route;
+                navigateToRoute(route);
+
+                // Update active states
+                routeLinks.forEach(l => l.classList.remove('active'));
+                document.querySelectorAll(`[data-route="${route}"]`).forEach(l => {
+                    l.classList.add('active');
+                });
+            });
+        });
+
+        // Direction setting
+        directionButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                directionButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                transitionDirection = button.dataset.direction;
+            });
+        });
+
+        // Speed setting
+        speedButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                speedButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                transitionSpeed = speedMap[button.dataset.speed];
+            });
+        });
+
+        // Hero CTA navigation
+        document.querySelectorAll('.hero-cta').forEach(cta => {
+            cta.addEventListener('click', (e) => {
+                e.preventDefault();
+                const route = cta.dataset.route;
+                if (route) {
+                    navigateToRoute(route);
+                    
+                    // Update all nav link states
+                    routeLinks.forEach(l => {
+                        l.classList.toggle('active', l.dataset.route === route);
+                    });
+                }
+            });
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (isTransitioning) return;
+
+            const routeOrder = ['home', 'features', 'about', 'contact'];
+            const currentIndex = routeOrder.indexOf(currentRoute);
+
+            if (e.key === 'ArrowRight' && currentIndex < routeOrder.length - 1) {
+                const nextRoute = routeOrder[currentIndex + 1];
+                navigateToRoute(nextRoute);
+                
+                routeLinks.forEach(l => {
+                    l.classList.toggle('active', l.dataset.route === nextRoute);
+                });
+            } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
+                const prevRoute = routeOrder[currentIndex - 1];
+                navigateToRoute(prevRoute);
+                
+                routeLinks.forEach(l => {
+                    l.classList.toggle('active', l.dataset.route === prevRoute);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Converter</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            background: rgba(0, 217, 255, 0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateX(-5px);
+        }
+        h1 {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        .color-preview {
+            width: 100%;
+            height: 150px;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 2px solid var(--jazer-cyan);
+            transition: all 0.3s ease;
+        }
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+        }
+        .formats {
+            display: grid;
+            gap: 1rem;
+        }
+        .format-item {
+            background: rgba(0, 217, 255, 0.05);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .format-label {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+        .format-value {
+            color: white;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    
+    <div class="container">
+        <h1>🎨 Color Converter</h1>
+        
+        <div class="color-preview" id="preview"></div>
+        
+        <div class="input-group">
+            <label>Enter Color (HEX, RGB, HSL, or name)</label>
+            <input type="text" id="colorInput" value="#00d9ff" placeholder="#00d9ff or rgb(0, 217, 255)">
+        </div>
+        
+        <div class="formats">
+            <div class="format-item">
+                <span class="format-label">HEX</span>
+                <span class="format-value" id="hex">#00d9ff</span>
+            </div>
+            <div class="format-item">
+                <span class="format-label">RGB</span>
+                <span class="format-value" id="rgb">rgb(0, 217, 255)</span>
+            </div>
+            <div class="format-item">
+                <span class="format-label">RGBA</span>
+                <span class="format-value" id="rgba">rgba(0, 217, 255, 1)</span>
+            </div>
+            <div class="format-item">
+                <span class="format-label">HSL</span>
+                <span class="format-value" id="hsl">hsl(190, 100%, 50%)</span>
+            </div>
+            <div class="format-item">
+                <span class="format-label">HSLA</span>
+                <span class="format-value" id="hsla">hsla(190, 100%, 50%, 1)</span>
+            </div>
+            <div class="format-item">
+                <span class="format-label">HSV</span>
+                <span class="format-value" id="hsv">hsv(190, 100%, 100%)</span>
+            </div>
+            <div class="format-item">
+                <span class="format-label">CMYK</span>
+                <span class="format-value" id="cmyk">cmyk(100%, 15%, 0%, 0%)</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const colorInput = document.getElementById('colorInput');
+        const preview = document.getElementById('preview');
+        
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+        
+        function rgbToHsl(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+            
+            if (max === min) {
+                h = s = 0;
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                    case g: h = ((b - r) / d + 2) / 6; break;
+                    case b: h = ((r - g) / d + 4) / 6; break;
+                }
+            }
+            return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+        }
+        
+        function rgbToHsv(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            const d = max - min;
+            const s = max === 0 ? 0 : d / max;
+            const v = max;
+            
+            let h;
+            if (max === min) {
+                h = 0;
+            } else {
+                switch (max) {
+                    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                    case g: h = ((b - r) / d + 2) / 6; break;
+                    case b: h = ((r - g) / d + 4) / 6; break;
+                }
+            }
+            return { h: Math.round(h * 360), s: Math.round(s * 100), v: Math.round(v * 100) };
+        }
+        
+        function rgbToCmyk(r, g, b) {
+            let c = 1 - (r / 255);
+            let m = 1 - (g / 255);
+            let y = 1 - (b / 255);
+            let k = Math.min(c, m, y);
+            
+            c = ((c - k) / (1 - k)) || 0;
+            m = ((m - k) / (1 - k)) || 0;
+            y = ((y - k) / (1 - k)) || 0;
+            
+            return {
+                c: Math.round(c * 100),
+                m: Math.round(m * 100),
+                y: Math.round(y * 100),
+                k: Math.round(k * 100)
+            };
+        }
+        
+        function convertColor() {
+            const color = colorInput.value.trim();
+            
+            // Create a temporary element to parse the color
+            const temp = document.createElement('div');
+            temp.style.color = color;
+            document.body.appendChild(temp);
+            const computed = window.getComputedStyle(temp).color;
+            document.body.removeChild(temp);
+            
+            // Parse RGB from computed style
+            const match = computed.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+            if (!match) return;
+            
+            const r = parseInt(match[1]);
+            const g = parseInt(match[2]);
+            const b = parseInt(match[3]);
+            
+            // Update preview
+            preview.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+            
+            // Convert to hex
+            const hex = '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+            document.getElementById('hex').textContent = hex.toUpperCase();
+            
+            // RGB
+            document.getElementById('rgb').textContent = `rgb(${r}, ${g}, ${b})`;
+            document.getElementById('rgba').textContent = `rgba(${r}, ${g}, ${b}, 1)`;
+            
+            // HSL
+            const hsl = rgbToHsl(r, g, b);
+            document.getElementById('hsl').textContent = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+            document.getElementById('hsla').textContent = `hsla(${hsl.h}, ${hsl.s}%, ${hsl.l}%, 1)`;
+            
+            // HSV
+            const hsv = rgbToHsv(r, g, b);
+            document.getElementById('hsv').textContent = `hsv(${hsv.h}, ${hsv.s}%, ${hsv.v}%)`;
+            
+            // CMYK
+            const cmyk = rgbToCmyk(r, g, b);
+            document.getElementById('cmyk').textContent = `cmyk(${cmyk.c}%, ${cmyk.m}%, ${cmyk.y}%, ${cmyk.k}%)`;
+        }
+        
+        colorInput.addEventListener('input', convertColor);
+        convertColor();
+    </script>
+</body>
+</html>

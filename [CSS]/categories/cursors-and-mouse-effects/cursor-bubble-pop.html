@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cursor Bubble Pop - JaZeR</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-body); background: linear-gradient(135deg, #0a0a0f 0%, #1a0b2e 100%); color: var(--jazer-cyan); cursor: crosshair; overflow: hidden; height: 100vh; }
+    .back-button { position: fixed; top: 20px; left: 20px; color: var(--jazer-cyan); text-decoration: none; font-size: 1.2rem; z-index: 1000; padding: 10px 20px; border: 2px solid var(--jazer-cyan); border-radius: 8px; background: rgba(0, 242, 234, 0.1); }
+    #canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+    .info { position: fixed; top: 100px; left: 50%; transform: translateX(-50%); text-align: center; z-index: 10; background: rgba(0, 242, 234, 0.1); padding: 20px 40px; border: 2px solid var(--jazer-cyan); border-radius: 12px; }
+    .info h1 { font-family: var(--font-primary); font-size: 2rem; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <a href="../index.html" class="back-button">← Back to Gallery</a>
+  <canvas id="canvas"></canvas>
+  <div class="info"><h1>Bubble Pop Cursor</h1><p style="color: var(--jazer-purple);">Move to create bubbles, click to pop them!</p></div>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    let mouseX = canvas.width / 2, mouseY = canvas.height / 2;
+    const bubbles = [];
+    
+    class Bubble {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.radius = Math.random() * 20 + 10;
+        this.vx = (Math.random() - 0.5) * 2;
+        this.vy = -Math.random() * 2 - 1;
+        this.life = 1;
+        this.popping = false;
+        this.popProgress = 0;
+        this.color = ['#00f2ea', '#9333ea', '#ff006e'][Math.floor(Math.random() * 3)];
+      }
+      
+      update() {
+        if (this.popping) {
+          this.popProgress += 0.1;
+          this.radius += 2;
+          this.life -= 0.1;
+          return this.popProgress >= 1;
+        }
+        
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.05; // Slight gravity
+        this.life -= 0.002;
+        
+        // Bounce off edges
+        if (this.x < this.radius || this.x > canvas.width - this.radius) this.vx *= -0.8;
+        if (this.y > canvas.height - this.radius) {
+          this.y = canvas.height - this.radius;
+          this.vy *= -0.6;
+        }
+        
+        return this.life <= 0 || this.y > canvas.height + 100;
+      }
+      
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.life;
+        
+        // Bubble gradient
+        const gradient = ctx.createRadialGradient(
+          this.x - this.radius * 0.3, this.y - this.radius * 0.3, 0,
+          this.x, this.y, this.radius
+        );
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+        gradient.addColorStop(0.5, this.color);
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Shine highlight
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.beginPath();
+        ctx.arc(this.x - this.radius * 0.3, this.y - this.radius * 0.3, this.radius * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
+      }
+      
+      pop() {
+        if (!this.popping) {
+          this.popping = true;
+          // Create pop particles
+          for (let i = 0; i < 8; i++) {
+            const angle = (Math.PI * 2 / 8) * i;
+            bubbles.push({
+              x: this.x,
+              y: this.y,
+              vx: Math.cos(angle) * 4,
+              vy: Math.sin(angle) * 4,
+              radius: 3,
+              life: 1,
+              isParticle: true,
+              color: this.color,
+              update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= 0.02;
+                return this.life <= 0;
+              },
+              draw() {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.life;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+              }
+            });
+          }
+        }
+      }
+    }
+    
+    document.addEventListener('mousemove', (e) => { 
+      mouseX = e.clientX; 
+      mouseY = e.clientY;
+      
+      // Create bubbles as mouse moves
+      if (Math.random() > 0.7) {
+        bubbles.push(new Bubble(mouseX + (Math.random() - 0.5) * 40, mouseY + (Math.random() - 0.5) * 40));
+      }
+    });
+    
+    document.addEventListener('click', (e) => {
+      // Pop bubbles near click
+      const clickX = e.clientX;
+      const clickY = e.clientY;
+      
+      bubbles.forEach(bubble => {
+        if (bubble.pop) {
+          const dist = Math.sqrt((bubble.x - clickX) ** 2 + (bubble.y - clickY) ** 2);
+          if (dist < bubble.radius + 50) {
+            bubble.pop();
+          }
+        }
+      });
+    });
+    
+    function animate() {
+      ctx.fillStyle = 'rgba(10, 10, 15, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Update and draw bubbles
+      for (let i = bubbles.length - 1; i >= 0; i--) {
+        const removed = bubbles[i].update();
+        bubbles[i].draw();
+        if (removed) bubbles.splice(i, 1);
+      }
+      
+      // Draw cursor
+      ctx.fillStyle = '#00f2ea';
+      ctx.globalAlpha = 0.6;
+      ctx.beginPath();
+      ctx.arc(mouseX, mouseY, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      
+      requestAnimationFrame(animate);
+    }
+    animate();
+    
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>

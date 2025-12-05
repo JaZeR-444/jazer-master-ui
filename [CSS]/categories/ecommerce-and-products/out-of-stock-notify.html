@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Out of Stock Notify - JaZeR E-commerce Patterns</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-gray);
+            text-decoration: none;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 2px solid var(--border-default);
+            background: var(--bg-card);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 2rem;
+        }
+
+        .back-button:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            transform: translateX(-5px);
+            box-shadow: var(--shadow-cyan);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero p {
+            font-size: 1.125rem;
+            color: var(--text-gray);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .style-btn {
+            padding: 0.625rem 1.25rem;
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .style-btn:hover {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+        }
+
+        .style-btn.active {
+            background: var(--gradient-primary);
+            border-color: transparent;
+            color: white;
+            box-shadow: var(--shadow-cyan);
+        }
+
+        .keyboard-hint {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            opacity: 0.7;
+        }
+
+        .keyboard-hint kbd {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: 4px;
+            padding: 0.2rem 0.5rem;
+            font-family: var(--font-mono);
+            margin: 0 0.25rem;
+        }
+
+        .demo-section {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .demo-container {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 20px;
+            padding: 3rem;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .demo-container:hover {
+            border-color: var(--jazer-cyan);
+        }
+
+        .notify-showcase {
+            width: 100%;
+            max-width: 450px;
+        }
+
+        /* ==================== STYLE 1: Classic Form ==================== */
+        .style-classic .notify {
+            background: var(--bg-dark);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .style-classic .notify__badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 0, 110, 0.15);
+            border: 2px solid #ff006e;
+            border-radius: 8px;
+            color: #ff006e;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.8125rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .style-classic .notify__title {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .style-classic .notify__text {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            margin-bottom: 1.5rem;
+        }
+
+        .style-classic .notify__input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 10px;
+            color: var(--text-light);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .style-classic .notify__input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: var(--shadow-cyan);
+        }
+
+        .style-classic .notify__input::placeholder {
+            color: var(--text-gray);
+        }
+
+        .style-classic .notify__btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .style-classic .notify__btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+        }
+
+        /* ==================== STYLE 2: Inline Compact ==================== */
+        .style-inline .notify {
+            background: var(--bg-dark);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .style-inline .notify__header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .style-inline .notify__icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 0, 110, 0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .style-inline .notify__info {
+            flex: 1;
+        }
+
+        .style-inline .notify__status {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: #ff006e;
+            margin-bottom: 0.125rem;
+        }
+
+        .style-inline .notify__hint {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        .style-inline .notify__form {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .style-inline .notify__input {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .style-inline .notify__input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+
+        .style-inline .notify__btn {
+            padding: 0.875rem 1.5rem;
+            background: linear-gradient(135deg, #ff006e, #9333ea);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.875rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        .style-inline .notify__btn:hover {
+            transform: scale(1.02);
+        }
+
+        /* ==================== STYLE 3: Card with Product ==================== */
+        .style-product .notify {
+            background: var(--bg-dark);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .style-product .notify__product {
+            display: flex;
+            gap: 1rem;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .style-product .notify__image {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            position: relative;
+        }
+
+        .style-product .notify__image::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 0, 110, 0.3);
+            border-radius: 12px;
+        }
+
+        .style-product .notify__details {
+            flex: 1;
+        }
+
+        .style-product .notify__name {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .style-product .notify__price {
+            font-family: var(--font-primary);
+            font-weight: 700;
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .style-product .notify__badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(255, 0, 110, 0.15);
+            border-radius: 50px;
+            color: #ff006e;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.6875rem;
+            text-transform: uppercase;
+        }
+
+        .style-product .notify__form {
+            padding: 1.5rem;
+        }
+
+        .style-product .notify__title {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 0.75rem;
+        }
+
+        .style-product .notify__input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 0.9375rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .style-product .notify__input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+
+        .style-product .notify__btn {
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .style-product .notify__btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* ==================== STYLE 4: Modal Style ==================== */
+        .style-modal .notify {
+            background: var(--bg-dark);
+            border: 2px solid rgba(255, 0, 110, 0.3);
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .style-modal .notify::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff006e, #9333ea);
+        }
+
+        .style-modal .notify__icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 0, 110, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1.5rem;
+            animation: bell-shake 2s ease-in-out infinite;
+        }
+
+        @keyframes bell-shake {
+            0%, 100% { transform: rotate(0deg); }
+            10% { transform: rotate(15deg); }
+            20% { transform: rotate(-15deg); }
+            30% { transform: rotate(10deg); }
+            40% { transform: rotate(-10deg); }
+            50% { transform: rotate(0deg); }
+        }
+
+        .style-modal .notify__title {
+            font-family: var(--font-primary);
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .style-modal .notify__text {
+            font-size: 0.9375rem;
+            color: var(--text-gray);
+            margin-bottom: 1.5rem;
+        }
+
+        .style-modal .notify__input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            color: var(--text-light);
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .style-modal .notify__input:focus {
+            outline: none;
+            border-color: var(--jazer-pink);
+            box-shadow: 0 0 20px rgba(255, 0, 110, 0.3);
+        }
+
+        .style-modal .notify__btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #ff006e, #9333ea);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .style-modal .notify__btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px rgba(255, 0, 110, 0.4);
+        }
+
+        /* ==================== STYLE 5: Steps Progress ==================== */
+        .style-steps .notify {
+            background: var(--bg-dark);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .style-steps .notify__progress {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .style-steps .notify__progress::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 30px;
+            right: 30px;
+            height: 2px;
+            background: var(--border-default);
+        }
+
+        .style-steps .notify__step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .style-steps .notify__step-dot {
+            width: 32px;
+            height: 32px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .style-steps .notify__step--active .notify__step-dot {
+            background: var(--gradient-primary);
+            border-color: var(--jazer-cyan);
+            color: white;
+        }
+
+        .style-steps .notify__step--completed .notify__step-dot {
+            background: #00ff88;
+            border-color: #00ff88;
+            color: #000;
+        }
+
+        .style-steps .notify__step-label {
+            font-size: 0.6875rem;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .style-steps .notify__step--active .notify__step-label {
+            color: var(--jazer-cyan);
+        }
+
+        .style-steps .notify__form-title {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        .style-steps .notify__input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 10px;
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .style-steps .notify__input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+
+        .style-steps .notify__btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .style-steps .notify__btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* ==================== STYLE 6: Waitlist Counter ==================== */
+        .style-waitlist .notify {
+            background: var(--bg-dark);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .style-waitlist .notify__badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.375rem 1rem;
+            background: rgba(255, 0, 110, 0.15);
+            border-radius: 50px;
+            color: #ff006e;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .style-waitlist .notify__counter {
+            margin-bottom: 1.5rem;
+        }
+
+        .style-waitlist .notify__number {
+            font-family: var(--font-primary);
+            font-size: 3rem;
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+        }
+
+        .style-waitlist .notify__label {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+        }
+
+        .style-waitlist .notify__text {
+            font-size: 0.9375rem;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+        }
+
+        .style-waitlist .notify__input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 10px;
+            color: var(--text-light);
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .style-waitlist .notify__input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+
+        .style-waitlist .notify__btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .style-waitlist .notify__btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .style-waitlist .notify__position {
+            margin-top: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        .style-waitlist .notify__position span {
+            color: #00ff88;
+            font-weight: 600;
+        }
+
+        /* ==================== STYLE 7: Glass Card ==================== */
+        .style-glass .notify {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .style-glass .notify::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent);
+            pointer-events: none;
+        }
+
+        .style-glass .notify__header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .style-glass .notify__icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, rgba(255, 0, 110, 0.3), rgba(147, 51, 234, 0.3));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .style-glass .notify__titles {
+            flex: 1;
+        }
+
+        .style-glass .notify__title {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .style-glass .notify__subtitle {
+            font-size: 0.75rem;
+            color: #ff006e;
+        }
+
+        .style-glass .notify__body {
+            position: relative;
+            z-index: 1;
+        }
+
+        .style-glass .notify__text {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            margin-bottom: 1.5rem;
+        }
+
+        .style-glass .notify__input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text-light);
+            font-size: 0.9375rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .style-glass .notify__input:focus {
+            outline: none;
+            border-color: rgba(255, 0, 110, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .style-glass .notify__btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(255, 0, 110, 0.8), rgba(147, 51, 234, 0.8));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .style-glass .notify__btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 0, 110, 0.3);
+        }
+
+        /* ==================== STYLE 8: Cyberpunk Terminal ==================== */
+        .style-cyberpunk .notify {
+            background: #050508;
+            border: 2px solid #ff006e;
+            padding: 1.5rem;
+            font-family: var(--font-mono, monospace);
+            position: relative;
+        }
+
+        .style-cyberpunk .notify::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(255, 0, 110, 0.02) 2px,
+                rgba(255, 0, 110, 0.02) 4px
+            );
+            pointer-events: none;
+        }
+
+        .style-cyberpunk .notify__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(255, 0, 110, 0.3);
+            margin-bottom: 1rem;
+        }
+
+        .style-cyberpunk .notify__title {
+            color: #ff006e;
+            font-size: 0.6875rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .style-cyberpunk .notify__status {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.6875rem;
+            color: #ff006e;
+        }
+
+        .style-cyberpunk .notify__status-dot {
+            width: 6px;
+            height: 6px;
+            background: #ff006e;
+            border-radius: 50%;
+            animation: status-pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes status-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .style-cyberpunk .notify__body {
+            margin-bottom: 1rem;
+        }
+
+        .style-cyberpunk .notify__line {
+            font-size: 0.8125rem;
+            margin-bottom: 0.375rem;
+        }
+
+        .style-cyberpunk .notify__key {
+            color: var(--text-gray);
+        }
+
+        .style-cyberpunk .notify__val {
+            color: #00f2ea;
+        }
+
+        .style-cyberpunk .notify__val--error {
+            color: #ff006e;
+        }
+
+        .style-cyberpunk .notify__form {
+            border-top: 1px solid rgba(255, 0, 110, 0.3);
+            padding-top: 1rem;
+        }
+
+        .style-cyberpunk .notify__prompt {
+            color: #00f2ea;
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .style-cyberpunk .notify__input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .style-cyberpunk .notify__cursor {
+            color: #00f2ea;
+        }
+
+        .style-cyberpunk .notify__input {
+            flex: 1;
+            padding: 0.625rem;
+            background: transparent;
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            color: #00f2ea;
+            font-family: inherit;
+            font-size: 0.875rem;
+        }
+
+        .style-cyberpunk .notify__input:focus {
+            outline: none;
+            border-color: #00f2ea;
+            box-shadow: 0 0 10px rgba(0, 242, 234, 0.3);
+        }
+
+        .style-cyberpunk .notify__btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: transparent;
+            border: 2px solid #00f2ea;
+            color: #00f2ea;
+            font-family: inherit;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .style-cyberpunk .notify__btn:hover {
+            background: #00f2ea;
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.5);
+        }
+
+        /* Hide all styles by default */
+        .notify-showcase > div { display: none; }
+        .notify-showcase > div.active { display: block; }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .hero { padding: 2rem 0; }
+            .hero h1 { font-size: 2rem; }
+            .demo-container { padding: 1.5rem; }
+            .controls { gap: 0.5rem; }
+            .style-btn { padding: 0.5rem 1rem; font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to E-commerce Patterns</a>
+
+    <section class="hero">
+        <h1>Out of Stock Notify</h1>
+        <p>Email subscription forms that capture customer interest when products are unavailable, driving future conversions.</p>
+        
+        <div class="controls">
+            <button class="style-btn active" data-style="classic">Classic</button>
+            <button class="style-btn" data-style="inline">Inline</button>
+            <button class="style-btn" data-style="product">Product</button>
+            <button class="style-btn" data-style="modal">Modal</button>
+            <button class="style-btn" data-style="steps">Steps</button>
+            <button class="style-btn" data-style="waitlist">Waitlist</button>
+            <button class="style-btn" data-style="glass">Glass</button>
+            <button class="style-btn" data-style="cyberpunk">Cyberpunk</button>
+        </div>
+        <p class="keyboard-hint">Press <kbd>Space</kbd> to cycle styles | <kbd>R</kbd> to reset</p>
+    </section>
+
+    <section class="demo-section">
+        <div class="demo-container">
+            <div class="notify-showcase">
+                <!-- Style 1: Classic Form -->
+                <div class="style-classic active">
+                    <div class="notify">
+                        <div class="notify__badge">⚠️ Out of Stock</div>
+                        <h3 class="notify__title">Notify Me When Available</h3>
+                        <p class="notify__text">Enter your email and we'll let you know when this item is back in stock.</p>
+                        <input type="email" class="notify__input" placeholder="your@email.com">
+                        <button class="notify__btn">Notify Me</button>
+                    </div>
+                </div>
+
+                <!-- Style 2: Inline Compact -->
+                <div class="style-inline">
+                    <div class="notify">
+                        <div class="notify__header">
+                            <div class="notify__icon">📦</div>
+                            <div class="notify__info">
+                                <div class="notify__status">Currently Unavailable</div>
+                                <div class="notify__hint">Get notified when back in stock</div>
+                            </div>
+                        </div>
+                        <div class="notify__form">
+                            <input type="email" class="notify__input" placeholder="Email address">
+                            <button class="notify__btn">Notify</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 3: Card with Product -->
+                <div class="style-product">
+                    <div class="notify">
+                        <div class="notify__product">
+                            <div class="notify__image">🎧</div>
+                            <div class="notify__details">
+                                <div class="notify__name">Premium Headphones</div>
+                                <div class="notify__price">$299.99</div>
+                                <div class="notify__badge">Out of Stock</div>
+                            </div>
+                        </div>
+                        <div class="notify__form">
+                            <h4 class="notify__title">Get Notified</h4>
+                            <input type="email" class="notify__input" placeholder="Enter your email">
+                            <button class="notify__btn">Subscribe to Updates</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 4: Modal Style -->
+                <div class="style-modal">
+                    <div class="notify">
+                        <div class="notify__icon">🔔</div>
+                        <h3 class="notify__title">Don't Miss Out!</h3>
+                        <p class="notify__text">This item sold out fast. Be the first to know when it's back!</p>
+                        <input type="email" class="notify__input" placeholder="your@email.com">
+                        <button class="notify__btn">Notify Me</button>
+                    </div>
+                </div>
+
+                <!-- Style 5: Steps Progress -->
+                <div class="style-steps">
+                    <div class="notify">
+                        <div class="notify__progress">
+                            <div class="notify__step notify__step--completed">
+                                <div class="notify__step-dot">✓</div>
+                                <div class="notify__step-label">Sold Out</div>
+                            </div>
+                            <div class="notify__step notify__step--active">
+                                <div class="notify__step-dot">2</div>
+                                <div class="notify__step-label">Subscribe</div>
+                            </div>
+                            <div class="notify__step">
+                                <div class="notify__step-dot">3</div>
+                                <div class="notify__step-label">Notified</div>
+                            </div>
+                        </div>
+                        <h4 class="notify__form-title">Enter your email to get notified</h4>
+                        <input type="email" class="notify__input" placeholder="your@email.com">
+                        <button class="notify__btn">Subscribe for Updates</button>
+                    </div>
+                </div>
+
+                <!-- Style 6: Waitlist Counter -->
+                <div class="style-waitlist">
+                    <div class="notify">
+                        <div class="notify__badge">⚡ High Demand</div>
+                        <div class="notify__counter">
+                            <div class="notify__number">247</div>
+                            <div class="notify__label">people waiting</div>
+                        </div>
+                        <p class="notify__text">Join the waitlist to secure your spot!</p>
+                        <input type="email" class="notify__input" placeholder="your@email.com">
+                        <button class="notify__btn">Join Waitlist</button>
+                        <p class="notify__position">You'll be <span>#248</span> in line</p>
+                    </div>
+                </div>
+
+                <!-- Style 7: Glass Card -->
+                <div class="style-glass">
+                    <div class="notify">
+                        <div class="notify__header">
+                            <div class="notify__icon">📭</div>
+                            <div class="notify__titles">
+                                <div class="notify__title">Back in Stock Alert</div>
+                                <div class="notify__subtitle">Currently unavailable</div>
+                            </div>
+                        </div>
+                        <div class="notify__body">
+                            <p class="notify__text">We'll send you a one-time email when this product becomes available again.</p>
+                            <input type="email" class="notify__input" placeholder="Enter your email">
+                            <button class="notify__btn">Set Alert</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 8: Cyberpunk Terminal -->
+                <div class="style-cyberpunk">
+                    <div class="notify">
+                        <div class="notify__header">
+                            <span class="notify__title">// STOCK_ALERT_SYS</span>
+                            <span class="notify__status"><span class="notify__status-dot"></span>OFFLINE</span>
+                        </div>
+                        <div class="notify__body">
+                            <div class="notify__line">
+                                <span class="notify__key">PRODUCT_ID:</span>
+                                <span class="notify__val">SKU-7749-PRO</span>
+                            </div>
+                            <div class="notify__line">
+                                <span class="notify__key">STOCK_STATUS:</span>
+                                <span class="notify__val notify__val--error">DEPLETED</span>
+                            </div>
+                            <div class="notify__line">
+                                <span class="notify__key">RESTOCK_ETA:</span>
+                                <span class="notify__val">PENDING</span>
+                            </div>
+                        </div>
+                        <div class="notify__form">
+                            <div class="notify__prompt">> ENTER_EMAIL_FOR_ALERT:</div>
+                            <div class="notify__input-wrap">
+                                <span class="notify__cursor">$</span>
+                                <input type="email" class="notify__input" placeholder="user@domain.net">
+                            </div>
+                            <button class="notify__btn">Execute Subscribe</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const styles = ['classic', 'inline', 'product', 'modal', 'steps', 'waitlist', 'glass', 'cyberpunk'];
+        let currentIndex = 0;
+
+        const buttons = document.querySelectorAll('.style-btn');
+        const styleContainers = document.querySelectorAll('.notify-showcase > div');
+
+        function setStyle(styleName) {
+            currentIndex = styles.indexOf(styleName);
+            
+            buttons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.style === styleName);
+            });
+
+            styleContainers.forEach(container => {
+                container.classList.toggle('active', container.classList.contains(`style-${styleName}`));
+            });
+        }
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => setStyle(btn.dataset.style));
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                currentIndex = (currentIndex + 1) % styles.length;
+                setStyle(styles[currentIndex]);
+            } else if (e.code === 'KeyR') {
+                e.preventDefault();
+                currentIndex = 0;
+                setStyle(styles[0]);
+            }
+        });
+    </script>
+</body>
+</html>

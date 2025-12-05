@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Copied Tooltip - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%); 
+            min-height: 100vh; 
+            padding: 2rem; 
+            color: white;
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        .back-button { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            padding: 0.75rem 1.5rem; 
+            border: 2px solid var(--jazer-cyan); 
+            border-radius: 12px; 
+            background: rgba(0, 255, 255, 0.1); 
+            transition: all 0.3s ease; 
+            margin-bottom: 2rem; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: #0a0a0a; 
+            transform: translateX(-5px); 
+        }
+        
+        .hero-section {
+            text-align: center;
+            padding: 2rem 0 3rem;
+        }
+        
+        h1 { 
+            font-family: var(--font-primary); 
+            font-size: clamp(2rem, 5vw, 3rem); 
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink)); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text; 
+            margin-bottom: 1rem;
+            text-shadow: 0 0 40px rgba(0, 242, 234, 0.3);
+        }
+        
+        .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .keyboard-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(147, 51, 234, 0.2);
+            border: 1px solid var(--jazer-purple);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--jazer-purple);
+        }
+        
+        .keyboard-hint kbd {
+            background: rgba(147, 51, 234, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-secondary);
+        }
+        
+        /* Controls Section */
+        .controls-section {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            font-family: var(--font-secondary);
+            font-size: 1.3rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .control-group label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: var(--font-secondary);
+        }
+        
+        .control-group select {
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .control-group select:hover,
+        .control-group select:focus {
+            border-color: var(--jazer-cyan);
+            outline: none;
+        }
+        
+        .control-group select option {
+            background: #1a1a2e;
+            color: white;
+        }
+        
+        /* Variants Grid */
+        .variants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .variant-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .variant-card:hover {
+            border-color: var(--jazer-purple);
+        }
+        
+        .variant-card h3 {
+            font-family: var(--font-secondary);
+            font-size: 1rem;
+            color: var(--jazer-purple);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .variant-preview {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 120px;
+        }
+        
+        /* === COPY BUTTON BASE === */
+        .copy-trigger {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-trigger:hover {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 242, 234, 0.1);
+        }
+        
+        .copy-trigger .link-text {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .copy-trigger .copy-icon {
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+        
+        /* === TOOLTIP STYLES === */
+        .tooltip {
+            position: absolute;
+            padding: 0.5rem 0.875rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-family: var(--font-secondary);
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .tooltip.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            border: 6px solid transparent;
+        }
+        
+        /* Position: Top */
+        .tooltip.pos-top {
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+        }
+        .tooltip.pos-top.visible {
+            transform: translateX(-50%) translateY(0);
+        }
+        .tooltip.pos-top::after {
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-top-color: inherit;
+        }
+        
+        /* Position: Bottom */
+        .tooltip.pos-bottom {
+            top: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%) translateY(-10px);
+        }
+        .tooltip.pos-bottom.visible {
+            transform: translateX(-50%) translateY(0);
+        }
+        .tooltip.pos-bottom::after {
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-bottom-color: inherit;
+        }
+        
+        /* Position: Left */
+        .tooltip.pos-left {
+            right: calc(100% + 10px);
+            top: 50%;
+            transform: translateY(-50%) translateX(10px);
+        }
+        .tooltip.pos-left.visible {
+            transform: translateY(-50%) translateX(0);
+        }
+        .tooltip.pos-left::after {
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            border-left-color: inherit;
+        }
+        
+        /* Position: Right */
+        .tooltip.pos-right {
+            left: calc(100% + 10px);
+            top: 50%;
+            transform: translateY(-50%) translateX(-10px);
+        }
+        .tooltip.pos-right.visible {
+            transform: translateY(-50%) translateX(0);
+        }
+        .tooltip.pos-right::after {
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            border-right-color: inherit;
+        }
+        
+        /* Style 1: Success Green */
+        .tooltip.style-success {
+            background: #00ff88;
+            color: #0a0a0a;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+        }
+        .tooltip.style-success::after { border-color: #00ff88 transparent transparent transparent; }
+        .tooltip.style-success.pos-bottom::after { border-color: transparent transparent #00ff88 transparent; }
+        .tooltip.style-success.pos-left::after { border-color: transparent transparent transparent #00ff88; }
+        .tooltip.style-success.pos-right::after { border-color: transparent #00ff88 transparent transparent; }
+        
+        /* Style 2: Cyan Glow */
+        .tooltip.style-cyan {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.5);
+        }
+        .tooltip.style-cyan::after { border-color: var(--jazer-cyan) transparent transparent transparent; }
+        .tooltip.style-cyan.pos-bottom::after { border-color: transparent transparent var(--jazer-cyan) transparent; }
+        .tooltip.style-cyan.pos-left::after { border-color: transparent transparent transparent var(--jazer-cyan); }
+        .tooltip.style-cyan.pos-right::after { border-color: transparent var(--jazer-cyan) transparent transparent; }
+        
+        /* Style 3: Dark Glass */
+        .tooltip.style-glass {
+            background: rgba(30, 30, 50, 0.95);
+            color: white;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .tooltip.style-glass::after { border-color: rgba(30, 30, 50, 0.95) transparent transparent transparent; }
+        .tooltip.style-glass.pos-bottom::after { border-color: transparent transparent rgba(30, 30, 50, 0.95) transparent; }
+        
+        /* Style 4: Gradient */
+        .tooltip.style-gradient {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            box-shadow: 0 4px 20px rgba(147, 51, 234, 0.4);
+        }
+        .tooltip.style-gradient::after { border-color: var(--jazer-cyan) transparent transparent transparent; }
+        .tooltip.style-gradient.pos-bottom::after { border-color: transparent transparent var(--jazer-purple) transparent; }
+        
+        /* Style 5: Neon Pink */
+        .tooltip.style-neon {
+            background: rgba(10, 10, 20, 0.95);
+            color: var(--jazer-pink);
+            border: 2px solid var(--jazer-pink);
+            box-shadow: 0 0 15px rgba(255, 0, 110, 0.4),
+                        inset 0 0 15px rgba(255, 0, 110, 0.1);
+        }
+        .tooltip.style-neon::after { 
+            border-color: var(--jazer-pink) transparent transparent transparent;
+            margin-top: -2px;
+        }
+        
+        /* Style 6: Minimal */
+        .tooltip.style-minimal {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+        }
+        .tooltip.style-minimal::after { border-color: rgba(255, 255, 255, 0.1) transparent transparent transparent; }
+        
+        /* Style 7: Pill */
+        .tooltip.style-pill {
+            background: #00ff88;
+            color: #0a0a0a;
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+        }
+        .tooltip.style-pill::after { display: none; }
+        
+        /* Style 8: Checkmark Animation */
+        .tooltip.style-checkmark {
+            background: #00ff88;
+            color: #0a0a0a;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+        }
+        .tooltip.style-checkmark .check-icon {
+            display: inline-block;
+            animation: checkPop 0.4s ease;
+        }
+        @keyframes checkPop {
+            0% { transform: scale(0) rotate(-45deg); }
+            50% { transform: scale(1.3) rotate(0deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        .tooltip.style-checkmark::after { border-color: #00ff88 transparent transparent transparent; }
+        
+        /* Copy Success State */
+        .copy-trigger.copied {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .copy-trigger.copied .copy-icon {
+            color: #00ff88;
+        }
+        
+        /* Demo Section */
+        .demo-section {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-pink);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .demo-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .demo-item h4 {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            font-family: var(--font-secondary);
+        }
+        
+        /* Link Share Card */
+        .share-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .share-card-title {
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .share-link-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .share-link-row .link-preview {
+            flex: 1;
+            font-family: var(--font-secondary);
+            font-size: 0.85rem;
+            color: var(--jazer-cyan);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .share-copy-btn {
+            position: relative;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: var(--font-secondary);
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .share-copy-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+        
+        .share-copy-btn.copied {
+            background: #00ff88;
+            color: #0a0a0a;
+        }
+        
+        /* Inline Icon Button */
+        .icon-copy-btn {
+            position: relative;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.6);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .icon-copy-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            background: rgba(0, 242, 234, 0.1);
+        }
+        
+        .icon-copy-btn.copied {
+            border-color: #00ff88;
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        /* Footer */
+        .footer-info {
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .footer-info h4 {
+            color: var(--jazer-cyan);
+            font-family: var(--font-secondary);
+            margin-bottom: 0.75rem;
+        }
+        
+        .footer-info ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0.5rem;
+        }
+        
+        .footer-info li {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+            padding-left: 1rem;
+            position: relative;
+        }
+        
+        .footer-info li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: var(--jazer-purple);
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .variants-grid { grid-template-columns: 1fr; }
+            .demo-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back</a>
+        
+        <section class="hero-section">
+            <h1>Link Copied Tooltip</h1>
+            <p class="subtitle">Instant visual feedback tooltips for clipboard copy actions with multiple styles and positions</p>
+            <div class="keyboard-hint">
+                <kbd>Space</kbd> to copy with random style
+            </div>
+        </section>
+        
+        <!-- Controls -->
+        <section class="controls-section">
+            <h2 class="section-title">⚙️ Configuration</h2>
+            
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label>Tooltip Style</label>
+                    <select id="tooltip-style">
+                        <option value="success">Success Green</option>
+                        <option value="cyan">Cyan Glow</option>
+                        <option value="glass">Dark Glass</option>
+                        <option value="gradient">Gradient</option>
+                        <option value="neon">Neon Pink</option>
+                        <option value="minimal">Minimal</option>
+                        <option value="pill">Pill Shape</option>
+                        <option value="checkmark">With Checkmark</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>Position</label>
+                    <select id="tooltip-position">
+                        <option value="top">Top</option>
+                        <option value="bottom">Bottom</option>
+                        <option value="left">Left</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>Duration (ms)</label>
+                    <select id="tooltip-duration">
+                        <option value="1000">1 second</option>
+                        <option value="1500" selected>1.5 seconds</option>
+                        <option value="2000">2 seconds</option>
+                        <option value="3000">3 seconds</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>Message</label>
+                    <select id="tooltip-message">
+                        <option value="Copied!">Copied!</option>
+                        <option value="Link copied!">Link copied!</option>
+                        <option value="Copied to clipboard">Copied to clipboard</option>
+                        <option value="URL copied">URL copied</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Style Variants -->
+        <section class="variants-grid">
+            <div class="variant-card">
+                <h3>✅ Success Green</h3>
+                <div class="variant-preview">
+                    <button class="copy-trigger" onclick="showTooltip(this, 'success')">
+                        <span class="link-text">https://jazer.io/share/abc123</span>
+                        <span class="copy-icon">📋</span>
+                        <span class="tooltip style-success pos-top">Copied!</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="variant-card">
+                <h3>💎 Cyan Glow</h3>
+                <div class="variant-preview">
+                    <button class="copy-trigger" onclick="showTooltip(this, 'cyan')">
+                        <span class="link-text">https://jazer.io/share/def456</span>
+                        <span class="copy-icon">📋</span>
+                        <span class="tooltip style-cyan pos-top">Link copied!</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="variant-card">
+                <h3>🔮 Dark Glass</h3>
+                <div class="variant-preview">
+                    <button class="copy-trigger" onclick="showTooltip(this, 'glass')">
+                        <span class="link-text">https://jazer.io/share/ghi789</span>
+                        <span class="copy-icon">📋</span>
+                        <span class="tooltip style-glass pos-top">Copied to clipboard</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="variant-card">
+                <h3>🌈 Gradient</h3>
+                <div class="variant-preview">
+                    <button class="copy-trigger" onclick="showTooltip(this, 'gradient')">
+                        <span class="link-text">https://jazer.io/share/jkl012</span>
+                        <span class="copy-icon">📋</span>
+                        <span class="tooltip style-gradient pos-top">Copied!</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="variant-card">
+                <h3>💗 Neon Pink</h3>
+                <div class="variant-preview">
+                    <button class="copy-trigger" onclick="showTooltip(this, 'neon')">
+                        <span class="link-text">https://jazer.io/share/mno345</span>
+                        <span class="copy-icon">📋</span>
+                        <span class="tooltip style-neon pos-top">Link copied!</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="variant-card">
+                <h3>✨ Minimal</h3>
+                <div class="variant-preview">
+                    <button class="copy-trigger" onclick="showTooltip(this, 'minimal')">
+                        <span class="link-text">https://jazer.io/share/pqr678</span>
+                        <span class="copy-icon">📋</span>
+                        <span class="tooltip style-minimal pos-top">Copied</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="variant-card">
+                <h3>💊 Pill Shape</h3>
+                <div class="variant-preview">
+                    <button class="copy-trigger" onclick="showTooltip(this, 'pill')">
+                        <span class="link-text">https://jazer.io/share/stu901</span>
+                        <span class="copy-icon">📋</span>
+                        <span class="tooltip style-pill pos-top">Copied!</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="variant-card">
+                <h3>☑️ With Checkmark</h3>
+                <div class="variant-preview">
+                    <button class="copy-trigger" onclick="showTooltip(this, 'checkmark')">
+                        <span class="link-text">https://jazer.io/share/vwx234</span>
+                        <span class="copy-icon">📋</span>
+                        <span class="tooltip style-checkmark pos-top"><span class="check-icon">✓</span> Copied!</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Interactive Demo -->
+        <section class="demo-section">
+            <h2 class="section-title">🎮 Interactive Examples</h2>
+            
+            <div class="demo-grid">
+                <!-- Share Card Example -->
+                <div class="share-card">
+                    <div class="share-card-title">Share this project</div>
+                    <div class="share-link-row">
+                        <span class="link-preview">https://jazer.io/projects/cyber-dashboard</span>
+                        <button class="share-copy-btn" onclick="copyShareLink(this)">
+                            <span class="btn-icon">📋</span>
+                            <span class="btn-text">Copy</span>
+                            <span class="tooltip style-success pos-top">Copied!</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Code Block Example -->
+                <div class="share-card">
+                    <div class="share-card-title">Install command</div>
+                    <div class="share-link-row">
+                        <span class="link-preview">npm install @jazer/components</span>
+                        <button class="icon-copy-btn" onclick="copyIconBtn(this)">
+                            📋
+                            <span class="tooltip style-cyan pos-top">Copied!</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Multiple Links -->
+                <div class="share-card">
+                    <div class="share-card-title">Quick links</div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <div class="share-link-row">
+                            <span class="link-preview">Documentation</span>
+                            <button class="icon-copy-btn" onclick="copyIconBtn(this)">
+                                📋
+                                <span class="tooltip style-gradient pos-left">Copied!</span>
+                            </button>
+                        </div>
+                        <div class="share-link-row">
+                            <span class="link-preview">API Reference</span>
+                            <button class="icon-copy-btn" onclick="copyIconBtn(this)">
+                                📋
+                                <span class="tooltip style-gradient pos-left">Copied!</span>
+                            </button>
+                        </div>
+                        <div class="share-link-row">
+                            <span class="link-preview">GitHub Repo</span>
+                            <button class="icon-copy-btn" onclick="copyIconBtn(this)">
+                                📋
+                                <span class="tooltip style-gradient pos-left">Copied!</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Position Demo -->
+                <div class="demo-item">
+                    <h4>Position variations</h4>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+                        <button class="icon-copy-btn" onclick="copyIconBtn(this)" style="position: relative;">
+                            ⬆️
+                            <span class="tooltip style-success pos-top">Top</span>
+                        </button>
+                        <button class="icon-copy-btn" onclick="copyIconBtn(this)" style="position: relative;">
+                            ⬇️
+                            <span class="tooltip style-success pos-bottom">Bottom</span>
+                        </button>
+                        <button class="icon-copy-btn" onclick="copyIconBtn(this)" style="position: relative;">
+                            ⬅️
+                            <span class="tooltip style-success pos-left">Left</span>
+                        </button>
+                        <button class="icon-copy-btn" onclick="copyIconBtn(this)" style="position: relative;">
+                            ➡️
+                            <span class="tooltip style-success pos-right">Right</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <div class="footer-info">
+            <h4>Features</h4>
+            <ul>
+                <li>8 tooltip style variants</li>
+                <li>4 position options (top/bottom/left/right)</li>
+                <li>Configurable display duration</li>
+                <li>Custom message support</li>
+                <li>Smooth bounce-in animation</li>
+                <li>Checkmark animation variant</li>
+                <li>Button state feedback</li>
+                <li>Keyboard shortcut (Space)</li>
+                <li>Works with any copy action</li>
+                <li>Responsive design</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        function showTooltip(element, style) {
+            const tooltip = element.querySelector('.tooltip');
+            const duration = parseInt(document.getElementById('tooltip-duration').value);
+            
+            // Add copied state to button
+            element.classList.add('copied');
+            
+            // Show tooltip
+            tooltip.classList.add('visible');
+            
+            // Simulate clipboard copy
+            const linkText = element.querySelector('.link-text')?.textContent || 'https://jazer.io/demo';
+            navigator.clipboard?.writeText(linkText).catch(() => {});
+            
+            // Hide after duration
+            setTimeout(() => {
+                tooltip.classList.remove('visible');
+                element.classList.remove('copied');
+            }, duration);
+        }
+        
+        function copyShareLink(button) {
+            const tooltip = button.querySelector('.tooltip');
+            const duration = parseInt(document.getElementById('tooltip-duration').value);
+            const linkText = button.closest('.share-link-row').querySelector('.link-preview').textContent;
+            
+            button.classList.add('copied');
+            button.querySelector('.btn-text').textContent = 'Copied!';
+            tooltip.classList.add('visible');
+            
+            navigator.clipboard?.writeText(linkText).catch(() => {});
+            
+            setTimeout(() => {
+                tooltip.classList.remove('visible');
+                button.classList.remove('copied');
+                button.querySelector('.btn-text').textContent = 'Copy';
+            }, duration);
+        }
+        
+        function copyIconBtn(button) {
+            const tooltip = button.querySelector('.tooltip');
+            const duration = parseInt(document.getElementById('tooltip-duration').value);
+            
+            button.classList.add('copied');
+            tooltip.classList.add('visible');
+            
+            const linkText = button.closest('.share-link-row')?.querySelector('.link-preview')?.textContent || 'Copied content';
+            navigator.clipboard?.writeText(linkText).catch(() => {});
+            
+            setTimeout(() => {
+                tooltip.classList.remove('visible');
+                button.classList.remove('copied');
+            }, duration);
+        }
+        
+        function triggerRandomCopy() {
+            const styles = ['success', 'cyan', 'glass', 'gradient', 'neon', 'minimal', 'pill', 'checkmark'];
+            const buttons = document.querySelectorAll('.variant-preview .copy-trigger');
+            const randomBtn = buttons[Math.floor(Math.random() * buttons.length)];
+            const randomStyle = styles[Math.floor(Math.random() * styles.length)];
+            
+            if (randomBtn) {
+                showTooltip(randomBtn, randomStyle);
+            }
+        }
+        
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'SELECT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+            
+            if (e.code === 'Space') {
+                e.preventDefault();
+                triggerRandomCopy();
+            }
+        });
+    </script>
+</body>
+</html>

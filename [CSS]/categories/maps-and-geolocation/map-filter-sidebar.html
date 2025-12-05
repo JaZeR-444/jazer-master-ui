@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Map Filter Sidebar - JaZeR Maps Patterns</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:var(--font-body);background:var(--bg-dark);color:var(--text-light);margin:0;padding:1.25rem}
+    .back-button{display:inline-flex;align-items:center;gap:.5rem;color:var(--text-gray);text-decoration:none;font-family:var(--font-secondary);font-weight:600;padding:.5rem 1rem;border-radius:8px;border:1px solid var(--border-default);background:var(--bg-card)}
+    .back-button:hover{border-color:var(--jazer-cyan);color:var(--jazer-cyan)}
+
+    .hero{text-align:center;margin:1rem 0}
+    .hero h1{font-size:clamp(1.75rem,3.5vw,2.5rem);background:var(--gradient-text);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .hero p{color:var(--text-gray);max-width:760px;margin:.4rem auto}
+
+    .layout{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:320px 1fr;gap:1rem}
+    @media (max-width:900px){.layout{grid-template-columns:1fr}}
+
+    .sidebar{background:var(--bg-card);border-radius:12px;padding:1rem;border:2px solid var(--border-default);box-shadow:var(--shadow-card)}
+    .map-panel{background:linear-gradient(90deg, rgba(0,0,0,0.35), rgba(0,0,0,0.45));border:1px solid var(--border-default);border-radius:12px;padding:1rem;display:flex;align-items:center;justify-content:center}
+
+    .group{border-top:1px dashed rgba(255,255,255,0.03);padding-top:.5rem;margin-top:.5rem}
+    .group-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+    .chip{display:inline-flex;align-items:center;gap:.5rem;padding:.35rem .6rem;border-radius:999px;background:rgba(255,255,255,0.02);border:1px solid var(--border-default);cursor:pointer}
+    .chip--active{border-color:var(--jazer-cyan);background:rgba(0,242,234,0.05);color:var(--jazer-cyan)}
+
+    .filters{display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem}
+    .filter-row{display:flex;align-items:center;gap:.5rem;justify-content:space-between}
+    .small{font-size:.85rem;color:var(--text-gray)}
+
+    .marker{width:12px;height:12px;border-radius:50%}
+    .legend{display:flex;gap:.5rem;align-items:center}
+
+    .footer{display:flex;justify-content:space-between;align-items:center;margin-top:.5rem}
+    .btn{padding:.45rem .6rem;border-radius:8px;border:none;background:var(--gradient-accent);color:var(--text-light);font-weight:700;cursor:pointer}
+    .btn-ghost{padding:.4rem .6rem;border-radius:8px;border:1px solid var(--border-default);background:transparent;color:var(--text-light)}
+
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to Maps & Geolocation</a>
+  <header class="hero">
+    <h1>Map Filter Sidebar</h1>
+    <p>Collapsible sidebar showcasing filter categories, range sliders, toggle buttons, and live filtering of mock POIs.</p>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+        <div style="font-weight:700">Filters</div>
+        <div class="small muted">3/3 Active</div>
+      </div>
+      <div class="small">Categories</div>
+      <div style="display:flex;gap:.5rem;margin-top:.5rem;flex-wrap:wrap" id="category-chips">
+        <button class="chip chip--active" data-cat="all">All</button>
+        <button class="chip" data-cat="food">Food</button>
+        <button class="chip" data-cat="hotel">Hotel</button>
+        <button class="chip" data-cat="park">Parks</button>
+        <button class="chip" data-cat="market">Market</button>
+      </div>
+
+      <div class="group">
+        <div class="group-header"><div class="small">Ratings</div><div class="small">★ 0.0 - 5.0</div></div>
+        <div class="filters"><div style="display:flex;align-items:center;gap:.5rem"><input id="ratingRange" type="range" min="0" max="50" value="30"><div class="small" id="ratingVal">3.0+</div></div></div>
+      </div>
+
+      <div class="group">
+        <div class="group-header"><div class="small">Distance</div><div class="small">0 - 50km</div></div>
+        <div class="filters"><div style="display:flex;align-items:center;gap:.5rem"><input id="distanceRange" type="range" min="0" max="50" value="20"><div class="small" id="distanceVal">20km</div></div></div>
+      </div>
+
+      <div class="group">
+        <div class="group-header"><div class="small">Options</div><div class="small">Show / Hide</div></div>
+        <div class="filters"><label class="filter-row"><div class="small">Show only open now</div><input id="openNow" type="checkbox"></label>
+        <label class="filter-row"><div class="small">Highlight favorites</div><input id="highFav" type="checkbox"></label></div>
+      </div>
+
+      <div class="footer"><button id="resetFilters" class="btn-ghost">Reset</button><button id="applyFilters" class="btn">Apply</button></div>
+    </aside>
+
+    <section class="map-panel">
+      <div style="width:100%">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem"><div style="font-weight:700">Map Mock</div><div class="legend" id="legend"><div class="item"><div class="marker" style="background:var(--jazer-cyan)"></div><div class="small">Park</div></div><div class="item"><div class="marker" style="background:var(--jazer-pink)"></div><div class="small">Food</div></div></div></div>
+        <div id="mapMock" style="height:560px;border-radius:12px;background:linear-gradient(90deg,rgba(0,0,0,0.35),rgba(0,0,0,0.45));border:1px solid var(--border-default);position:relative;overflow:hidden">
+          <!-- markers injected here -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const mapMock = document.getElementById('mapMock');
+
+    const SAMPLE = [
+      { id: 1, title:'Blue Moon Café', type:'food', rating:4.5, distance:2 },
+      { id: 2, title:'Sunrise Hotel', type:'hotel', rating:4.2, distance:12 },
+      { id: 3, title:'Greenfield Park', type:'park', rating:4.7, distance:6 },
+      { id: 4, title:'Tech Plaza', type:'business', rating:4.0, distance:8 },
+      { id: 5, title:'Market Square', type:'market', rating:4.1, distance:1 },
+      { id: 6, title:'Seaside Diner', type:'food', rating:3.9, distance:22 },
+      { id: 7, title:'Urban Inn', type:'hotel', rating:4.0, distance:25 },
+      { id: 8, title:'River Park', type:'park', rating:4.3, distance:18 }
+    ];
+
+    function renderMarkers(filter){ mapMock.innerHTML = '';
+      SAMPLE.filter(s => {
+        if(filter.cat && filter.cat !== 'all' && s.type !== filter.cat) return false;
+        if(s.rating < filter.minRating) return false;
+        if(s.distance > filter.maxDistance) return false;
+        if(filter.openNow && Math.random() < 0.3) return false; // pseudo open
+        return true;
+      }).forEach(s => { const m = document.createElement('div'); m.className = 'marker-item'; m.style.position = 'absolute'; m.style.left = (10 + s.id * 60 % 85) + '%'; m.style.top = (10 + s.id * 30 % 85) + '%'; m.style.transform = 'translate(-50%,-50%)'; const color = s.type === 'park' ? 'var(--jazer-cyan)' : s.type === 'food' ? 'var(--jazer-pink)' : s.type === 'hotel' ? 'var(--jazer-purple)' : 'var(--jazer-yellow)'; m.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:.25rem"><div style='width:18px;height:18px;border-radius:50%;background:${color};border:2px solid rgba(0,0,0,0.4);box-shadow:0 6px 18px rgba(0,0,0,0.4)'></div><div style='font-size:.85rem;color:var(--text-gray)'>${s.title}</div></div>`; mapMock.appendChild(m); }); }
+
+    // initial
+    const filterState = { cat: 'all', minRating: 3.0, maxDistance: 50, openNow: false };
+    renderMarkers(filterState);
+
+    // chips
+    document.querySelectorAll('#category-chips .chip').forEach(c => { c.addEventListener('click', ()=>{ document.querySelectorAll('#category-chips .chip').forEach(x=>x.classList.remove('chip--active')); c.classList.add('chip--active'); filterState.cat = c.dataset.cat; }) });
+
+    // ratings
+    document.getElementById('ratingRange').addEventListener('input', e=>{ const v = e.target.value / 10; document.getElementById('ratingVal').textContent = v.toFixed(1) + '+'; filterState.minRating = v; });
+    document.getElementById('distanceRange').addEventListener('input', e=>{ const v = e.target.value; document.getElementById('distanceVal').textContent = v + 'km'; filterState.maxDistance = Number(v); });
+
+    document.getElementById('openNow').addEventListener('change', e=>{ filterState.openNow = e.target.checked; });
+    document.getElementById('highFav').addEventListener('change', e=>{ if(e.target.checked){ alert('Highlighting favorites (demo)') } });
+
+    document.getElementById('applyFilters').addEventListener('click', ()=>{ renderMarkers(filterState); });
+    document.getElementById('resetFilters').addEventListener('click', ()=>{ document.querySelectorAll('#category-chips .chip').forEach(x=>x.classList.remove('chip--active')); document.querySelector('#category-chips .chip').classList.add('chip--active'); document.getElementById('ratingRange').value = 30; document.getElementById('ratingVal').textContent = '3.0+'; document.getElementById('distanceRange').value = 20; document.getElementById('distanceVal').textContent = '20km'; document.getElementById('openNow').checked = false; filterState.cat = 'all'; filterState.minRating = 3.0; filterState.maxDistance = 20; renderMarkers(filterState); });
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quest Complete Checkmark</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 3rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(0, 242, 234, 0.05));
+            border-bottom: 1px solid rgba(147, 51, 234, 0.3);
+        }
+        .back-button { 
+            display: inline-block; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(6, 182, 212, 0.1); 
+            margin-bottom: 1.5rem; 
+            transition: all 0.3s ease; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5); 
+        }
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            font-size: clamp(2rem, 5vw, 3rem); 
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+        }
+        .keyboard-hint {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            font-size: 0.9rem;
+        }
+        .keyboard-hint kbd {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin: 0 0.25rem;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+        .control-group label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .control-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(147, 51, 234, 0.5);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+        .control-group select:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+
+        /* Demo Area */
+        .demo-area {
+            position: relative;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(147, 51, 234, 0.1) 100%);
+            border: 2px solid rgba(147, 51, 234, 0.3);
+            border-radius: 20px;
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            gap: 2rem;
+        }
+
+        /* Checkmark Container */
+        .checkmark-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+        }
+
+        /* Circle Background */
+        .check-circle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            opacity: 0;
+            transform: scale(0);
+        }
+        .check-circle.animate {
+            animation: circleExpand 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        @keyframes circleExpand {
+            0% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* SVG Checkmark */
+        .checkmark-svg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+        }
+        .checkmark-path {
+            fill: none;
+            stroke: white;
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+        }
+        .checkmark-path.animate {
+            animation: drawCheck 0.5s ease-out 0.3s forwards;
+        }
+        @keyframes drawCheck {
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* Glow Effect */
+        .check-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, var(--jazer-cyan) 0%, transparent 70%);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .check-glow.animate {
+            animation: glowPulse 0.8s ease-out 0.5s;
+        }
+        @keyframes glowPulse {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.6; }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(2); }
+        }
+
+        /* Particles */
+        .particle-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--jazer-cyan);
+        }
+        .particle.animate {
+            animation: particleBurst 0.8s ease-out forwards;
+        }
+        @keyframes particleBurst {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        /* Quest Text */
+        .quest-text {
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .quest-text.animate {
+            animation: textReveal 0.5s ease-out 0.6s forwards;
+        }
+        @keyframes textReveal {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .quest-label {
+            font-size: 1rem;
+            color: var(--jazer-cyan);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 0.5rem;
+        }
+        .quest-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Animation Styles */
+        /* Bounce Style */
+        .style-bounce .check-circle.animate {
+            animation: circleBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+        @keyframes circleBounce {
+            0% { transform: scale(0); }
+            60% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Spin Style */
+        .style-spin .check-circle.animate {
+            animation: circleSpin 0.6s ease-out forwards;
+        }
+        @keyframes circleSpin {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        /* Pop Style */
+        .style-pop .check-circle.animate {
+            animation: circlePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes circlePop {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+        .style-pop .checkmark-path.animate {
+            animation: drawCheckFast 0.3s ease-out 0.2s forwards;
+        }
+        @keyframes drawCheckFast {
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* Explode Style */
+        .style-explode .check-circle.animate {
+            animation: circleExplode 0.5s ease-out forwards;
+        }
+        @keyframes circleExplode {
+            0% { transform: scale(2); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Trigger Button */
+        .trigger-btn {
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 5px 25px rgba(0, 242, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+        .trigger-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 35px rgba(0, 242, 234, 0.5);
+        }
+
+        /* Quest List */
+        .quest-list {
+            margin-top: 2rem;
+        }
+        .section-title {
+            color: var(--jazer-cyan);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section-title::before {
+            content: '';
+            width: 30px;
+            height: 3px;
+            background: var(--gradient-primary);
+            border-radius: 2px;
+        }
+
+        .quest-items {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .quest-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .quest-item:hover {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 242, 234, 0.05);
+        }
+        .quest-item.completed {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        /* Mini Checkmark */
+        .mini-check {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(147, 51, 234, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+        .quest-item.completed .mini-check {
+            background: linear-gradient(135deg, #00ff88, var(--jazer-cyan));
+        }
+        .mini-check svg {
+            width: 24px;
+            height: 24px;
+        }
+        .mini-check-path {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.3);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 30;
+            stroke-dashoffset: 30;
+            transition: all 0.5s ease;
+        }
+        .quest-item.completed .mini-check-path {
+            stroke: white;
+            stroke-dashoffset: 0;
+        }
+
+        .quest-item-content {
+            flex: 1;
+        }
+        .quest-item-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            transition: all 0.3s ease;
+        }
+        .quest-item.completed .quest-item-title {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        .quest-item-reward {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+        }
+        .quest-item-reward span {
+            color: #ffd700;
+        }
+
+        /* Stats */
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-label {
+            color: var(--text-gray);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Color Variants */
+        .color-green .check-circle { background: linear-gradient(135deg, #00ff88, #00cc66); }
+        .color-green .check-glow { background: radial-gradient(circle, #00ff88 0%, transparent 70%); }
+        .color-gold .check-circle { background: linear-gradient(135deg, #ffd700, #ff8c00); }
+        .color-gold .check-glow { background: radial-gradient(circle, #ffd700 0%, transparent 70%); }
+        .color-pink .check-circle { background: linear-gradient(135deg, #ff006e, #ff69b4); }
+        .color-pink .check-glow { background: radial-gradient(circle, #ff006e 0%, transparent 70%); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .checkmark-container {
+                width: 120px;
+                height: 120px;
+            }
+            .checkmark-svg {
+                width: 60px;
+                height: 60px;
+            }
+            .quest-title {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="hero">
+        <a href="index.html" class="back-button">← Back</a>
+        <h1>Quest Complete Checkmark</h1>
+        <p class="subtitle">Satisfying checkmark animations for completed objectives</p>
+        <div class="keyboard-hint">
+            Press <kbd>Space</kbd> to trigger | <kbd>1-4</kbd> for styles | <kbd>R</kbd> to reset
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <div class="control-group">
+                <label>Animation Style</label>
+                <select id="animStyle">
+                    <option value="default">Default</option>
+                    <option value="bounce">Bounce</option>
+                    <option value="spin">Spin</option>
+                    <option value="pop">Pop</option>
+                    <option value="explode">Explode</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Color Theme</label>
+                <select id="colorTheme">
+                    <option value="cyan">Cyan (Default)</option>
+                    <option value="green">Green Success</option>
+                    <option value="gold">Golden</option>
+                    <option value="pink">Pink</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Particle Count</label>
+                <select id="particleCount">
+                    <option value="0">None</option>
+                    <option value="8">Few (8)</option>
+                    <option value="16" selected>Normal (16)</option>
+                    <option value="24">Many (24)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Quest Text</label>
+                <select id="questText">
+                    <option value="quest">Quest Complete!</option>
+                    <option value="mission">Mission Accomplished</option>
+                    <option value="objective">Objective Cleared</option>
+                    <option value="task">Task Done!</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Demo Area -->
+        <div class="demo-area" id="demoArea">
+            <div class="checkmark-container" id="checkmarkContainer">
+                <div class="check-circle" id="checkCircle"></div>
+                <svg class="checkmark-svg" viewBox="0 0 52 52">
+                    <path class="checkmark-path" id="checkPath" d="M14 27 L22 35 L38 17"/>
+                </svg>
+                <div class="check-glow" id="checkGlow"></div>
+                <div class="particle-container" id="particleContainer"></div>
+            </div>
+
+            <div class="quest-text" id="questTextEl">
+                <div class="quest-label">Quest Complete!</div>
+                <div class="quest-title" id="questTitle">Defeat 10 Enemies</div>
+            </div>
+
+            <button class="trigger-btn" onclick="triggerAnimation()">Complete Quest</button>
+        </div>
+
+        <!-- Quest List -->
+        <section class="quest-list">
+            <h2 class="section-title">Daily Quests</h2>
+            <div class="quest-items" id="questItems">
+                <div class="quest-item" data-quest="1" onclick="completeQuest(this)">
+                    <div class="mini-check">
+                        <svg viewBox="0 0 52 52">
+                            <path class="mini-check-path" d="M14 27 L22 35 L38 17"/>
+                        </svg>
+                    </div>
+                    <div class="quest-item-content">
+                        <div class="quest-item-title">Login Today</div>
+                        <div class="quest-item-reward">Reward: <span>+50 XP</span></div>
+                    </div>
+                </div>
+                <div class="quest-item" data-quest="2" onclick="completeQuest(this)">
+                    <div class="mini-check">
+                        <svg viewBox="0 0 52 52">
+                            <path class="mini-check-path" d="M14 27 L22 35 L38 17"/>
+                        </svg>
+                    </div>
+                    <div class="quest-item-content">
+                        <div class="quest-item-title">Defeat 10 Enemies</div>
+                        <div class="quest-item-reward">Reward: <span>+100 XP, 50 Gold</span></div>
+                    </div>
+                </div>
+                <div class="quest-item" data-quest="3" onclick="completeQuest(this)">
+                    <div class="mini-check">
+                        <svg viewBox="0 0 52 52">
+                            <path class="mini-check-path" d="M14 27 L22 35 L38 17"/>
+                        </svg>
+                    </div>
+                    <div class="quest-item-content">
+                        <div class="quest-item-title">Collect 5 Power-ups</div>
+                        <div class="quest-item-reward">Reward: <span>+75 XP</span></div>
+                    </div>
+                </div>
+                <div class="quest-item" data-quest="4" onclick="completeQuest(this)">
+                    <div class="mini-check">
+                        <svg viewBox="0 0 52 52">
+                            <path class="mini-check-path" d="M14 27 L22 35 L38 17"/>
+                        </svg>
+                    </div>
+                    <div class="quest-item-content">
+                        <div class="quest-item-title">Win 3 Matches</div>
+                        <div class="quest-item-reward">Reward: <span>+200 XP, 100 Gold</span></div>
+                    </div>
+                </div>
+                <div class="quest-item" data-quest="5" onclick="completeQuest(this)">
+                    <div class="mini-check">
+                        <svg viewBox="0 0 52 52">
+                            <path class="mini-check-path" d="M14 27 L22 35 L38 17"/>
+                        </svg>
+                    </div>
+                    <div class="quest-item-content">
+                        <div class="quest-item-title">Reach Level 5</div>
+                        <div class="quest-item-reward">Reward: <span>+500 XP, Rare Item</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-value" id="completedCount">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalXP">0</div>
+                <div class="stat-label">XP Earned</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalGold">0</div>
+                <div class="stat-label">Gold Earned</div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Config
+        const config = {
+            animStyle: 'default',
+            colorTheme: 'cyan',
+            particleCount: 16,
+            questText: 'quest'
+        };
+
+        // Quest texts
+        const questTexts = {
+            quest: { label: 'Quest Complete!', title: 'Defeat 10 Enemies' },
+            mission: { label: 'Mission Accomplished', title: 'Secure the Objective' },
+            objective: { label: 'Objective Cleared', title: 'Reach the Checkpoint' },
+            task: { label: 'Task Done!', title: 'Collect Resources' }
+        };
+
+        // Color configs
+        const colorConfigs = {
+            cyan: { primary: '#00f2ea', secondary: '#9333ea' },
+            green: { primary: '#00ff88', secondary: '#00cc66' },
+            gold: { primary: '#ffd700', secondary: '#ff8c00' },
+            pink: { primary: '#ff006e', secondary: '#ff69b4' }
+        };
+
+        // Stats
+        const stats = {
+            completed: 0,
+            xp: 0,
+            gold: 0
+        };
+
+        // DOM Elements
+        const demoArea = document.getElementById('demoArea');
+        const checkCircle = document.getElementById('checkCircle');
+        const checkPath = document.getElementById('checkPath');
+        const checkGlow = document.getElementById('checkGlow');
+        const particleContainer = document.getElementById('particleContainer');
+        const questTextEl = document.getElementById('questTextEl');
+        const questTitle = document.getElementById('questTitle');
+
+        // Initialize controls
+        document.getElementById('animStyle').addEventListener('change', (e) => {
+            config.animStyle = e.target.value;
+            updateStyle();
+        });
+        document.getElementById('colorTheme').addEventListener('change', (e) => {
+            config.colorTheme = e.target.value;
+            updateColor();
+        });
+        document.getElementById('particleCount').addEventListener('change', (e) => {
+            config.particleCount = parseInt(e.target.value);
+        });
+        document.getElementById('questText').addEventListener('change', (e) => {
+            config.questText = e.target.value;
+            updateQuestText();
+        });
+
+        // Update animation style
+        function updateStyle() {
+            demoArea.className = 'demo-area';
+            if (config.animStyle !== 'default') {
+                demoArea.classList.add(`style-${config.animStyle}`);
+            }
+        }
+
+        // Update color theme
+        function updateColor() {
+            demoArea.classList.remove('color-green', 'color-gold', 'color-pink');
+            if (config.colorTheme !== 'cyan') {
+                demoArea.classList.add(`color-${config.colorTheme}`);
+            }
+        }
+
+        // Update quest text
+        function updateQuestText() {
+            const text = questTexts[config.questText];
+            document.querySelector('.quest-label').textContent = text.label;
+            questTitle.textContent = text.title;
+        }
+
+        // Trigger animation
+        function triggerAnimation() {
+            resetAnimation();
+            
+            setTimeout(() => {
+                // Animate circle
+                checkCircle.classList.add('animate');
+                
+                // Animate checkmark
+                checkPath.classList.add('animate');
+                
+                // Animate glow
+                checkGlow.classList.add('animate');
+                
+                // Spawn particles
+                spawnParticles();
+                
+                // Animate text
+                questTextEl.classList.add('animate');
+            }, 50);
+        }
+
+        // Reset animation
+        function resetAnimation() {
+            checkCircle.classList.remove('animate');
+            checkPath.classList.remove('animate');
+            checkGlow.classList.remove('animate');
+            questTextEl.classList.remove('animate');
+            particleContainer.innerHTML = '';
+        }
+
+        // Spawn particles
+        function spawnParticles() {
+            const colors = colorConfigs[config.colorTheme];
+            
+            for (let i = 0; i < config.particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const angle = (i / config.particleCount) * Math.PI * 2;
+                const distance = 80 + Math.random() * 40;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.cssText = `
+                    --tx: ${tx}px;
+                    --ty: ${ty}px;
+                    background: ${Math.random() > 0.5 ? colors.primary : colors.secondary};
+                    animation-delay: ${0.3 + Math.random() * 0.2}s;
+                `;
+                
+                particleContainer.appendChild(particle);
+                
+                requestAnimationFrame(() => {
+                    particle.classList.add('animate');
+                });
+                
+                setTimeout(() => particle.remove(), 1200);
+            }
+        }
+
+        // Complete quest item
+        function completeQuest(element) {
+            if (element.classList.contains('completed')) return;
+            
+            element.classList.add('completed');
+            
+            // Update stats
+            stats.completed++;
+            
+            // Parse rewards
+            const rewardText = element.querySelector('.quest-item-reward').textContent;
+            const xpMatch = rewardText.match(/\+(\d+)\s*XP/);
+            const goldMatch = rewardText.match(/(\d+)\s*Gold/);
+            
+            if (xpMatch) stats.xp += parseInt(xpMatch[1]);
+            if (goldMatch) stats.gold += parseInt(goldMatch[1]);
+            
+            updateStats();
+            
+            // Trigger main animation
+            triggerAnimation();
+        }
+
+        // Update stats display
+        function updateStats() {
+            document.getElementById('completedCount').textContent = stats.completed;
+            document.getElementById('totalXP').textContent = stats.xp;
+            document.getElementById('totalGold').textContent = stats.gold;
+        }
+
+        // Reset all quests
+        function resetQuests() {
+            document.querySelectorAll('.quest-item').forEach(item => {
+                item.classList.remove('completed');
+            });
+            stats.completed = 0;
+            stats.xp = 0;
+            stats.gold = 0;
+            updateStats();
+            resetAnimation();
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                triggerAnimation();
+            } else if (e.key === '1') {
+                document.getElementById('animStyle').value = 'default';
+                config.animStyle = 'default';
+                updateStyle();
+            } else if (e.key === '2') {
+                document.getElementById('animStyle').value = 'bounce';
+                config.animStyle = 'bounce';
+                updateStyle();
+            } else if (e.key === '3') {
+                document.getElementById('animStyle').value = 'spin';
+                config.animStyle = 'spin';
+                updateStyle();
+            } else if (e.key === '4') {
+                document.getElementById('animStyle').value = 'pop';
+                config.animStyle = 'pop';
+                updateStyle();
+            } else if (e.key === 'r' || e.key === 'R') {
+                resetQuests();
+            }
+        });
+
+        // Initialize
+        updateStyle();
+        updateColor();
+        updateQuestText();
+    </script>
+</body>
+</html>

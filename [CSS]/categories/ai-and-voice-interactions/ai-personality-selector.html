@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Personality Selector - JaZeR Components</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .demo-container {
+            max-width: 900px;
+            margin: 2rem auto;
+        }
+
+        /* Personality Selector Component */
+        .ai-personality-selector {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .selector-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .selector-title {
+            font-family: var(--font-secondary);
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .selector-subtitle {
+            color: var(--text-gray);
+            font-size: 0.875rem;
+        }
+
+        /* Personality Grid */
+        .personality-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .personality-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .personality-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-card);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .personality-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .personality-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 10px 30px rgba(0, 242, 234, 0.3);
+        }
+
+        .personality-card:hover::before {
+            opacity: 1;
+        }
+
+        .personality-card.selected {
+            border-color: var(--jazer-pink);
+            box-shadow: 0 10px 40px rgba(255, 0, 110, 0.4);
+            background: rgba(255, 0, 110, 0.05);
+        }
+
+        .personality-card.selected::before {
+            opacity: 1;
+            background: linear-gradient(135deg, rgba(255, 0, 110, 0.1), rgba(147, 51, 234, 0.1));
+        }
+
+        .personality-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .personality-card.professional .personality-icon {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+
+        .personality-card.friendly .personality-icon {
+            background: linear-gradient(135deg, #ffbe0b, #ff8800);
+        }
+
+        .personality-card.creative .personality-icon {
+            background: linear-gradient(135deg, #ff006e, #9333ea);
+        }
+
+        .personality-card.analytical .personality-icon {
+            background: linear-gradient(135deg, #9333ea, #4facfe);
+        }
+
+        .personality-card.casual .personality-icon {
+            background: linear-gradient(135deg, #00f2ea, #ffbe0b);
+        }
+
+        .personality-card.expert .personality-icon {
+            background: linear-gradient(135deg, #9333ea, #ff006e);
+        }
+
+        .personality-card:hover .personality-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .personality-name {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .personality-desc {
+            color: var(--text-gray);
+            font-size: 0.875rem;
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+
+        .personality-traits {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .trait-tag {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 12px;
+            background: rgba(0, 242, 234, 0.15);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--border-cyan);
+        }
+
+        .selected-indicator {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--gradient-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s ease;
+        }
+
+        .personality-card.selected .selected-indicator {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Preview Section */
+        .personality-preview {
+            background: rgba(0, 242, 234, 0.05);
+            border: 2px solid var(--border-cyan);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+        }
+
+        .personality-preview.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .preview-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .preview-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--gradient-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .preview-info h3 {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+            font-size: 1.125rem;
+        }
+
+        .preview-info p {
+            color: var(--text-gray);
+            font-size: 0.875rem;
+        }
+
+        .preview-message {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1rem;
+            color: var(--text-light);
+            line-height: 1.6;
+            font-style: italic;
+            position: relative;
+            padding-left: 2.5rem;
+        }
+
+        .preview-message::before {
+            content: '"';
+            position: absolute;
+            left: 1rem;
+            top: 0.5rem;
+            font-size: 2rem;
+            color: var(--jazer-cyan);
+            opacity: 0.5;
+        }
+
+        /* Customize Button */
+        .customize-section {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .customize-btn {
+            padding: 0.875rem 2rem;
+            border-radius: 12px;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: var(--gradient-accent);
+            border: none;
+            color: var(--text-light);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 0, 110, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        .btn-secondary:hover {
+            background: var(--jazer-cyan);
+            color: var(--bg-dark);
+            box-shadow: 0 5px 20px rgba(0, 242, 234, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .personality-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .customize-section {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to AI & Voice Interactions</a>
+    
+    <div class="demo-container">
+        <h1 class="gradient-text">AI Personality Selector</h1>
+        <p style="color: var(--text-gray); margin-bottom: 2rem;">Choose an AI personality that matches your interaction style</p>
+
+        <div class="ai-personality-selector">
+            <div class="selector-header">
+                <div class="selector-title">Select Your AI Personality</div>
+                <div class="selector-subtitle">Pick the tone and style that works best for you</div>
+            </div>
+
+            <div class="personality-grid">
+                <div class="personality-card professional" data-personality="professional">
+                    <div class="personality-icon">💼</div>
+                    <div class="personality-name">Professional</div>
+                    <div class="personality-desc">Formal, precise, and business-focused communication style</div>
+                    <div class="personality-traits">
+                        <span class="trait-tag">Formal</span>
+                        <span class="trait-tag">Detailed</span>
+                        <span class="trait-tag">Structured</span>
+                    </div>
+                    <div class="selected-indicator">✓</div>
+                </div>
+
+                <div class="personality-card friendly selected" data-personality="friendly">
+                    <div class="personality-icon">😊</div>
+                    <div class="personality-name">Friendly</div>
+                    <div class="personality-desc">Warm, approachable, and conversational interactions</div>
+                    <div class="personality-traits">
+                        <span class="trait-tag">Warm</span>
+                        <span class="trait-tag">Helpful</span>
+                        <span class="trait-tag">Engaging</span>
+                    </div>
+                    <div class="selected-indicator">✓</div>
+                </div>
+
+                <div class="personality-card creative" data-personality="creative">
+                    <div class="personality-icon">🎨</div>
+                    <div class="personality-name">Creative</div>
+                    <div class="personality-desc">Imaginative, expressive, and out-of-the-box thinking</div>
+                    <div class="personality-traits">
+                        <span class="trait-tag">Innovative</span>
+                        <span class="trait-tag">Artistic</span>
+                        <span class="trait-tag">Playful</span>
+                    </div>
+                    <div class="selected-indicator">✓</div>
+                </div>
+
+                <div class="personality-card analytical" data-personality="analytical">
+                    <div class="personality-icon">📊</div>
+                    <div class="personality-name">Analytical</div>
+                    <div class="personality-desc">Data-driven, logical, and methodical approach</div>
+                    <div class="personality-traits">
+                        <span class="trait-tag">Logical</span>
+                        <span class="trait-tag">Precise</span>
+                        <span class="trait-tag">Factual</span>
+                    </div>
+                    <div class="selected-indicator">✓</div>
+                </div>
+
+                <div class="personality-card casual" data-personality="casual">
+                    <div class="personality-icon">👋</div>
+                    <div class="personality-name">Casual</div>
+                    <div class="personality-desc">Relaxed, informal, and easy-going conversations</div>
+                    <div class="personality-traits">
+                        <span class="trait-tag">Laid-back</span>
+                        <span class="trait-tag">Simple</span>
+                        <span class="trait-tag">Fun</span>
+                    </div>
+                    <div class="selected-indicator">✓</div>
+                </div>
+
+                <div class="personality-card expert" data-personality="expert">
+                    <div class="personality-icon">🎓</div>
+                    <div class="personality-name">Expert</div>
+                    <div class="personality-desc">Technical, thorough, and highly knowledgeable</div>
+                    <div class="personality-traits">
+                        <span class="trait-tag">Technical</span>
+                        <span class="trait-tag">In-depth</span>
+                        <span class="trait-tag">Academic</span>
+                    </div>
+                    <div class="selected-indicator">✓</div>
+                </div>
+            </div>
+
+            <div class="personality-preview active" id="preview">
+                <div class="preview-header">
+                    <div class="preview-avatar" id="previewAvatar">😊</div>
+                    <div class="preview-info">
+                        <h3 id="previewName">Friendly Assistant</h3>
+                        <p id="previewRole">Your helpful companion</p>
+                    </div>
+                </div>
+                <div class="preview-message" id="previewMessage">
+                    Hey there! I'm here to help you out. Feel free to ask me anything - I'll do my best to give you clear, helpful answers in a way that's easy to understand. Let's work together!
+                </div>
+            </div>
+
+            <div class="customize-section">
+                <button class="customize-btn btn-primary">Apply Personality</button>
+                <button class="customize-btn btn-secondary">Customize Further</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const personalityCards = document.querySelectorAll('.personality-card');
+        const preview = document.getElementById('preview');
+        const previewAvatar = document.getElementById('previewAvatar');
+        const previewName = document.getElementById('previewName');
+        const previewRole = document.getElementById('previewRole');
+        const previewMessage = document.getElementById('previewMessage');
+
+        const personalities = {
+            professional: {
+                icon: '💼',
+                name: 'Professional Assistant',
+                role: 'Your business partner',
+                message: 'Good day. I am here to provide you with precise, well-structured information and assistance. Please feel free to present your inquiries, and I will deliver comprehensive responses with attention to detail and professionalism.'
+            },
+            friendly: {
+                icon: '😊',
+                name: 'Friendly Assistant',
+                role: 'Your helpful companion',
+                message: 'Hey there! I\'m here to help you out. Feel free to ask me anything - I\'ll do my best to give you clear, helpful answers in a way that\'s easy to understand. Let\'s work together!'
+            },
+            creative: {
+                icon: '🎨',
+                name: 'Creative Muse',
+                role: 'Your imagination partner',
+                message: 'Welcome to a world of possibilities! ✨ I\'m here to help you think outside the box, explore new ideas, and bring your creative visions to life. Let\'s make something amazing together!'
+            },
+            analytical: {
+                icon: '📊',
+                name: 'Analytical Advisor',
+                role: 'Your data specialist',
+                message: 'Greetings. I specialize in data-driven analysis and logical problem-solving. I will provide you with evidence-based insights, systematic breakdowns, and methodical approaches to address your requirements effectively.'
+            },
+            casual: {
+                icon: '👋',
+                name: 'Casual Buddy',
+                role: 'Your chill helper',
+                message: 'What\'s up! 👋 I\'m just here to chat and help out however I can. No need for fancy talk - just ask whatever you need and we\'ll figure it out together. Easy peasy!'
+            },
+            expert: {
+                icon: '🎓',
+                name: 'Expert Consultant',
+                role: 'Your knowledge source',
+                message: 'Greetings. As your expert consultant, I provide in-depth, technical information with comprehensive explanations. I will ensure you receive thorough, academically-rigorous responses with detailed supporting evidence and references.'
+            }
+        };
+
+        personalityCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const personality = card.dataset.personality;
+
+                // Update selected state
+                personalityCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+
+                // Update preview
+                const data = personalities[personality];
+                previewAvatar.textContent = data.icon;
+                previewName.textContent = data.name;
+                previewRole.textContent = data.role;
+                previewMessage.textContent = data.message;
+
+                // Animate preview
+                preview.style.opacity = '0';
+                preview.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    preview.style.opacity = '1';
+                    preview.style.transform = 'translateY(0)';
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html>

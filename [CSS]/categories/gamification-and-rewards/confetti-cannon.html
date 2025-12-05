@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confetti Cannon Explosion</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 3rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(0, 242, 234, 0.05));
+            border-bottom: 1px solid rgba(147, 51, 234, 0.3);
+        }
+        .back-button { 
+            display: inline-block; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(6, 182, 212, 0.1); 
+            margin-bottom: 1.5rem; 
+            transition: all 0.3s ease; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5); 
+        }
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            font-size: clamp(2rem, 5vw, 3rem); 
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+        }
+        .keyboard-hint {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            font-size: 0.9rem;
+        }
+        .keyboard-hint kbd {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin: 0 0.25rem;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        .control-group label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .control-group select,
+        .control-group input[type="range"] {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(147, 51, 234, 0.5);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+        .control-group select:focus,
+        .control-group input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 10px rgba(0, 242, 234, 0.3);
+        }
+        .control-group input[type="range"] {
+            -webkit-appearance: none;
+            height: 8px;
+            padding: 0;
+        }
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--jazer-cyan);
+        }
+        .range-value {
+            text-align: center;
+            color: var(--text-gray);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Demo Area */
+        .demo-area {
+            position: relative;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(147, 51, 234, 0.1) 100%);
+            border: 2px solid rgba(147, 51, 234, 0.3);
+            border-radius: 20px;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        /* Confetti Canvas */
+        .confetti-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        /* Cannon Launcher */
+        .cannon-container {
+            position: relative;
+            z-index: 10;
+        }
+        .cannon {
+            width: 80px;
+            height: 120px;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .cannon:hover {
+            transform: scale(1.05);
+        }
+        .cannon:active {
+            transform: scale(0.95);
+        }
+        .cannon-body {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 100px;
+            background: linear-gradient(135deg, #333 0%, #555 50%, #222 100%);
+            border-radius: 10px 10px 0 0;
+            box-shadow: 
+                inset 5px 0 10px rgba(255, 255, 255, 0.1),
+                inset -5px 0 10px rgba(0, 0, 0, 0.3),
+                0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+        .cannon-barrel {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 50px;
+            background: linear-gradient(135deg, #444 0%, #666 50%, #333 100%);
+            border-radius: 50% 50% 0 0;
+        }
+        .cannon-ring {
+            position: absolute;
+            bottom: 75px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 15px;
+            background: linear-gradient(180deg, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 5px;
+            box-shadow: 0 0 15px var(--jazer-cyan);
+        }
+        .cannon-base {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 20px;
+            background: linear-gradient(135deg, #222 0%, #444 50%, #111 100%);
+            border-radius: 0 0 10px 10px;
+        }
+
+        /* Fire Button */
+        .fire-button {
+            position: relative;
+            z-index: 10;
+            margin-top: 2rem;
+            padding: 1.25rem 3rem;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, var(--jazer-pink), var(--jazer-purple));
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 
+                0 5px 30px rgba(236, 72, 153, 0.5),
+                inset 0 -3px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        .fire-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 10px 40px rgba(236, 72, 153, 0.6),
+                inset 0 -3px 10px rgba(0, 0, 0, 0.2);
+        }
+        .fire-button:active {
+            transform: translateY(0);
+        }
+        .fire-button.firing {
+            animation: buttonPulse 0.5s ease;
+        }
+        @keyframes buttonPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+        }
+
+        /* Confetti Particle */
+        .confetti {
+            position: absolute;
+            width: var(--size, 10px);
+            height: var(--size, 10px);
+            background: var(--color);
+            opacity: 1;
+            pointer-events: none;
+        }
+        .confetti.square { border-radius: 2px; }
+        .confetti.circle { border-radius: 50%; }
+        .confetti.star {
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        }
+        .confetti.heart {
+            clip-path: polygon(50% 85%, 100% 35%, 80% 0%, 50% 20%, 20% 0%, 0% 35%);
+        }
+        .confetti.ribbon {
+            width: calc(var(--size, 10px) * 0.3);
+            height: calc(var(--size, 10px) * 2);
+            border-radius: 2px;
+        }
+
+        /* Cannon Fire Effects */
+        .cannon.firing .cannon-ring {
+            animation: ringGlow 0.3s ease;
+        }
+        @keyframes ringGlow {
+            0%, 100% { box-shadow: 0 0 15px var(--jazer-cyan); }
+            50% { box-shadow: 0 0 40px var(--jazer-cyan), 0 0 60px var(--jazer-pink); }
+        }
+        .cannon.firing .cannon-barrel {
+            animation: recoil 0.3s ease;
+        }
+        @keyframes recoil {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(5px); }
+        }
+
+        /* Muzzle Flash */
+        .muzzle-flash {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 200, 100, 0.5) 40%, transparent 70%);
+            border-radius: 50%;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .cannon.firing .muzzle-flash {
+            animation: flash 0.2s ease-out;
+        }
+        @keyframes flash {
+            0% { opacity: 1; transform: translateX(-50%) scale(0.5); }
+            100% { opacity: 0; transform: translateX(-50%) scale(2); }
+        }
+
+        /* Preset Showcase */
+        .presets-section {
+            margin-top: 3rem;
+        }
+        .section-title {
+            color: var(--jazer-cyan);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section-title::before {
+            content: '';
+            width: 30px;
+            height: 3px;
+            background: var(--gradient-primary);
+            border-radius: 2px;
+        }
+
+        .presets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .preset-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .preset-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 10px 30px rgba(0, 242, 234, 0.2);
+        }
+        .preset-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--preset-color, var(--gradient-primary));
+        }
+        .preset-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-light);
+        }
+        .preset-desc {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        .preset-preview {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .preset-sample {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            animation: sampleFloat 2s ease-in-out infinite;
+        }
+        .preset-sample:nth-child(2) { animation-delay: 0.2s; }
+        .preset-sample:nth-child(3) { animation-delay: 0.4s; }
+        .preset-sample:nth-child(4) { animation-delay: 0.6s; }
+        .preset-sample:nth-child(5) { animation-delay: 0.8s; }
+        @keyframes sampleFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(180deg); }
+        }
+
+        /* Stats Display */
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-label {
+            color: var(--text-gray);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Multi-Cannon Mode */
+        .multi-cannon-container {
+            display: flex;
+            gap: 4rem;
+            align-items: flex-end;
+        }
+        .cannon.left {
+            transform: rotate(-30deg);
+        }
+        .cannon.right {
+            transform: rotate(30deg);
+        }
+        .cannon.left:hover, .cannon.right:hover {
+            transform: scale(1.05) rotate(var(--rot));
+        }
+
+        /* Screen Burst Mode */
+        .screen-burst .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1000;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .controls-panel {
+                grid-template-columns: 1fr;
+            }
+            .stats-bar {
+                flex-wrap: wrap;
+            }
+            .multi-cannon-container {
+                gap: 2rem;
+            }
+            .cannon {
+                transform: scale(0.8);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="hero">
+        <a href="index.html" class="back-button">← Back</a>
+        <h1>Confetti Cannon Explosion</h1>
+        <p class="subtitle">Celebratory particle explosions for achievements and victories</p>
+        <div class="keyboard-hint">
+            Press <kbd>Space</kbd> to fire | <kbd>1-6</kbd> for presets | <kbd>M</kbd> for multi-cannon
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <div class="control-group">
+                <label>Cannon Style</label>
+                <select id="cannonStyle">
+                    <option value="single">Single Cannon</option>
+                    <option value="dual">Dual Cannons</option>
+                    <option value="triple">Triple Burst</option>
+                    <option value="screen">Full Screen</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Confetti Shape</label>
+                <select id="confettiShape">
+                    <option value="mixed">Mixed Shapes</option>
+                    <option value="square">Squares</option>
+                    <option value="circle">Circles</option>
+                    <option value="star">Stars</option>
+                    <option value="heart">Hearts</option>
+                    <option value="ribbon">Ribbons</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Color Theme</label>
+                <select id="colorTheme">
+                    <option value="rainbow">Rainbow</option>
+                    <option value="neon">Neon Cyber</option>
+                    <option value="gold">Golden Luxury</option>
+                    <option value="pastel">Pastel Dreams</option>
+                    <option value="fire">Fire & Flames</option>
+                    <option value="ocean">Ocean Waves</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Particle Count: <span id="countValue">100</span></label>
+                <input type="range" id="particleCount" min="20" max="300" value="100">
+            </div>
+            <div class="control-group">
+                <label>Explosion Power: <span id="powerValue">100</span>%</label>
+                <input type="range" id="explosionPower" min="50" max="200" value="100">
+            </div>
+            <div class="control-group">
+                <label>Gravity: <span id="gravityValue">1.0</span>x</label>
+                <input type="range" id="gravity" min="0.2" max="2" step="0.1" value="1">
+            </div>
+        </div>
+
+        <!-- Demo Area -->
+        <div class="demo-area" id="demoArea">
+            <div class="confetti-container" id="confettiContainer"></div>
+            
+            <div class="cannon-container" id="cannonContainer">
+                <div class="cannon" id="mainCannon" onclick="fireCannon()">
+                    <div class="muzzle-flash"></div>
+                    <div class="cannon-barrel"></div>
+                    <div class="cannon-ring"></div>
+                    <div class="cannon-body"></div>
+                    <div class="cannon-base"></div>
+                </div>
+            </div>
+
+            <button class="fire-button" id="fireButton" onclick="fireCannon()">
+                Fire Cannon
+            </button>
+
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalFired">0</div>
+                    <div class="stat-label">Total Fired</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="particlesActive">0</div>
+                    <div class="stat-label">Active Particles</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="peakParticles">0</div>
+                    <div class="stat-label">Peak Count</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Presets Section -->
+        <section class="presets-section">
+            <h2 class="section-title">Quick Presets</h2>
+            <div class="presets-grid">
+                <div class="preset-card" onclick="applyPreset('victory')" style="--preset-color: linear-gradient(90deg, #ffd700, #ff8c00)">
+                    <div class="preset-name">Victory Celebration</div>
+                    <div class="preset-desc">Golden burst for winning moments</div>
+                    <div class="preset-preview">
+                        <div class="preset-sample" style="background: #ffd700;"></div>
+                        <div class="preset-sample" style="background: #ff8c00;"></div>
+                        <div class="preset-sample" style="background: #ffb347;"></div>
+                        <div class="preset-sample" style="background: #ffd700;"></div>
+                        <div class="preset-sample" style="background: #ff8c00;"></div>
+                    </div>
+                </div>
+                <div class="preset-card" onclick="applyPreset('levelup')" style="--preset-color: linear-gradient(90deg, #00f2ea, #9333ea)">
+                    <div class="preset-name">Level Up</div>
+                    <div class="preset-desc">Cyberpunk neon explosion</div>
+                    <div class="preset-preview">
+                        <div class="preset-sample" style="background: #00f2ea;"></div>
+                        <div class="preset-sample" style="background: #9333ea;"></div>
+                        <div class="preset-sample" style="background: #ff006e;"></div>
+                        <div class="preset-sample" style="background: #00ff88;"></div>
+                        <div class="preset-sample" style="background: #00f2ea;"></div>
+                    </div>
+                </div>
+                <div class="preset-card" onclick="applyPreset('achievement')" style="--preset-color: linear-gradient(90deg, #00ff88, #00f2ea)">
+                    <div class="preset-name">Achievement Unlocked</div>
+                    <div class="preset-desc">Green success celebration</div>
+                    <div class="preset-preview">
+                        <div class="preset-sample" style="background: #00ff88;"></div>
+                        <div class="preset-sample" style="background: #00f2ea;"></div>
+                        <div class="preset-sample" style="background: #50fa7b;"></div>
+                        <div class="preset-sample" style="background: #00ff88;"></div>
+                        <div class="preset-sample" style="background: #00f2ea;"></div>
+                    </div>
+                </div>
+                <div class="preset-card" onclick="applyPreset('party')" style="--preset-color: linear-gradient(90deg, #ff006e, #ff8c00, #00f2ea)">
+                    <div class="preset-name">Party Mode</div>
+                    <div class="preset-desc">Full rainbow extravaganza</div>
+                    <div class="preset-preview">
+                        <div class="preset-sample" style="background: #ff006e;"></div>
+                        <div class="preset-sample" style="background: #ff8c00;"></div>
+                        <div class="preset-sample" style="background: #ffd700;"></div>
+                        <div class="preset-sample" style="background: #00ff88;"></div>
+                        <div class="preset-sample" style="background: #00f2ea;"></div>
+                    </div>
+                </div>
+                <div class="preset-card" onclick="applyPreset('love')" style="--preset-color: linear-gradient(90deg, #ff006e, #ff69b4)">
+                    <div class="preset-name">Love Burst</div>
+                    <div class="preset-desc">Hearts and pink confetti</div>
+                    <div class="preset-preview">
+                        <div class="preset-sample" style="background: #ff006e; clip-path: polygon(50% 85%, 100% 35%, 80% 0%, 50% 20%, 20% 0%, 0% 35%);"></div>
+                        <div class="preset-sample" style="background: #ff69b4; clip-path: polygon(50% 85%, 100% 35%, 80% 0%, 50% 20%, 20% 0%, 0% 35%);"></div>
+                        <div class="preset-sample" style="background: #ff1493; clip-path: polygon(50% 85%, 100% 35%, 80% 0%, 50% 20%, 20% 0%, 0% 35%);"></div>
+                        <div class="preset-sample" style="background: #ff006e; clip-path: polygon(50% 85%, 100% 35%, 80% 0%, 50% 20%, 20% 0%, 0% 35%);"></div>
+                        <div class="preset-sample" style="background: #ff69b4; clip-path: polygon(50% 85%, 100% 35%, 80% 0%, 50% 20%, 20% 0%, 0% 35%);"></div>
+                    </div>
+                </div>
+                <div class="preset-card" onclick="applyPreset('epic')" style="--preset-color: linear-gradient(90deg, #9333ea, #ff006e)">
+                    <div class="preset-name">Epic Moment</div>
+                    <div class="preset-desc">Massive triple cannon burst</div>
+                    <div class="preset-preview">
+                        <div class="preset-sample" style="background: #9333ea; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);"></div>
+                        <div class="preset-sample" style="background: #ff006e; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);"></div>
+                        <div class="preset-sample" style="background: #00f2ea; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);"></div>
+                        <div class="preset-sample" style="background: #9333ea; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);"></div>
+                        <div class="preset-sample" style="background: #ff006e; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Configuration
+        const config = {
+            cannonStyle: 'single',
+            confettiShape: 'mixed',
+            colorTheme: 'rainbow',
+            particleCount: 100,
+            explosionPower: 100,
+            gravity: 1.0
+        };
+
+        // Stats
+        const stats = {
+            totalFired: 0,
+            particlesActive: 0,
+            peakParticles: 0
+        };
+
+        // Color themes
+        const colorThemes = {
+            rainbow: ['#ff006e', '#ff8c00', '#ffd700', '#00ff88', '#00f2ea', '#9333ea', '#ff69b4'],
+            neon: ['#00f2ea', '#9333ea', '#ff006e', '#00ff88', '#ff00ff', '#00ffff'],
+            gold: ['#ffd700', '#ff8c00', '#ffb347', '#daa520', '#f0e68c', '#ffc125'],
+            pastel: ['#ffb3ba', '#ffdfba', '#ffffba', '#baffc9', '#bae1ff', '#e0bbff'],
+            fire: ['#ff0000', '#ff4500', '#ff6600', '#ff8c00', '#ffa500', '#ffd700'],
+            ocean: ['#006994', '#0077be', '#00a8e8', '#00d4ff', '#40e0d0', '#7fffd4']
+        };
+
+        // Shape classes
+        const shapes = ['square', 'circle', 'star', 'heart', 'ribbon'];
+
+        // Active particles
+        let particles = [];
+        let animationId = null;
+
+        // DOM Elements
+        const container = document.getElementById('confettiContainer');
+        const demoArea = document.getElementById('demoArea');
+        const cannonContainer = document.getElementById('cannonContainer');
+        const mainCannon = document.getElementById('mainCannon');
+        const fireButton = document.getElementById('fireButton');
+
+        // Initialize controls
+        document.getElementById('cannonStyle').addEventListener('change', (e) => {
+            config.cannonStyle = e.target.value;
+            updateCannonDisplay();
+        });
+        document.getElementById('confettiShape').addEventListener('change', (e) => config.confettiShape = e.target.value);
+        document.getElementById('colorTheme').addEventListener('change', (e) => config.colorTheme = e.target.value);
+        document.getElementById('particleCount').addEventListener('input', (e) => {
+            config.particleCount = parseInt(e.target.value);
+            document.getElementById('countValue').textContent = e.target.value;
+        });
+        document.getElementById('explosionPower').addEventListener('input', (e) => {
+            config.explosionPower = parseInt(e.target.value);
+            document.getElementById('powerValue').textContent = e.target.value;
+        });
+        document.getElementById('gravity').addEventListener('input', (e) => {
+            config.gravity = parseFloat(e.target.value);
+            document.getElementById('gravityValue').textContent = parseFloat(e.target.value).toFixed(1);
+        });
+
+        // Update cannon display based on style
+        function updateCannonDisplay() {
+            cannonContainer.innerHTML = '';
+            
+            if (config.cannonStyle === 'dual') {
+                cannonContainer.innerHTML = `
+                    <div class="multi-cannon-container">
+                        <div class="cannon left" style="--rot: -30deg" onclick="fireCannon()">
+                            <div class="muzzle-flash"></div>
+                            <div class="cannon-barrel"></div>
+                            <div class="cannon-ring"></div>
+                            <div class="cannon-body"></div>
+                            <div class="cannon-base"></div>
+                        </div>
+                        <div class="cannon right" style="--rot: 30deg" onclick="fireCannon()">
+                            <div class="muzzle-flash"></div>
+                            <div class="cannon-barrel"></div>
+                            <div class="cannon-ring"></div>
+                            <div class="cannon-body"></div>
+                            <div class="cannon-base"></div>
+                        </div>
+                    </div>
+                `;
+            } else if (config.cannonStyle === 'triple') {
+                cannonContainer.innerHTML = `
+                    <div class="multi-cannon-container">
+                        <div class="cannon left" style="--rot: -30deg" onclick="fireCannon()">
+                            <div class="muzzle-flash"></div>
+                            <div class="cannon-barrel"></div>
+                            <div class="cannon-ring"></div>
+                            <div class="cannon-body"></div>
+                            <div class="cannon-base"></div>
+                        </div>
+                        <div class="cannon" onclick="fireCannon()">
+                            <div class="muzzle-flash"></div>
+                            <div class="cannon-barrel"></div>
+                            <div class="cannon-ring"></div>
+                            <div class="cannon-body"></div>
+                            <div class="cannon-base"></div>
+                        </div>
+                        <div class="cannon right" style="--rot: 30deg" onclick="fireCannon()">
+                            <div class="muzzle-flash"></div>
+                            <div class="cannon-barrel"></div>
+                            <div class="cannon-ring"></div>
+                            <div class="cannon-body"></div>
+                            <div class="cannon-base"></div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                cannonContainer.innerHTML = `
+                    <div class="cannon" onclick="fireCannon()">
+                        <div class="muzzle-flash"></div>
+                        <div class="cannon-barrel"></div>
+                        <div class="cannon-ring"></div>
+                        <div class="cannon-body"></div>
+                        <div class="cannon-base"></div>
+                    </div>
+                `;
+            }
+        }
+
+        // Create confetti particle
+        function createParticle(originX, originY, angle = null) {
+            const colors = colorThemes[config.colorTheme];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const size = 8 + Math.random() * 12;
+            
+            let shape;
+            if (config.confettiShape === 'mixed') {
+                shape = shapes[Math.floor(Math.random() * shapes.length)];
+            } else {
+                shape = config.confettiShape;
+            }
+
+            const power = config.explosionPower / 100;
+            const baseAngle = angle !== null ? angle : -Math.PI / 2 + (Math.random() - 0.5) * Math.PI;
+            const velocity = (8 + Math.random() * 8) * power;
+
+            const particle = {
+                el: document.createElement('div'),
+                x: originX,
+                y: originY,
+                vx: Math.cos(baseAngle) * velocity + (Math.random() - 0.5) * 4,
+                vy: Math.sin(baseAngle) * velocity,
+                rotation: Math.random() * 360,
+                rotationSpeed: (Math.random() - 0.5) * 20,
+                size: size,
+                opacity: 1,
+                gravity: 0.3 * config.gravity
+            };
+
+            particle.el.className = `confetti ${shape}`;
+            particle.el.style.cssText = `
+                --size: ${size}px;
+                --color: ${color};
+                left: ${originX}px;
+                top: ${originY}px;
+                transform: rotate(${particle.rotation}deg);
+            `;
+
+            container.appendChild(particle.el);
+            particles.push(particle);
+        }
+
+        // Fire the cannon
+        function fireCannon() {
+            const cannons = document.querySelectorAll('.cannon');
+            cannons.forEach(c => {
+                c.classList.add('firing');
+                setTimeout(() => c.classList.remove('firing'), 300);
+            });
+
+            fireButton.classList.add('firing');
+            setTimeout(() => fireButton.classList.remove('firing'), 500);
+
+            const rect = demoArea.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            
+            let origins = [];
+            
+            if (config.cannonStyle === 'screen') {
+                // Full screen burst from edges
+                const positions = [
+                    { x: 0, y: rect.height, angle: -Math.PI / 4 },
+                    { x: rect.width, y: rect.height, angle: -3 * Math.PI / 4 },
+                    { x: rect.width / 2, y: rect.height, angle: -Math.PI / 2 }
+                ];
+                origins = positions;
+            } else if (config.cannonStyle === 'dual') {
+                const cannonEls = document.querySelectorAll('.cannon');
+                cannonEls.forEach((cannon, i) => {
+                    const cannonRect = cannon.getBoundingClientRect();
+                    origins.push({
+                        x: cannonRect.left - containerRect.left + cannonRect.width / 2,
+                        y: cannonRect.top - containerRect.top,
+                        angle: i === 0 ? -Math.PI / 2 - Math.PI / 6 : -Math.PI / 2 + Math.PI / 6
+                    });
+                });
+            } else if (config.cannonStyle === 'triple') {
+                const cannonEls = document.querySelectorAll('.cannon');
+                cannonEls.forEach((cannon, i) => {
+                    const cannonRect = cannon.getBoundingClientRect();
+                    const angles = [-Math.PI / 2 - Math.PI / 6, -Math.PI / 2, -Math.PI / 2 + Math.PI / 6];
+                    origins.push({
+                        x: cannonRect.left - containerRect.left + cannonRect.width / 2,
+                        y: cannonRect.top - containerRect.top,
+                        angle: angles[i]
+                    });
+                });
+            } else {
+                const cannonEl = document.querySelector('.cannon');
+                const cannonRect = cannonEl.getBoundingClientRect();
+                origins.push({
+                    x: cannonRect.left - containerRect.left + cannonRect.width / 2,
+                    y: cannonRect.top - containerRect.top,
+                    angle: null
+                });
+            }
+
+            const particlesPerOrigin = Math.ceil(config.particleCount / origins.length);
+            
+            origins.forEach(origin => {
+                for (let i = 0; i < particlesPerOrigin; i++) {
+                    setTimeout(() => {
+                        createParticle(origin.x, origin.y, origin.angle);
+                    }, Math.random() * 100);
+                }
+            });
+
+            stats.totalFired++;
+            updateStats();
+
+            if (!animationId) {
+                animate();
+            }
+        }
+
+        // Animation loop
+        function animate() {
+            particles.forEach((p, index) => {
+                p.vy += p.gravity;
+                p.x += p.vx;
+                p.y += p.vy;
+                p.rotation += p.rotationSpeed;
+                p.vx *= 0.99;
+                p.opacity -= 0.005;
+
+                if (p.opacity <= 0 || p.y > container.clientHeight + 50) {
+                    p.el.remove();
+                    particles.splice(index, 1);
+                } else {
+                    p.el.style.left = `${p.x}px`;
+                    p.el.style.top = `${p.y}px`;
+                    p.el.style.transform = `rotate(${p.rotation}deg)`;
+                    p.el.style.opacity = p.opacity;
+                }
+            });
+
+            stats.particlesActive = particles.length;
+            if (particles.length > stats.peakParticles) {
+                stats.peakParticles = particles.length;
+            }
+            updateStats();
+
+            if (particles.length > 0) {
+                animationId = requestAnimationFrame(animate);
+            } else {
+                animationId = null;
+            }
+        }
+
+        // Update stats display
+        function updateStats() {
+            document.getElementById('totalFired').textContent = stats.totalFired;
+            document.getElementById('particlesActive').textContent = stats.particlesActive;
+            document.getElementById('peakParticles').textContent = stats.peakParticles;
+        }
+
+        // Apply preset
+        function applyPreset(preset) {
+            switch(preset) {
+                case 'victory':
+                    config.colorTheme = 'gold';
+                    config.confettiShape = 'star';
+                    config.cannonStyle = 'dual';
+                    config.particleCount = 150;
+                    config.explosionPower = 120;
+                    break;
+                case 'levelup':
+                    config.colorTheme = 'neon';
+                    config.confettiShape = 'mixed';
+                    config.cannonStyle = 'single';
+                    config.particleCount = 100;
+                    config.explosionPower = 150;
+                    break;
+                case 'achievement':
+                    config.colorTheme = 'neon';
+                    config.confettiShape = 'circle';
+                    config.cannonStyle = 'single';
+                    config.particleCount = 80;
+                    config.explosionPower = 100;
+                    break;
+                case 'party':
+                    config.colorTheme = 'rainbow';
+                    config.confettiShape = 'mixed';
+                    config.cannonStyle = 'triple';
+                    config.particleCount = 200;
+                    config.explosionPower = 130;
+                    break;
+                case 'love':
+                    config.colorTheme = 'pastel';
+                    config.confettiShape = 'heart';
+                    config.cannonStyle = 'dual';
+                    config.particleCount = 100;
+                    config.explosionPower = 100;
+                    config.gravity = 0.5;
+                    break;
+                case 'epic':
+                    config.colorTheme = 'neon';
+                    config.confettiShape = 'star';
+                    config.cannonStyle = 'triple';
+                    config.particleCount = 300;
+                    config.explosionPower = 180;
+                    break;
+            }
+
+            // Update UI
+            document.getElementById('cannonStyle').value = config.cannonStyle;
+            document.getElementById('confettiShape').value = config.confettiShape;
+            document.getElementById('colorTheme').value = config.colorTheme;
+            document.getElementById('particleCount').value = config.particleCount;
+            document.getElementById('countValue').textContent = config.particleCount;
+            document.getElementById('explosionPower').value = config.explosionPower;
+            document.getElementById('powerValue').textContent = config.explosionPower;
+            document.getElementById('gravity').value = config.gravity;
+            document.getElementById('gravityValue').textContent = config.gravity.toFixed(1);
+
+            updateCannonDisplay();
+            fireCannon();
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                fireCannon();
+            } else if (e.key === '1') {
+                applyPreset('victory');
+            } else if (e.key === '2') {
+                applyPreset('levelup');
+            } else if (e.key === '3') {
+                applyPreset('achievement');
+            } else if (e.key === '4') {
+                applyPreset('party');
+            } else if (e.key === '5') {
+                applyPreset('love');
+            } else if (e.key === '6') {
+                applyPreset('epic');
+            } else if (e.key === 'm' || e.key === 'M') {
+                const styles = ['single', 'dual', 'triple', 'screen'];
+                const currentIndex = styles.indexOf(config.cannonStyle);
+                config.cannonStyle = styles[(currentIndex + 1) % styles.length];
+                document.getElementById('cannonStyle').value = config.cannonStyle;
+                updateCannonDisplay();
+            }
+        });
+
+        // Initialize
+        updateCannonDisplay();
+    </script>
+</body>
+</html>

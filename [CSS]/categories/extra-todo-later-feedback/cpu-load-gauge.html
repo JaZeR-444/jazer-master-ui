@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPU Load Gauge - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%); 
+            min-height: 100vh; 
+            padding: 2rem; 
+            color: white;
+        }
+        
+        .container { max-width: 1100px; margin: 0 auto; }
+        
+        .back-button { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            padding: 0.75rem 1.5rem; 
+            border: 2px solid var(--jazer-cyan); 
+            border-radius: 12px; 
+            background: rgba(0, 255, 255, 0.1); 
+            transition: all 0.3s ease; 
+            margin-bottom: 2rem; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: #0a0a0a; 
+            transform: translateX(-5px); 
+        }
+        
+        .hero-section {
+            text-align: center;
+            padding: 2rem 0 3rem;
+        }
+        
+        h1 { 
+            font-family: var(--font-primary); 
+            font-size: clamp(2rem, 5vw, 3rem); 
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink)); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text; 
+            margin-bottom: 1rem;
+            text-shadow: 0 0 40px rgba(0, 242, 234, 0.3);
+        }
+        
+        .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .keyboard-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(147, 51, 234, 0.2);
+            border: 1px solid var(--jazer-purple);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--jazer-purple);
+        }
+        
+        .keyboard-hint kbd {
+            background: rgba(147, 51, 234, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-secondary);
+        }
+        
+        /* Controls Section */
+        .controls-section {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            font-family: var(--font-secondary);
+            font-size: 1.3rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .control-group label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: var(--font-secondary);
+        }
+        
+        .control-group select,
+        .control-group input[type="range"] {
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .control-group select:hover,
+        .control-group select:focus {
+            border-color: var(--jazer-cyan);
+            outline: none;
+        }
+        
+        .control-group select option {
+            background: #1a1a2e;
+            color: white;
+        }
+        
+        .range-display {
+            font-family: var(--font-secondary);
+            color: var(--jazer-cyan);
+            text-align: right;
+            font-size: 0.9rem;
+        }
+        
+        input[type="range"] {
+            -webkit-appearance: none;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            padding: 0;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--jazer-cyan);
+        }
+        
+        /* Trigger Buttons */
+        .trigger-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .trigger-btn {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: 2px solid;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .trigger-btn.primary {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 242, 234, 0.15);
+            color: var(--jazer-cyan);
+        }
+        
+        .trigger-btn.primary:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateY(-3px);
+        }
+        
+        .trigger-btn.secondary {
+            border-color: var(--jazer-purple);
+            background: rgba(147, 51, 234, 0.15);
+            color: var(--jazer-purple);
+        }
+        
+        .trigger-btn.secondary:hover {
+            background: var(--jazer-purple);
+            color: white;
+            transform: translateY(-3px);
+        }
+        
+        /* Variants Grid */
+        .variants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .variant-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .variant-card:hover {
+            border-color: var(--jazer-purple);
+        }
+        
+        .variant-card h3 {
+            font-family: var(--font-secondary);
+            font-size: 1.1rem;
+            color: var(--jazer-purple);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .variant-preview {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+        }
+        
+        /* === GAUGE STYLES === */
+        
+        /* 1. Semicircle Gauge */
+        .gauge-semicircle {
+            position: relative;
+            width: 200px;
+            height: 110px;
+        }
+        
+        .gauge-semicircle svg {
+            overflow: visible;
+        }
+        
+        .gauge-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 12;
+            stroke-linecap: round;
+        }
+        
+        .gauge-fill {
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;
+        }
+        
+        .gauge-fill.low { stroke: #00ff88; }
+        .gauge-fill.medium { stroke: var(--jazer-cyan); }
+        .gauge-fill.high { stroke: #ffaa00; }
+        .gauge-fill.critical { stroke: #ff4444; animation: gaugePulse 0.5s ease infinite; }
+        
+        @keyframes gaugePulse {
+            0%, 100% { stroke-opacity: 1; }
+            50% { stroke-opacity: 0.6; }
+        }
+        
+        .gauge-center {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        
+        .gauge-value {
+            font-family: var(--font-primary);
+            font-size: 2.5rem;
+            color: white;
+            line-height: 1;
+        }
+        
+        .gauge-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 0.25rem;
+        }
+        
+        .gauge-markers {
+            position: absolute;
+            bottom: 8px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        /* 2. Full Circle Gauge */
+        .gauge-circle {
+            position: relative;
+            width: 150px;
+            height: 150px;
+        }
+        
+        .gauge-circle svg {
+            transform: rotate(-90deg);
+        }
+        
+        .gauge-circle-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 10;
+        }
+        
+        .gauge-circle-fill {
+            fill: none;
+            stroke-width: 10;
+            stroke-linecap: round;
+            stroke-dasharray: 377;
+            stroke-dashoffset: 377;
+            transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;
+        }
+        
+        .gauge-circle-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .gauge-circle-value {
+            font-family: var(--font-primary);
+            font-size: 2rem;
+            color: white;
+        }
+        
+        .gauge-circle-unit {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        /* 3. Bar Gauge */
+        .gauge-bar {
+            width: 100%;
+        }
+        
+        .gauge-bar-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .gauge-bar-title {
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .gauge-bar-value {
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: var(--jazer-cyan);
+        }
+        
+        .gauge-bar-track {
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .gauge-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease, background 0.3s ease;
+            position: relative;
+        }
+        
+        .gauge-bar-fill.low { background: linear-gradient(90deg, #00cc6a, #00ff88); }
+        .gauge-bar-fill.medium { background: linear-gradient(90deg, var(--jazer-cyan), var(--jazer-purple)); }
+        .gauge-bar-fill.high { background: linear-gradient(90deg, #ff8800, #ffaa00); }
+        .gauge-bar-fill.critical { 
+            background: linear-gradient(90deg, #cc0000, #ff4444); 
+            animation: barPulse 0.5s ease infinite;
+        }
+        
+        @keyframes barPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .gauge-bar-segments {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.25rem;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        /* 4. Speedometer */
+        .gauge-speedometer {
+            position: relative;
+            width: 180px;
+            height: 100px;
+        }
+        
+        .speedometer-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 20;
+        }
+        
+        .speedometer-zones {
+            fill: none;
+            stroke-width: 20;
+        }
+        
+        .zone-low { stroke: rgba(0, 255, 136, 0.3); }
+        .zone-medium { stroke: rgba(0, 242, 234, 0.3); }
+        .zone-high { stroke: rgba(255, 170, 0, 0.3); }
+        .zone-critical { stroke: rgba(255, 68, 68, 0.3); }
+        
+        .speedometer-needle {
+            fill: white;
+            transform-origin: 90px 90px;
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+        }
+        
+        .speedometer-center-dot {
+            fill: white;
+        }
+        
+        .speedometer-value {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        
+        .speedometer-value span {
+            font-family: var(--font-primary);
+            font-size: 1.8rem;
+            color: white;
+        }
+        
+        /* 5. Multi-core Display */
+        .gauge-multicore {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            width: 100%;
+        }
+        
+        .core-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .core-label {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            width: 50px;
+            font-family: var(--font-secondary);
+        }
+        
+        .core-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .core-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease, background 0.3s ease;
+        }
+        
+        .core-value {
+            font-size: 0.75rem;
+            color: var(--jazer-cyan);
+            width: 35px;
+            text-align: right;
+            font-family: var(--font-secondary);
+        }
+        
+        /* 6. Graph Display */
+        .gauge-graph {
+            width: 100%;
+            height: 100px;
+            position: relative;
+        }
+        
+        .graph-canvas {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .graph-overlay {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .graph-value {
+            font-family: var(--font-secondary);
+            font-size: 1rem;
+            color: var(--jazer-cyan);
+        }
+        
+        .graph-label {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Status Indicators */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.75rem;
+            border-radius: 20px;
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            margin-top: 0.75rem;
+        }
+        
+        .status-badge.low {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+        
+        .status-badge.medium {
+            background: rgba(0, 242, 234, 0.2);
+            color: var(--jazer-cyan);
+        }
+        
+        .status-badge.high {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+        }
+        
+        .status-badge.critical {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+            animation: badgePulse 1s ease infinite;
+        }
+        
+        @keyframes badgePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.4); }
+            50% { box-shadow: 0 0 0 5px rgba(255, 68, 68, 0); }
+        }
+        
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        
+        /* Demo Section */
+        .demo-section {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-pink);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+        
+        .system-monitor {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .monitor-card {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .monitor-card h4 {
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 1rem;
+        }
+        
+        /* Footer */
+        .footer-info {
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .footer-info h4 {
+            color: var(--jazer-cyan);
+            font-family: var(--font-secondary);
+            margin-bottom: 0.75rem;
+        }
+        
+        .footer-info ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+        }
+        
+        .footer-info li {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+            padding-left: 1rem;
+            position: relative;
+        }
+        
+        .footer-info li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--jazer-purple);
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .variants-grid { grid-template-columns: 1fr; }
+            .trigger-section { flex-direction: column; }
+            .trigger-btn { justify-content: center; }
+            .gauge-multicore { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back</a>
+        
+        <section class="hero-section">
+            <h1>CPU Load Gauge</h1>
+            <p class="subtitle">Visual CPU usage indicators with multiple gauge styles, thresholds, and real-time animation</p>
+            <div class="keyboard-hint">
+                <kbd>Space</kbd> to randomize CPU load
+            </div>
+        </section>
+        
+        <!-- Controls -->
+        <section class="controls-section">
+            <h2 class="section-title">⚙️ Gauge Settings</h2>
+            
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label>CPU Load: <span id="load-display" class="range-display">45%</span></label>
+                    <input type="range" id="cpu-load" min="0" max="100" value="45" oninput="updateAllGauges(this.value)">
+                </div>
+                
+                <div class="control-group">
+                    <label>Warning Threshold</label>
+                    <select id="warning-threshold">
+                        <option value="50">50%</option>
+                        <option value="60">60%</option>
+                        <option value="70" selected>70%</option>
+                        <option value="80">80%</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>Critical Threshold</label>
+                    <select id="critical-threshold">
+                        <option value="80">80%</option>
+                        <option value="85">85%</option>
+                        <option value="90" selected>90%</option>
+                        <option value="95">95%</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>Animation Speed</label>
+                    <select id="animation-speed">
+                        <option value="0.3">Fast</option>
+                        <option value="0.5" selected>Normal</option>
+                        <option value="0.8">Slow</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="trigger-section">
+                <button class="trigger-btn primary" onclick="simulateLoad()">
+                    📊 Simulate Variable Load
+                </button>
+                <button class="trigger-btn secondary" onclick="stopSimulation()">
+                    ◼ Stop Simulation
+                </button>
+            </div>
+        </section>
+        
+        <!-- Gauge Variants -->
+        <section class="variants-grid">
+            <!-- Semicircle Gauge -->
+            <div class="variant-card">
+                <h3>📐 Semicircle Gauge</h3>
+                <div class="variant-preview">
+                    <div class="gauge-semicircle" id="gauge-semicircle">
+                        <svg width="200" height="110" viewBox="0 0 200 110">
+                            <path class="gauge-bg" d="M 20 100 A 80 80 0 0 1 180 100"/>
+                            <path class="gauge-fill medium" id="semi-fill" d="M 20 100 A 80 80 0 0 1 180 100" 
+                                  stroke-dasharray="251" stroke-dashoffset="138"/>
+                        </svg>
+                        <div class="gauge-markers">
+                            <span>0%</span>
+                            <span>100%</span>
+                        </div>
+                        <div class="gauge-center">
+                            <div class="gauge-value" id="semi-value">45%</div>
+                            <div class="gauge-label">CPU Usage</div>
+                        </div>
+                    </div>
+                    <div class="status-badge medium" id="semi-status">
+                        <span class="status-dot"></span>
+                        Normal
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Full Circle Gauge -->
+            <div class="variant-card">
+                <h3>⭕ Circle Gauge</h3>
+                <div class="variant-preview">
+                    <div class="gauge-circle" id="gauge-circle">
+                        <svg width="150" height="150">
+                            <circle class="gauge-circle-bg" cx="75" cy="75" r="60"/>
+                            <circle class="gauge-circle-fill" id="circle-fill" cx="75" cy="75" r="60" 
+                                    stroke="var(--jazer-cyan)"/>
+                        </svg>
+                        <div class="gauge-circle-center">
+                            <div class="gauge-circle-value" id="circle-value">45</div>
+                            <div class="gauge-circle-unit">%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bar Gauge -->
+            <div class="variant-card">
+                <h3>📊 Bar Gauge</h3>
+                <div class="variant-preview">
+                    <div class="gauge-bar" id="gauge-bar">
+                        <div class="gauge-bar-header">
+                            <span class="gauge-bar-title">CPU Load</span>
+                            <span class="gauge-bar-value" id="bar-value">45%</span>
+                        </div>
+                        <div class="gauge-bar-track">
+                            <div class="gauge-bar-fill medium" id="bar-fill" style="width: 45%"></div>
+                        </div>
+                        <div class="gauge-bar-segments">
+                            <span>0</span>
+                            <span>25</span>
+                            <span>50</span>
+                            <span>75</span>
+                            <span>100</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Speedometer -->
+            <div class="variant-card">
+                <h3>🏎️ Speedometer</h3>
+                <div class="variant-preview">
+                    <div class="gauge-speedometer" id="gauge-speedometer">
+                        <svg width="180" height="100" viewBox="0 0 180 100">
+                            <path class="speedometer-bg" d="M 15 90 A 75 75 0 0 1 165 90"/>
+                            <!-- Zone colors -->
+                            <path class="speedometer-zones zone-low" d="M 15 90 A 75 75 0 0 1 52 30" 
+                                  stroke-dasharray="59" stroke-dashoffset="0"/>
+                            <path class="speedometer-zones zone-medium" d="M 52 30 A 75 75 0 0 1 128 30" 
+                                  stroke-dasharray="59" stroke-dashoffset="0"/>
+                            <path class="speedometer-zones zone-high" d="M 128 30 A 75 75 0 0 1 150 50" 
+                                  stroke-dasharray="35" stroke-dashoffset="0"/>
+                            <path class="speedometer-zones zone-critical" d="M 150 50 A 75 75 0 0 1 165 90" 
+                                  stroke-dasharray="35" stroke-dashoffset="0"/>
+                            <!-- Needle -->
+                            <polygon class="speedometer-needle" id="speedo-needle" points="90,20 85,85 90,90 95,85"/>
+                            <circle class="speedometer-center-dot" cx="90" cy="90" r="8"/>
+                        </svg>
+                        <div class="speedometer-value">
+                            <span id="speedo-value">45</span>%
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Multi-core Display -->
+            <div class="variant-card">
+                <h3>🔲 Multi-Core</h3>
+                <div class="variant-preview">
+                    <div class="gauge-multicore" id="gauge-multicore">
+                        <div class="core-item">
+                            <span class="core-label">Core 0</span>
+                            <div class="core-bar"><div class="core-fill" id="core-0" style="width: 45%"></div></div>
+                            <span class="core-value" id="core-0-val">45%</span>
+                        </div>
+                        <div class="core-item">
+                            <span class="core-label">Core 1</span>
+                            <div class="core-bar"><div class="core-fill" id="core-1" style="width: 52%"></div></div>
+                            <span class="core-value" id="core-1-val">52%</span>
+                        </div>
+                        <div class="core-item">
+                            <span class="core-label">Core 2</span>
+                            <div class="core-bar"><div class="core-fill" id="core-2" style="width: 38%"></div></div>
+                            <span class="core-value" id="core-2-val">38%</span>
+                        </div>
+                        <div class="core-item">
+                            <span class="core-label">Core 3</span>
+                            <div class="core-bar"><div class="core-fill" id="core-3" style="width: 61%"></div></div>
+                            <span class="core-value" id="core-3-val">61%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Graph Display -->
+            <div class="variant-card">
+                <h3>📈 Live Graph</h3>
+                <div class="variant-preview">
+                    <div class="gauge-graph">
+                        <canvas id="graph-canvas" class="graph-canvas"></canvas>
+                        <div class="graph-overlay">
+                            <span class="graph-value" id="graph-value">45%</span>
+                            <span class="graph-label">Current</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- System Monitor Demo -->
+        <section class="demo-section">
+            <h2 class="section-title">🖥️ System Monitor Demo</h2>
+            
+            <div class="system-monitor">
+                <div class="monitor-card">
+                    <h4>CPU Usage</h4>
+                    <div class="gauge-circle" style="width: 120px; height: 120px; margin: 0 auto;">
+                        <svg width="120" height="120">
+                            <circle class="gauge-circle-bg" cx="60" cy="60" r="50" stroke-width="8"/>
+                            <circle class="gauge-circle-fill" id="demo-cpu" cx="60" cy="60" r="50" 
+                                    stroke="var(--jazer-cyan)" stroke-width="8" stroke-dasharray="314"/>
+                        </svg>
+                        <div class="gauge-circle-center">
+                            <div class="gauge-circle-value" id="demo-cpu-val" style="font-size: 1.5rem;">45</div>
+                            <div class="gauge-circle-unit">%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="monitor-card">
+                    <h4>Memory Usage</h4>
+                    <div class="gauge-circle" style="width: 120px; height: 120px; margin: 0 auto;">
+                        <svg width="120" height="120">
+                            <circle class="gauge-circle-bg" cx="60" cy="60" r="50" stroke-width="8"/>
+                            <circle class="gauge-circle-fill" id="demo-mem" cx="60" cy="60" r="50" 
+                                    stroke="var(--jazer-purple)" stroke-width="8" stroke-dasharray="314"/>
+                        </svg>
+                        <div class="gauge-circle-center">
+                            <div class="gauge-circle-value" id="demo-mem-val" style="font-size: 1.5rem;">62</div>
+                            <div class="gauge-circle-unit">%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="monitor-card">
+                    <h4>Disk I/O</h4>
+                    <div class="gauge-circle" style="width: 120px; height: 120px; margin: 0 auto;">
+                        <svg width="120" height="120">
+                            <circle class="gauge-circle-bg" cx="60" cy="60" r="50" stroke-width="8"/>
+                            <circle class="gauge-circle-fill" id="demo-disk" cx="60" cy="60" r="50" 
+                                    stroke="var(--jazer-pink)" stroke-width="8" stroke-dasharray="314"/>
+                        </svg>
+                        <div class="gauge-circle-center">
+                            <div class="gauge-circle-value" id="demo-disk-val" style="font-size: 1.5rem;">28</div>
+                            <div class="gauge-circle-unit">%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <div class="footer-info">
+            <h4>Features</h4>
+            <ul>
+                <li>6 gauge styles: semicircle, circle, bar, speedometer, multi-core, graph</li>
+                <li>Configurable warning and critical thresholds</li>
+                <li>Color-coded status indicators</li>
+                <li>Animated transitions and pulses</li>
+                <li>Real-time graph with history</li>
+                <li>Multi-core CPU visualization</li>
+                <li>Keyboard shortcut (Space) support</li>
+                <li>Variable load simulation</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        let simulationInterval = null;
+        let graphData = [];
+        const maxGraphPoints = 50;
+        let canvas, ctx;
+        
+        // Initialize canvas
+        document.addEventListener('DOMContentLoaded', () => {
+            canvas = document.getElementById('graph-canvas');
+            ctx = canvas.getContext('2d');
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Initialize graph data
+            for (let i = 0; i < maxGraphPoints; i++) {
+                graphData.push(45);
+            }
+            drawGraph();
+            updateAllGauges(45);
+        });
+        
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            drawGraph();
+        }
+        
+        function getState(value) {
+            const warning = parseInt(document.getElementById('warning-threshold').value);
+            const critical = parseInt(document.getElementById('critical-threshold').value);
+            
+            if (value >= critical) return 'critical';
+            if (value >= warning) return 'high';
+            if (value >= 40) return 'medium';
+            return 'low';
+        }
+        
+        function getStatusText(state) {
+            switch(state) {
+                case 'low': return 'Idle';
+                case 'medium': return 'Normal';
+                case 'high': return 'High Load';
+                case 'critical': return 'Critical!';
+            }
+        }
+        
+        function getColor(state) {
+            switch(state) {
+                case 'low': return '#00ff88';
+                case 'medium': return '#00f2ea';
+                case 'high': return '#ffaa00';
+                case 'critical': return '#ff4444';
+            }
+        }
+        
+        function updateAllGauges(value) {
+            value = parseInt(value);
+            const state = getState(value);
+            const color = getColor(state);
+            
+            document.getElementById('load-display').textContent = value + '%';
+            
+            // Semicircle gauge
+            const semiOffset = 251 * (1 - value / 100);
+            document.getElementById('semi-fill').style.strokeDashoffset = semiOffset;
+            document.getElementById('semi-fill').className = 'gauge-fill ' + state;
+            document.getElementById('semi-value').textContent = value + '%';
+            const semiStatus = document.getElementById('semi-status');
+            semiStatus.className = 'status-badge ' + state;
+            semiStatus.innerHTML = `<span class="status-dot"></span>${getStatusText(state)}`;
+            
+            // Circle gauge
+            const circleOffset = 377 * (1 - value / 100);
+            const circleFill = document.getElementById('circle-fill');
+            circleFill.style.strokeDashoffset = circleOffset;
+            circleFill.style.stroke = color;
+            document.getElementById('circle-value').textContent = value;
+            
+            // Bar gauge
+            document.getElementById('bar-fill').style.width = value + '%';
+            document.getElementById('bar-fill').className = 'gauge-bar-fill ' + state;
+            document.getElementById('bar-value').textContent = value + '%';
+            
+            // Speedometer
+            const needleAngle = -90 + (value / 100 * 180);
+            document.getElementById('speedo-needle').style.transform = `rotate(${needleAngle}deg)`;
+            document.getElementById('speedo-value').textContent = value;
+            
+            // Multi-core (with some variation)
+            for (let i = 0; i < 4; i++) {
+                const coreValue = Math.max(0, Math.min(100, value + Math.floor(Math.random() * 30) - 15));
+                const coreState = getState(coreValue);
+                const coreFill = document.getElementById(`core-${i}`);
+                coreFill.style.width = coreValue + '%';
+                coreFill.style.background = getColor(coreState);
+                document.getElementById(`core-${i}-val`).textContent = coreValue + '%';
+            }
+            
+            // Graph
+            graphData.push(value);
+            if (graphData.length > maxGraphPoints) {
+                graphData.shift();
+            }
+            drawGraph();
+            document.getElementById('graph-value').textContent = value + '%';
+            
+            // Demo gauges
+            updateDemoGauge('demo-cpu', value);
+        }
+        
+        function updateDemoGauge(id, value) {
+            const circumference = 314;
+            const offset = circumference * (1 - value / 100);
+            document.getElementById(id).style.strokeDashoffset = offset;
+            document.getElementById(id + '-val').textContent = value;
+        }
+        
+        function drawGraph() {
+            if (!ctx) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const y = (canvas.height / 4) * i;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Draw line
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+            gradient.addColorStop(0, 'rgba(0, 242, 234, 0.2)');
+            gradient.addColorStop(1, 'rgba(0, 242, 234, 1)');
+            
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            const stepX = canvas.width / (maxGraphPoints - 1);
+            
+            graphData.forEach((val, i) => {
+                const x = i * stepX;
+                const y = canvas.height - (val / 100 * canvas.height);
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            
+            ctx.stroke();
+            
+            // Draw fill
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(0, canvas.height);
+            ctx.closePath();
+            
+            const fillGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            fillGradient.addColorStop(0, 'rgba(0, 242, 234, 0.3)');
+            fillGradient.addColorStop(1, 'rgba(0, 242, 234, 0)');
+            ctx.fillStyle = fillGradient;
+            ctx.fill();
+        }
+        
+        function simulateLoad() {
+            if (simulationInterval) return;
+            
+            let direction = 1;
+            let currentLoad = parseInt(document.getElementById('cpu-load').value);
+            
+            simulationInterval = setInterval(() => {
+                // Random walk with bounds
+                currentLoad += (Math.random() * 10 - 5) * direction;
+                
+                if (currentLoad > 95) {
+                    direction = -1;
+                    currentLoad = 95;
+                } else if (currentLoad < 5) {
+                    direction = 1;
+                    currentLoad = 5;
+                }
+                
+                // Occasionally spike or drop
+                if (Math.random() < 0.05) {
+                    currentLoad += (Math.random() > 0.5 ? 20 : -20);
+                    currentLoad = Math.max(5, Math.min(95, currentLoad));
+                }
+                
+                document.getElementById('cpu-load').value = Math.round(currentLoad);
+                updateAllGauges(Math.round(currentLoad));
+                
+                // Update demo gauges with different values
+                const memVal = Math.max(10, Math.min(90, 62 + Math.floor(Math.random() * 20 - 10)));
+                const diskVal = Math.max(5, Math.min(80, 28 + Math.floor(Math.random() * 30 - 15)));
+                
+                updateDemoGauge('demo-mem', memVal);
+                updateDemoGauge('demo-disk', diskVal);
+                
+            }, 500);
+        }
+        
+        function stopSimulation() {
+            if (simulationInterval) {
+                clearInterval(simulationInterval);
+                simulationInterval = null;
+            }
+        }
+        
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
+                e.preventDefault();
+                const randomLoad = Math.floor(Math.random() * 100);
+                document.getElementById('cpu-load').value = randomLoad;
+                updateAllGauges(randomLoad);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPN Connection Status - JaZeR Security</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(255, 0, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-size: 1rem;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: rgba(0, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .vpn-container {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 500px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.2);
+            animation: fadeIn 0.5s ease;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--jazer-cyan);
+            font-family: var(--font-primary);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .vpn-visual {
+            position: relative;
+            height: 180px;
+            margin: 2rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .device-icon {
+            font-size: 3.5rem;
+            position: absolute;
+            left: 20%;
+            z-index: 2;
+        }
+
+        .server-icon {
+            font-size: 3.5rem;
+            position: absolute;
+            right: 20%;
+            z-index: 2;
+        }
+
+        .connection-line {
+            position: absolute;
+            left: 30%;
+            right: 30%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-cyan));
+            background-size: 200% 100%;
+            animation: flow 2s linear infinite;
+            box-shadow: 0 0 10px var(--jazer-cyan);
+        }
+
+        .connection-line.disconnected {
+            background: rgba(255, 255, 255, 0.2);
+            animation: none;
+            box-shadow: none;
+        }
+
+        .vpn-status-card {
+            background: rgba(57, 255, 20, 0.1);
+            border: 2px solid #39ff14;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .vpn-status-card.disconnected {
+            background: rgba(255, 51, 102, 0.1);
+            border-color: #ff3366;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-dot {
+            width: 16px;
+            height: 16px;
+            background: #39ff14;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+            box-shadow: 0 0 15px #39ff14;
+        }
+
+        .vpn-status-card.disconnected .status-dot {
+            background: #ff3366;
+            box-shadow: 0 0 15px #ff3366;
+            animation: none;
+        }
+
+        .status-text {
+            color: #39ff14;
+            font-weight: 700;
+            font-size: 1.3rem;
+            font-family: var(--font-primary);
+        }
+
+        .vpn-status-card.disconnected .status-text {
+            color: #ff3366;
+        }
+
+        .location-info {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+
+        .vpn-details {
+            text-align: left;
+            margin: 1.5rem 0;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.875rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .detail-value {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--jazer-cyan);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-body);
+            margin-top: 1rem;
+        }
+
+        .action-btn:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .action-btn.disconnect {
+            border-color: #ff3366;
+            color: #ff3366;
+        }
+
+        .action-btn.disconnect:hover {
+            background: #ff3366;
+            color: white;
+            box-shadow: 0 0 20px rgba(255, 51, 102, 0.4);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes flow {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 200% 0%; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.2); }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .back-button { top: 1rem; left: 1rem; padding: 0.5rem 1rem; font-size: 0.9rem; }
+            .vpn-container { padding: 2rem 1.5rem; }
+            h1 { font-size: 1.5rem; }
+            .device-icon, .server-icon { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <div class="vpn-container">
+        <h1>VPN Status</h1>
+        <p class="subtitle">Secure your connection with VPN</p>
+
+        <div class="vpn-visual">
+            <div class="device-icon">💻</div>
+            <div class="connection-line" id="connectionLine"></div>
+            <div class="server-icon">🌐</div>
+        </div>
+
+        <div class="vpn-status-card" id="statusCard">
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <div class="status-text" id="statusText">Connected</div>
+            </div>
+            <div class="location-info" id="locationInfo">
+                Protected • Server: New York, USA
+            </div>
+        </div>
+
+        <div class="vpn-details">
+            <div class="detail-item">
+                <span class="detail-label">IP Address:</span>
+                <span class="detail-value" id="ipAddress">203.0.113.45</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label">Protocol:</span>
+                <span class="detail-value">WireGuard</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label">Encryption:</span>
+                <span class="detail-value">ChaCha20</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label">Connection Time:</span>
+                <span class="detail-value" id="connectionTime">00:15:42</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label">Data Transfer:</span>
+                <span class="detail-value" id="dataTransfer">↓ 245 MB • ↑ 89 MB</span>
+            </div>
+        </div>
+
+        <button class="action-btn disconnect" id="actionBtn" onclick="toggleVPN()">Disconnect</button>
+    </div>
+
+    <script>
+        let isConnected = true;
+
+        function toggleVPN() {
+            isConnected = !isConnected;
+            const statusCard = document.getElementById('statusCard');
+            const statusText = document.getElementById('statusText');
+            const locationInfo = document.getElementById('locationInfo');
+            const connectionLine = document.getElementById('connectionLine');
+            const actionBtn = document.getElementById('actionBtn');
+            const ipAddress = document.getElementById('ipAddress');
+
+            if (isConnected) {
+                // Connected state
+                statusCard.classList.remove('disconnected');
+                statusText.textContent = 'Connected';
+                locationInfo.textContent = 'Protected • Server: New York, USA';
+                connectionLine.classList.remove('disconnected');
+                actionBtn.textContent = 'Disconnect';
+                actionBtn.classList.add('disconnect');
+                ipAddress.textContent = '203.0.113.45';
+            } else {
+                // Disconnected state
+                statusCard.classList.add('disconnected');
+                statusText.textContent = 'Disconnected';
+                locationInfo.textContent = 'Unprotected • No VPN Connection';
+                connectionLine.classList.add('disconnected');
+                actionBtn.textContent = 'Connect';
+                actionBtn.classList.remove('disconnect');
+                ipAddress.textContent = '192.168.1.100';
+            }
+        }
+
+        // Simulate connection time counter
+        let seconds = 942;
+        setInterval(() => {
+            if (isConnected) {
+                seconds++;
+                const hours = Math.floor(seconds / 3600);
+                const mins = Math.floor((seconds % 3600) / 60);
+                const secs = seconds % 60;
+                document.getElementById('connectionTime').textContent = 
+                    `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

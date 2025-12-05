@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cursor Constellation Connect - JaZeR</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-body); background: #000; color: var(--jazer-cyan); cursor: none; overflow: hidden; height: 100vh; }
+    .back-button { position: fixed; top: 20px; left: 20px; color: var(--jazer-cyan); text-decoration: none; font-size: 1.2rem; z-index: 1000; padding: 10px 20px; border: 2px solid var(--jazer-cyan); border-radius: 8px; background: rgba(0, 242, 234, 0.1); }
+    #canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+    .info { position: fixed; top: 100px; left: 50%; transform: translateX(-50%); text-align: center; z-index: 10; background: rgba(0, 242, 234, 0.1); padding: 20px 40px; border: 2px solid var(--jazer-cyan); border-radius: 12px; }
+    .info h1 { font-family: var(--font-primary); font-size: 2rem; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <a href="../index.html" class="back-button">← Back to Gallery</a>
+  <canvas id="canvas"></canvas>
+  <div class="info"><h1>Constellation Connect</h1><p style="color: var(--jazer-purple);">Move to connect the stars!</p></div>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    let mouseX = canvas.width / 2, mouseY = canvas.height / 2;
+    const stars = [];
+    const maxDistance = 150;
+    
+    for (let i = 0; i < 100; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        radius: Math.random() * 2 + 1
+      });
+    }
+    
+    document.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+    
+    function animate() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      stars.forEach((star, i) => {
+        star.x += star.vx;
+        star.y += star.vy;
+        if (star.x < 0) star.x = canvas.width;
+        if (star.x > canvas.width) star.x = 0;
+        if (star.y < 0) star.y = canvas.height;
+        if (star.y > canvas.height) star.y = 0;
+        
+        const distToMouse = Math.sqrt((star.x - mouseX) ** 2 + (star.y - mouseY) ** 2);
+        const brightness = Math.max(0, 1 - distToMouse / maxDistance);
+        
+        ctx.fillStyle = `rgba(0, 242, 234, ${0.3 + brightness * 0.7})`;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        if (distToMouse < maxDistance) {
+          ctx.strokeStyle = `rgba(147, 51, 234, ${0.5 - (distToMouse / maxDistance) * 0.5})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(star.x, star.y);
+          ctx.lineTo(mouseX, mouseY);
+          ctx.stroke();
+        }
+        
+        for (let j = i + 1; j < stars.length; j++) {
+          const other = stars[j];
+          const dist = Math.sqrt((star.x - other.x) ** 2 + (star.y - other.y) ** 2);
+          if (dist < 100) {
+            ctx.strokeStyle = `rgba(255, 0, 110, ${0.2 - (dist / 100) * 0.2})`;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(star.x, star.y);
+            ctx.lineTo(other.x, other.y);
+            ctx.stroke();
+          }
+        }
+      });
+      
+      ctx.fillStyle = '#00f2ea';
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = '#00f2ea';
+      ctx.beginPath();
+      ctx.arc(mouseX, mouseY, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      requestAnimationFrame(animate);
+    }
+    animate();
+    
+    window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+  </script>
+</body>
+</html>

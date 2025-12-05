@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reward Magnet Pull to Wallet</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            margin-bottom: 0.5rem; 
+            font-size: 2.5rem; 
+        }
+        
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .back-button { 
+            display: inline-block; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(6, 182, 212, 0.1); 
+            margin-bottom: 2rem; 
+            transition: all 0.3s ease; 
+        }
+        
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5); 
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .control-group label {
+            font-size: 0.85rem;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .control-group select {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--jazer-purple);
+            color: var(--text-light);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 160px;
+        }
+        
+        .control-group select:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+        
+        .trigger-btn {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(6, 182, 212, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .trigger-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.6);
+        }
+        
+        .spawn-btn {
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            color: #1a0a2e;
+        }
+        
+        .spawn-btn:hover {
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+        }
+        
+        .demo-container {
+            position: relative;
+            border: 2px solid var(--jazer-pink);
+            border-radius: 16px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.9), rgba(30, 20, 50, 0.9));
+            min-height: 500px;
+        }
+        
+        /* Game area */
+        .game-area {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: 
+                radial-gradient(circle at 30% 70%, rgba(147, 51, 234, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 70% 30%, rgba(0, 242, 234, 0.1) 0%, transparent 40%),
+                linear-gradient(180deg, #0a0a1a 0%, #1a0a2e 100%);
+            overflow: hidden;
+        }
+        
+        /* Wallet target */
+        .wallet {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 80px;
+            background: linear-gradient(135deg, #2d1b4e, #1a0a2e);
+            border: 3px solid var(--jazer-purple);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            transition: all 0.3s ease;
+        }
+        
+        .wallet::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 20px;
+            background: linear-gradient(135deg, var(--jazer-purple), var(--jazer-pink));
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .wallet-icon {
+            font-size: 2rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .wallet-amount {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            font-family: var(--font-primary);
+        }
+        
+        .wallet.receiving {
+            animation: walletPulse 0.3s ease-out;
+            box-shadow: 0 0 30px var(--jazer-cyan), 0 0 60px rgba(6, 182, 212, 0.5);
+        }
+        
+        @keyframes walletPulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.1); }
+        }
+        
+        /* Magnet field visualization */
+        .magnet-field {
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 0, 110, 0.3) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .magnet-field.active {
+            width: 500px;
+            height: 500px;
+            margin-left: -250px;
+            margin-bottom: -180px;
+            opacity: 1;
+            animation: fieldPulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes fieldPulse {
+            0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.6; }
+            50% { transform: translateX(-50%) scale(1.1); opacity: 1; }
+        }
+        
+        /* Magnetic rings */
+        .magnetic-ring {
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 2px solid rgba(255, 0, 110, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 6;
+            opacity: 0;
+        }
+        
+        .magnetic-ring.active {
+            animation: ringContract 1.5s ease-in infinite;
+        }
+        
+        @keyframes ringContract {
+            0% {
+                width: 400px;
+                height: 400px;
+                margin-left: -200px;
+                margin-bottom: -130px;
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            100% {
+                width: 100px;
+                height: 100px;
+                margin-left: -50px;
+                margin-bottom: 20px;
+                opacity: 0;
+            }
+        }
+        
+        /* Reward items */
+        .reward-item {
+            position: absolute;
+            font-size: 2rem;
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.1s linear;
+            filter: drop-shadow(0 0 10px var(--glow-color, gold));
+        }
+        
+        .reward-item::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--glow-color, rgba(255, 215, 0, 0.4)) 0%, transparent 70%);
+            z-index: -1;
+            animation: itemGlow 1s ease-in-out infinite;
+        }
+        
+        @keyframes itemGlow {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+        }
+        
+        .reward-item.coin { --glow-color: rgba(255, 215, 0, 0.6); }
+        .reward-item.gem { --glow-color: rgba(0, 242, 234, 0.6); }
+        .reward-item.star { --glow-color: rgba(255, 255, 100, 0.6); }
+        .reward-item.heart { --glow-color: rgba(255, 100, 150, 0.6); }
+        .reward-item.crystal { --glow-color: rgba(147, 51, 234, 0.6); }
+        
+        .reward-item.being-pulled {
+            animation: itemWobble 0.2s ease-in-out infinite;
+        }
+        
+        @keyframes itemWobble {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+        
+        .reward-item.collected {
+            animation: itemCollect 0.3s ease-in forwards;
+        }
+        
+        @keyframes itemCollect {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        
+        /* Trail effect */
+        .trail-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 8;
+            opacity: 0;
+        }
+        
+        .trail-particle.active {
+            animation: trailFade 0.5s ease-out forwards;
+        }
+        
+        @keyframes trailFade {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0); }
+        }
+        
+        /* Collection burst */
+        .collection-burst {
+            position: absolute;
+            pointer-events: none;
+            z-index: 15;
+        }
+        
+        .burst-particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0;
+        }
+        
+        .burst-particle.active {
+            animation: burstOut 0.6s ease-out forwards;
+        }
+        
+        @keyframes burstOut {
+            0% { opacity: 1; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
+        }
+        
+        /* Plus indicator */
+        .plus-indicator {
+            position: absolute;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--jazer-cyan);
+            text-shadow: 0 0 10px var(--jazer-cyan);
+            pointer-events: none;
+            z-index: 25;
+            opacity: 0;
+        }
+        
+        .plus-indicator.active {
+            animation: plusFloat 1s ease-out forwards;
+        }
+        
+        @keyframes plusFloat {
+            0% { opacity: 1; transform: translateY(0) scale(0.5); }
+            50% { opacity: 1; transform: translateY(-20px) scale(1.2); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1); }
+        }
+        
+        /* Stats bar */
+        .stats-bar {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            right: 1rem;
+            display: flex;
+            justify-content: space-between;
+            z-index: 30;
+        }
+        
+        .stat-item {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--jazer-purple);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .stat-icon {
+            font-size: 1.2rem;
+        }
+        
+        .stat-value {
+            font-weight: 700;
+            font-family: var(--font-primary);
+            color: var(--jazer-cyan);
+        }
+        
+        /* Magnet power indicator */
+        .magnet-power {
+            position: absolute;
+            bottom: 130px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--jazer-pink);
+            border-radius: 25px;
+            padding: 0.5rem 1rem;
+            z-index: 25;
+        }
+        
+        .magnet-power.active {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+        }
+        
+        .magnet-icon {
+            font-size: 1.5rem;
+        }
+        
+        .power-bar {
+            width: 100px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .power-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--jazer-cyan), var(--jazer-pink));
+            border-radius: 4px;
+            width: 100%;
+            transition: width 0.1s linear;
+        }
+        
+        .magnet-power.active .power-fill {
+            animation: powerDrain 5s linear forwards;
+        }
+        
+        @keyframes powerDrain {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+        
+        /* Pull styles showcase */
+        .style-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .style-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .style-card:hover {
+            border-color: var(--jazer-cyan);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);
+        }
+        
+        .style-card h3 {
+            color: var(--jazer-pink);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .style-card .preview-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .style-card p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .keyboard-hint {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--jazer-purple);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .keyboard-hint kbd {
+            background: var(--jazer-purple);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-primary);
+            margin: 0 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .control-group select { min-width: 100%; }
+            .game-area { height: 400px; }
+            .keyboard-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    <h1>Reward Magnet Pull to Wallet</h1>
+    <p class="subtitle">Satisfying magnetic collection effect pulling rewards to your wallet</p>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label>Pull Style</label>
+            <select id="pullStyle">
+                <option value="smooth">Smooth</option>
+                <option value="accelerate">Accelerate</option>
+                <option value="spiral">Spiral</option>
+                <option value="elastic">Elastic</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Reward Type</label>
+            <select id="rewardType">
+                <option value="mixed">Mixed</option>
+                <option value="coins">Coins Only</option>
+                <option value="gems">Gems Only</option>
+                <option value="stars">Stars Only</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Magnet Strength</label>
+            <select id="magnetStrength">
+                <option value="weak">Weak</option>
+                <option value="normal" selected>Normal</option>
+                <option value="strong">Strong</option>
+                <option value="ultra">Ultra</option>
+            </select>
+        </div>
+        <button class="trigger-btn" onclick="activateMagnet()">Activate Magnet</button>
+        <button class="trigger-btn spawn-btn" onclick="spawnRewards()">Spawn Rewards</button>
+    </div>
+    
+    <div class="demo-container">
+        <div class="game-area" id="gameArea">
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="stat-icon">🪙</span>
+                    <span class="stat-value" id="coinCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">💎</span>
+                    <span class="stat-value" id="gemCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">⭐</span>
+                    <span class="stat-value" id="starCount">0</span>
+                </div>
+            </div>
+            
+            <div class="magnet-field" id="magnetField"></div>
+            <div class="magnetic-ring" id="magneticRing1"></div>
+            <div class="magnetic-ring" id="magneticRing2" style="animation-delay: 0.5s;"></div>
+            <div class="magnetic-ring" id="magneticRing3" style="animation-delay: 1s;"></div>
+            
+            <div class="magnet-power" id="magnetPower">
+                <span class="magnet-icon">🧲</span>
+                <div class="power-bar">
+                    <div class="power-fill" id="powerFill"></div>
+                </div>
+            </div>
+            
+            <div class="wallet" id="wallet">
+                <span class="wallet-icon">👛</span>
+                <span class="wallet-amount" id="walletAmount">$0</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="style-grid">
+        <div class="style-card" onclick="setStyleAndActivate('smooth')">
+            <div class="preview-icon">🌊</div>
+            <h3>Smooth</h3>
+            <p>Linear pull trajectory</p>
+        </div>
+        <div class="style-card" onclick="setStyleAndActivate('accelerate')">
+            <div class="preview-icon">🚀</div>
+            <h3>Accelerate</h3>
+            <p>Speed increases near wallet</p>
+        </div>
+        <div class="style-card" onclick="setStyleAndActivate('spiral')">
+            <div class="preview-icon">🌀</div>
+            <h3>Spiral</h3>
+            <p>Orbiting approach</p>
+        </div>
+        <div class="style-card" onclick="setStyleAndActivate('elastic')">
+            <div class="preview-icon">🎯</div>
+            <h3>Elastic</h3>
+            <p>Bouncy attraction</p>
+        </div>
+    </div>
+    
+    <div class="keyboard-hint">
+        Press <kbd>Space</kbd> to activate magnet, <kbd>R</kbd> to spawn rewards
+    </div>
+    
+    <script>
+        const rewardTypes = {
+            coin: { icon: '🪙', value: 10, class: 'coin' },
+            gem: { icon: '💎', value: 50, class: 'gem' },
+            star: { icon: '⭐', value: 25, class: 'star' },
+            heart: { icon: '❤️', value: 15, class: 'heart' },
+            crystal: { icon: '🔮', value: 100, class: 'crystal' }
+        };
+        
+        let stats = { coins: 0, gems: 0, stars: 0, total: 0 };
+        let magnetActive = false;
+        let rewards = [];
+        let animationFrame = null;
+        
+        function getWalletPosition() {
+            const wallet = document.getElementById('wallet');
+            const gameArea = document.getElementById('gameArea');
+            const walletRect = wallet.getBoundingClientRect();
+            const gameRect = gameArea.getBoundingClientRect();
+            
+            return {
+                x: walletRect.left + walletRect.width / 2 - gameRect.left,
+                y: walletRect.top + walletRect.height / 2 - gameRect.top
+            };
+        }
+        
+        function spawnRewards() {
+            const gameArea = document.getElementById('gameArea');
+            const type = document.getElementById('rewardType').value;
+            const count = 15 + Math.floor(Math.random() * 10);
+            
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    let rewardKey;
+                    if (type === 'mixed') {
+                        const keys = Object.keys(rewardTypes);
+                        rewardKey = keys[Math.floor(Math.random() * keys.length)];
+                    } else if (type === 'coins') {
+                        rewardKey = 'coin';
+                    } else if (type === 'gems') {
+                        rewardKey = 'gem';
+                    } else {
+                        rewardKey = 'star';
+                    }
+                    
+                    const rewardData = rewardTypes[rewardKey];
+                    const reward = document.createElement('div');
+                    reward.className = `reward-item ${rewardData.class}`;
+                    reward.textContent = rewardData.icon;
+                    reward.dataset.type = rewardKey;
+                    reward.dataset.value = rewardData.value;
+                    
+                    // Random position (top half of game area)
+                    const x = 50 + Math.random() * (gameArea.clientWidth - 100);
+                    const y = 80 + Math.random() * (gameArea.clientHeight * 0.5);
+                    
+                    reward.style.left = x + 'px';
+                    reward.style.top = y + 'px';
+                    
+                    // Store position data
+                    reward.dataset.x = x;
+                    reward.dataset.y = y;
+                    reward.dataset.vx = 0;
+                    reward.dataset.vy = 0;
+                    
+                    gameArea.appendChild(reward);
+                    rewards.push(reward);
+                    
+                    // Spawn animation
+                    reward.style.transform = 'scale(0)';
+                    setTimeout(() => {
+                        reward.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                        reward.style.transform = 'scale(1)';
+                        setTimeout(() => {
+                            reward.style.transition = 'transform 0.1s linear';
+                        }, 300);
+                    }, 10);
+                }, i * 50);
+            }
+        }
+        
+        function createTrail(x, y, color) {
+            const gameArea = document.getElementById('gameArea');
+            const trail = document.createElement('div');
+            trail.className = 'trail-particle';
+            trail.style.left = x + 'px';
+            trail.style.top = y + 'px';
+            trail.style.background = color;
+            trail.style.boxShadow = `0 0 10px ${color}`;
+            
+            gameArea.appendChild(trail);
+            setTimeout(() => trail.classList.add('active'), 10);
+            setTimeout(() => trail.remove(), 500);
+        }
+        
+        function createCollectionBurst(x, y, color) {
+            const gameArea = document.getElementById('gameArea');
+            const container = document.createElement('div');
+            container.className = 'collection-burst';
+            container.style.left = x + 'px';
+            container.style.top = y + 'px';
+            
+            for (let i = 0; i < 12; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'burst-particle';
+                
+                const angle = (i / 12) * Math.PI * 2;
+                const distance = 30 + Math.random() * 30;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.width = '6px';
+                particle.style.height = '6px';
+                particle.style.background = color;
+                particle.style.boxShadow = `0 0 8px ${color}`;
+                particle.style.setProperty('--tx', tx + 'px');
+                particle.style.setProperty('--ty', ty + 'px');
+                
+                container.appendChild(particle);
+                setTimeout(() => particle.classList.add('active'), 10);
+            }
+            
+            gameArea.appendChild(container);
+            setTimeout(() => container.remove(), 600);
+        }
+        
+        function createPlusIndicator(x, y, value) {
+            const gameArea = document.getElementById('gameArea');
+            const plus = document.createElement('div');
+            plus.className = 'plus-indicator';
+            plus.textContent = `+${value}`;
+            plus.style.left = x + 'px';
+            plus.style.top = y + 'px';
+            
+            gameArea.appendChild(plus);
+            setTimeout(() => plus.classList.add('active'), 10);
+            setTimeout(() => plus.remove(), 1000);
+        }
+        
+        function collectReward(reward) {
+            const type = reward.dataset.type;
+            const value = parseInt(reward.dataset.value);
+            const x = parseFloat(reward.dataset.x);
+            const y = parseFloat(reward.dataset.y);
+            
+            // Update stats
+            if (type === 'coin') stats.coins++;
+            else if (type === 'gem') stats.gems++;
+            else if (type === 'star') stats.stars++;
+            stats.total += value;
+            
+            updateStatsDisplay();
+            
+            // Visual effects
+            const colors = {
+                coin: '#ffd700',
+                gem: '#00f2ea',
+                star: '#ffff66',
+                heart: '#ff6699',
+                crystal: '#9333ea'
+            };
+            
+            createCollectionBurst(x, y, colors[type]);
+            createPlusIndicator(x, y - 30, value);
+            
+            // Wallet pulse
+            const wallet = document.getElementById('wallet');
+            wallet.classList.add('receiving');
+            setTimeout(() => wallet.classList.remove('receiving'), 300);
+            
+            // Remove from tracking
+            rewards = rewards.filter(r => r !== reward);
+            
+            // Collection animation
+            reward.classList.add('collected');
+            setTimeout(() => reward.remove(), 300);
+        }
+        
+        function updateStatsDisplay() {
+            document.getElementById('coinCount').textContent = stats.coins;
+            document.getElementById('gemCount').textContent = stats.gems;
+            document.getElementById('starCount').textContent = stats.stars;
+            document.getElementById('walletAmount').textContent = '$' + stats.total;
+        }
+        
+        function activateMagnet() {
+            if (magnetActive) return;
+            magnetActive = true;
+            
+            const magnetField = document.getElementById('magnetField');
+            const magnetPower = document.getElementById('magnetPower');
+            const rings = [
+                document.getElementById('magneticRing1'),
+                document.getElementById('magneticRing2'),
+                document.getElementById('magneticRing3')
+            ];
+            
+            // Activate visuals
+            magnetField.classList.add('active');
+            magnetPower.classList.add('active');
+            rings.forEach(ring => ring.classList.add('active'));
+            
+            // Start pulling animation
+            const style = document.getElementById('pullStyle').value;
+            const strengthMap = { weak: 0.5, normal: 1, strong: 2, ultra: 4 };
+            const strength = strengthMap[document.getElementById('magnetStrength').value];
+            
+            const walletPos = getWalletPosition();
+            let time = 0;
+            
+            function pullRewards() {
+                time += 0.016;
+                const colors = {
+                    coin: '#ffd700',
+                    gem: '#00f2ea',
+                    star: '#ffff66',
+                    heart: '#ff6699',
+                    crystal: '#9333ea'
+                };
+                
+                rewards.forEach(reward => {
+                    const x = parseFloat(reward.dataset.x);
+                    const y = parseFloat(reward.dataset.y);
+                    let vx = parseFloat(reward.dataset.vx);
+                    let vy = parseFloat(reward.dataset.vy);
+                    
+                    const dx = walletPos.x - x;
+                    const dy = walletPos.y - y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < 30) {
+                        collectReward(reward);
+                        return;
+                    }
+                    
+                    // Apply force based on style
+                    let forceX, forceY;
+                    const basePull = strength * 0.5;
+                    
+                    switch(style) {
+                        case 'smooth':
+                            forceX = (dx / dist) * basePull;
+                            forceY = (dy / dist) * basePull;
+                            break;
+                            
+                        case 'accelerate':
+                            const accelFactor = Math.max(0.5, 1 - dist / 500) * 2;
+                            forceX = (dx / dist) * basePull * accelFactor;
+                            forceY = (dy / dist) * basePull * accelFactor;
+                            break;
+                            
+                        case 'spiral':
+                            const angle = Math.atan2(dy, dx) + 0.5;
+                            forceX = Math.cos(angle) * basePull;
+                            forceY = Math.sin(angle) * basePull;
+                            break;
+                            
+                        case 'elastic':
+                            forceX = dx * 0.02 * strength;
+                            forceY = dy * 0.02 * strength;
+                            vx *= 0.95;
+                            vy *= 0.95;
+                            break;
+                    }
+                    
+                    vx += forceX;
+                    vy += forceY;
+                    
+                    // Damping
+                    vx *= 0.98;
+                    vy *= 0.98;
+                    
+                    const newX = x + vx;
+                    const newY = y + vy;
+                    
+                    reward.dataset.x = newX;
+                    reward.dataset.y = newY;
+                    reward.dataset.vx = vx;
+                    reward.dataset.vy = vy;
+                    
+                    reward.style.left = newX + 'px';
+                    reward.style.top = newY + 'px';
+                    
+                    // Add being pulled class for wobble
+                    if (!reward.classList.contains('being-pulled')) {
+                        reward.classList.add('being-pulled');
+                    }
+                    
+                    // Create trails
+                    if (Math.random() > 0.7) {
+                        const type = reward.dataset.type;
+                        createTrail(newX, newY, colors[type]);
+                    }
+                });
+                
+                if (magnetActive && rewards.length > 0) {
+                    animationFrame = requestAnimationFrame(pullRewards);
+                }
+            }
+            
+            pullRewards();
+            
+            // Deactivate after 5 seconds
+            setTimeout(() => {
+                magnetActive = false;
+                magnetField.classList.remove('active');
+                magnetPower.classList.remove('active');
+                rings.forEach(ring => ring.classList.remove('active'));
+                
+                // Reset power bar
+                const powerFill = document.getElementById('powerFill');
+                powerFill.style.animation = 'none';
+                powerFill.offsetHeight; // Trigger reflow
+                powerFill.style.width = '100%';
+                
+                // Remove being pulled class
+                rewards.forEach(reward => {
+                    reward.classList.remove('being-pulled');
+                });
+                
+                if (animationFrame) {
+                    cancelAnimationFrame(animationFrame);
+                }
+            }, 5000);
+        }
+        
+        function setStyleAndActivate(style) {
+            document.getElementById('pullStyle').value = style;
+            if (rewards.length === 0) {
+                spawnRewards();
+                setTimeout(activateMagnet, 500);
+            } else {
+                activateMagnet();
+            }
+        }
+        
+        // Initial spawn
+        setTimeout(spawnRewards, 500);
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !e.repeat) {
+                e.preventDefault();
+                activateMagnet();
+            }
+            if (e.code === 'KeyR' && !e.repeat) {
+                e.preventDefault();
+                spawnRewards();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animated Grid Nodes - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="cyan"] { background: var(--jazer-cyan); }
+    .color-btn[data-color="purple"] { background: var(--jazer-purple); }
+    .color-btn[data-color="pink"] { background: var(--jazer-pink); }
+    .color-btn[data-color="rainbow"] { background: conic-gradient(#0ff, #f0f, #ff0, #0ff); }
+    .color-btn[data-color="mono"] { background: #888; }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    #canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Animated Grid Nodes</h1>
+    <p>Connected dots forming a dynamic network pattern</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Reset</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="cyan" title="Cyan"></button>
+      <button class="color-btn" data-color="purple" title="Purple"></button>
+      <button class="color-btn" data-color="pink" title="Pink"></button>
+      <button class="color-btn" data-color="rainbow" title="Rainbow"></button>
+      <button class="color-btn" data-color="mono" title="Monochrome"></button>
+    </div>
+    <div class="slider-group">
+      <label>Node Count: <span class="slider-value" id="countValue">80</span></label>
+      <input type="range" id="countSlider" min="30" max="150" value="80">
+    </div>
+    <div class="slider-group">
+      <label>Connection Distance: <span class="slider-value" id="distValue">120</span></label>
+      <input type="range" id="distSlider" min="50" max="200" value="120">
+    </div>
+    <div class="slider-group">
+      <label>Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+    </div>
+  </div>
+
+  <canvas id="canvas"></canvas>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      nodeCount: 80,
+      maxDistance: 120,
+      speed: 1,
+      colorScheme: 'cyan',
+      paused: false
+    };
+
+    const colors = {
+      cyan: { node: '#00f2ea', line: '#00f2ea', bg: '#0a0a0f' },
+      purple: { node: '#9333ea', line: '#9333ea', bg: '#0a0a12' },
+      pink: { node: '#ff006e', line: '#ff006e', bg: '#0f0a0a' },
+      rainbow: { node: null, line: null, bg: '#0a0a0f' },
+      mono: { node: '#ffffff', line: '#888888', bg: '#0a0a0a' }
+    };
+
+    let nodes = [];
+    let mouse = { x: null, y: null };
+    let animationId;
+    let hue = 0;
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function createNodes() {
+      nodes = [];
+      for (let i = 0; i < config.nodeCount; i++) {
+        nodes.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 0.8,
+          vy: (Math.random() - 0.5) * 0.8,
+          size: 2 + Math.random() * 2
+        });
+      }
+    }
+
+    function getColor(type, alpha = 1) {
+      if (config.colorScheme === 'rainbow') {
+        return `hsla(${hue}, 100%, ${type === 'node' ? 70 : 50}%, ${alpha})`;
+      }
+      const c = colors[config.colorScheme][type];
+      if (alpha < 1) {
+        const r = parseInt(c.slice(1, 3), 16);
+        const g = parseInt(c.slice(3, 5), 16);
+        const b = parseInt(c.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+      return c;
+    }
+
+    function draw() {
+      if (config.paused) return;
+
+      ctx.fillStyle = colors[config.colorScheme].bg;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      hue = (hue + 0.5) % 360;
+
+      // Update and draw nodes
+      nodes.forEach(node => {
+        node.x += node.vx * config.speed;
+        node.y += node.vy * config.speed;
+
+        // Bounce off edges
+        if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
+        if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
+
+        // Keep in bounds
+        node.x = Math.max(0, Math.min(canvas.width, node.x));
+        node.y = Math.max(0, Math.min(canvas.height, node.y));
+      });
+
+      // Draw connections
+      ctx.lineWidth = 1;
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < config.maxDistance) {
+            const alpha = (1 - dist / config.maxDistance) * 0.6;
+            ctx.strokeStyle = getColor('line', alpha);
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            ctx.stroke();
+          }
+        }
+
+        // Connect to mouse
+        if (mouse.x !== null) {
+          const dx = nodes[i].x - mouse.x;
+          const dy = nodes[i].y - mouse.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < config.maxDistance * 1.5) {
+            const alpha = (1 - dist / (config.maxDistance * 1.5)) * 0.8;
+            ctx.strokeStyle = getColor('node', alpha);
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.stroke();
+            ctx.lineWidth = 1;
+          }
+        }
+      }
+
+      // Draw nodes
+      nodes.forEach(node => {
+        ctx.fillStyle = getColor('node');
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = getColor('node');
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, node.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+
+      animationId = requestAnimationFrame(draw);
+    }
+
+    // Event listeners
+    window.addEventListener('resize', () => { resize(); createNodes(); });
+    
+    canvas.addEventListener('mousemove', e => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+    
+    canvas.addEventListener('mouseleave', () => {
+      mouse.x = null;
+      mouse.y = null;
+    });
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('countSlider').addEventListener('input', e => {
+      config.nodeCount = parseInt(e.target.value);
+      document.getElementById('countValue').textContent = config.nodeCount;
+      createNodes();
+    });
+
+    document.getElementById('distSlider').addEventListener('input', e => {
+      config.maxDistance = parseInt(e.target.value);
+      document.getElementById('distValue').textContent = config.maxDistance;
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+        if (!config.paused) draw();
+      }
+      if (e.code === 'KeyR') {
+        createNodes();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['cyan', 'purple', 'pink', 'rainbow', 'mono'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Initialize
+    resize();
+    createNodes();
+    draw();
+  </script>
+</body>
+</html>

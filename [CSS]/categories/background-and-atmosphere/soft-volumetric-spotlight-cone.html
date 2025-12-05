@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Soft Volumetric Spotlight Cone - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="cyan"] { background: var(--jazer-cyan); }
+    .color-btn[data-color="purple"] { background: var(--jazer-purple); }
+    .color-btn[data-color="pink"] { background: var(--jazer-pink); }
+    .color-btn[data-color="rainbow"] { background: conic-gradient(#0ff, #f0f, #ff0, #0ff); }
+    .color-btn[data-color="mono"] { background: #888; }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .spotlight-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #000000 0%, #050510 100%);
+      overflow: hidden;
+    }
+    .spotlight-cone {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      height: 100%;
+      clip-path: polygon(40% 0%, 60% 0%, 100% 100%, 0% 100%);
+      filter: blur(40px);
+      pointer-events: none;
+      mix-blend-mode: screen;
+      will-change: transform, opacity;
+    }
+    .spotlight-beam {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 80%;
+      filter: blur(20px);
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+    .spotlight-source {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      filter: blur(10px);
+      pointer-events: none;
+    }
+    .dust-particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 90%; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .hero-keys { gap: 0.5rem; }
+      .controls { min-width: 140px; padding: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Soft Volumetric Spotlight</h1>
+    <p>Dramatic spotlight cone with swaying volumetric light</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Reset</span>
+      <span class="key-hint"><kbd>B</kbd> Burst</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn" data-color="cyan" title="Cyan"></button>
+      <button class="color-btn active" data-color="purple" title="Purple"></button>
+      <button class="color-btn" data-color="pink" title="Pink"></button>
+      <button class="color-btn" data-color="rainbow" title="Rainbow"></button>
+      <button class="color-btn" data-color="mono" title="Monochrome"></button>
+    </div>
+    <div class="slider-group">
+      <label>Cone Width: <span class="slider-value" id="widthValue">1.0</span></label>
+      <input type="range" id="widthSlider" min="0.5" max="2" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Sway Speed: <span class="slider-value" id="swayValue">1.0</span></label>
+      <input type="range" id="swaySlider" min="0.2" max="2" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Intensity: <span class="slider-value" id="intensityValue">1.0</span></label>
+      <input type="range" id="intensitySlider" min="0.3" max="1.5" step="0.1" value="1">
+    </div>
+  </div>
+
+  <div class="spotlight-container" id="container">
+    <div class="spotlight-cone" id="cone"></div>
+    <div class="spotlight-beam" id="beam"></div>
+    <div class="spotlight-source" id="source"></div>
+    <canvas class="dust-particles" id="dustCanvas"></canvas>
+  </div>
+
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const cone = document.getElementById('cone');
+    const beam = document.getElementById('beam');
+    const source = document.getElementById('source');
+    const dustCanvas = document.getElementById('dustCanvas');
+    const dustCtx = dustCanvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      coneWidth: 1,
+      swaySpeed: 1,
+      intensity: 1,
+      colorScheme: 'purple',
+      paused: false
+    };
+
+    const colorSchemes = {
+      cyan: {
+        cone: 'rgba(0, 242, 234, 0.35)',
+        beam: 'rgba(0, 242, 234, 0.5)',
+        source: 'rgba(0, 242, 234, 0.9)',
+        dust: { r: 0, g: 242, b: 234 }
+      },
+      purple: {
+        cone: 'rgba(147, 51, 234, 0.35)',
+        beam: 'rgba(147, 51, 234, 0.5)',
+        source: 'rgba(147, 51, 234, 0.9)',
+        dust: { r: 147, g: 51, b: 234 }
+      },
+      pink: {
+        cone: 'rgba(255, 0, 110, 0.35)',
+        beam: 'rgba(255, 0, 110, 0.5)',
+        source: 'rgba(255, 0, 110, 0.9)',
+        dust: { r: 255, g: 0, b: 110 }
+      },
+      rainbow: {
+        cycle: true,
+        dust: null
+      },
+      mono: {
+        cone: 'rgba(255, 255, 255, 0.25)',
+        beam: 'rgba(255, 255, 255, 0.4)',
+        source: 'rgba(255, 255, 255, 0.8)',
+        dust: { r: 255, g: 255, b: 255 }
+      }
+    };
+
+    let time = 0;
+    let rainbowHue = 0;
+    let burstActive = false;
+    let burstIntensity = 0;
+
+    // Dust particles
+    let particles = [];
+    const particleCount = 100;
+
+    function initParticles() {
+      particles = [];
+      for (let i = 0; i < particleCount; i++) {
+        particles.push({
+          x: Math.random() * dustCanvas.width,
+          y: Math.random() * dustCanvas.height,
+          size: Math.random() * 2 + 0.5,
+          speedX: (Math.random() - 0.5) * 0.3,
+          speedY: Math.random() * 0.2 + 0.1,
+          opacity: Math.random() * 0.5 + 0.2
+        });
+      }
+    }
+
+    function resizeCanvas() {
+      dustCanvas.width = window.innerWidth;
+      dustCanvas.height = window.innerHeight;
+      initParticles();
+    }
+
+    function getRainbowColor(alpha) {
+      const h = rainbowHue;
+      return `hsla(${h}, 100%, 60%, ${alpha})`;
+    }
+
+    function updateColors() {
+      const scheme = colorSchemes[config.colorScheme];
+      const effectiveIntensity = config.intensity + burstIntensity;
+      
+      if (config.colorScheme === 'rainbow') {
+        cone.style.background = `linear-gradient(180deg, ${getRainbowColor(0.35 * effectiveIntensity)} 0%, ${getRainbowColor(0.15 * effectiveIntensity)} 50%, transparent 80%)`;
+        beam.style.background = `radial-gradient(ellipse at top, ${getRainbowColor(0.5 * effectiveIntensity)}, transparent 70%)`;
+        source.style.background = `radial-gradient(circle, ${getRainbowColor(0.9 * effectiveIntensity)}, transparent 70%)`;
+      } else {
+        const coneAlpha = 0.35 * effectiveIntensity;
+        const beamAlpha = 0.5 * effectiveIntensity;
+        const sourceAlpha = 0.9 * effectiveIntensity;
+        
+        const coneColor = scheme.cone.replace(/[\d.]+\)$/, coneAlpha.toFixed(2) + ')');
+        const beamColor = scheme.beam.replace(/[\d.]+\)$/, beamAlpha.toFixed(2) + ')');
+        const sourceColor = scheme.source.replace(/[\d.]+\)$/, sourceAlpha.toFixed(2) + ')');
+        
+        cone.style.background = `linear-gradient(180deg, ${coneColor} 0%, ${coneColor.replace(/[\d.]+\)$/, (coneAlpha * 0.4).toFixed(2) + ')')} 50%, transparent 80%)`;
+        beam.style.background = `radial-gradient(ellipse at top, ${beamColor}, transparent 70%)`;
+        source.style.background = `radial-gradient(circle, ${sourceColor}, transparent 70%)`;
+      }
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.016 * config.swaySpeed;
+        rainbowHue = (rainbowHue + 0.5 * config.swaySpeed) % 360;
+      }
+
+      // Handle burst decay
+      if (burstActive) {
+        burstIntensity *= 0.95;
+        if (burstIntensity < 0.01) {
+          burstActive = false;
+          burstIntensity = 0;
+        }
+      }
+
+      // Sway animation
+      const swayAngle = Math.sin(time * 0.5) * 8;
+      const swayX = Math.sin(time * 0.3) * 30;
+      const pulseScale = 1 + Math.sin(time * 2) * 0.05;
+      
+      const baseWidth = 300 * config.coneWidth;
+      cone.style.width = baseWidth + 'px';
+      cone.style.transform = `translateX(calc(-50% + ${swayX}px)) rotate(${swayAngle}deg) scaleX(${pulseScale})`;
+      
+      beam.style.transform = `translateX(calc(-50% + ${swayX}px)) rotate(${swayAngle}deg)`;
+      source.style.transform = `translateX(calc(-50% + ${swayX}px))`;
+
+      updateColors();
+
+      // Draw dust particles
+      if (!config.paused) {
+        drawDustParticles();
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function drawDustParticles() {
+      dustCtx.clearRect(0, 0, dustCanvas.width, dustCanvas.height);
+      
+      const scheme = colorSchemes[config.colorScheme];
+      let dustColor;
+      
+      if (config.colorScheme === 'rainbow') {
+        const h = rainbowHue;
+        dustColor = { r: 0, g: 0, b: 0 };
+        // Convert HSL to RGB
+        const c = 1;
+        const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+        const m = 0;
+        let r, g, b;
+        if (h < 60) { r = c; g = x; b = 0; }
+        else if (h < 120) { r = x; g = c; b = 0; }
+        else if (h < 180) { r = 0; g = c; b = x; }
+        else if (h < 240) { r = 0; g = x; b = c; }
+        else if (h < 300) { r = x; g = 0; b = c; }
+        else { r = c; g = 0; b = x; }
+        dustColor = { r: Math.round((r + m) * 255), g: Math.round((g + m) * 255), b: Math.round((b + m) * 255) };
+      } else {
+        dustColor = scheme.dust;
+      }
+
+      // Calculate spotlight cone area
+      const centerX = dustCanvas.width / 2 + Math.sin(time * 0.3) * 30;
+      const coneWidthTop = 60 * config.coneWidth;
+      const coneWidthBottom = 400 * config.coneWidth;
+
+      particles.forEach(p => {
+        p.y += p.speedY;
+        p.x += p.speedX;
+
+        if (p.y > dustCanvas.height) {
+          p.y = 0;
+          p.x = Math.random() * dustCanvas.width;
+        }
+        if (p.x < 0) p.x = dustCanvas.width;
+        if (p.x > dustCanvas.width) p.x = 0;
+
+        // Check if particle is within spotlight cone
+        const normalizedY = p.y / dustCanvas.height;
+        const coneWidthAtY = coneWidthTop + (coneWidthBottom - coneWidthTop) * normalizedY;
+        const distFromCenter = Math.abs(p.x - centerX);
+        
+        if (distFromCenter < coneWidthAtY / 2) {
+          const brightness = 1 - (distFromCenter / (coneWidthAtY / 2));
+          const alpha = p.opacity * brightness * config.intensity * (1 + burstIntensity);
+          
+          dustCtx.beginPath();
+          dustCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          dustCtx.fillStyle = `rgba(${dustColor.r}, ${dustColor.g}, ${dustColor.b}, ${alpha})`;
+          dustCtx.fill();
+        }
+      });
+    }
+
+    function triggerBurst() {
+      burstActive = true;
+      burstIntensity = 0.8;
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+        updateColors();
+      });
+    });
+
+    // Sliders
+    document.getElementById('widthSlider').addEventListener('input', e => {
+      config.coneWidth = parseFloat(e.target.value);
+      document.getElementById('widthValue').textContent = config.coneWidth.toFixed(1);
+    });
+
+    document.getElementById('swaySlider').addEventListener('input', e => {
+      config.swaySpeed = parseFloat(e.target.value);
+      document.getElementById('swayValue').textContent = config.swaySpeed.toFixed(1);
+    });
+
+    document.getElementById('intensitySlider').addEventListener('input', e => {
+      config.intensity = parseFloat(e.target.value);
+      document.getElementById('intensityValue').textContent = config.intensity.toFixed(1);
+      updateColors();
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        time = 0;
+        rainbowHue = 0;
+      }
+      if (e.code === 'KeyB') {
+        triggerBurst();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['cyan', 'purple', 'pink', 'rainbow', 'mono'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+        updateColors();
+      }
+    });
+
+    // Initialize
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    updateColors();
+    animate();
+  </script>
+</body>
+</html>

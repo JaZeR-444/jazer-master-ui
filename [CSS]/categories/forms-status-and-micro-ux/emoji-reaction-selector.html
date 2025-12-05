@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Reaction Selector - Forms, Status & Micro UX - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%); min-height: 100vh; padding: 2rem; color: #ffffff; }
+        .back-button { display: inline-block; margin-bottom: 2rem; padding: 0.75rem 1.5rem; background: transparent; color: var(--jazer-cyan); text-decoration: none; border: 2px solid var(--jazer-cyan); border-radius: 8px; font-weight: 600; transition: all 0.3s ease; }
+        .back-button:hover { background: var(--jazer-cyan); color: #0a0a0a; transform: translateX(-5px); box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { font-family: var(--font-primary); font-size: 2.5rem; margin-bottom: 1rem; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .description { color: #a0a0a0; margin-bottom: 2rem; line-height: 1.6; }
+        .demo-card { background: rgba(10, 10, 10, 0.8); border: 2px solid var(--jazer-cyan); border-radius: 20px; padding: 2rem; backdrop-filter: blur(10px); }
+        .post-card { background: rgba(255, 255, 255, 0.02); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; border: 1px solid rgba(0, 255, 255, 0.1); }
+        .post-content { color: #ffffff; margin-bottom: 1rem; line-height: 1.6; }
+        .reactions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .reaction { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(0, 255, 255, 0.2); border-radius: 20px; cursor: pointer; transition: all 0.3s ease; }
+        .reaction:hover { background: rgba(0, 255, 255, 0.1); transform: scale(1.1); }
+        .reaction.active { background: var(--jazer-cyan); border-color: var(--jazer-cyan); box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
+        .reaction-emoji { font-size: 1.2rem; }
+        .reaction-count { font-weight: 600; color: #ffffff; font-size: 0.875rem; }
+        .add-reaction { font-size: 1.5rem; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; background: rgba(138, 43, 226, 0.2); border: 2px solid var(--jazer-purple); border-radius: 50%; cursor: pointer; transition: all 0.3s ease; }
+        .add-reaction:hover { background: var(--jazer-purple); transform: rotate(90deg); }
+        .emoji-picker { position: relative; display: inline-block; }
+        .emoji-dropdown { position: absolute; bottom: calc(100% + 0.5rem); left: 0; background: rgba(10, 10, 10, 0.95); border: 2px solid var(--jazer-cyan); border-radius: 12px; padding: 1rem; display: none; grid-template-columns: repeat(6, 1fr); gap: 0.5rem; backdrop-filter: blur(10px); z-index: 1000; }
+        .emoji-dropdown.show { display: grid; }
+        .emoji-option { font-size: 1.8rem; cursor: pointer; padding: 0.5rem; border-radius: 8px; transition: all 0.3s ease; text-align: center; }
+        .emoji-option:hover { background: rgba(0, 255, 255, 0.2); transform: scale(1.2); }
+        .selection-summary { margin-top: 2rem; padding: 1rem; background: rgba(255, 255, 255, 0.02); border-radius: 12px; border: 1px solid rgba(0, 255, 255, 0.1); }
+        .summary-title { font-weight: 600; color: var(--jazer-cyan); margin-bottom: 0.5rem; }
+        @media (max-width: 768px) { h1 { font-size: 2rem; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-button">← Back</a>
+        <h1>Emoji Reaction Selector</h1>
+        <p class="description">Interactive emoji reactions for posts, comments, and feedback. Click to add/remove reactions with real-time counting.</p>
+        <div class="demo-card">
+            <div class="post-card">
+                <p class="post-content">Just launched the new JaZeR component library! 🎉 Check out 50+ cyberpunk-themed form components with neon effects and smooth animations.</p>
+                <div class="reactions" id="reactions">
+                    <div class="emoji-picker">
+                        <div class="add-reaction" id="addReactionBtn">+</div>
+                        <div class="emoji-dropdown" id="emojiDropdown"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="selection-summary">
+                <div class="summary-title">Your Reaction:</div>
+                <div id="userReaction" style="color: #a0a0a0; font-size: 1.5rem;">None selected</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const reactions = { '❤️': 0, '👍': 0, '🎉': 0, '🔥': 0, '😍': 0, '🚀': 0, '💯': 0, '🎨': 0 };
+        const availableEmojis = ['❤️', '👍', '🎉', '🔥', '😍', '🚀', '💯', '🎨', '👏', '⭐', '✨', '💪'];
+        let userReaction = null;
+        const reactionsContainer = document.getElementById('reactions');
+        const emojiDropdown = document.getElementById('emojiDropdown');
+        const addReactionBtn = document.getElementById('addReactionBtn');
+        const userReactionDisplay = document.getElementById('userReaction');
+
+        function renderReactions() {
+            const existingReactions = reactionsContainer.querySelectorAll('.reaction');
+            existingReactions.forEach(r => r.remove());
+
+            Object.entries(reactions).forEach(([emoji, count]) => {
+                if (count > 0) {
+                    const reaction = document.createElement('div');
+                    reaction.className = `reaction ${userReaction === emoji ? 'active' : ''}`;
+                    reaction.innerHTML = `<span class="reaction-emoji">${emoji}</span><span class="reaction-count">${count}</span>`;
+                    reaction.addEventListener('click', () => toggleReaction(emoji));
+                    reactionsContainer.insertBefore(reaction, reactionsContainer.firstChild);
+                }
+            });
+        }
+
+        function toggleReaction(emoji) {
+            if (userReaction === emoji) {
+                reactions[emoji]--;
+                userReaction = null;
+                userReactionDisplay.textContent = 'None selected';
+                userReactionDisplay.style.color = '#a0a0a0';
+            } else {
+                if (userReaction) reactions[userReaction]--;
+                if (!reactions[emoji]) reactions[emoji] = 0;
+                reactions[emoji]++;
+                userReaction = emoji;
+                userReactionDisplay.textContent = emoji;
+                userReactionDisplay.style.color = '#ffffff';
+            }
+            renderReactions();
+        }
+
+        addReactionBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            emojiDropdown.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.emoji-picker')) {
+                emojiDropdown.classList.remove('show');
+            }
+        });
+
+        availableEmojis.forEach(emoji => {
+            const option = document.createElement('div');
+            option.className = 'emoji-option';
+            option.textContent = emoji;
+            option.addEventListener('click', () => {
+                toggleReaction(emoji);
+                emojiDropdown.classList.remove('show');
+            });
+            emojiDropdown.appendChild(option);
+        });
+
+        renderReactions();
+    </script>
+</body>
+</html>

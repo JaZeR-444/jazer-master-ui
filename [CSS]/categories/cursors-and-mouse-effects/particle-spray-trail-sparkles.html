@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Particle Spray Trail (Sparkles)</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0b2e 100%);
+            color: var(--jazer-cyan);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            cursor: none;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 50%, rgba(255, 0, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: backgroundPulse 10s ease-in-out infinite;
+        }
+
+        @keyframes backgroundPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        .container, .back-button, .controls, .stats {
+            position: relative;
+            z-index: 1;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            font-size: 0.9rem;
+            border: 1px solid var(--jazer-cyan);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--gradient-primary);
+            box-shadow: 0 0 20px var(--jazer-cyan);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: var(--font-primary);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .sparkle-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+        }
+
+        .sparkle-cursor::before {
+            content: '✨';
+            font-size: 20px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: sparkleRotate 2s linear infinite;
+        }
+
+        @keyframes sparkleRotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            transform-origin: center;
+        }
+
+        .sparkle {
+            width: 4px;
+            height: 4px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--jazer-cyan);
+            animation: sparkleFade 1s ease-out forwards;
+        }
+
+        .star {
+            width: 0;
+            height: 0;
+            border-left: 3px solid transparent;
+            border-right: 3px solid transparent;
+            border-bottom: 6px solid var(--jazer-pink);
+            position: relative;
+            animation: starFade 1.5s ease-out forwards;
+        }
+
+        .star::before {
+            content: '';
+            position: absolute;
+            left: -3px;
+            top: -6px;
+            width: 0;
+            height: 0;
+            border-left: 3px solid transparent;
+            border-right: 3px solid transparent;
+            border-top: 6px solid var(--jazer-pink);
+        }
+
+        .glow-orb {
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, var(--jazer-purple) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: orbFade 0.8s ease-out forwards;
+        }
+
+        .diamond {
+            width: 6px;
+            height: 6px;
+            background: var(--jazer-cyan);
+            transform: rotate(45deg);
+            animation: diamondFade 1.2s ease-out forwards;
+        }
+
+        @keyframes sparkleFade {
+            0% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.3) translateY(-20px);
+            }
+        }
+
+        @keyframes starFade {
+            0% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg) translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.5) rotate(180deg) translateY(-30px);
+            }
+        }
+
+        @keyframes orbFade {
+            0% {
+                opacity: 0.8;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(2);
+            }
+        }
+
+        @keyframes diamondFade {
+            0% {
+                opacity: 1;
+                transform: rotate(45deg) scale(1) translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: rotate(225deg) scale(0.2) translateY(-25px);
+            }
+        }
+
+        .demo-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .demo-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-section h2 {
+            font-family: var(--font-primary);
+            margin-bottom: 1rem;
+            color: var(--jazer-purple);
+        }
+
+        .trail-zone {
+            width: 100%;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px dashed var(--jazer-pink);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1rem 0;
+            position: relative;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        .trail-zone::before {
+            content: 'Move cursor for sparkles!';
+            color: var(--jazer-pink);
+            font-family: var(--font-secondary);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .controls {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            min-width: 250px;
+            z-index: 1001;
+        }
+
+        .control-group {
+            margin: 1rem 0;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--jazer-purple);
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 0.25rem;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 0.25rem;
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 0.25rem;
+        }
+
+        .stats {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            font-size: 0.9rem;
+        }
+
+        .stats div {
+            margin: 0.25rem 0;
+        }
+
+        .interactive-button {
+            background: var(--gradient-accent);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            font-size: 1.1rem;
+            cursor: none;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .interactive-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px var(--jazer-pink);
+        }
+
+        .interactive-button:active {
+            transform: scale(0.95);
+        }
+
+        .instructions {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 2rem;
+            border-left: 4px solid var(--jazer-purple);
+        }
+
+        .instructions h3 {
+            font-family: var(--font-primary);
+            color: var(--jazer-purple);
+            margin-top: 0;
+        }
+
+        .instructions ul {
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .instructions li {
+            margin: 0.5rem 0;
+        }
+
+        .firework {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9997;
+        }
+
+        .firework-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            animation: fireworkExplode 1s ease-out forwards;
+        }
+
+        @keyframes fireworkExplode {
+            0% {
+                transform: translate(0, 0);
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .comet {
+            position: fixed;
+            width: 2px;
+            height: 2px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            box-shadow: 0 0 10px var(--jazer-cyan);
+        }
+
+        .comet::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 20px;
+            height: 2px;
+            background: linear-gradient(to left, transparent, var(--jazer-cyan));
+            transform: translateX(-20px);
+        }
+
+        .speed-trail {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            width: 30px;
+            height: 2px;
+            background: linear-gradient(to right, transparent, var(--jazer-pink));
+            transform-origin: left center;
+            animation: trailFade 0.5s ease-out forwards;
+        }
+
+        @keyframes trailFade {
+            0% {
+                opacity: 1;
+                transform: scaleX(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scaleX(0);
+            }
+        }
+
+        .particle-burst {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9997;
+        }
+
+        .burst-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--jazer-purple);
+            border-radius: 50%;
+            animation: burstExpand 0.8s ease-out forwards;
+        }
+
+        @keyframes burstExpand {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+
+    <div class="controls">
+        <h3 style="margin-top: 0; color: var(--jazer-cyan);">Particle Controls</h3>
+        
+        <div class="control-group">
+            <label for="particleDensity">Particle Density: <span id="densityValue">5</span></label>
+            <input type="range" id="particleDensity" min="1" max="10" step="1" value="5">
+        </div>
+        
+        <div class="control-group">
+            <label for="particleSize">Particle Size: <span id="sizeValue">4</span>px</label>
+            <input type="range" id="particleSize" min="2" max="10" step="1" value="4">
+        </div>
+        
+        <div class="control-group">
+            <label for="particleSpeed">Trail Speed: <span id="speedValue">50</span>ms</label>
+            <input type="range" id="particleSpeed" min="10" max="100" step="10" value="50">
+        </div>
+        
+        <div class="control-group">
+            <label for="particleType">Particle Type:</label>
+            <select id="particleType">
+                <option value="sparkle">Sparkles</option>
+                <option value="star">Stars</option>
+                <option value="orb">Glow Orbs</option>
+                <option value="diamond">Diamonds</option>
+                <option value="mixed">Mixed</option>
+                <option value="comet">Comets</option>
+                <option value="speed">Speed Lines</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="colorScheme">Color Scheme:</label>
+            <select id="colorScheme">
+                <option value="cyan">Cyan</option>
+                <option value="purple">Purple</option>
+                <option value="pink">Pink</option>
+                <option value="rainbow">Rainbow</option>
+                <option value="gradient">Gradient</option>
+                <option value="fire">Fire</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="specialEffects">Special Effects:</label>
+            <select id="specialEffects">
+                <option value="none">None</option>
+                <option value="gravity">Gravity</option>
+                <option value="magnetic">Magnetic</option>
+                <option value="spiral">Spiral</option>
+                <option value="explosion">Explosion</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div>Particles: <span id="particleCount">0</span></div>
+        <div>Speed: <span id="currentSpeed">0</span>px/s</div>
+        <div>Position: <span id="cursorPos">0, 0</span></div>
+        <div>Type: <span id="currentType">Sparkles</span></div>
+    </div>
+
+    <div class="container">
+        <h1>Particle Spray Trail (Sparkles)</h1>
+        <p class="description">
+            Magical cursor that leaves a trail of sparkling particles. 
+            Various particle types, colors, and special effects for dazzling visual feedback.
+        </p>
+
+        <div class="demo-area">
+            <div class="demo-section">
+                <h2>Sparkle Trail</h2>
+                <div class="trail-zone" id="sparkleZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Move for sparkles!
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Speed Trail</h2>
+                <div class="trail-zone" id="speedZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Move quickly!
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Interactive Buttons</h2>
+                <div>
+                    <button class="interactive-button" id="burstBtn">Particle Burst</button>
+                    <button class="interactive-button" id="fireworkBtn">Firework</button>
+                    <button class="interactive-button" id="vortexBtn">Vortex</button>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Color Zones</h2>
+                <div class="trail-zone" id="colorZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Rainbow particles!
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Gravity Field</h2>
+                <div class="trail-zone" id="gravityZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Particles fall down!
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Free Canvas</h2>
+                <div class="trail-zone" id="freeZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Create art!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>How It Works:</h3>
+            <ul>
+                <li>Move cursor to create particle trails</li>
+                <li>Different particle types: sparkles, stars, orbs, diamonds, comets</li>
+                <li>Adjust density, size, and speed of particles</li>
+                <li>Various color schemes: cyan, purple, pink, rainbow, gradient, fire</li>
+                <li>Special effects: gravity, magnetic, spiral, explosion</li>
+                <li>Click buttons for burst effects and fireworks</li>
+                <li>Speed-based particle generation</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="sparkle-cursor" id="sparkleCursor"></div>
+
+    <script>
+        class ParticleSprayTrail {
+            constructor() {
+                this.cursor = document.getElementById('sparkleCursor');
+                this.densityInput = document.getElementById('particleDensity');
+                this.sizeInput = document.getElementById('particleSize');
+                this.speedInput = document.getElementById('particleSpeed');
+                this.typeSelect = document.getElementById('particleType');
+                this.colorSelect = document.getElementById('colorScheme');
+                this.effectSelect = document.getElementById('specialEffects');
+                
+                this.densityValueDisplay = document.getElementById('densityValue');
+                this.sizeValueDisplay = document.getElementById('sizeValue');
+                this.speedValueDisplay = document.getElementById('speedValue');
+                this.particleCountDisplay = document.getElementById('particleCount');
+                this.speedDisplay = document.getElementById('currentSpeed');
+                this.cursorPosDisplay = document.getElementById('cursorPos');
+                this.typeDisplay = document.getElementById('currentType');
+                
+                this.particleDensity = 5;
+                this.particleSize = 4;
+                this.particleSpeed = 50;
+                this.particleType = 'sparkle';
+                this.colorScheme = 'cyan';
+                this.specialEffect = 'none';
+                
+                this.currentX = 0;
+                this.currentY = 0;
+                this.previousX = 0;
+                this.previousY = 0;
+                this.speed = 0;
+                this.particles = [];
+                this.lastParticleTime = 0;
+                
+                this.init();
+            }
+
+            init() {
+                // Set up event listeners
+                document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                document.addEventListener('click', (e) => this.handleClick(e));
+                document.addEventListener('mouseenter', () => this.showCursor());
+                document.addEventListener('mouseleave', () => this.hideCursor());
+                
+                // Control listeners
+                this.densityInput.addEventListener('input', (e) => this.updateDensity(e.target.value));
+                this.sizeInput.addEventListener('input', (e) => this.updateSize(e.target.value));
+                this.speedInput.addEventListener('input', (e) => this.updateSpeed(e.target.value));
+                this.typeSelect.addEventListener('change', (e) => this.updateType(e.target.value));
+                this.colorSelect.addEventListener('change', (e) => this.updateColorScheme(e.target.value));
+                this.effectSelect.addEventListener('change', (e) => this.updateSpecialEffect(e.target.value));
+                
+                // Set up interactive buttons
+                this.setupInteractiveButtons();
+                
+                // Set up zones
+                this.setupZones();
+                
+                // Hide default cursor
+                document.body.style.cursor = 'none';
+                
+                // Start animation loop
+                this.animate();
+            }
+
+            setupInteractiveButtons() {
+                document.getElementById('burstBtn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.createParticleBurst(e.clientX, e.clientY);
+                });
+                
+                document.getElementById('fireworkBtn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.createFirework(e.clientX, e.clientY);
+                });
+                
+                document.getElementById('vortexBtn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.createVortex(e.clientX, e.clientY);
+                });
+            }
+
+            setupZones() {
+                // Set up special behaviors for different zones
+                const zones = {
+                    speedZone: 'speed',
+                    colorZone: 'rainbow',
+                    gravityZone: 'gravity',
+                    freeZone: 'mixed'
+                };
+                
+                Object.entries(zones).forEach(([zoneId, effect]) => {
+                    const zone = document.getElementById(zoneId);
+                    if (zone) {
+                        zone.addEventListener('mouseenter', () => {
+                            this.specialEffect = effect;
+                            this.effectSelect.value = effect;
+                        });
+                        
+                        zone.addEventListener('mouseleave', () => {
+                            this.specialEffect = 'none';
+                            this.effectSelect.value = 'none';
+                        });
+                    }
+                });
+            }
+
+            handleMouseMove(e) {
+                this.previousX = this.currentX;
+                this.previousY = this.currentY;
+                this.currentX = e.clientX;
+                this.currentY = e.clientY;
+                
+                // Calculate speed
+                const dx = this.currentX - this.previousX;
+                const dy = this.currentY - this.previousY;
+                this.speed = Math.sqrt(dx * dx + dy * dy);
+                
+                // Update cursor position
+                this.cursor.style.left = this.currentX + 'px';
+                this.cursor.style.top = this.currentY + 'px';
+                
+                // Update displays
+                this.cursorPosDisplay.textContent = `${Math.round(this.currentX)}, ${Math.round(this.currentY)}`;
+                this.speedDisplay.textContent = Math.round(this.speed * 10);
+                
+                // Create particles based on speed and density
+                const currentTime = Date.now();
+                if (currentTime - this.lastParticleTime > this.particleSpeed && this.speed > 1) {
+                    const particleCount = Math.min(this.particleDensity, Math.ceil(this.speed / 10));
+                    for (let i = 0; i < particleCount; i++) {
+                        this.createParticle(this.currentX, this.currentY);
+                    }
+                    this.lastParticleTime = currentTime;
+                }
+            }
+
+            handleClick(e) {
+                // Create burst effect on click
+                this.createParticleBurst(e.clientX, e.clientY);
+            }
+
+            createParticle(x, y) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                // Apply particle type
+                const typeClass = this.getParticleType();
+                particle.classList.add(typeClass);
+                
+                // Apply color scheme
+                const color = this.getParticleColor();
+                this.applyParticleColor(particle, color);
+                
+                // Apply size
+                this.applyParticleSize(particle);
+                
+                // Position particle with some randomness
+                const offsetX = (Math.random() - 0.5) * 20;
+                const offsetY = (Math.random() - 0.5) * 20;
+                particle.style.left = (x + offsetX) + 'px';
+                particle.style.top = (y + offsetY) + 'px';
+                
+                // Apply special effects
+                this.applySpecialEffect(particle, x, y);
+                
+                document.body.appendChild(particle);
+                this.particles.push(particle);
+                
+                // Remove particle after animation
+                const lifetime = this.getParticleLifetime();
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.remove();
+                    }
+                    this.particles = this.particles.filter(p => p !== particle);
+                }, lifetime);
+                
+                // Update particle count
+                this.particleCountDisplay.textContent = this.particles.length;
+            }
+
+            getParticleType() {
+                if (this.particleType === 'mixed') {
+                    const types = ['sparkle', 'star', 'orb', 'diamond'];
+                    return types[Math.floor(Math.random() * types.length)];
+                }
+                return this.particleType;
+            }
+
+            getParticleColor() {
+                switch (this.colorScheme) {
+                    case 'cyan':
+                        return 'var(--jazer-cyan)';
+                    case 'purple':
+                        return 'var(--jazer-purple)';
+                    case 'pink':
+                        return 'var(--jazer-pink)';
+                    case 'rainbow':
+                        return `hsl(${Math.random() * 360}, 100%, 50%)`;
+                    case 'gradient':
+                        const colors = ['var(--jazer-cyan)', 'var(--jazer-purple)', 'var(--jazer-pink)'];
+                        return colors[Math.floor(Math.random() * colors.length)];
+                    case 'fire':
+                        const fireColors = ['#ff0000', '#ff6600', '#ffaa00', '#ffff00'];
+                        return fireColors[Math.floor(Math.random() * fireColors.length)];
+                    default:
+                        return 'var(--jazer-cyan)';
+                }
+            }
+
+            applyParticleColor(particle, color) {
+                if (particle.classList.contains('sparkle') || particle.classList.contains('diamond')) {
+                    particle.style.background = color;
+                    particle.style.boxShadow = `0 0 6px ${color}`;
+                } else if (particle.classList.contains('star')) {
+                    particle.style.borderBottomColor = color;
+                    const before = particle.querySelector('::before') || particle;
+                    before.style.borderTopColor = color;
+                } else if (particle.classList.contains('orb')) {
+                    particle.style.background = `radial-gradient(circle, ${color} 0%, transparent 70%)`;
+                } else if (particle.classList.contains('comet')) {
+                    particle.style.background = color;
+                    particle.style.boxShadow = `0 0 10px ${color}`;
+                    const after = particle.querySelector('::after') || particle;
+                    after.style.background = `linear-gradient(to left, transparent, ${color})`;
+                }
+            }
+
+            applyParticleSize(particle) {
+                if (particle.classList.contains('sparkle') || particle.classList.contains('diamond')) {
+                    particle.style.width = this.particleSize + 'px';
+                    particle.style.height = this.particleSize + 'px';
+                } else if (particle.classList.contains('orb')) {
+                    const size = this.particleSize * 2;
+                    particle.style.width = size + 'px';
+                    particle.style.height = size + 'px';
+                }
+            }
+
+            applySpecialEffect(particle, x, y) {
+                switch (this.specialEffect) {
+                    case 'gravity':
+                        particle.style.animation = 'none';
+                        this.animateGravity(particle, y);
+                        break;
+                    case 'magnetic':
+                        this.animateMagnetic(particle, x, y);
+                        break;
+                    case 'spiral':
+                        this.animateSpiral(particle, x, y);
+                        break;
+                    case 'explosion':
+                        this.animateExplosion(particle, x, y);
+                        break;
+                }
+            }
+
+            animateGravity(particle, startY) {
+                let velocity = 0;
+                const gravity = 0.5;
+                let y = startY;
+                
+                const animate = () => {
+                    velocity += gravity;
+                    y += velocity;
+                    particle.style.top = y + 'px';
+                    
+                    if (y < window.innerHeight + 50) {
+                        requestAnimationFrame(animate);
+                    }
+                };
+                requestAnimationFrame(animate);
+            }
+
+            animateMagnetic(particle, centerX, centerY) {
+                const angle = Math.random() * Math.PI * 2;
+                const radius = 100;
+                let currentAngle = angle;
+                
+                const animate = () => {
+                    currentAngle += 0.1;
+                    const x = centerX + Math.cos(currentAngle) * radius;
+                    const y = centerY + Math.sin(currentAngle) * radius;
+                    particle.style.left = x + 'px';
+                    particle.style.top = y + 'px';
+                    
+                    if (particle.parentNode) {
+                        requestAnimationFrame(animate);
+                    }
+                };
+                requestAnimationFrame(animate);
+            }
+
+            animateSpiral(particle, centerX, centerY) {
+                let angle = 0;
+                let radius = 0;
+                
+                const animate = () => {
+                    angle += 0.2;
+                    radius += 2;
+                    const x = centerX + Math.cos(angle) * radius;
+                    const y = centerY + Math.sin(angle) * radius;
+                    particle.style.left = x + 'px';
+                    particle.style.top = y + 'px';
+                    
+                    if (radius < 200 && particle.parentNode) {
+                        requestAnimationFrame(animate);
+                    }
+                };
+                requestAnimationFrame(animate);
+            }
+
+            animateExplosion(particle, centerX, centerY) {
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 5 + Math.random() * 10;
+                const vx = Math.cos(angle) * velocity;
+                const vy = Math.sin(angle) * velocity;
+                let x = centerX;
+                let y = centerY;
+                
+                const animate = () => {
+                    x += vx;
+                    y += vy;
+                    particle.style.left = x + 'px';
+                    particle.style.top = y + 'px';
+                    particle.style.opacity = parseFloat(particle.style.opacity || 1) - 0.02;
+                    
+                    if (parseFloat(particle.style.opacity) > 0 && particle.parentNode) {
+                        requestAnimationFrame(animate);
+                    }
+                };
+                requestAnimationFrame(animate);
+            }
+
+            getParticleLifetime() {
+                switch (this.particleType) {
+                    case 'sparkle':
+                        return 1000;
+                    case 'star':
+                        return 1500;
+                    case 'orb':
+                        return 800;
+                    case 'diamond':
+                        return 1200;
+                    case 'comet':
+                        return 600;
+                    case 'speed':
+                        return 500;
+                    default:
+                        return 1000;
+                }
+            }
+
+            createParticleBurst(x, y) {
+                const particleCount = 20;
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'burst-particle';
+                    particle.style.background = this.getParticleColor();
+                    particle.style.left = x + 'px';
+                    particle.style.top = y + 'px';
+                    
+                    const angle = (i / particleCount) * Math.PI * 2;
+                    const distance = 50 + Math.random() * 50;
+                    const tx = Math.cos(angle) * distance;
+                    const ty = Math.sin(angle) * distance;
+                    
+                    particle.style.setProperty('--tx', tx + 'px');
+                    particle.style.setProperty('--ty', ty + 'px');
+                    
+                    document.body.appendChild(particle);
+                    
+                    setTimeout(() => particle.remove(), 800);
+                }
+            }
+
+            createFirework(x, y) {
+                const firework = document.createElement('div');
+                firework.className = 'firework';
+                firework.style.left = x + 'px';
+                firework.style.top = y + 'px';
+                
+                const particleCount = 30;
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'firework-particle';
+                    particle.style.background = this.getParticleColor();
+                    
+                    const angle = (i / particleCount) * Math.PI * 2;
+                    const velocity = 3 + Math.random() * 5;
+                    const tx = Math.cos(angle) * velocity * 30;
+                    const ty = Math.sin(angle) * velocity * 30;
+                    
+                    particle.style.transform = `translate(${tx}px, ${ty}px)`;
+                    
+                    firework.appendChild(particle);
+                }
+                
+                document.body.appendChild(firework);
+                
+                setTimeout(() => firework.remove(), 1000);
+            }
+
+            createVortex(x, y) {
+                const particleCount = 40;
+                for (let i = 0; i < particleCount; i++) {
+                    setTimeout(() => {
+                        const particle = document.createElement('div');
+                        particle.className = 'particle sparkle';
+                        particle.style.background = this.getParticleColor();
+                        particle.style.left = x + 'px';
+                        particle.style.top = y + 'px';
+                        
+                        const angle = (i / particleCount) * Math.PI * 2;
+                        const radius = i * 5;
+                        const px = x + Math.cos(angle) * radius;
+                        const py = y + Math.sin(angle) * radius;
+                        
+                        particle.style.transition = 'all 1s ease-out';
+                        particle.style.left = px + 'px';
+                        particle.style.top = py + 'px';
+                        particle.style.opacity = '0';
+                        
+                        document.body.appendChild(particle);
+                        
+                        setTimeout(() => particle.remove(), 1000);
+                    }, i * 20);
+                }
+            }
+
+            updateDensity(value) {
+                this.particleDensity = parseInt(value);
+                this.densityValueDisplay.textContent = value;
+            }
+
+            updateSize(value) {
+                this.particleSize = parseInt(value);
+                this.sizeValueDisplay.textContent = value;
+            }
+
+            updateSpeed(value) {
+                this.particleSpeed = parseInt(value);
+                this.speedValueDisplay.textContent = value;
+            }
+
+            updateType(value) {
+                this.particleType = value;
+                this.typeDisplay.textContent = value.charAt(0).toUpperCase() + value.slice(1);
+            }
+
+            updateColorScheme(value) {
+                this.colorScheme = value;
+            }
+
+            updateSpecialEffect(value) {
+                this.specialEffect = value;
+            }
+
+            showCursor() {
+                this.cursor.style.display = 'block';
+            }
+
+            hideCursor() {
+                this.cursor.style.display = 'none';
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // Initialize particle spray trail
+        const particleTrail = new ParticleSprayTrail();
+    </script>
+</body>
+</html>

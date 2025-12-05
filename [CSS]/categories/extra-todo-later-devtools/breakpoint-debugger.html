@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breakpoint Debugger - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: #0a0a0a;
+            min-height: 100vh;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        .devtools-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .devtools-header {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(255, 136, 0, 0.05) 100%);
+            border-bottom: 2px solid rgba(239, 68, 68, 0.4);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #ef4444;
+            text-decoration: none;
+            padding: 0.4rem 0.8rem;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 6px;
+            background: rgba(239, 68, 68, 0.1);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .back-button:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .devtools-title {
+            font-family: var(--font-primary);
+            font-size: 1.3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ef4444, var(--jazer-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Debug Controls */
+        .debug-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .debug-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            color: #ef4444;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .debug-btn:hover:not(:disabled) {
+            background: #ef4444;
+            color: white;
+        }
+
+        .debug-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .debug-btn.active {
+            background: #ef4444;
+            color: white;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .debug-btn.success {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+
+        .debug-btn.success:hover {
+            background: #22c55e;
+            color: white;
+        }
+
+        .debug-separator {
+            width: 1px;
+            height: 24px;
+            background: rgba(239, 68, 68, 0.2);
+            margin: 0 0.25rem;
+        }
+
+        .debug-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.75rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 6px;
+            margin-left: 0.5rem;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+        }
+
+        .status-indicator.paused {
+            background: var(--jazer-yellow);
+            animation: statusBlink 1s ease-in-out infinite;
+        }
+
+        @keyframes statusBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .status-text {
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-gray);
+        }
+
+        /* Main Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 240px 1fr 300px;
+            grid-template-rows: 1fr 200px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        @media (max-width: 1100px) {
+            .main-content {
+                grid-template-columns: 200px 1fr;
+                grid-template-rows: 1fr 180px;
+            }
+            .variables-panel { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+            }
+            .files-panel { display: none; }
+        }
+
+        /* Files Panel */
+        .files-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-right: 1px solid rgba(239, 68, 68, 0.2);
+            overflow-y: auto;
+            grid-row: span 2;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0.75rem;
+            background: rgba(239, 68, 68, 0.05);
+            border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .panel-title {
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .panel-badge {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+
+        .file-tree {
+            padding: 0.5rem;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-size: 0.8rem;
+        }
+
+        .file-item:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .file-item.active {
+            background: rgba(239, 68, 68, 0.15);
+            border-left: 2px solid #ef4444;
+        }
+
+        .file-item.has-breakpoint::after {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #ef4444;
+            border-radius: 50%;
+            margin-left: auto;
+        }
+
+        .file-icon {
+            font-size: 0.9rem;
+        }
+
+        .file-name {
+            color: var(--text-light);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .folder-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.6rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .folder-item:hover {
+            color: var(--text-light);
+        }
+
+        .folder-children {
+            padding-left: 1rem;
+        }
+
+        /* Code Editor Panel */
+        .editor-panel {
+            display: flex;
+            flex-direction: column;
+            background: #0d0d0d;
+            overflow: hidden;
+        }
+
+        .editor-tabs {
+            display: flex;
+            background: rgba(239, 68, 68, 0.05);
+            border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+            overflow-x: auto;
+        }
+
+        .editor-tab {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1rem;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-muted);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.75rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+
+        .editor-tab:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--text-light);
+        }
+
+        .editor-tab.active {
+            color: #ef4444;
+            border-bottom-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .tab-close {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            font-size: 0.9rem;
+            opacity: 0.5;
+        }
+
+        .tab-close:hover {
+            background: rgba(239, 68, 68, 0.3);
+            opacity: 1;
+        }
+
+        .editor-content {
+            flex: 1;
+            overflow: auto;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+        }
+
+        .code-line {
+            display: flex;
+            align-items: stretch;
+            min-height: 24px;
+        }
+
+        .code-line:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .code-line.current {
+            background: rgba(255, 190, 11, 0.15);
+        }
+
+        .code-line.breakpoint {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .line-gutter {
+            display: flex;
+            align-items: center;
+            min-width: 80px;
+            padding: 0 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-right: 1px solid rgba(239, 68, 68, 0.1);
+            flex-shrink: 0;
+        }
+
+        .breakpoint-marker {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            margin-right: 0.5rem;
+            transition: all 0.15s ease;
+        }
+
+        .breakpoint-marker:hover {
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        .breakpoint-marker.active {
+            background: #ef4444;
+            border-color: #ef4444;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+        }
+
+        .breakpoint-marker.conditional {
+            background: var(--jazer-orange);
+            border-color: var(--jazer-orange);
+        }
+
+        .line-number {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            min-width: 28px;
+            text-align: right;
+        }
+
+        .line-content {
+            flex: 1;
+            padding: 0 1rem;
+            white-space: pre;
+            color: var(--text-gray);
+        }
+
+        .current-indicator {
+            width: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--jazer-yellow);
+            font-size: 0.7rem;
+        }
+
+        /* Syntax highlighting */
+        .token-keyword { color: var(--jazer-pink); }
+        .token-string { color: #22c55e; }
+        .token-number { color: var(--jazer-cyan); }
+        .token-comment { color: var(--text-muted); font-style: italic; }
+        .token-function { color: var(--jazer-yellow); }
+        .token-variable { color: var(--text-light); }
+        .token-operator { color: var(--jazer-pink); }
+        .token-bracket { color: var(--text-gray); }
+        .token-property { color: var(--jazer-purple); }
+
+        /* Variables Panel */
+        .variables-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 1px solid rgba(239, 68, 68, 0.2);
+            overflow-y: auto;
+            grid-row: span 2;
+        }
+
+        .variable-section {
+            border-bottom: 1px solid rgba(239, 68, 68, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0.75rem;
+            background: rgba(239, 68, 68, 0.05);
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .section-header:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .section-toggle {
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            transition: transform 0.2s ease;
+        }
+
+        .section-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .section-content {
+            padding: 0.5rem;
+        }
+
+        .section-content.collapsed {
+            display: none;
+        }
+
+        .variable-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.4rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            transition: background 0.15s ease;
+        }
+
+        .variable-row:hover {
+            background: rgba(239, 68, 68, 0.08);
+        }
+
+        .var-expand {
+            width: 14px;
+            color: var(--text-muted);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .var-name {
+            color: var(--jazer-purple);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            min-width: 80px;
+        }
+
+        .var-value {
+            color: var(--text-light);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            word-break: break-all;
+        }
+
+        .var-value.string { color: #22c55e; }
+        .var-value.number { color: var(--jazer-cyan); }
+        .var-value.boolean { color: var(--jazer-orange); }
+        .var-value.null { color: var(--text-muted); font-style: italic; }
+        .var-value.object { color: var(--text-gray); }
+        .var-value.function { color: var(--jazer-pink); }
+
+        .var-children {
+            padding-left: 1rem;
+            border-left: 1px dashed rgba(239, 68, 68, 0.15);
+            margin-left: 0.4rem;
+        }
+
+        /* Call Stack & Breakpoints Panel */
+        .bottom-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-top: 1px solid rgba(239, 68, 68, 0.2);
+            overflow: hidden;
+        }
+
+        @media (max-width: 1100px) {
+            .bottom-panel {
+                grid-column: span 2;
+            }
+        }
+
+        .stack-panel, .breakpoints-panel {
+            overflow-y: auto;
+        }
+
+        .stack-panel {
+            border-right: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .stack-frame {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 0.75rem;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            border-left: 2px solid transparent;
+        }
+
+        .stack-frame:hover {
+            background: rgba(239, 68, 68, 0.08);
+        }
+
+        .stack-frame.active {
+            background: rgba(239, 68, 68, 0.12);
+            border-left-color: #ef4444;
+        }
+
+        .frame-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(239, 68, 68, 0.15);
+            border-radius: 4px;
+            color: #ef4444;
+            font-size: 0.65rem;
+            flex-shrink: 0;
+        }
+
+        .frame-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .frame-function {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: var(--jazer-yellow);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .frame-location {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.15rem;
+        }
+
+        /* Breakpoints List */
+        .breakpoint-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 0.75rem;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .breakpoint-item:hover {
+            background: rgba(239, 68, 68, 0.08);
+        }
+
+        .bp-checkbox {
+            width: 14px;
+            height: 14px;
+            accent-color: #ef4444;
+            cursor: pointer;
+        }
+
+        .bp-icon {
+            width: 10px;
+            height: 10px;
+            background: #ef4444;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .bp-icon.conditional {
+            background: var(--jazer-orange);
+        }
+
+        .bp-icon.disabled {
+            opacity: 0.3;
+        }
+
+        .bp-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .bp-location {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: var(--text-light);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .bp-condition {
+            font-size: 0.65rem;
+            color: var(--jazer-orange);
+            margin-top: 0.15rem;
+        }
+
+        .bp-delete {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            color: var(--text-muted);
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.15s ease;
+        }
+
+        .breakpoint-item:hover .bp-delete {
+            opacity: 1;
+        }
+
+        .bp-delete:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        /* Console Panel */
+        .console-input {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: rgba(0, 0, 0, 0.4);
+            border-top: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .console-prompt {
+            color: var(--jazer-cyan);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.85rem;
+        }
+
+        .console-input input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            outline: none;
+        }
+
+        .console-input input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(239, 68, 68, 0.3);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(239, 68, 68, 0.5);
+        }
+
+        /* Empty state */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .empty-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+            opacity: 0.5;
+        }
+
+        /* Highlight animation */
+        @keyframes highlightLine {
+            0% { background: rgba(255, 190, 11, 0.4); }
+            100% { background: rgba(255, 190, 11, 0.15); }
+        }
+
+        .code-line.highlight {
+            animation: highlightLine 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="devtools-wrapper">
+        <!-- Header -->
+        <header class="devtools-header">
+            <div class="header-left">
+                <a href="index.html" class="back-button">← Back to Dev Tools</a>
+                <h1 class="devtools-title">Breakpoint Debugger</h1>
+            </div>
+            <div class="debug-controls">
+                <button class="debug-btn success" id="resumeBtn" title="Resume (F8)">▶</button>
+                <button class="debug-btn" id="pauseBtn" title="Pause">⏸</button>
+                <div class="debug-separator"></div>
+                <button class="debug-btn" id="stepOverBtn" title="Step Over (F10)">⤵</button>
+                <button class="debug-btn" id="stepIntoBtn" title="Step Into (F11)">↓</button>
+                <button class="debug-btn" id="stepOutBtn" title="Step Out (Shift+F11)">↑</button>
+                <div class="debug-separator"></div>
+                <button class="debug-btn" id="restartBtn" title="Restart">↻</button>
+                <button class="debug-btn" id="stopBtn" title="Stop">■</button>
+                <div class="debug-status">
+                    <div class="status-indicator paused" id="statusIndicator"></div>
+                    <span class="status-text" id="statusText">Paused on breakpoint</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Files Panel -->
+            <aside class="files-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Files</span>
+                    <span class="panel-badge">8 files</span>
+                </div>
+                <div class="file-tree" id="fileTree">
+                    <!-- Dynamic file tree -->
+                </div>
+            </aside>
+
+            <!-- Code Editor -->
+            <main class="editor-panel">
+                <div class="editor-tabs" id="editorTabs">
+                    <!-- Dynamic tabs -->
+                </div>
+                <div class="editor-content" id="editorContent">
+                    <!-- Dynamic code -->
+                </div>
+                <div class="console-input">
+                    <span class="console-prompt">></span>
+                    <input type="text" id="consoleInput" placeholder="Evaluate expression...">
+                </div>
+            </main>
+
+            <!-- Variables Panel -->
+            <aside class="variables-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Variables</span>
+                </div>
+                <div id="variablesContent">
+                    <!-- Dynamic variables -->
+                </div>
+            </aside>
+
+            <!-- Bottom Panel -->
+            <div class="bottom-panel">
+                <!-- Call Stack -->
+                <div class="stack-panel">
+                    <div class="panel-header">
+                        <span class="panel-title">Call Stack</span>
+                        <span class="panel-badge" id="stackCount">5 frames</span>
+                    </div>
+                    <div id="callStack">
+                        <!-- Dynamic call stack -->
+                    </div>
+                </div>
+
+                <!-- Breakpoints -->
+                <div class="breakpoints-panel">
+                    <div class="panel-header">
+                        <span class="panel-title">Breakpoints</span>
+                        <span class="panel-badge" id="bpCount">3 active</span>
+                    </div>
+                    <div id="breakpointsList">
+                        <!-- Dynamic breakpoints -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock data - Files
+        const files = [
+            { name: 'src', type: 'folder', children: [
+                { name: 'components', type: 'folder', children: [
+                    { name: 'Button.tsx', type: 'file', hasBreakpoint: true },
+                    { name: 'Card.tsx', type: 'file', hasBreakpoint: false },
+                    { name: 'Modal.tsx', type: 'file', hasBreakpoint: true }
+                ]},
+                { name: 'hooks', type: 'folder', children: [
+                    { name: 'useAuth.ts', type: 'file', hasBreakpoint: false },
+                    { name: 'useData.ts', type: 'file', hasBreakpoint: true }
+                ]},
+                { name: 'App.tsx', type: 'file', hasBreakpoint: false },
+                { name: 'index.tsx', type: 'file', hasBreakpoint: false },
+                { name: 'utils.ts', type: 'file', hasBreakpoint: false }
+            ]}
+        ];
+
+        // Mock code content
+        const codeFiles = {
+            'Button.tsx': {
+                lines: [
+                    { num: 1, content: '<span class="token-keyword">import</span> React, { useState } <span class="token-keyword">from</span> <span class="token-string">\'react\'</span>;', breakpoint: false },
+                    { num: 2, content: '<span class="token-keyword">import</span> { ButtonProps } <span class="token-keyword">from</span> <span class="token-string">\'./types\'</span>;', breakpoint: false },
+                    { num: 3, content: '', breakpoint: false },
+                    { num: 4, content: '<span class="token-keyword">export const</span> <span class="token-function">Button</span> = ({ children, onClick, variant = <span class="token-string">\'primary\'</span> }: ButtonProps) => {', breakpoint: false },
+                    { num: 5, content: '  <span class="token-keyword">const</span> [isLoading, setIsLoading] = <span class="token-function">useState</span>(<span class="token-boolean">false</span>);', breakpoint: false },
+                    { num: 6, content: '  <span class="token-keyword">const</span> [clickCount, setClickCount] = <span class="token-function">useState</span>(<span class="token-number">0</span>);', breakpoint: false },
+                    { num: 7, content: '', breakpoint: false },
+                    { num: 8, content: '  <span class="token-keyword">const</span> <span class="token-function">handleClick</span> = <span class="token-keyword">async</span> (e: React.MouseEvent) => {', breakpoint: true, current: true },
+                    { num: 9, content: '    <span class="token-function">setIsLoading</span>(<span class="token-boolean">true</span>);', breakpoint: false },
+                    { num: 10, content: '    <span class="token-function">setClickCount</span>(prev => prev + <span class="token-number">1</span>);', breakpoint: false },
+                    { num: 11, content: '', breakpoint: false },
+                    { num: 12, content: '    <span class="token-keyword">try</span> {', breakpoint: false },
+                    { num: 13, content: '      <span class="token-keyword">await</span> <span class="token-function">onClick</span>?.(e);', breakpoint: true, conditional: 'clickCount > 5' },
+                    { num: 14, content: '      <span class="token-function">console</span>.<span class="token-function">log</span>(<span class="token-string">\'Button clicked successfully\'</span>);', breakpoint: false },
+                    { num: 15, content: '    } <span class="token-keyword">catch</span> (error) {', breakpoint: false },
+                    { num: 16, content: '      <span class="token-function">console</span>.<span class="token-function">error</span>(<span class="token-string">\'Click handler error:\'</span>, error);', breakpoint: false },
+                    { num: 17, content: '    } <span class="token-keyword">finally</span> {', breakpoint: false },
+                    { num: 18, content: '      <span class="token-function">setIsLoading</span>(<span class="token-boolean">false</span>);', breakpoint: false },
+                    { num: 19, content: '    }', breakpoint: false },
+                    { num: 20, content: '  };', breakpoint: false },
+                    { num: 21, content: '', breakpoint: false },
+                    { num: 22, content: '  <span class="token-keyword">return</span> (', breakpoint: false },
+                    { num: 23, content: '    &lt;<span class="token-variable">button</span>', breakpoint: false },
+                    { num: 24, content: '      <span class="token-property">className</span>={`btn btn-${variant}`}', breakpoint: false },
+                    { num: 25, content: '      <span class="token-property">onClick</span>={handleClick}', breakpoint: false },
+                    { num: 26, content: '      <span class="token-property">disabled</span>={isLoading}', breakpoint: false },
+                    { num: 27, content: '    &gt;', breakpoint: false },
+                    { num: 28, content: '      {isLoading ? <span class="token-string">\'Loading...\'</span> : children}', breakpoint: false },
+                    { num: 29, content: '    &lt;/<span class="token-variable">button</span>&gt;', breakpoint: false },
+                    { num: 30, content: '  );', breakpoint: false },
+                    { num: 31, content: '};', breakpoint: false }
+                ]
+            },
+            'useData.ts': {
+                lines: [
+                    { num: 1, content: '<span class="token-keyword">import</span> { useState, useEffect } <span class="token-keyword">from</span> <span class="token-string">\'react\'</span>;', breakpoint: false },
+                    { num: 2, content: '', breakpoint: false },
+                    { num: 3, content: '<span class="token-keyword">export function</span> <span class="token-function">useData</span>&lt;T&gt;(url: <span class="token-variable">string</span>) {', breakpoint: false },
+                    { num: 4, content: '  <span class="token-keyword">const</span> [data, setData] = <span class="token-function">useState</span>&lt;T | <span class="token-variable">null</span>&gt;(<span class="token-variable">null</span>);', breakpoint: false },
+                    { num: 5, content: '  <span class="token-keyword">const</span> [loading, setLoading] = <span class="token-function">useState</span>(<span class="token-boolean">true</span>);', breakpoint: false },
+                    { num: 6, content: '  <span class="token-keyword">const</span> [error, setError] = <span class="token-function">useState</span>&lt;<span class="token-variable">Error</span> | <span class="token-variable">null</span>&gt;(<span class="token-variable">null</span>);', breakpoint: false },
+                    { num: 7, content: '', breakpoint: false },
+                    { num: 8, content: '  <span class="token-function">useEffect</span>(() => {', breakpoint: true },
+                    { num: 9, content: '    <span class="token-keyword">const</span> <span class="token-function">fetchData</span> = <span class="token-keyword">async</span> () => {', breakpoint: false },
+                    { num: 10, content: '      <span class="token-keyword">try</span> {', breakpoint: false },
+                    { num: 11, content: '        <span class="token-keyword">const</span> response = <span class="token-keyword">await</span> <span class="token-function">fetch</span>(url);', breakpoint: false },
+                    { num: 12, content: '        <span class="token-keyword">const</span> json = <span class="token-keyword">await</span> response.<span class="token-function">json</span>();', breakpoint: false },
+                    { num: 13, content: '        <span class="token-function">setData</span>(json);', breakpoint: false },
+                    { num: 14, content: '      } <span class="token-keyword">catch</span> (e) {', breakpoint: false },
+                    { num: 15, content: '        <span class="token-function">setError</span>(e <span class="token-keyword">as</span> <span class="token-variable">Error</span>);', breakpoint: false },
+                    { num: 16, content: '      } <span class="token-keyword">finally</span> {', breakpoint: false },
+                    { num: 17, content: '        <span class="token-function">setLoading</span>(<span class="token-boolean">false</span>);', breakpoint: false },
+                    { num: 18, content: '      }', breakpoint: false },
+                    { num: 19, content: '    };', breakpoint: false },
+                    { num: 20, content: '', breakpoint: false },
+                    { num: 21, content: '    <span class="token-function">fetchData</span>();', breakpoint: false },
+                    { num: 22, content: '  }, [url]);', breakpoint: false },
+                    { num: 23, content: '', breakpoint: false },
+                    { num: 24, content: '  <span class="token-keyword">return</span> { data, loading, error };', breakpoint: false },
+                    { num: 25, content: '}', breakpoint: false }
+                ]
+            }
+        };
+
+        // Mock variables
+        const variablesData = {
+            local: [
+                { name: 'e', type: 'object', value: 'MouseEvent', children: [
+                    { name: 'target', type: 'object', value: '<button>' },
+                    { name: 'clientX', type: 'number', value: '245' },
+                    { name: 'clientY', type: 'number', value: '128' },
+                    { name: 'type', type: 'string', value: '"click"' }
+                ]},
+                { name: 'isLoading', type: 'boolean', value: 'false' },
+                { name: 'clickCount', type: 'number', value: '3' }
+            ],
+            closure: [
+                { name: 'children', type: 'string', value: '"Submit"' },
+                { name: 'onClick', type: 'function', value: 'ƒ handleSubmit()' },
+                { name: 'variant', type: 'string', value: '"primary"' },
+                { name: 'setIsLoading', type: 'function', value: 'ƒ bound dispatchSetState()' },
+                { name: 'setClickCount', type: 'function', value: 'ƒ bound dispatchSetState()' }
+            ],
+            global: [
+                { name: 'window', type: 'object', value: 'Window' },
+                { name: 'document', type: 'object', value: '#document' },
+                { name: 'React', type: 'object', value: '{...}' },
+                { name: 'console', type: 'object', value: 'Console' }
+            ]
+        };
+
+        // Mock call stack
+        const callStack = [
+            { func: 'handleClick', file: 'Button.tsx', line: 8, active: true },
+            { func: 'onClick', file: 'App.tsx', line: 42, active: false },
+            { func: 'handleSubmit', file: 'Form.tsx', line: 28, active: false },
+            { func: 'dispatch', file: 'react-dom.development.js', line: 4215, active: false },
+            { func: 'invokeCallback', file: 'scheduler.development.js', line: 183, active: false }
+        ];
+
+        // Mock breakpoints
+        const breakpoints = [
+            { file: 'Button.tsx', line: 8, enabled: true, condition: null },
+            { file: 'Button.tsx', line: 13, enabled: true, condition: 'clickCount > 5' },
+            { file: 'useData.ts', line: 8, enabled: true, condition: null },
+            { file: 'Modal.tsx', line: 15, enabled: false, condition: null }
+        ];
+
+        // State
+        const state = {
+            currentFile: 'Button.tsx',
+            openTabs: ['Button.tsx', 'useData.ts'],
+            isPaused: true,
+            currentLine: 8,
+            expandedSections: new Set(['local', 'closure']),
+            expandedVars: new Set()
+        };
+
+        // DOM Elements
+        const fileTree = document.getElementById('fileTree');
+        const editorTabs = document.getElementById('editorTabs');
+        const editorContent = document.getElementById('editorContent');
+        const variablesContent = document.getElementById('variablesContent');
+        const callStackEl = document.getElementById('callStack');
+        const breakpointsListEl = document.getElementById('breakpointsList');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+
+        // Initialize
+        function init() {
+            renderFileTree();
+            renderTabs();
+            renderCode();
+            renderVariables();
+            renderCallStack();
+            renderBreakpoints();
+            setupEventListeners();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Debug controls
+            document.getElementById('resumeBtn').addEventListener('click', resumeExecution);
+            document.getElementById('pauseBtn').addEventListener('click', pauseExecution);
+            document.getElementById('stepOverBtn').addEventListener('click', () => step('over'));
+            document.getElementById('stepIntoBtn').addEventListener('click', () => step('into'));
+            document.getElementById('stepOutBtn').addEventListener('click', () => step('out'));
+            document.getElementById('restartBtn').addEventListener('click', restartDebug);
+            document.getElementById('stopBtn').addEventListener('click', stopDebug);
+
+            // Console input
+            document.getElementById('consoleInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    evaluateExpression(e.target.value);
+                    e.target.value = '';
+                }
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'F8') { e.preventDefault(); resumeExecution(); }
+                if (e.key === 'F10') { e.preventDefault(); step('over'); }
+                if (e.key === 'F11') { 
+                    e.preventDefault(); 
+                    e.shiftKey ? step('out') : step('into'); 
+                }
+            });
+        }
+
+        // Render file tree
+        function renderFileTree() {
+            fileTree.innerHTML = renderFileNode(files);
+
+            fileTree.querySelectorAll('.file-item').forEach(item => {
+                item.addEventListener('click', () => openFile(item.dataset.name));
+            });
+        }
+
+        function renderFileNode(nodes, depth = 0) {
+            return nodes.map(node => {
+                if (node.type === 'folder') {
+                    return `
+                        <div class="folder-item" style="padding-left: ${depth * 12}px">
+                            <span>📁</span> ${node.name}
+                        </div>
+                        <div class="folder-children">
+                            ${renderFileNode(node.children, depth + 1)}
+                        </div>
+                    `;
+                }
+                const isActive = state.currentFile === node.name;
+                return `
+                    <div class="file-item ${isActive ? 'active' : ''} ${node.hasBreakpoint ? 'has-breakpoint' : ''}" 
+                         data-name="${node.name}"
+                         style="padding-left: ${depth * 12 + 8}px">
+                        <span class="file-icon">${getFileIcon(node.name)}</span>
+                        <span class="file-name">${node.name}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getFileIcon(name) {
+            if (name.endsWith('.tsx')) return '⚛️';
+            if (name.endsWith('.ts')) return '📘';
+            if (name.endsWith('.js')) return '📒';
+            return '📄';
+        }
+
+        // Render editor tabs
+        function renderTabs() {
+            editorTabs.innerHTML = state.openTabs.map(tab => `
+                <button class="editor-tab ${tab === state.currentFile ? 'active' : ''}" data-file="${tab}">
+                    ${getFileIcon(tab)} ${tab}
+                    <span class="tab-close" data-file="${tab}">×</span>
+                </button>
+            `).join('');
+
+            editorTabs.querySelectorAll('.editor-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('tab-close')) {
+                        openFile(tab.dataset.file);
+                    }
+                });
+            });
+
+            editorTabs.querySelectorAll('.tab-close').forEach(close => {
+                close.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeTab(close.dataset.file);
+                });
+            });
+        }
+
+        // Render code
+        function renderCode() {
+            const file = codeFiles[state.currentFile];
+            if (!file) {
+                editorContent.innerHTML = '<div class="empty-state"><div class="empty-icon">📄</div>Select a file to view</div>';
+                return;
+            }
+
+            editorContent.innerHTML = file.lines.map(line => {
+                const isCurrent = line.current;
+                const hasBreakpoint = line.breakpoint;
+                const isConditional = line.conditional;
+
+                return `
+                    <div class="code-line ${isCurrent ? 'current' : ''} ${hasBreakpoint ? 'breakpoint' : ''}" data-line="${line.num}">
+                        <div class="line-gutter">
+                            <div class="breakpoint-marker ${hasBreakpoint ? 'active' : ''} ${isConditional ? 'conditional' : ''}" 
+                                 data-line="${line.num}"
+                                 title="${isConditional ? 'Condition: ' + line.conditional : 'Click to toggle breakpoint'}"></div>
+                            <span class="line-number">${line.num}</span>
+                        </div>
+                        <div class="current-indicator">${isCurrent ? '▶' : ''}</div>
+                        <div class="line-content">${line.content || ' '}</div>
+                    </div>
+                `;
+            }).join('');
+
+            // Add breakpoint toggle handlers
+            editorContent.querySelectorAll('.breakpoint-marker').forEach(marker => {
+                marker.addEventListener('click', () => toggleBreakpoint(parseInt(marker.dataset.line)));
+            });
+
+            // Scroll to current line
+            const currentLine = editorContent.querySelector('.code-line.current');
+            if (currentLine) {
+                currentLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Render variables
+        function renderVariables() {
+            const sections = ['local', 'closure', 'global'];
+            
+            variablesContent.innerHTML = sections.map(section => {
+                const isExpanded = state.expandedSections.has(section);
+                const vars = variablesData[section];
+
+                return `
+                    <div class="variable-section">
+                        <div class="section-header" data-section="${section}">
+                            <div class="section-title">
+                                <span class="section-toggle ${isExpanded ? '' : 'collapsed'}">▼</span>
+                                ${section.charAt(0).toUpperCase() + section.slice(1)}
+                            </div>
+                            <span class="panel-badge">${vars.length}</span>
+                        </div>
+                        <div class="section-content ${isExpanded ? '' : 'collapsed'}">
+                            ${vars.map(v => renderVariable(v)).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            variablesContent.querySelectorAll('.section-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const section = header.dataset.section;
+                    if (state.expandedSections.has(section)) {
+                        state.expandedSections.delete(section);
+                    } else {
+                        state.expandedSections.add(section);
+                    }
+                    renderVariables();
+                });
+            });
+        }
+
+        function renderVariable(variable, depth = 0) {
+            const hasChildren = variable.children && variable.children.length > 0;
+            const isExpanded = state.expandedVars.has(variable.name);
+
+            let html = `
+                <div class="variable-row" style="padding-left: ${depth * 12}px">
+                    <span class="var-expand" data-var="${variable.name}">${hasChildren ? (isExpanded ? '▼' : '▶') : ''}</span>
+                    <span class="var-name">${variable.name}:</span>
+                    <span class="var-value ${variable.type}">${variable.value}</span>
+                </div>
+            `;
+
+            if (hasChildren && isExpanded) {
+                html += `<div class="var-children">`;
+                variable.children.forEach(child => {
+                    html += renderVariable(child, depth + 1);
+                });
+                html += `</div>`;
+            }
+
+            return html;
+        }
+
+        // Render call stack
+        function renderCallStack() {
+            callStackEl.innerHTML = callStack.map((frame, index) => `
+                <div class="stack-frame ${frame.active ? 'active' : ''}" data-index="${index}">
+                    <div class="frame-icon">${index}</div>
+                    <div class="frame-details">
+                        <div class="frame-function">${frame.func}</div>
+                        <div class="frame-location">${frame.file}:${frame.line}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('stackCount').textContent = `${callStack.length} frames`;
+
+            callStackEl.querySelectorAll('.stack-frame').forEach(frame => {
+                frame.addEventListener('click', () => {
+                    const index = parseInt(frame.dataset.index);
+                    selectStackFrame(index);
+                });
+            });
+        }
+
+        // Render breakpoints
+        function renderBreakpoints() {
+            const enabledCount = breakpoints.filter(bp => bp.enabled).length;
+            document.getElementById('bpCount').textContent = `${enabledCount} active`;
+
+            breakpointsListEl.innerHTML = breakpoints.map((bp, index) => `
+                <div class="breakpoint-item" data-index="${index}">
+                    <input type="checkbox" class="bp-checkbox" ${bp.enabled ? 'checked' : ''} data-index="${index}">
+                    <div class="bp-icon ${bp.condition ? 'conditional' : ''} ${bp.enabled ? '' : 'disabled'}"></div>
+                    <div class="bp-details">
+                        <div class="bp-location">${bp.file}:${bp.line}</div>
+                        ${bp.condition ? `<div class="bp-condition">if (${bp.condition})</div>` : ''}
+                    </div>
+                    <div class="bp-delete" data-index="${index}">×</div>
+                </div>
+            `).join('');
+
+            breakpointsListEl.querySelectorAll('.bp-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const index = parseInt(checkbox.dataset.index);
+                    breakpoints[index].enabled = e.target.checked;
+                    renderBreakpoints();
+                    renderCode();
+                });
+            });
+
+            breakpointsListEl.querySelectorAll('.bp-delete').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.dataset.index);
+                    breakpoints.splice(index, 1);
+                    renderBreakpoints();
+                    renderCode();
+                });
+            });
+        }
+
+        // File operations
+        function openFile(fileName) {
+            if (!state.openTabs.includes(fileName)) {
+                state.openTabs.push(fileName);
+            }
+            state.currentFile = fileName;
+            renderFileTree();
+            renderTabs();
+            renderCode();
+        }
+
+        function closeTab(fileName) {
+            const index = state.openTabs.indexOf(fileName);
+            if (index > -1) {
+                state.openTabs.splice(index, 1);
+                if (state.currentFile === fileName) {
+                    state.currentFile = state.openTabs[Math.max(0, index - 1)] || '';
+                }
+                renderTabs();
+                renderCode();
+            }
+        }
+
+        // Breakpoint operations
+        function toggleBreakpoint(lineNum) {
+            const file = codeFiles[state.currentFile];
+            const line = file.lines.find(l => l.num === lineNum);
+            if (line) {
+                line.breakpoint = !line.breakpoint;
+                
+                // Update breakpoints list
+                const bpIndex = breakpoints.findIndex(bp => bp.file === state.currentFile && bp.line === lineNum);
+                if (line.breakpoint && bpIndex === -1) {
+                    breakpoints.push({ file: state.currentFile, line: lineNum, enabled: true, condition: null });
+                } else if (!line.breakpoint && bpIndex > -1) {
+                    breakpoints.splice(bpIndex, 1);
+                }
+                
+                renderCode();
+                renderBreakpoints();
+            }
+        }
+
+        // Debug controls
+        function resumeExecution() {
+            state.isPaused = false;
+            statusIndicator.classList.remove('paused');
+            statusText.textContent = 'Running...';
+            
+            // Simulate hitting next breakpoint
+            setTimeout(() => {
+                state.isPaused = true;
+                state.currentLine = 13;
+                statusIndicator.classList.add('paused');
+                statusText.textContent = 'Paused on breakpoint';
+                
+                // Update current line in code
+                const file = codeFiles[state.currentFile];
+                file.lines.forEach(line => line.current = line.num === 13);
+                renderCode();
+            }, 1500);
+        }
+
+        function pauseExecution() {
+            state.isPaused = true;
+            statusIndicator.classList.add('paused');
+            statusText.textContent = 'Paused';
+        }
+
+        function step(type) {
+            const file = codeFiles[state.currentFile];
+            const currentIndex = file.lines.findIndex(l => l.current);
+            
+            if (currentIndex > -1 && currentIndex < file.lines.length - 1) {
+                file.lines[currentIndex].current = false;
+                file.lines[currentIndex + 1].current = true;
+                state.currentLine = file.lines[currentIndex + 1].num;
+                
+                const lineEl = editorContent.querySelector(`[data-line="${state.currentLine}"]`);
+                if (lineEl) {
+                    lineEl.classList.add('highlight');
+                    setTimeout(() => lineEl.classList.remove('highlight'), 500);
+                }
+                
+                renderCode();
+                statusText.textContent = `Step ${type} - Line ${state.currentLine}`;
+            }
+        }
+
+        function restartDebug() {
+            const file = codeFiles[state.currentFile];
+            file.lines.forEach(line => line.current = line.num === 8);
+            state.currentLine = 8;
+            state.isPaused = true;
+            statusIndicator.classList.add('paused');
+            statusText.textContent = 'Restarted - Paused on breakpoint';
+            renderCode();
+        }
+
+        function stopDebug() {
+            const file = codeFiles[state.currentFile];
+            file.lines.forEach(line => line.current = false);
+            state.isPaused = false;
+            statusIndicator.classList.remove('paused');
+            statusText.textContent = 'Stopped';
+            renderCode();
+        }
+
+        // Stack frame selection
+        function selectStackFrame(index) {
+            callStack.forEach((frame, i) => frame.active = i === index);
+            renderCallStack();
+            
+            // Could switch to the file/line of the selected frame
+            const frame = callStack[index];
+            if (codeFiles[frame.file]) {
+                openFile(frame.file);
+            }
+        }
+
+        // Evaluate expression
+        function evaluateExpression(expr) {
+            console.log('Evaluating:', expr);
+            // In a real debugger, this would evaluate the expression in the current scope
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>

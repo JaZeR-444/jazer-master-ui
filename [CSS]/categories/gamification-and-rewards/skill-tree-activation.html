@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill Tree Branch Activation</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 3rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(0, 242, 234, 0.05));
+            border-bottom: 1px solid rgba(147, 51, 234, 0.3);
+        }
+        .back-button { 
+            display: inline-block; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(6, 182, 212, 0.1); 
+            margin-bottom: 1.5rem; 
+            transition: all 0.3s ease; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5); 
+        }
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            font-size: clamp(2rem, 5vw, 3rem); 
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+        }
+        .keyboard-hint {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            font-size: 0.9rem;
+        }
+        .keyboard-hint kbd {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin: 0 0.25rem;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+        .control-group label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .control-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(147, 51, 234, 0.5);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+        .control-group select:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+
+        /* Player Stats */
+        .player-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .stat-box {
+            text-align: center;
+            padding: 0.5rem 1.5rem;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(0, 242, 234, 0.1));
+            border-radius: 10px;
+            border: 1px solid rgba(147, 51, 234, 0.3);
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-label {
+            color: var(--text-gray);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Skill Tree Container */
+        .skill-tree-container {
+            position: relative;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(147, 51, 234, 0.1) 100%);
+            border: 2px solid rgba(147, 51, 234, 0.3);
+            border-radius: 20px;
+            min-height: 600px;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        /* SVG Connections */
+        .tree-connections {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .connection-line {
+            fill: none;
+            stroke: rgba(147, 51, 234, 0.3);
+            stroke-width: 3;
+            stroke-linecap: round;
+            transition: all 0.5s ease;
+        }
+        .connection-line.active {
+            stroke: var(--jazer-cyan);
+            filter: drop-shadow(0 0 8px var(--jazer-cyan));
+        }
+        .connection-line.activating {
+            stroke: var(--jazer-cyan);
+            stroke-dasharray: 100;
+            animation: lineFlow 1s ease-out forwards;
+        }
+        @keyframes lineFlow {
+            0% { stroke-dashoffset: 100; }
+            100% { stroke-dashoffset: 0; }
+        }
+
+        /* Skill Tree Grid */
+        .skill-tree {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 1rem;
+            min-height: 500px;
+        }
+
+        /* Skill Node */
+        .skill-node {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .skill-node:hover:not(.locked) {
+            transform: scale(1.1);
+        }
+
+        /* Node Icon */
+        .node-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            background: rgba(30, 30, 40, 0.9);
+            border: 3px solid rgba(147, 51, 234, 0.5);
+            position: relative;
+            transition: all 0.4s ease;
+            overflow: hidden;
+        }
+        .skill-node.locked .node-icon {
+            opacity: 0.4;
+            border-color: rgba(100, 100, 100, 0.3);
+            filter: grayscale(1);
+        }
+        .skill-node.available .node-icon {
+            border-color: var(--jazer-cyan);
+            animation: availablePulse 2s ease-in-out infinite;
+        }
+        @keyframes availablePulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 242, 234, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(0, 242, 234, 0.6); }
+        }
+        .skill-node.active .node-icon {
+            border-color: var(--jazer-cyan);
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.3), rgba(147, 51, 234, 0.3));
+            box-shadow: 0 0 30px rgba(0, 242, 234, 0.5);
+        }
+        .skill-node.maxed .node-icon {
+            border-color: #ffd700;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 140, 0, 0.3));
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        /* Activation Animation */
+        .node-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, var(--jazer-cyan) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        .skill-node.activating .node-icon::before {
+            width: 150%;
+            height: 150%;
+            opacity: 1;
+            animation: activationBurst 0.6s ease-out forwards;
+        }
+        @keyframes activationBurst {
+            0% { width: 0; height: 0; opacity: 1; }
+            50% { opacity: 1; }
+            100% { width: 200%; height: 200%; opacity: 0; }
+        }
+
+        /* Ripple Effect */
+        .node-ripple {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 70px;
+            height: 70px;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .skill-node.activating .node-ripple {
+            animation: rippleExpand 0.8s ease-out;
+        }
+        @keyframes rippleExpand {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+        }
+
+        /* Particle Burst */
+        .node-particles {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        .skill-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            opacity: 0;
+        }
+        .skill-particle.burst {
+            animation: particleBurst 0.8s ease-out forwards;
+        }
+        @keyframes particleBurst {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        /* Level Indicator */
+        .node-level {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--jazer-purple), var(--jazer-pink));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 2px solid var(--bg-dark);
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s ease;
+        }
+        .skill-node.active .node-level,
+        .skill-node.maxed .node-level {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .skill-node.maxed .node-level {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+        }
+
+        /* Node Name */
+        .node-name {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+            color: var(--text-gray);
+            transition: color 0.3s ease;
+            max-width: 80px;
+        }
+        .skill-node.active .node-name,
+        .skill-node.available .node-name {
+            color: var(--text-light);
+        }
+        .skill-node.maxed .node-name {
+            color: #ffd700;
+        }
+
+        /* Skill Categories */
+        .category-attack { --cat-color: #ff006e; }
+        .category-defense { --cat-color: #00ff88; }
+        .category-magic { --cat-color: #9333ea; }
+        .category-utility { --cat-color: #00f2ea; }
+
+        .category-attack .node-icon { border-color: rgba(255, 0, 110, 0.5); }
+        .category-attack.active .node-icon { border-color: #ff006e; background: linear-gradient(135deg, rgba(255, 0, 110, 0.3), rgba(255, 100, 150, 0.2)); box-shadow: 0 0 30px rgba(255, 0, 110, 0.5); }
+        .category-defense .node-icon { border-color: rgba(0, 255, 136, 0.5); }
+        .category-defense.active .node-icon { border-color: #00ff88; background: linear-gradient(135deg, rgba(0, 255, 136, 0.3), rgba(0, 200, 100, 0.2)); box-shadow: 0 0 30px rgba(0, 255, 136, 0.5); }
+        .category-magic .node-icon { border-color: rgba(147, 51, 234, 0.5); }
+        .category-magic.active .node-icon { border-color: #9333ea; background: linear-gradient(135deg, rgba(147, 51, 234, 0.3), rgba(200, 100, 255, 0.2)); box-shadow: 0 0 30px rgba(147, 51, 234, 0.5); }
+
+        /* Tree Layout Styles */
+        .layout-radial .skill-tree {
+            display: block;
+            position: relative;
+        }
+        .layout-radial .skill-node {
+            position: absolute;
+        }
+
+        .layout-vertical .skill-tree {
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(7, 1fr);
+        }
+
+        /* Tooltip */
+        .skill-tooltip {
+            position: fixed;
+            z-index: 100;
+            background: rgba(20, 20, 30, 0.98);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 12px;
+            padding: 1rem;
+            max-width: 250px;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.2s ease;
+        }
+        .skill-tooltip.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .tooltip-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            margin-bottom: 0.5rem;
+        }
+        .tooltip-desc {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+        .tooltip-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            font-size: 0.85rem;
+        }
+        .tooltip-stat {
+            display: flex;
+            justify-content: space-between;
+        }
+        .tooltip-stat-label {
+            color: var(--text-gray);
+        }
+        .tooltip-stat-value {
+            color: #00ff88;
+            font-weight: 600;
+        }
+        .tooltip-cost {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(147, 51, 234, 0.3);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+        .tooltip-cost-label {
+            color: var(--text-gray);
+        }
+        .tooltip-cost-value {
+            color: #ffd700;
+            font-weight: 700;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.9), rgba(0, 242, 234, 0.9));
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            color: white;
+            font-weight: 600;
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .notification.show {
+            transform: translateX(0);
+        }
+        .notification-title {
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+        .notification-desc {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            box-shadow: 0 5px 20px rgba(0, 242, 234, 0.3);
+        }
+        .action-btn.primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 242, 234, 0.4);
+        }
+        .action-btn.secondary {
+            background: rgba(147, 51, 234, 0.2);
+            color: var(--jazer-cyan);
+            border: 2px solid var(--jazer-purple);
+        }
+        .action-btn.secondary:hover {
+            background: rgba(147, 51, 234, 0.3);
+        }
+
+        /* Animation Styles */
+        .anim-wave .skill-node.activating .node-icon {
+            animation: waveActivation 0.8s ease-out;
+        }
+        @keyframes waveActivation {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.3); }
+            50% { transform: scale(0.9); }
+            75% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .anim-spin .skill-node.activating .node-icon {
+            animation: spinActivation 0.6s ease-out;
+        }
+        @keyframes spinActivation {
+            0% { transform: rotate(0deg) scale(0.5); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        .anim-explode .skill-node.activating .node-icon::before {
+            animation: explodeBurst 0.8s ease-out forwards;
+        }
+        @keyframes explodeBurst {
+            0% { width: 0; height: 0; opacity: 1; background: radial-gradient(circle, #ffd700 0%, transparent 70%); }
+            30% { opacity: 1; }
+            100% { width: 300%; height: 300%; opacity: 0; }
+        }
+
+        .anim-electric .skill-node.activating .node-icon {
+            animation: electricPulse 0.5s ease-out;
+        }
+        @keyframes electricPulse {
+            0%, 20%, 40%, 60%, 80%, 100% { filter: brightness(1); }
+            10%, 30%, 50%, 70%, 90% { filter: brightness(2) hue-rotate(20deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .skill-tree {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.5rem;
+            }
+            .node-icon {
+                width: 55px;
+                height: 55px;
+                font-size: 1.4rem;
+            }
+            .node-name {
+                font-size: 0.7rem;
+                max-width: 60px;
+            }
+            .player-stats {
+                gap: 1rem;
+            }
+            .stat-box {
+                padding: 0.5rem 1rem;
+            }
+            .stat-value {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="hero">
+        <a href="index.html" class="back-button">← Back</a>
+        <h1>Skill Tree Branch Activation</h1>
+        <p class="subtitle">Interactive skill tree with branching paths and upgrade animations</p>
+        <div class="keyboard-hint">
+            Press <kbd>Space</kbd> to auto-unlock | <kbd>R</kbd> to reset | <kbd>1-4</kbd> for animation styles
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <div class="control-group">
+                <label>Animation Style</label>
+                <select id="animStyle">
+                    <option value="default">Default Burst</option>
+                    <option value="wave">Wave Pulse</option>
+                    <option value="spin">Spin Reveal</option>
+                    <option value="explode">Explode</option>
+                    <option value="electric">Electric</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Tree Layout</label>
+                <select id="treeLayout">
+                    <option value="grid">Grid Layout</option>
+                    <option value="vertical">Vertical Tree</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Particles</label>
+                <select id="particleCount">
+                    <option value="0">None</option>
+                    <option value="8">Few (8)</option>
+                    <option value="12" selected>Normal (12)</option>
+                    <option value="20">Many (20)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Sound Effects</label>
+                <select id="soundEnabled">
+                    <option value="1">Enabled</option>
+                    <option value="0">Disabled</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Player Stats -->
+        <div class="player-stats">
+            <div class="stat-box">
+                <div class="stat-value" id="skillPoints">10</div>
+                <div class="stat-label">Skill Points</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="unlockedCount">0</div>
+                <div class="stat-label">Skills Unlocked</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="totalLevels">0</div>
+                <div class="stat-label">Total Levels</div>
+            </div>
+        </div>
+
+        <!-- Skill Tree -->
+        <div class="skill-tree-container" id="treeContainer">
+            <svg class="tree-connections" id="treeConnections"></svg>
+            <div class="skill-tree" id="skillTree"></div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="action-btn primary" onclick="autoUnlock()">Auto Unlock Random</button>
+            <button class="action-btn secondary" onclick="resetTree()">Reset Tree</button>
+            <button class="action-btn secondary" onclick="unlockAll()">Unlock All</button>
+        </div>
+    </main>
+
+    <!-- Tooltip -->
+    <div class="skill-tooltip" id="skillTooltip">
+        <div class="tooltip-name" id="tooltipName">Skill Name</div>
+        <div class="tooltip-desc" id="tooltipDesc">Description</div>
+        <div class="tooltip-stats" id="tooltipStats"></div>
+        <div class="tooltip-cost">
+            <span class="tooltip-cost-label">Cost:</span>
+            <span class="tooltip-cost-value" id="tooltipCost">1 SP</span>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div class="notification-title" id="notifTitle">Skill Unlocked!</div>
+        <div class="notification-desc" id="notifDesc">Power Strike Lv.1</div>
+    </div>
+
+    <script>
+        // Configuration
+        const config = {
+            animStyle: 'default',
+            treeLayout: 'grid',
+            particleCount: 12,
+            soundEnabled: true
+        };
+
+        // Player state
+        const player = {
+            skillPoints: 10,
+            unlockedSkills: new Set(),
+            skillLevels: {}
+        };
+
+        // Skill definitions
+        const skills = [
+            // Row 1 - Base skills (always available)
+            { id: 'basic-attack', name: 'Basic Attack', icon: '⚔️', category: 'attack', row: 1, col: 3, maxLevel: 5, cost: 1, requires: [], desc: 'Increases basic attack damage', stats: { 'Damage': '+5%' } },
+            
+            // Row 2
+            { id: 'power-strike', name: 'Power Strike', icon: '💥', category: 'attack', row: 2, col: 2, maxLevel: 3, cost: 1, requires: ['basic-attack'], desc: 'Powerful charged attack', stats: { 'Damage': '+15%', 'Charge Time': '-0.2s' } },
+            { id: 'swift-blade', name: 'Swift Blade', icon: '🗡️', category: 'attack', row: 2, col: 4, maxLevel: 3, cost: 1, requires: ['basic-attack'], desc: 'Quick successive attacks', stats: { 'Attack Speed': '+10%' } },
+            
+            // Row 3
+            { id: 'iron-skin', name: 'Iron Skin', icon: '🛡️', category: 'defense', row: 3, col: 1, maxLevel: 5, cost: 1, requires: ['power-strike'], desc: 'Increases defense', stats: { 'Defense': '+8%' } },
+            { id: 'critical-hit', name: 'Critical Hit', icon: '✨', category: 'attack', row: 3, col: 3, maxLevel: 5, cost: 2, requires: ['power-strike', 'swift-blade'], desc: 'Chance for critical damage', stats: { 'Crit Chance': '+5%', 'Crit Damage': '+10%' } },
+            { id: 'dodge-roll', name: 'Dodge Roll', icon: '💨', category: 'utility', row: 3, col: 5, maxLevel: 3, cost: 1, requires: ['swift-blade'], desc: 'Evasion ability', stats: { 'Dodge Chance': '+8%' } },
+            
+            // Row 4
+            { id: 'fire-enchant', name: 'Fire Enchant', icon: '🔥', category: 'magic', row: 4, col: 1, maxLevel: 3, cost: 2, requires: ['iron-skin'], desc: 'Adds fire damage to attacks', stats: { 'Fire Damage': '+20' } },
+            { id: 'shield-bash', name: 'Shield Bash', icon: '🔰', category: 'defense', row: 4, col: 2, maxLevel: 3, cost: 1, requires: ['iron-skin'], desc: 'Stun enemies with shield', stats: { 'Stun Duration': '+0.5s' } },
+            { id: 'berserker', name: 'Berserker', icon: '😤', category: 'attack', row: 4, col: 3, maxLevel: 3, cost: 2, requires: ['critical-hit'], desc: 'More damage when low HP', stats: { 'Low HP Bonus': '+25%' } },
+            { id: 'life-steal', name: 'Life Steal', icon: '❤️‍🔥', category: 'utility', row: 4, col: 4, maxLevel: 3, cost: 2, requires: ['critical-hit'], desc: 'Heal on hit', stats: { 'Life Steal': '+3%' } },
+            { id: 'ice-enchant', name: 'Ice Enchant', icon: '❄️', category: 'magic', row: 4, col: 5, maxLevel: 3, cost: 2, requires: ['dodge-roll'], desc: 'Adds ice damage to attacks', stats: { 'Slow Effect': '+15%' } },
+            
+            // Row 5 - Ultimate skills
+            { id: 'meteor-strike', name: 'Meteor Strike', icon: '☄️', category: 'magic', row: 5, col: 1, maxLevel: 1, cost: 3, requires: ['fire-enchant'], desc: 'Devastating area attack', stats: { 'Area Damage': '+500' } },
+            { id: 'fortress', name: 'Fortress', icon: '🏰', category: 'defense', row: 5, col: 2, maxLevel: 1, cost: 3, requires: ['shield-bash'], desc: 'Become immovable', stats: { 'Damage Reduction': '50%' } },
+            { id: 'blade-fury', name: 'Blade Fury', icon: '🌀', category: 'attack', row: 5, col: 3, maxLevel: 1, cost: 3, requires: ['berserker'], desc: 'Spin attack hitting all', stats: { 'Hits': '8', 'Total Damage': '+400%' } },
+            { id: 'vampire-lord', name: 'Vampire Lord', icon: '🧛', category: 'utility', row: 5, col: 4, maxLevel: 1, cost: 3, requires: ['life-steal'], desc: 'Massive life steal boost', stats: { 'Life Steal': '+15%', 'Max HP': '+100' } },
+            { id: 'blizzard', name: 'Blizzard', icon: '🌨️', category: 'magic', row: 5, col: 5, maxLevel: 1, cost: 3, requires: ['ice-enchant'], desc: 'Freeze all enemies', stats: { 'Freeze Duration': '3s' } },
+        ];
+
+        // DOM Elements
+        const skillTree = document.getElementById('skillTree');
+        const treeContainer = document.getElementById('treeContainer');
+        const treeConnections = document.getElementById('treeConnections');
+        const tooltip = document.getElementById('skillTooltip');
+        const notification = document.getElementById('notification');
+
+        // Initialize
+        function init() {
+            setupControls();
+            renderSkillTree();
+            updateStats();
+        }
+
+        // Setup controls
+        function setupControls() {
+            document.getElementById('animStyle').addEventListener('change', (e) => {
+                config.animStyle = e.target.value;
+                updateAnimStyle();
+            });
+            document.getElementById('treeLayout').addEventListener('change', (e) => {
+                config.treeLayout = e.target.value;
+                updateLayout();
+            });
+            document.getElementById('particleCount').addEventListener('change', (e) => {
+                config.particleCount = parseInt(e.target.value);
+            });
+            document.getElementById('soundEnabled').addEventListener('change', (e) => {
+                config.soundEnabled = e.target.value === '1';
+            });
+        }
+
+        // Render skill tree
+        function renderSkillTree() {
+            skillTree.innerHTML = '';
+            
+            skills.forEach(skill => {
+                const node = createSkillNode(skill);
+                skillTree.appendChild(node);
+            });
+
+            updateNodeStates();
+            drawConnections();
+        }
+
+        // Create skill node
+        function createSkillNode(skill) {
+            const node = document.createElement('div');
+            node.className = `skill-node category-${skill.category}`;
+            node.dataset.id = skill.id;
+            node.style.gridRow = skill.row;
+            node.style.gridColumn = skill.col;
+
+            node.innerHTML = `
+                <div class="node-icon">${skill.icon}</div>
+                <div class="node-ripple"></div>
+                <div class="node-particles"></div>
+                <div class="node-level">0/${skill.maxLevel}</div>
+                <div class="node-name">${skill.name}</div>
+            `;
+
+            node.addEventListener('click', () => handleSkillClick(skill));
+            node.addEventListener('mouseenter', (e) => showTooltip(skill, e));
+            node.addEventListener('mousemove', (e) => moveTooltip(e));
+            node.addEventListener('mouseleave', hideTooltip);
+
+            return node;
+        }
+
+        // Handle skill click
+        function handleSkillClick(skill) {
+            if (!canUnlock(skill)) return;
+
+            const currentLevel = player.skillLevels[skill.id] || 0;
+            if (currentLevel >= skill.maxLevel) return;
+
+            if (player.skillPoints < skill.cost) {
+                showNotification('Not Enough Points!', `Need ${skill.cost} SP`, 'error');
+                return;
+            }
+
+            // Deduct points and upgrade
+            player.skillPoints -= skill.cost;
+            player.skillLevels[skill.id] = currentLevel + 1;
+            player.unlockedSkills.add(skill.id);
+
+            // Trigger activation animation
+            activateNode(skill);
+
+            // Update UI
+            updateStats();
+            updateNodeStates();
+            drawConnections();
+
+            // Show notification
+            const newLevel = player.skillLevels[skill.id];
+            showNotification('Skill Upgraded!', `${skill.name} Lv.${newLevel}`);
+        }
+
+        // Check if skill can be unlocked
+        function canUnlock(skill) {
+            if (skill.requires.length === 0) return true;
+            return skill.requires.every(reqId => player.unlockedSkills.has(reqId));
+        }
+
+        // Activate node with animation
+        function activateNode(skill) {
+            const node = document.querySelector(`[data-id="${skill.id}"]`);
+            if (!node) return;
+
+            node.classList.add('activating');
+            spawnParticles(node);
+
+            // Play sound
+            if (config.soundEnabled) {
+                playActivationSound();
+            }
+
+            setTimeout(() => {
+                node.classList.remove('activating');
+            }, 800);
+        }
+
+        // Spawn particles
+        function spawnParticles(node) {
+            const container = node.querySelector('.node-particles');
+            container.innerHTML = '';
+
+            const colors = ['#00f2ea', '#9333ea', '#ff006e', '#ffd700'];
+
+            for (let i = 0; i < config.particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'skill-particle';
+
+                const angle = (i / config.particleCount) * Math.PI * 2;
+                const distance = 50 + Math.random() * 30;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+
+                particle.style.cssText = `
+                    --tx: ${tx}px;
+                    --ty: ${ty}px;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                `;
+
+                container.appendChild(particle);
+                requestAnimationFrame(() => particle.classList.add('burst'));
+
+                setTimeout(() => particle.remove(), 1000);
+            }
+        }
+
+        // Update node states
+        function updateNodeStates() {
+            skills.forEach(skill => {
+                const node = document.querySelector(`[data-id="${skill.id}"]`);
+                if (!node) return;
+
+                const level = player.skillLevels[skill.id] || 0;
+                const isUnlocked = player.unlockedSkills.has(skill.id);
+                const isAvailable = canUnlock(skill);
+                const isMaxed = level >= skill.maxLevel;
+
+                node.classList.remove('locked', 'available', 'active', 'maxed');
+
+                if (isMaxed) {
+                    node.classList.add('maxed');
+                } else if (isUnlocked) {
+                    node.classList.add('active');
+                } else if (isAvailable) {
+                    node.classList.add('available');
+                } else {
+                    node.classList.add('locked');
+                }
+
+                // Update level display
+                const levelEl = node.querySelector('.node-level');
+                levelEl.textContent = `${level}/${skill.maxLevel}`;
+            });
+        }
+
+        // Draw connection lines
+        function drawConnections() {
+            treeConnections.innerHTML = '';
+
+            skills.forEach(skill => {
+                if (skill.requires.length === 0) return;
+
+                const targetNode = document.querySelector(`[data-id="${skill.id}"]`);
+                if (!targetNode) return;
+
+                skill.requires.forEach(reqId => {
+                    const sourceNode = document.querySelector(`[data-id="${reqId}"]`);
+                    if (!sourceNode) return;
+
+                    const line = createConnectionLine(sourceNode, targetNode);
+                    
+                    // Check if connection should be active
+                    if (player.unlockedSkills.has(reqId)) {
+                        line.classList.add('active');
+                    }
+
+                    treeConnections.appendChild(line);
+                });
+            });
+        }
+
+        // Create SVG connection line
+        function createConnectionLine(source, target) {
+            const sourceRect = source.getBoundingClientRect();
+            const targetRect = target.getBoundingClientRect();
+            const containerRect = treeContainer.getBoundingClientRect();
+
+            const x1 = sourceRect.left + sourceRect.width / 2 - containerRect.left;
+            const y1 = sourceRect.top + sourceRect.height / 2 - containerRect.top;
+            const x2 = targetRect.left + targetRect.width / 2 - containerRect.left;
+            const y2 = targetRect.top + targetRect.height / 2 - containerRect.top;
+
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            line.classList.add('connection-line');
+
+            return line;
+        }
+
+        // Update animation style
+        function updateAnimStyle() {
+            treeContainer.className = 'skill-tree-container';
+            if (config.animStyle !== 'default') {
+                treeContainer.classList.add(`anim-${config.animStyle}`);
+            }
+        }
+
+        // Update layout
+        function updateLayout() {
+            treeContainer.classList.remove('layout-radial', 'layout-vertical');
+            if (config.treeLayout !== 'grid') {
+                treeContainer.classList.add(`layout-${config.treeLayout}`);
+            }
+            setTimeout(drawConnections, 100);
+        }
+
+        // Update stats display
+        function updateStats() {
+            document.getElementById('skillPoints').textContent = player.skillPoints;
+            document.getElementById('unlockedCount').textContent = player.unlockedSkills.size;
+            
+            let totalLevels = 0;
+            Object.values(player.skillLevels).forEach(level => totalLevels += level);
+            document.getElementById('totalLevels').textContent = totalLevels;
+        }
+
+        // Show tooltip
+        function showTooltip(skill, e) {
+            document.getElementById('tooltipName').textContent = skill.name;
+            document.getElementById('tooltipDesc').textContent = skill.desc;
+            document.getElementById('tooltipCost').textContent = `${skill.cost} SP`;
+
+            const statsContainer = document.getElementById('tooltipStats');
+            statsContainer.innerHTML = '';
+            Object.entries(skill.stats).forEach(([label, value]) => {
+                statsContainer.innerHTML += `
+                    <div class="tooltip-stat">
+                        <span class="tooltip-stat-label">${label}:</span>
+                        <span class="tooltip-stat-value">${value}</span>
+                    </div>
+                `;
+            });
+
+            moveTooltip(e);
+            tooltip.classList.add('visible');
+        }
+
+        // Move tooltip
+        function moveTooltip(e) {
+            const x = e.clientX + 15;
+            const y = e.clientY + 15;
+            tooltip.style.left = x + 'px';
+            tooltip.style.top = y + 'px';
+        }
+
+        // Hide tooltip
+        function hideTooltip() {
+            tooltip.classList.remove('visible');
+        }
+
+        // Show notification
+        function showNotification(title, desc, type = 'success') {
+            document.getElementById('notifTitle').textContent = title;
+            document.getElementById('notifDesc').textContent = desc;
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        // Play activation sound
+        function playActivationSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+            oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.2);
+
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        // Auto unlock random available skill
+        function autoUnlock() {
+            const availableSkills = skills.filter(skill => {
+                const level = player.skillLevels[skill.id] || 0;
+                return canUnlock(skill) && level < skill.maxLevel && player.skillPoints >= skill.cost;
+            });
+
+            if (availableSkills.length === 0) {
+                showNotification('No Skills Available', 'All unlocked or not enough SP');
+                return;
+            }
+
+            const randomSkill = availableSkills[Math.floor(Math.random() * availableSkills.length)];
+            handleSkillClick(randomSkill);
+        }
+
+        // Reset tree
+        function resetTree() {
+            player.skillPoints = 10;
+            player.unlockedSkills.clear();
+            player.skillLevels = {};
+
+            updateStats();
+            updateNodeStates();
+            drawConnections();
+
+            showNotification('Tree Reset', 'All skills reset');
+        }
+
+        // Unlock all skills
+        function unlockAll() {
+            skills.forEach(skill => {
+                player.unlockedSkills.add(skill.id);
+                player.skillLevels[skill.id] = skill.maxLevel;
+                activateNode(skill);
+            });
+
+            player.skillPoints = 0;
+            updateStats();
+            updateNodeStates();
+            drawConnections();
+
+            showNotification('All Skills Unlocked!', 'Maximum power achieved');
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                autoUnlock();
+            } else if (e.key === 'r' || e.key === 'R') {
+                resetTree();
+            } else if (e.key === '1') {
+                document.getElementById('animStyle').value = 'default';
+                config.animStyle = 'default';
+                updateAnimStyle();
+            } else if (e.key === '2') {
+                document.getElementById('animStyle').value = 'wave';
+                config.animStyle = 'wave';
+                updateAnimStyle();
+            } else if (e.key === '3') {
+                document.getElementById('animStyle').value = 'spin';
+                config.animStyle = 'spin';
+                updateAnimStyle();
+            } else if (e.key === '4') {
+                document.getElementById('animStyle').value = 'explode';
+                config.animStyle = 'explode';
+                updateAnimStyle();
+            }
+        });
+
+        // Redraw connections on resize
+        window.addEventListener('resize', () => {
+            setTimeout(drawConnections, 100);
+        });
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

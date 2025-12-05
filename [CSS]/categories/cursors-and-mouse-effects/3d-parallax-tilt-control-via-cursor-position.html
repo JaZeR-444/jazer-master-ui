@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Parallax Tilt Control via Cursor Position</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0b2e 100%);
+            color: var(--jazer-cyan);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            overflow-x: hidden;
+            perspective: 1000px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 50%, rgba(255, 0, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: backgroundPulse 10s ease-in-out infinite;
+        }
+
+        @keyframes backgroundPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        .container, .back-button, .controls, .stats {
+            position: relative;
+            z-index: 1;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            font-size: 0.9rem;
+            border: 1px solid var(--jazer-cyan);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--gradient-primary);
+            box-shadow: 0 0 20px var(--jazer-cyan);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: var(--font-primary);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .demo-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .demo-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-section h2 {
+            font-family: var(--font-primary);
+            margin-bottom: 1rem;
+            color: var(--jazer-purple);
+        }
+
+        .parallax-container {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+            margin: 1rem 0;
+        }
+
+        .parallax-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 1rem;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+        }
+
+        .layer-1 {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3));
+            transform: translateZ(50px);
+            border: 2px solid var(--jazer-cyan);
+        }
+
+        .layer-2 {
+            background: linear-gradient(135deg, rgba(255, 0, 255, 0.3), rgba(255, 255, 0, 0.3));
+            transform: translateZ(30px);
+            border: 2px solid var(--jazer-purple);
+        }
+
+        .layer-3 {
+            background: linear-gradient(135deg, rgba(255, 255, 0, 0.3), rgba(0, 255, 255, 0.3));
+            transform: translateZ(10px);
+            border: 2px solid var(--jazer-pink);
+        }
+
+        .card-3d {
+            width: 200px;
+            height: 280px;
+            margin: 2rem auto;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 1rem;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-primary);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .card-front {
+            background: var(--gradient-accent);
+            color: white;
+            border: 2px solid var(--jazer-pink);
+            transform: translateZ(10px);
+        }
+
+        .card-back {
+            background: var(--gradient-primary);
+            color: var(--jazer-cyan);
+            border: 2px solid var(--jazer-cyan);
+            transform: rotateY(180deg) translateZ(10px);
+        }
+
+        .cube-3d {
+            width: 150px;
+            height: 150px;
+            margin: 2rem auto;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+        }
+
+        .cube-face {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border: 2px solid var(--jazer-cyan);
+            background: rgba(0, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-primary);
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--jazer-cyan);
+        }
+
+        .cube-face.front { transform: translateZ(75px); }
+        .cube-face.back { transform: rotateY(180deg) translateZ(75px); }
+        .cube-face.right { transform: rotateY(90deg) translateZ(75px); }
+        .cube-face.left { transform: rotateY(-90deg) translateZ(75px); }
+        .cube-face.top { transform: rotateX(90deg) translateZ(75px); }
+        .cube-face.bottom { transform: rotateX(-90deg) translateZ(75px); }
+
+        .controls {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            min-width: 250px;
+            z-index: 1001;
+        }
+
+        .control-group {
+            margin: 1rem 0;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--jazer-purple);
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 0.25rem;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 0.25rem;
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 0.25rem;
+        }
+
+        .stats {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            font-size: 0.9rem;
+        }
+
+        .stats div {
+            margin: 0.25rem 0;
+        }
+
+        .floating-element {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-primary);
+            font-weight: bold;
+            color: white;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateZ(0); }
+            50% { transform: translateY(-20px) translateZ(20px); }
+        }
+
+        .instructions {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 2rem;
+            border-left: 4px solid var(--jazer-purple);
+        }
+
+        .instructions h3 {
+            font-family: var(--font-primary);
+            color: var(--jazer-purple);
+            margin-top: 0;
+        }
+
+        .instructions ul {
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .instructions li {
+            margin: 0.5rem 0;
+        }
+
+        .tilt-zone {
+            width: 100%;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px dashed var(--jazer-pink);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1rem 0;
+            position: relative;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        .tilt-zone::before {
+            content: 'Move cursor to tilt';
+            color: var(--jazer-pink);
+            font-family: var(--font-secondary);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .text-3d {
+            font-family: var(--font-primary);
+            font-size: 3rem;
+            font-weight: bold;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .gallery-item {
+            width: 100%;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+        }
+
+        .gallery-image {
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgb(0,255,255);stop-opacity:1" /><stop offset="50%" style="stop-color:rgb(255,0,255);stop-opacity:1" /><stop offset="100%" style="stop-color:rgb(255,255,0);stop-opacity:1" /></linearGradient></defs><rect width="400" height="300" fill="url(%23grad1)" /><circle cx="100" cy="100" r="50" fill="rgba(255,255,255,0.3)" /><rect x="200" y="150" width="80" height="80" fill="rgba(0,0,0,0.3)" /><polygon points="300,50 350,150 250,150" fill="rgba(255,255,255,0.2)" /></svg>') center/cover;
+            transform: translateZ(20px);
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+
+    <div class="controls">
+        <h3 style="margin-top: 0; color: var(--jazer-cyan);">3D Controls</h3>
+        
+        <div class="control-group">
+            <label for="tiltIntensity">Tilt Intensity: <span id="intensityValue">15</span>°</label>
+            <input type="range" id="tiltIntensity" min="5" max="45" step="5" value="15">
+        </div>
+        
+        <div class="control-group">
+            <label for="perspective">Perspective: <span id="perspectiveValue">1000</span>px</label>
+            <input type="range" id="perspective" min="500" max="2000" step="100" value="1000">
+        </div>
+        
+        <div class="control-group">
+            <label for="smoothing">Smoothing: <span id="smoothingValue">0.1</span></label>
+            <input type="range" id="smoothing" min="0.05" max="0.3" step="0.05" value="0.1">
+        </div>
+        
+        <div class="control-group">
+            <label for="effectMode">Effect Mode:</label>
+            <select id="effectMode">
+                <option value="tilt">Tilt</option>
+                <option value="rotate">Rotate</option>
+                <option value="combined">Combined</option>
+                <option value="subtle">Subtle</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div>Cursor: <span id="cursorPos">0, 0</span></div>
+        <div>Tilt: <span id="tiltAngle">0°, 0°</span></div>
+        <div>Depth: <span id="depthValue">0</span>px</div>
+        <div>Mode: <span id="currentMode">Tilt</span></div>
+    </div>
+
+    <div class="container">
+        <h1>3D Parallax Tilt Control</h1>
+        <p class="description">
+            Interactive 3D elements that respond to cursor movement with parallax effects. 
+            Move your cursor over different areas to see realistic depth and tilt animations.
+        </p>
+
+        <div class="demo-area">
+            <div class="demo-section">
+                <h2>Parallax Layers</h2>
+                <div class="parallax-container" id="parallaxContainer">
+                    <div class="parallax-layer layer-1">
+                        <div style="padding: 2rem; font-family: var(--font-primary); font-size: 1.2rem;">
+                            Layer 1 - Front
+                        </div>
+                    </div>
+                    <div class="parallax-layer layer-2">
+                        <div style="padding: 2rem; font-family: var(--font-primary); font-size: 1.2rem;">
+                            Layer 2 - Middle
+                        </div>
+                    </div>
+                    <div class="parallax-layer layer-3">
+                        <div style="padding: 2rem; font-family: var(--font-primary); font-size: 1.2rem;">
+                            Layer 3 - Back
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>3D Card</h2>
+                <div class="card-3d" id="card3d">
+                    <div class="card-face card-front">FRONT</div>
+                    <div class="card-face card-back">BACK</div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>3D Cube</h2>
+                <div class="cube-3d" id="cube3d">
+                    <div class="cube-face front">Front</div>
+                    <div class="cube-face back">Back</div>
+                    <div class="cube-face right">Right</div>
+                    <div class="cube-face left">Left</div>
+                    <div class="cube-face top">Top</div>
+                    <div class="cube-face bottom">Bottom</div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>3D Text</h2>
+                <div class="tilt-zone" id="textZone">
+                    <div class="text-3d" id="text3d">JAzeR</div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Floating Elements</h2>
+                <div class="tilt-zone" id="floatingZone">
+                    <div class="floating-element" style="top: 20%; left: 20%;">🌟</div>
+                    <div class="floating-element" style="top: 60%; left: 70%;">🚀</div>
+                    <div class="floating-element" style="top: 40%; left: 50%;">💎</div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>3D Gallery</h2>
+                <div class="gallery-item" id="gallery1">
+                    <div class="gallery-image"></div>
+                </div>
+                <div class="gallery-item" id="gallery2">
+                    <div class="gallery-image" style="filter: hue-rotate(120deg);"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>How It Works:</h3>
+            <ul>
+                <li>Move cursor over elements to create 3D tilt effects</li>
+                <li>Multiple layers create realistic parallax depth</li>
+                <li>Adjust tilt intensity and perspective for different effects</li>
+                <li>Smooth animations with customizable smoothing</li>
+                <li>Different effect modes: tilt, rotate, combined, subtle</li>
+                <li>Real-time cursor position and tilt angle tracking</li>
+                <li>Works with cards, cubes, text, and floating elements</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        class ParallaxTiltControl {
+            constructor() {
+                this.intensityInput = document.getElementById('tiltIntensity');
+                this.perspectiveInput = document.getElementById('perspective');
+                this.smoothingInput = document.getElementById('smoothing');
+                this.modeSelect = document.getElementById('effectMode');
+                
+                this.intensityValueDisplay = document.getElementById('intensityValue');
+                this.perspectiveValueDisplay = document.getElementById('perspectiveValue');
+                this.smoothingValueDisplay = document.getElementById('smoothingValue');
+                this.cursorPosDisplay = document.getElementById('cursorPos');
+                this.tiltAngleDisplay = document.getElementById('tiltAngle');
+                this.depthValueDisplay = document.getElementById('depthValue');
+                this.currentModeDisplay = document.getElementById('currentMode');
+                
+                this.tiltIntensity = 15;
+                this.perspective = 1000;
+                this.smoothing = 0.1;
+                this.effectMode = 'tilt';
+                
+                this.currentX = 0;
+                this.currentY = 0;
+                this.targetRotateX = 0;
+                this.targetRotateY = 0;
+                this.currentRotateX = 0;
+                this.currentRotateY = 0;
+                
+                this.elements = [];
+                
+                this.init();
+            }
+
+            init() {
+                // Set up event listeners
+                document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                
+                // Control listeners
+                this.intensityInput.addEventListener('input', (e) => this.updateIntensity(e.target.value));
+                this.perspectiveInput.addEventListener('input', (e) => this.updatePerspective(e.target.value));
+                this.smoothingInput.addEventListener('input', (e) => this.updateSmoothing(e.target.value));
+                this.modeSelect.addEventListener('change', (e) => this.updateMode(e.target.value));
+                
+                // Set up 3D elements
+                this.setupElements();
+                
+                // Set body perspective
+                document.body.style.perspective = this.perspective + 'px';
+                
+                // Start animation loop
+                this.animate();
+            }
+
+            setupElements() {
+                // Parallax container
+                this.elements.push({
+                    element: document.getElementById('parallaxContainer'),
+                    layers: document.querySelectorAll('.parallax-layer'),
+                    type: 'parallax'
+                });
+                
+                // 3D Card
+                this.elements.push({
+                    element: document.getElementById('card3d'),
+                    type: 'card'
+                });
+                
+                // 3D Cube
+                this.elements.push({
+                    element: document.getElementById('cube3d'),
+                    type: 'cube'
+                });
+                
+                // 3D Text
+                this.elements.push({
+                    element: document.getElementById('text3d'),
+                    container: document.getElementById('textZone'),
+                    type: 'text'
+                });
+                
+                // Floating elements
+                document.querySelectorAll('.floating-element').forEach(el => {
+                    this.elements.push({
+                        element: el,
+                        container: document.getElementById('floatingZone'),
+                        type: 'floating'
+                    });
+                });
+                
+                // Gallery items
+                this.elements.push({
+                    element: document.getElementById('gallery1'),
+                    type: 'gallery'
+                });
+                this.elements.push({
+                    element: document.getElementById('gallery2'),
+                    type: 'gallery'
+                });
+            }
+
+            handleMouseMove(e) {
+                this.currentX = e.clientX;
+                this.currentY = e.clientY;
+                
+                // Update displays
+                this.cursorPosDisplay.textContent = `${this.currentX}, ${this.currentY}`;
+                
+                // Calculate tilt for each element
+                this.elements.forEach(item => {
+                    this.calculateTilt(item);
+                });
+            }
+
+            calculateTilt(item) {
+                const element = item.element;
+                const rect = element.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                // Calculate relative position
+                const deltaX = this.currentX - centerX;
+                const deltaY = this.currentY - centerY;
+                
+                // Calculate tilt angles
+                const rotateY = (deltaX / (rect.width / 2)) * this.tiltIntensity;
+                const rotateX = -(deltaY / (rect.height / 2)) * this.tiltIntensity;
+                
+                // Apply based on element type and effect mode
+                this.applyTransform(item, rotateX, rotateY, deltaX, deltaY);
+            }
+
+            applyTransform(item, rotateX, rotateY, deltaX, deltaY) {
+                const element = item.element;
+                let transform = '';
+                
+                switch (this.effectMode) {
+                    case 'tilt':
+                        transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                        break;
+                    case 'rotate':
+                        transform = `rotateY(${rotateY}deg) rotateX(${rotateX * 0.5}deg)`;
+                        break;
+                    case 'combined':
+                        transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(${Math.abs(deltaX + deltaY) * 0.1}px)`;
+                        break;
+                    case 'subtle':
+                        transform = `rotateX(${rotateX * 0.3}deg) rotateY(${rotateY * 0.3}deg)`;
+                        break;
+                }
+                
+                switch (item.type) {
+                    case 'parallax':
+                        // Apply different transforms to each layer
+                        item.layers.forEach((layer, index) => {
+                            const depth = (index + 1) * 0.5;
+                            const layerRotateX = rotateX * depth;
+                            const layerRotateY = rotateY * depth;
+                            layer.style.transform = `rotateX(${layerRotateX}deg) rotateY(${layerRotateY}deg) translateZ(${50 - index * 20}px)`;
+                        });
+                        element.style.transform = transform;
+                        break;
+                        
+                    case 'card':
+                        element.style.transform = transform;
+                        break;
+                        
+                    case 'cube':
+                        element.style.transform = `${transform} rotateX(${rotateX * 0.5}deg) rotateY(${rotateY * 0.5}deg)`;
+                        break;
+                        
+                    case 'text':
+                        element.style.transform = `${transform} translateZ(${Math.abs(deltaX + deltaY) * 0.2}px)`;
+                        break;
+                        
+                    case 'floating':
+                        const floatX = deltaX * 0.1;
+                        const floatY = deltaY * 0.1;
+                        const floatZ = Math.abs(deltaX + deltaY) * 0.05;
+                        element.style.transform = `translateX(${floatX}px) translateY(${floatY}px) translateZ(${floatZ}px) rotateY(${rotateY * 0.5}deg)`;
+                        break;
+                        
+                    case 'gallery':
+                        element.style.transform = `${transform} translateZ(${Math.abs(deltaX + deltaY) * 0.15}px)`;
+                        break;
+                }
+                
+                // Update tilt display for first element
+                if (item === this.elements[0]) {
+                    this.tiltAngleDisplay.textContent = `${Math.round(rotateX)}°, ${Math.round(rotateY)}°`;
+                    this.depthValueDisplay.textContent = Math.round(Math.abs(deltaX + deltaY) * 0.1);
+                }
+            }
+
+            animate() {
+                // Smooth transitions
+                this.currentRotateX += (this.targetRotateX - this.currentRotateX) * this.smoothing;
+                this.currentRotateY += (this.targetRotateY - this.currentRotateY) * this.smoothing;
+                
+                requestAnimationFrame(() => this.animate());
+            }
+
+            updateIntensity(value) {
+                this.tiltIntensity = parseInt(value);
+                this.intensityValueDisplay.textContent = value;
+            }
+
+            updatePerspective(value) {
+                this.perspective = parseInt(value);
+                this.perspectiveValueDisplay.textContent = value;
+                document.body.style.perspective = this.perspective + 'px';
+            }
+
+            updateSmoothing(value) {
+                this.smoothing = parseFloat(value);
+                this.smoothingValueDisplay.textContent = value;
+            }
+
+            updateMode(value) {
+                this.effectMode = value;
+                this.currentModeDisplay.textContent = value.charAt(0).toUpperCase() + value.slice(1);
+            }
+        }
+
+        // Initialize the parallax tilt control
+        const parallaxTilt = new ParallaxTiltControl();
+
+        // Add some floating particles for ambiance
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * window.innerWidth + 'px';
+            particle.style.top = Math.random() * window.innerHeight + 'px';
+            particle.style.animationDelay = Math.random() * 3 + 's';
+            particle.style.animationDuration = (3 + Math.random() * 2) + 's';
+            document.body.appendChild(particle);
+            
+            setTimeout(() => particle.remove(), 5000);
+        }
+
+        // Create particles periodically
+        setInterval(createParticle, 2000);
+        
+        // Initial particles
+        for (let i = 0; i < 5; i++) {
+            setTimeout(createParticle, i * 200);
+        }
+    </script>
+</body>
+</html>

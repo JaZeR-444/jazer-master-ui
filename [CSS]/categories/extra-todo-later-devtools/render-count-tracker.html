@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Render Count Tracker - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Back Button */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-purple);
+            text-decoration: none;
+            padding: 0.6rem 1.2rem;
+            border: 2px solid var(--border-purple);
+            border-radius: 8px;
+            background: rgba(147, 51, 234, 0.1);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-purple);
+            color: white;
+            box-shadow: var(--shadow-purple);
+            transform: translateX(-3px);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.08) 0%, rgba(236, 72, 153, 0.08) 50%, rgba(6, 182, 212, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid var(--border-purple);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-accent);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr 350px;
+            }
+        }
+
+        /* Component Tree Panel */
+        .tree-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-default);
+        }
+
+        .panel-title {
+            font-family: var(--font-primary);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .filter-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-default);
+            background: var(--bg-card);
+            color: var(--text-gray);
+            cursor: pointer;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+        }
+
+        .filter-btn.active {
+            background: var(--jazer-purple);
+            border-color: var(--jazer-purple);
+            color: white;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: rgba(147, 51, 234, 0.05);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--jazer-purple);
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-family: var(--font-primary);
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--jazer-purple);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: var(--font-secondary);
+        }
+
+        /* Component List */
+        .component-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .component-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .component-item:hover {
+            border-color: var(--jazer-purple);
+            background: rgba(147, 51, 234, 0.05);
+            transform: translateX(3px);
+        }
+
+        .component-item.warning {
+            border-color: var(--jazer-yellow);
+        }
+
+        .component-item.critical {
+            border-color: #ef4444;
+        }
+
+        .component-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .component-name {
+            font-family: var(--font-secondary);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .component-icon {
+            font-size: 1.25rem;
+        }
+
+        .render-badge {
+            padding: 0.3rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            font-family: var(--font-secondary);
+        }
+
+        .render-badge.low {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .render-badge.medium {
+            background: rgba(255, 190, 11, 0.2);
+            color: var(--jazer-yellow);
+            border: 1px solid rgba(255, 190, 11, 0.3);
+        }
+
+        .render-badge.high {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .component-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .detail-item {
+            text-align: center;
+        }
+
+        .detail-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--jazer-purple);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .detail-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .component-progress {
+            margin-top: 0.75rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-accent);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .controls-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .controls-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            border: 2px solid var(--border-default);
+            background: var(--bg-card);
+            color: var(--text-light);
+            cursor: pointer;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .btn:hover {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+            box-shadow: 0 0 15px rgba(147, 51, 234, 0.2);
+        }
+
+        .btn.btn-primary {
+            background: var(--gradient-accent);
+            border: none;
+            color: white;
+        }
+
+        .btn.btn-primary:hover {
+            box-shadow: var(--shadow-purple);
+            transform: translateY(-2px);
+        }
+
+        .btn.btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .btn.btn-danger:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        /* Threshold Settings */
+        .threshold-settings {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .threshold-item {
+            margin-bottom: 1rem;
+        }
+
+        .threshold-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .threshold-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .threshold-value {
+            color: var(--jazer-purple);
+            font-weight: 600;
+        }
+
+        .threshold-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .threshold-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--jazer-purple);
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(147, 51, 234, 0.5);
+        }
+
+        .threshold-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--jazer-purple);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 8px rgba(147, 51, 234, 0.5);
+        }
+
+        /* Recording Indicator */
+        .recording-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .recording-indicator.active {
+            animation: recordingPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes recordingPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .recording-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: recordingBlink 1s ease-in-out infinite;
+        }
+
+        @keyframes recordingBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .recording-text {
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #ef4444;
+        }
+
+        /* Status Bar Footer */
+        .status-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 2rem;
+        }
+
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-purple);
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-purple);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { 
+                opacity: 1; 
+                box-shadow: 0 0 8px var(--jazer-purple);
+            }
+            50% { 
+                opacity: 0.6; 
+                box-shadow: 0 0 16px var(--jazer-purple);
+            }
+        }
+
+        /* Scrollbar Styling */
+        .component-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .component-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .component-list::-webkit-scrollbar-thumb {
+            background: var(--jazer-purple);
+            border-radius: 4px;
+        }
+
+        .component-list::-webkit-scrollbar-thumb:hover {
+            background: var(--jazer-pink);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .hero h1 {
+                font-size: 1.75rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .component-details {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .status-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .status-info {
+                width: 100%;
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back to DevTools</a>
+
+        <!-- Hero Section -->
+        <header class="hero">
+            <h1>📊 Render Count Tracker</h1>
+            <p class="hero-description">Monitor component render frequency, detect unnecessary re-renders, and optimize React/Vue application performance with real-time tracking</p>
+        </header>
+
+        <!-- Main Content Grid -->
+        <div class="main-grid">
+            <!-- Left Column: Component Tree -->
+            <div>
+                <!-- Tree Panel -->
+                <div class="tree-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Component Performance</h2>
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" onclick="filterComponents('all')">All</button>
+                            <button class="filter-btn" onclick="filterComponents('high')">High</button>
+                            <button class="filter-btn" onclick="filterComponents('warning')">Warning</button>
+                        </div>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-value" id="totalRenders">0</span>
+                            <span class="stat-label">Total Renders</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-value" id="componentCount">0</span>
+                            <span class="stat-label">Components</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-value" id="warningCount">0</span>
+                            <span class="stat-label">Warnings</span>
+                        </div>
+                    </div>
+
+                    <!-- Component List -->
+                    <div class="component-list" id="componentList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📦</div>
+                            <div class="empty-state-text">Start recording to track renders</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Controls -->
+            <div>
+                <!-- Controls Panel -->
+                <div class="controls-panel">
+                    <!-- Recording Status -->
+                    <div class="recording-indicator" id="recordingIndicator" style="display: none;">
+                        <div class="recording-dot"></div>
+                        <span class="recording-text">Recording...</span>
+                    </div>
+
+                    <div class="controls-section">
+                        <h3 class="section-title">Recording Controls</h3>
+                        <button class="btn btn-primary" id="toggleRecordingBtn" onclick="toggleRecording()">
+                            ▶️ Start Recording
+                        </button>
+                        <button class="btn" onclick="simulateRender()">
+                            🔄 Simulate Render
+                        </button>
+                        <button class="btn btn-danger" onclick="resetTracking()">
+                            🗑️ Reset All Data
+                        </button>
+                    </div>
+
+                    <div class="controls-section">
+                        <h3 class="section-title">Alert Thresholds</h3>
+                        <div class="threshold-settings">
+                            <div class="threshold-item">
+                                <div class="threshold-label">
+                                    <span>Warning Threshold</span>
+                                    <span class="threshold-value" id="warningThresholdValue">10</span>
+                                </div>
+                                <input 
+                                    type="range" 
+                                    class="threshold-slider" 
+                                    min="5" 
+                                    max="50" 
+                                    value="10" 
+                                    id="warningThreshold"
+                                    oninput="updateThreshold('warning', this.value)"
+                                >
+                            </div>
+                            <div class="threshold-item">
+                                <div class="threshold-label">
+                                    <span>Critical Threshold</span>
+                                    <span class="threshold-value" id="criticalThresholdValue">25</span>
+                                </div>
+                                <input 
+                                    type="range" 
+                                    class="threshold-slider" 
+                                    min="10" 
+                                    max="100" 
+                                    value="25" 
+                                    id="criticalThreshold"
+                                    oninput="updateThreshold('critical', this.value)"
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="controls-section">
+                        <h3 class="section-title">Quick Actions</h3>
+                        <button class="btn" onclick="exportData()">
+                            💾 Export Data
+                        </button>
+                        <button class="btn" onclick="highlightProblems()">
+                            ⚠️ Highlight Issues
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar Footer -->
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Framework:</span>
+                    <span>React 18</span>
+                </div>
+                <div class="status-item">
+                    <span>Tracked:</span>
+                    <span id="statusTracked">0 components</span>
+                </div>
+                <div class="status-item">
+                    <span>Avg Renders:</span>
+                    <span id="statusAvg">0.0</span>
+                </div>
+                <div class="status-item">
+                    <span>Session:</span>
+                    <span id="sessionTime">0s</span>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Tracker Ready</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // State management
+        const state = {
+            recording: false,
+            components: [],
+            thresholds: {
+                warning: 10,
+                critical: 25
+            },
+            sessionStart: Date.now(),
+            currentFilter: 'all'
+        };
+
+        // Mock component data
+        const mockComponents = [
+            { name: 'App', icon: '📱', path: '/src/App.jsx' },
+            { name: 'Header', icon: '🎯', path: '/src/components/Header.jsx' },
+            { name: 'UserProfile', icon: '👤', path: '/src/components/UserProfile.jsx' },
+            { name: 'ProductList', icon: '📦', path: '/src/components/ProductList.jsx' },
+            { name: 'ProductItem', icon: '🎁', path: '/src/components/ProductItem.jsx' },
+            { name: 'ShoppingCart', icon: '🛒', path: '/src/components/ShoppingCart.jsx' },
+            { name: 'Navigation', icon: '🧭', path: '/src/components/Navigation.jsx' },
+            { name: 'Footer', icon: '📄', path: '/src/components/Footer.jsx' },
+            { name: 'Modal', icon: '💬', path: '/src/components/Modal.jsx' },
+            { name: 'Button', icon: '🔘', path: '/src/components/Button.jsx' }
+        ];
+
+        // DOM references
+        const componentList = document.getElementById('componentList');
+        const totalRendersEl = document.getElementById('totalRenders');
+        const componentCountEl = document.getElementById('componentCount');
+        const warningCountEl = document.getElementById('warningCount');
+        const recordingIndicator = document.getElementById('recordingIndicator');
+        const toggleRecordingBtn = document.getElementById('toggleRecordingBtn');
+        const statusTrackedEl = document.getElementById('statusTracked');
+        const statusAvgEl = document.getElementById('statusAvg');
+        const sessionTimeEl = document.getElementById('sessionTime');
+
+        // Initialize components
+        function initializeComponents() {
+            state.components = mockComponents.map(comp => ({
+                ...comp,
+                renders: 0,
+                avgTime: 0,
+                lastRender: null,
+                props: Math.floor(Math.random() * 10) + 1
+            }));
+            renderComponents();
+        }
+
+        // Render component list
+        function renderComponents() {
+            let filteredComponents = state.components;
+
+            if (state.currentFilter === 'high') {
+                filteredComponents = state.components.filter(c => c.renders >= state.thresholds.critical);
+            } else if (state.currentFilter === 'warning') {
+                filteredComponents = state.components.filter(c => 
+                    c.renders >= state.thresholds.warning && c.renders < state.thresholds.critical
+                );
+            }
+
+            if (filteredComponents.length === 0) {
+                componentList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <div class="empty-state-text">No components match the current filter</div>
+                    </div>
+                `;
+                return;
+            }
+
+            componentList.innerHTML = filteredComponents.map(comp => {
+                const severity = getRenderSeverity(comp.renders);
+                const progressPercent = Math.min((comp.renders / state.thresholds.critical) * 100, 100);
+
+                return `
+                    <div class="component-item ${severity === 'high' ? 'critical' : severity === 'medium' ? 'warning' : ''}">
+                        <div class="component-header">
+                            <div class="component-name">
+                                <span class="component-icon">${comp.icon}</span>
+                                ${comp.name}
+                            </div>
+                            <div class="render-badge ${severity}">
+                                ${comp.renders} renders
+                            </div>
+                        </div>
+                        <div class="component-details">
+                            <div class="detail-item">
+                                <span class="detail-value">${comp.avgTime}ms</span>
+                                <span class="detail-label">Avg Time</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-value">${comp.props}</span>
+                                <span class="detail-label">Props</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-value">${comp.lastRender || 'Never'}</span>
+                                <span class="detail-label">Last</span>
+                            </div>
+                        </div>
+                        <div class="component-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            updateStats();
+        }
+
+        // Get render severity
+        function getRenderSeverity(renders) {
+            if (renders >= state.thresholds.critical) return 'high';
+            if (renders >= state.thresholds.warning) return 'medium';
+            return 'low';
+        }
+
+        // Update statistics
+        function updateStats() {
+            const totalRenders = state.components.reduce((sum, c) => sum + c.renders, 0);
+            const componentCount = state.components.length;
+            const warningCount = state.components.filter(c => 
+                c.renders >= state.thresholds.warning
+            ).length;
+            const avgRenders = componentCount > 0 ? (totalRenders / componentCount).toFixed(1) : 0;
+
+            totalRendersEl.textContent = totalRenders;
+            componentCountEl.textContent = componentCount;
+            warningCountEl.textContent = warningCount;
+            statusTrackedEl.textContent = `${componentCount} components`;
+            statusAvgEl.textContent = avgRenders;
+        }
+
+        // Toggle recording
+        function toggleRecording() {
+            state.recording = !state.recording;
+
+            if (state.recording) {
+                recordingIndicator.style.display = 'flex';
+                recordingIndicator.classList.add('active');
+                toggleRecordingBtn.innerHTML = '⏸️ Stop Recording';
+                toggleRecordingBtn.classList.remove('btn-primary');
+                startAutoRender();
+            } else {
+                recordingIndicator.style.display = 'none';
+                recordingIndicator.classList.remove('active');
+                toggleRecordingBtn.innerHTML = '▶️ Start Recording';
+                toggleRecordingBtn.classList.add('btn-primary');
+                stopAutoRender();
+            }
+        }
+
+        // Auto render interval
+        let autoRenderInterval;
+
+        function startAutoRender() {
+            autoRenderInterval = setInterval(() => {
+                simulateRender();
+            }, 2000);
+        }
+
+        function stopAutoRender() {
+            if (autoRenderInterval) {
+                clearInterval(autoRenderInterval);
+            }
+        }
+
+        // Simulate render
+        function simulateRender() {
+            const randomComponent = state.components[Math.floor(Math.random() * state.components.length)];
+            randomComponent.renders++;
+            randomComponent.avgTime = Math.floor(Math.random() * 50) + 5;
+            randomComponent.lastRender = new Date().toLocaleTimeString().split(' ')[0];
+
+            renderComponents();
+        }
+
+        // Reset tracking
+        function resetTracking() {
+            if (confirm('Reset all tracking data?')) {
+                state.components.forEach(comp => {
+                    comp.renders = 0;
+                    comp.avgTime = 0;
+                    comp.lastRender = null;
+                });
+                renderComponents();
+            }
+        }
+
+        // Update threshold
+        function updateThreshold(type, value) {
+            state.thresholds[type] = parseInt(value);
+            document.getElementById(`${type}ThresholdValue`).textContent = value;
+            renderComponents();
+        }
+
+        // Filter components
+        function filterComponents(filter) {
+            state.currentFilter = filter;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            renderComponents();
+        }
+
+        // Export data
+        function exportData() {
+            const data = {
+                timestamp: new Date().toISOString(),
+                components: state.components,
+                thresholds: state.thresholds,
+                totalRenders: state.components.reduce((sum, c) => sum + c.renders, 0)
+            };
+            console.log('Render data exported:', data);
+            alert('Data exported to console');
+        }
+
+        // Highlight problems
+        function highlightProblems() {
+            filterComponents('high');
+        }
+
+        // Update session time
+        function updateSessionTime() {
+            const elapsed = Math.floor((Date.now() - state.sessionStart) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            
+            if (minutes > 0) {
+                sessionTimeEl.textContent = `${minutes}m ${seconds}s`;
+            } else {
+                sessionTimeEl.textContent = `${seconds}s`;
+            }
+        }
+
+        // Initialize
+        initializeComponents();
+        setInterval(updateSessionTime, 1000);
+    </script>
+</body>
+</html>

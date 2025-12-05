@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Emotion Detector - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+        }
+
+        h1 {
+            font-family: var(--font-primary);
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        /* Emotion Detector Container */
+        .emotion-detector {
+            max-width: 600px;
+            width: 100%;
+            background: var(--bg-card);
+            border: 2px solid var(--border-cyan);
+            border-radius: 24px;
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 40px rgba(0, 242, 234, 0.2);
+        }
+
+        /* Header */
+        .detector-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .detector-title {
+            font-family: var(--font-secondary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .detector-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+        }
+
+        /* Emotion Display Circle */
+        .emotion-display {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 2rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, 
+                rgba(0, 242, 234, 0.1) 0%, 
+                rgba(147, 51, 234, 0.1) 100%);
+            border: 3px solid var(--jazer-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 
+                0 0 30px rgba(0, 242, 234, 0.3),
+                inset 0 0 40px rgba(0, 242, 234, 0.1);
+            animation: pulse-glow 3s ease-in-out infinite;
+            transition: all 0.5s ease;
+        }
+
+        .emotion-icon {
+            font-size: 6rem;
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px currentColor);
+        }
+
+        /* Emotion Label */
+        .emotion-label {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .current-emotion {
+            font-family: var(--font-primary);
+            font-size: 2rem;
+            font-weight: 900;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .confidence-score {
+            font-family: var(--font-secondary);
+            font-size: 1rem;
+            color: var(--text-gray);
+        }
+
+        .confidence-value {
+            color: var(--jazer-cyan);
+            font-weight: 700;
+        }
+
+        /* Emotion Metrics */
+        .emotion-metrics {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .metric-label {
+            font-family: var(--font-secondary);
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-light);
+            min-width: 100px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .metric-bar {
+            flex: 1;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-default);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .metric-fill {
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            transition: width 0.8s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            animation: shimmer 2s infinite;
+        }
+
+        .metric-value {
+            font-family: var(--font-secondary);
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--text-light);
+            min-width: 45px;
+            text-align: right;
+        }
+
+        /* Analysis Status */
+        .analysis-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid var(--border-cyan);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--jazer-cyan);
+            box-shadow: 0 0 10px var(--jazer-cyan);
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+
+        .status-text {
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        /* Input Area */
+        .input-area {
+            margin-top: 1.5rem;
+        }
+
+        .emotion-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            color: var(--text-light);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            resize: none;
+            transition: all 0.3s ease;
+        }
+
+        .emotion-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.2);
+        }
+
+        .emotion-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Animations */
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 
+                    0 0 30px rgba(0, 242, 234, 0.3),
+                    inset 0 0 40px rgba(0, 242, 234, 0.1);
+            }
+            50% {
+                box-shadow: 
+                    0 0 50px rgba(0, 242, 234, 0.5),
+                    inset 0 0 60px rgba(0, 242, 234, 0.2);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.3);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        /* Emotion-specific colors */
+        .emotion-display.happy {
+            border-color: var(--jazer-yellow);
+            box-shadow: 0 0 30px rgba(255, 190, 11, 0.5), inset 0 0 40px rgba(255, 190, 11, 0.1);
+        }
+
+        .emotion-display.sad {
+            border-color: var(--jazer-purple);
+            box-shadow: 0 0 30px rgba(147, 51, 234, 0.5), inset 0 0 40px rgba(147, 51, 234, 0.1);
+        }
+
+        .emotion-display.angry {
+            border-color: var(--jazer-pink);
+            box-shadow: 0 0 30px rgba(255, 0, 110, 0.5), inset 0 0 40px rgba(255, 0, 110, 0.1);
+        }
+
+        .emotion-display.surprised {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 30px rgba(0, 242, 234, 0.5), inset 0 0 40px rgba(0, 242, 234, 0.1);
+        }
+
+        .emotion-display.neutral {
+            border-color: var(--text-gray);
+            box-shadow: 0 0 30px rgba(176, 176, 176, 0.3), inset 0 0 40px rgba(176, 176, 176, 0.1);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .emotion-detector {
+                padding: 1.5rem;
+            }
+
+            .emotion-display {
+                width: 150px;
+                height: 150px;
+            }
+
+            .emotion-icon {
+                font-size: 4.5rem;
+            }
+
+            .current-emotion {
+                font-size: 1.5rem;
+            }
+
+            .metric-label {
+                min-width: 80px;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button back-link">← Back</a>
+    
+    <h1 class="gradient-text">AI Emotion Detector</h1>
+
+    <div class="emotion-detector">
+        <div class="detector-header">
+            <div class="detector-title">Emotional Intelligence Analysis</div>
+            <div class="detector-subtitle">Real-time sentiment and emotion detection</div>
+        </div>
+
+        <!-- Emotion Display -->
+        <div class="emotion-display happy" id="emotionDisplay">
+            <div class="emotion-icon" id="emotionIcon">😊</div>
+        </div>
+
+        <!-- Emotion Label -->
+        <div class="emotion-label">
+            <div class="current-emotion" id="emotionName">Happy</div>
+            <div class="confidence-score">
+                Confidence: <span class="confidence-value" id="confidence">92%</span>
+            </div>
+        </div>
+
+        <!-- Analysis Status -->
+        <div class="analysis-status">
+            <div class="status-indicator"></div>
+            <div class="status-text">Analyzing emotional context...</div>
+        </div>
+
+        <!-- Emotion Metrics -->
+        <div class="emotion-metrics">
+            <div class="metric-row">
+                <div class="metric-label">Joy</div>
+                <div class="metric-bar">
+                    <div class="metric-fill" id="joyBar" style="width: 85%;"></div>
+                </div>
+                <div class="metric-value" id="joyValue">85%</div>
+            </div>
+
+            <div class="metric-row">
+                <div class="metric-label">Sadness</div>
+                <div class="metric-bar">
+                    <div class="metric-fill" id="sadnessBar" style="width: 12%;"></div>
+                </div>
+                <div class="metric-value" id="sadnessValue">12%</div>
+            </div>
+
+            <div class="metric-row">
+                <div class="metric-label">Anger</div>
+                <div class="metric-bar">
+                    <div class="metric-fill" id="angerBar" style="width: 5%;"></div>
+                </div>
+                <div class="metric-value" id="angerValue">5%</div>
+            </div>
+
+            <div class="metric-row">
+                <div class="metric-label">Surprise</div>
+                <div class="metric-bar">
+                    <div class="metric-fill" id="surpriseBar" style="width: 45%;"></div>
+                </div>
+                <div class="metric-value" id="surpriseValue">45%</div>
+            </div>
+
+            <div class="metric-row">
+                <div class="metric-label">Neutral</div>
+                <div class="metric-bar">
+                    <div class="metric-fill" id="neutralBar" style="width: 28%;"></div>
+                </div>
+                <div class="metric-value" id="neutralValue">28%</div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <textarea 
+                class="emotion-input" 
+                id="textInput"
+                rows="3" 
+                placeholder="Type or speak to analyze emotions in real-time..."
+            ></textarea>
+        </div>
+    </div>
+
+    <script>
+        const emotions = [
+            { name: 'Happy', icon: '😊', class: 'happy', metrics: { joy: 85, sadness: 12, anger: 5, surprise: 45, neutral: 28 } },
+            { name: 'Sad', icon: '😢', class: 'sad', metrics: { joy: 15, sadness: 78, anger: 10, surprise: 8, neutral: 35 } },
+            { name: 'Angry', icon: '😠', class: 'angry', metrics: { joy: 5, sadness: 25, anger: 82, surprise: 20, neutral: 10 } },
+            { name: 'Surprised', icon: '😲', class: 'surprised', metrics: { joy: 40, sadness: 8, anger: 5, surprise: 88, neutral: 15 } },
+            { name: 'Neutral', icon: '😐', class: 'neutral', metrics: { joy: 30, sadness: 20, anger: 15, surprise: 18, neutral: 75 } },
+            { name: 'Excited', icon: '🤩', class: 'happy', metrics: { joy: 92, sadness: 5, anger: 3, surprise: 68, neutral: 12 } }
+        ];
+
+        let currentEmotionIndex = 0;
+
+        const emotionDisplay = document.getElementById('emotionDisplay');
+        const emotionIcon = document.getElementById('emotionIcon');
+        const emotionName = document.getElementById('emotionName');
+        const confidence = document.getElementById('confidence');
+        const textInput = document.getElementById('textInput');
+
+        function updateEmotion(emotion) {
+            // Update display
+            emotionDisplay.className = `emotion-display ${emotion.class}`;
+            emotionIcon.textContent = emotion.icon;
+            emotionName.textContent = emotion.name;
+            confidence.textContent = `${Math.floor(Math.random() * 15 + 85)}%`;
+
+            // Update metrics
+            Object.keys(emotion.metrics).forEach(key => {
+                const bar = document.getElementById(`${key}Bar`);
+                const value = document.getElementById(`${key}Value`);
+                const percentage = emotion.metrics[key];
+                
+                bar.style.width = percentage + '%';
+                value.textContent = percentage + '%';
+            });
+        }
+
+        // Auto-cycle through emotions every 5 seconds
+        setInterval(() => {
+            if (!textInput.value) {
+                currentEmotionIndex = (currentEmotionIndex + 1) % emotions.length;
+                updateEmotion(emotions[currentEmotionIndex]);
+            }
+        }, 5000);
+
+        // Analyze text input
+        textInput.addEventListener('input', () => {
+            if (textInput.value.length > 10) {
+                // Simple keyword-based emotion detection for demo
+                const text = textInput.value.toLowerCase();
+                if (text.includes('happy') || text.includes('joy') || text.includes('great')) {
+                    updateEmotion(emotions[0]);
+                } else if (text.includes('sad') || text.includes('unhappy') || text.includes('down')) {
+                    updateEmotion(emotions[1]);
+                } else if (text.includes('angry') || text.includes('mad') || text.includes('frustrated')) {
+                    updateEmotion(emotions[2]);
+                } else if (text.includes('wow') || text.includes('amazing') || text.includes('surprise')) {
+                    updateEmotion(emotions[3]);
+                } else if (text.includes('excited') || text.includes('awesome') || text.includes('love')) {
+                    updateEmotion(emotions[5]);
+                } else {
+                    updateEmotion(emotions[4]);
+                }
+            }
+        });
+
+        // Add subtle animation on click
+        emotionDisplay.addEventListener('click', () => {
+            emotionDisplay.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                emotionDisplay.style.transform = 'scale(1)';
+            }, 200);
+        });
+    </script>
+</body>
+</html>

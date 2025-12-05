@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Search Assistant - JaZeR Components</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .demo-container {
+            max-width: 900px;
+            margin: 2rem auto;
+        }
+
+        /* AI Search Assistant Component */
+        .ai-search-assistant {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .search-title {
+            font-family: var(--font-secondary);
+            font-weight: 800;
+            font-size: 2rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .search-subtitle {
+            color: var(--text-gray);
+            font-size: 1rem;
+        }
+
+        /* Search Bar */
+        .search-bar-wrapper {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-cyan);
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+            gap: 1rem;
+        }
+
+        .search-bar:focus-within {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 30px rgba(0, 242, 234, 0.4);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .search-icon {
+            color: var(--jazer-cyan);
+            font-size: 1.5rem;
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-light);
+            font-family: var(--font-body);
+            font-size: 1.125rem;
+            outline: none;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .ai-badge {
+            padding: 0.375rem 0.875rem;
+            border-radius: 20px;
+            background: var(--gradient-accent);
+            color: var(--text-light);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        /* Suggestions Dropdown */
+        .suggestions-dropdown {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 20, 0.98);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 16px;
+            padding: 1rem;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 40px rgba(0, 242, 234, 0.3);
+            z-index: 100;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .suggestions-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .suggestion-category {
+            margin-bottom: 1.5rem;
+        }
+
+        .suggestion-category:last-child {
+            margin-bottom: 0;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            font-weight: 700;
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .suggestion-item {
+            padding: 0.875rem;
+            border-radius: 10px;
+            background: transparent;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .suggestion-item:hover {
+            background: rgba(0, 242, 234, 0.1);
+            border-color: var(--border-cyan);
+            transform: translateX(5px);
+        }
+
+        .suggestion-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--gradient-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+            flex-shrink: 0;
+        }
+
+        .suggestion-content {
+            flex: 1;
+        }
+
+        .suggestion-text {
+            color: var(--text-light);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .suggestion-desc {
+            color: var(--text-gray);
+            font-size: 0.75rem;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            text-align: center;
+        }
+
+        .action-card:hover {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 242, 234, 0.05);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 242, 234, 0.2);
+        }
+
+        .action-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .action-card:nth-child(1) .action-icon {
+            background: linear-gradient(135deg, #00f2ea, #4facfe);
+        }
+
+        .action-card:nth-child(2) .action-icon {
+            background: linear-gradient(135deg, #ff006e, #9333ea);
+        }
+
+        .action-card:nth-child(3) .action-icon {
+            background: linear-gradient(135deg, #ffbe0b, #ff8800);
+        }
+
+        .action-card:nth-child(4) .action-icon {
+            background: linear-gradient(135deg, #9333ea, #ff006e);
+        }
+
+        .action-card:hover .action-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .action-title {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+
+        .action-desc {
+            color: var(--text-gray);
+            font-size: 0.75rem;
+            line-height: 1.4;
+        }
+
+        /* Trending Searches */
+        .trending-section {
+            background: rgba(0, 242, 234, 0.05);
+            border: 1px solid var(--border-cyan);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .trending-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-light);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .trending-icon {
+            color: var(--jazer-pink);
+            font-size: 1.25rem;
+        }
+
+        .trending-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .trending-tag {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            background: rgba(255, 0, 110, 0.1);
+            border: 1px solid var(--border-pink);
+            color: var(--jazer-pink);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .trending-tag:hover {
+            background: var(--jazer-pink);
+            color: var(--bg-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 0, 110, 0.3);
+        }
+
+        .trending-number {
+            font-weight: 700;
+            opacity: 0.7;
+        }
+
+        /* AI Status */
+        .ai-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(147, 51, 234, 0.05);
+            border: 1px solid var(--border-purple);
+            border-radius: 10px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--jazer-cyan);
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--jazer-cyan); }
+            50% { opacity: 0.5; box-shadow: 0 0 5px var(--jazer-cyan); }
+        }
+
+        .status-text {
+            color: var(--text-gray);
+            font-size: 0.875rem;
+        }
+
+        .status-text strong {
+            color: var(--jazer-cyan);
+        }
+
+        /* Scrollbar for dropdown */
+        .suggestions-dropdown::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .suggestions-dropdown::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        .suggestions-dropdown::-webkit-scrollbar-thumb {
+            background: var(--gradient-accent);
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .search-bar {
+                padding: 0.625rem 1rem;
+            }
+
+            .search-input {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to AI & Voice Interactions</a>
+    
+    <div class="demo-container">
+        <h1 class="gradient-text">AI Search Assistant</h1>
+        <p style="color: var(--text-gray); margin-bottom: 2rem;">Intelligent search with AI-powered suggestions and recommendations</p>
+
+        <div class="ai-search-assistant">
+            <div class="search-header">
+                <div class="search-title">Ask AI Anything</div>
+                <div class="search-subtitle">Powered by advanced language models</div>
+            </div>
+
+            <div class="search-bar-wrapper">
+                <div class="search-bar">
+                    <div class="search-icon">🔍</div>
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        id="searchInput"
+                        placeholder="Search or ask a question..."
+                    >
+                    <div class="ai-badge">AI</div>
+                </div>
+
+                <div class="suggestions-dropdown" id="suggestionsDropdown">
+                    <div class="suggestion-category">
+                        <div class="category-header">
+                            <span>💡</span> Suggestions
+                        </div>
+                        <div class="suggestion-item" data-query="How to build a React app">
+                            <div class="suggestion-icon">⚛️</div>
+                            <div class="suggestion-content">
+                                <div class="suggestion-text">How to build a React app</div>
+                                <div class="suggestion-desc">Step-by-step tutorial</div>
+                            </div>
+                        </div>
+                        <div class="suggestion-item" data-query="Explain machine learning basics">
+                            <div class="suggestion-icon">🤖</div>
+                            <div class="suggestion-content">
+                                <div class="suggestion-text">Explain machine learning basics</div>
+                                <div class="suggestion-desc">Comprehensive guide</div>
+                            </div>
+                        </div>
+                        <div class="suggestion-item" data-query="Best practices for API design">
+                            <div class="suggestion-icon">🔧</div>
+                            <div class="suggestion-content">
+                                <div class="suggestion-text">Best practices for API design</div>
+                                <div class="suggestion-desc">Industry standards</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="suggestion-category">
+                        <div class="category-header">
+                            <span>📚</span> Recent
+                        </div>
+                        <div class="suggestion-item" data-query="Python data structures">
+                            <div class="suggestion-icon">🐍</div>
+                            <div class="suggestion-content">
+                                <div class="suggestion-text">Python data structures</div>
+                                <div class="suggestion-desc">2 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="suggestion-item" data-query="CSS Grid layout examples">
+                            <div class="suggestion-icon">🎨</div>
+                            <div class="suggestion-content">
+                                <div class="suggestion-text">CSS Grid layout examples</div>
+                                <div class="suggestion-desc">Yesterday</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <div class="action-card" data-action="code">
+                    <div class="action-icon">💻</div>
+                    <div class="action-title">Generate Code</div>
+                    <div class="action-desc">Create code snippets instantly</div>
+                </div>
+
+                <div class="action-card" data-action="explain">
+                    <div class="action-icon">📖</div>
+                    <div class="action-title">Explain Concepts</div>
+                    <div class="action-desc">Get clear explanations</div>
+                </div>
+
+                <div class="action-card" data-action="debug">
+                    <div class="action-icon">🐛</div>
+                    <div class="action-title">Debug Issues</div>
+                    <div class="action-desc">Find and fix problems</div>
+                </div>
+
+                <div class="action-card" data-action="translate">
+                    <div class="action-icon">🌐</div>
+                    <div class="action-title">Translate</div>
+                    <div class="action-desc">Convert between languages</div>
+                </div>
+            </div>
+
+            <div class="trending-section">
+                <div class="trending-header">
+                    <span class="trending-icon">🔥</span>
+                    <span>Trending Searches</span>
+                </div>
+                <div class="trending-list">
+                    <div class="trending-tag">
+                        <span class="trending-number">#1</span>
+                        <span>ChatGPT alternatives</span>
+                    </div>
+                    <div class="trending-tag">
+                        <span class="trending-number">#2</span>
+                        <span>AI image generation</span>
+                    </div>
+                    <div class="trending-tag">
+                        <span class="trending-number">#3</span>
+                        <span>Machine learning tutorials</span>
+                    </div>
+                    <div class="trending-tag">
+                        <span class="trending-number">#4</span>
+                        <span>Web3 development</span>
+                    </div>
+                    <div class="trending-tag">
+                        <span class="trending-number">#5</span>
+                        <span>TypeScript best practices</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-status">
+                <div class="status-indicator"></div>
+                <div class="status-text">
+                    AI Assistant is <strong>online</strong> and ready to help
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const suggestionsDropdown = document.getElementById('suggestionsDropdown');
+        const suggestionItems = document.querySelectorAll('.suggestion-item');
+        const actionCards = document.querySelectorAll('.action-card');
+        const trendingTags = document.querySelectorAll('.trending-tag');
+
+        // Show/hide suggestions
+        searchInput.addEventListener('focus', () => {
+            suggestionsDropdown.classList.add('active');
+        });
+
+        searchInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                suggestionsDropdown.classList.remove('active');
+            }, 200);
+        });
+
+        // Search input handling
+        searchInput.addEventListener('input', (e) => {
+            if (e.target.value.length > 0) {
+                suggestionsDropdown.classList.add('active');
+            }
+        });
+
+        // Suggestion item click
+        suggestionItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const query = item.dataset.query;
+                searchInput.value = query;
+                suggestionsDropdown.classList.remove('active');
+                performSearch(query);
+            });
+        });
+
+        // Quick action cards
+        actionCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const action = card.dataset.action;
+                const actionTitle = card.querySelector('.action-title').textContent;
+                searchInput.value = actionTitle;
+                searchInput.focus();
+            });
+        });
+
+        // Trending tags
+        trendingTags.forEach(tag => {
+            tag.addEventListener('click', () => {
+                const text = tag.textContent.replace(/^#\d+\s*/, '');
+                searchInput.value = text;
+                performSearch(text);
+            });
+        });
+
+        // Enter key to search
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performSearch(searchInput.value);
+            }
+        });
+
+        function performSearch(query) {
+            if (query.trim() === '') return;
+            console.log('Searching for:', query);
+            alert(`AI is processing your query: "${query}"\n\n(This is a demo)`);
+        }
+    </script>
+</body>
+</html>

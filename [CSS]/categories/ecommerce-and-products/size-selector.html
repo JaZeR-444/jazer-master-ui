@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Size Selector - JaZeR E-commerce Patterns</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-body); background: var(--bg-dark); color: var(--text-light); line-height: 1.6; padding: 1.5rem; min-height: 100vh; }
+    .back-button { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-gray); text-decoration: none; font-family: var(--font-secondary); font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 12px; border: 2px solid var(--border-default); background: var(--bg-card); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-bottom: 1.5rem; }
+    .back-button:hover { border-color: var(--jazer-cyan); color: var(--jazer-cyan); transform: translateX(-5px); box-shadow: var(--shadow-cyan); }
+    h1 { font-family: var(--font-primary); font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; background: var(--gradient-text); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .description { color: var(--text-gray); font-size: 1.1rem; margin-bottom: 1.5rem; max-width: 700px; }
+    .hero-keys { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .key-hint { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-gray); font-size: 0.875rem; }
+    .key-hint kbd { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 6px; padding: 0.25rem 0.5rem; font-family: var(--font-secondary); font-size: 0.75rem; color: var(--jazer-cyan); }
+    .style-selector { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 2rem; }
+    .style-btn { padding: 0.625rem 1.25rem; font-family: var(--font-secondary); font-weight: 600; font-size: 0.875rem; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px; border: 2px solid var(--border-default); background: var(--bg-card); color: var(--text-gray); }
+    .style-btn:hover { border-color: var(--jazer-cyan); color: var(--jazer-cyan); transform: translateY(-2px); }
+    .style-btn.active { background: var(--gradient-primary); border-color: var(--jazer-cyan); color: var(--text-light); box-shadow: var(--shadow-cyan); }
+    .demo-container { padding: 3rem; background: var(--bg-card); border: 2px solid var(--border-default); border-radius: 16px; min-height: 500px; display: flex; align-items: center; justify-content: center; }
+
+    /* Size Selector Base Styles */
+    .size-widget { max-width: 400px; width: 100%; }
+    .size-card { padding: 2rem; border-radius: 16px; }
+    .size-label { font-family: var(--font-secondary); font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .selected-size { font-weight: 400; }
+    .size-options { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; }
+    .size-btn { width: 50px; height: 50px; border-radius: 10px; font-family: var(--font-secondary); font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; position: relative; }
+    .size-btn:hover:not(.disabled) { transform: scale(1.05); }
+    .size-btn.disabled { cursor: not-allowed; opacity: 0.4; }
+    .size-btn.disabled::after { content: ''; position: absolute; width: 100%; height: 2px; transform: rotate(-45deg); }
+    .size-btn.low-stock::before { content: ''; position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; }
+    .size-guide { font-size: 0.875rem; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.25rem; }
+    .size-guide:hover { text-decoration: underline; }
+
+    /* Style 1: Neon */
+    .style-neon .size-card { background: rgba(6, 182, 212, 0.05); border: 2px solid var(--jazer-cyan); box-shadow: 0 0 30px rgba(6, 182, 212, 0.2); }
+    .style-neon .size-label { color: var(--jazer-cyan); }
+    .style-neon .selected-size { color: var(--text-light); }
+    .style-neon .size-btn { background: var(--bg-dark); border: 2px solid var(--border-default); color: var(--text-gray); }
+    .style-neon .size-btn:hover:not(.disabled) { border-color: var(--jazer-cyan); color: var(--jazer-cyan); }
+    .style-neon .size-btn.active { background: var(--gradient-primary); border-color: var(--jazer-cyan); color: white; box-shadow: 0 0 15px rgba(6, 182, 212, 0.5); }
+    .style-neon .size-btn.disabled::after { background: var(--text-gray); }
+    .style-neon .size-btn.low-stock::before { background: #ef4444; }
+    .style-neon .size-guide { color: var(--jazer-purple); }
+
+    /* Style 2: Gradient */
+    .style-gradient .size-card { background: linear-gradient(145deg, rgba(102, 126, 234, 0.15), rgba(240, 147, 251, 0.15)); border: 1px solid rgba(167, 139, 250, 0.3); }
+    .style-gradient .size-label { color: #a78bfa; }
+    .style-gradient .size-btn { background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(167, 139, 250, 0.3); color: #c4b5fd; }
+    .style-gradient .size-btn:hover:not(.disabled) { border-color: #f093fb; }
+    .style-gradient .size-btn.active { background: linear-gradient(135deg, #667eea, #f093fb); border-color: transparent; color: white; }
+    .style-gradient .size-btn.disabled::after { background: #a78bfa; }
+    .style-gradient .size-btn.low-stock::before { background: #f093fb; }
+    .style-gradient .size-guide { color: #f093fb; }
+
+    /* Style 3: Minimal */
+    .style-minimal .size-card { background: #1a1a2e; border: 1px solid #2a2a4e; }
+    .style-minimal .size-label { color: #666; }
+    .style-minimal .size-btn { background: #151525; border: 1px solid #333; color: #888; }
+    .style-minimal .size-btn:hover:not(.disabled) { border-color: #555; color: #aaa; }
+    .style-minimal .size-btn.active { background: #333; border-color: #555; color: #ccc; }
+    .style-minimal .size-btn.disabled::after { background: #444; }
+    .style-minimal .size-btn.low-stock::before { background: #666; }
+    .style-minimal .size-guide { color: #666; }
+
+    /* Style 4: Neumorphic */
+    .style-neumorphic .size-card { background: #2d2d3a; border: none; box-shadow: 12px 12px 24px #1a1a24, -12px -12px 24px #404050; border-radius: 24px; }
+    .style-neumorphic .size-label { color: #7a7a8c; }
+    .style-neumorphic .size-btn { background: #2d2d3a; border: none; color: #a0a0b0; box-shadow: 4px 4px 8px #1a1a24, -4px -4px 8px #404050; border-radius: 12px; }
+    .style-neumorphic .size-btn:hover:not(.disabled) { box-shadow: 2px 2px 4px #1a1a24, -2px -2px 4px #404050; }
+    .style-neumorphic .size-btn.active { box-shadow: inset 4px 4px 8px #1a1a24, inset -4px -4px 8px #404050; color: #8b5cf6; }
+    .style-neumorphic .size-btn.disabled::after { background: #404050; }
+    .style-neumorphic .size-btn.low-stock::before { background: #8b5cf6; }
+    .style-neumorphic .size-guide { color: #8b5cf6; }
+
+    /* Style 5: Outline */
+    .style-outline .size-card { background: transparent; border: 3px solid var(--jazer-pink); }
+    .style-outline .size-label { color: var(--jazer-pink); }
+    .style-outline .size-btn { background: transparent; border: 2px solid var(--border-default); color: var(--text-gray); }
+    .style-outline .size-btn:hover:not(.disabled) { border-color: var(--jazer-cyan); color: var(--jazer-cyan); }
+    .style-outline .size-btn.active { border-color: var(--jazer-cyan); color: var(--jazer-cyan); background: rgba(6, 182, 212, 0.1); }
+    .style-outline .size-btn.disabled::after { background: var(--jazer-pink); }
+    .style-outline .size-btn.low-stock::before { background: var(--jazer-purple); }
+    .style-outline .size-guide { color: var(--jazer-purple); }
+
+    /* Style 6: Retro */
+    .style-retro .size-card { background: #2a1f4e; border: 4px solid #ff6b6b; box-shadow: 8px 8px 0 #ff6b6b; border-radius: 0; }
+    .style-retro .size-label { color: #feca57; }
+    .style-retro .size-btn { background: #1a1333; border: 3px solid #5f27cd; color: #feca57; border-radius: 0; }
+    .style-retro .size-btn:hover:not(.disabled) { border-color: #feca57; }
+    .style-retro .size-btn.active { background: #feca57; border-color: #feca57; color: #222; }
+    .style-retro .size-btn.disabled::after { background: #5f27cd; }
+    .style-retro .size-btn.low-stock::before { background: #ff6b6b; border-radius: 0; }
+    .style-retro .size-guide { color: #ff6b6b; }
+
+    /* Style 7: Glass */
+    .style-glass .size-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    .style-glass .size-label { color: rgba(255, 255, 255, 0.5); }
+    .style-glass .size-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.7); }
+    .style-glass .size-btn:hover:not(.disabled) { background: rgba(255, 255, 255, 0.1); }
+    .style-glass .size-btn.active { background: rgba(255, 255, 255, 0.15); border-color: rgba(255, 255, 255, 0.3); color: white; }
+    .style-glass .size-btn.disabled::after { background: rgba(255, 255, 255, 0.3); }
+    .style-glass .size-btn.low-stock::before { background: rgba(239, 68, 68, 0.8); }
+    .style-glass .size-guide { color: rgba(255, 255, 255, 0.6); }
+
+    /* Style 8: Cyberpunk */
+    .style-cyberpunk .size-card { background: linear-gradient(135deg, #0a0a0a, #1a0a2e); border: 2px solid #ff00ff; box-shadow: 0 0 30px rgba(255, 0, 255, 0.4); clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px)); border-radius: 0; }
+    .style-cyberpunk .size-label { color: #ffff00; text-shadow: 0 0 5px #ffff00; }
+    .style-cyberpunk .size-btn { background: rgba(255, 0, 255, 0.1); border: 2px solid #ff00ff; color: #ff00ff; border-radius: 0; }
+    .style-cyberpunk .size-btn:hover:not(.disabled) { box-shadow: 0 0 15px rgba(255, 0, 255, 0.5); }
+    .style-cyberpunk .size-btn.active { background: #00ffff; border-color: #00ffff; color: #000; box-shadow: 0 0 20px #00ffff; }
+    .style-cyberpunk .size-btn.disabled::after { background: #ff00ff; }
+    .style-cyberpunk .size-btn.low-stock::before { background: #ff0000; box-shadow: 0 0 5px #ff0000; }
+    .style-cyberpunk .size-guide { color: #00ffff; text-shadow: 0 0 5px #00ffff; }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to E-commerce Patterns</a>
+  <h1>Size Selector</h1>
+  <p class="description">Interactive size selection with active states, out-of-stock indicators, and low-stock warnings.</p>
+  <div class="hero-keys">
+    <span class="key-hint"><kbd>Space</kbd> Next size</span>
+    <span class="key-hint"><kbd>R</kbd> Reset selection</span>
+  </div>
+
+  <div class="style-selector">
+    <button class="style-btn active" data-style="neon">Neon</button>
+    <button class="style-btn" data-style="gradient">Gradient</button>
+    <button class="style-btn" data-style="minimal">Minimal</button>
+    <button class="style-btn" data-style="neumorphic">Neumorphic</button>
+    <button class="style-btn" data-style="outline">Outline</button>
+    <button class="style-btn" data-style="retro">Retro</button>
+    <button class="style-btn" data-style="glass">Glass</button>
+    <button class="style-btn" data-style="cyberpunk">Cyberpunk</button>
+  </div>
+
+  <div class="demo-container">
+    <div id="demoContent"></div>
+  </div>
+
+  <script>
+    let currentStyle = 'neon';
+    let selectedSize = 'M';
+
+    const sizes = [
+      { label: 'XS', available: true, lowStock: false },
+      { label: 'S', available: true, lowStock: false },
+      { label: 'M', available: true, lowStock: false },
+      { label: 'L', available: false, lowStock: false },
+      { label: 'XL', available: true, lowStock: true },
+      { label: '2XL', available: true, lowStock: false }
+    ];
+
+    const templates = {
+      neon: () => renderSelector('style-neon'),
+      gradient: () => renderSelector('style-gradient'),
+      minimal: () => renderSelector('style-minimal'),
+      neumorphic: () => renderSelector('style-neumorphic'),
+      outline: () => renderSelector('style-outline'),
+      retro: () => renderSelector('style-retro'),
+      glass: () => renderSelector('style-glass'),
+      cyberpunk: () => renderSelector('style-cyberpunk')
+    };
+
+    function renderSelector(styleClass) {
+      const sizesHTML = sizes.map(s => {
+        let classes = 'size-btn';
+        if (s.label === selectedSize) classes += ' active';
+        if (!s.available) classes += ' disabled';
+        if (s.lowStock) classes += ' low-stock';
+        return `<button class="${classes}" onclick="selectSize('${s.label}', ${s.available})">${s.label}</button>`;
+      }).join('');
+
+      return `
+        <div class="${styleClass}">
+          <div class="size-widget">
+            <div class="size-card">
+              <div class="size-label">Size: <span class="selected-size">${selectedSize}</span></div>
+              <div class="size-options">${sizesHTML}</div>
+              <span class="size-guide" onclick="alert('Size guide coming soon!')">📏 Size Guide →</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function selectSize(size, available) {
+      if (!available) return;
+      selectedSize = size;
+      render();
+    }
+
+    function cycleSize() {
+      const availableSizes = sizes.filter(s => s.available);
+      const currentIndex = availableSizes.findIndex(s => s.label === selectedSize);
+      const nextIndex = (currentIndex + 1) % availableSizes.length;
+      selectedSize = availableSizes[nextIndex].label;
+      render();
+    }
+
+    function resetSize() {
+      selectedSize = 'M';
+      render();
+    }
+
+    function render() {
+      document.getElementById('demoContent').innerHTML = templates[currentStyle]();
+    }
+
+    // Style selector
+    document.querySelectorAll('.style-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentStyle = btn.dataset.style;
+        render();
+      });
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        cycleSize();
+      } else if (e.code === 'KeyR') {
+        resetSize();
+      }
+    });
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>

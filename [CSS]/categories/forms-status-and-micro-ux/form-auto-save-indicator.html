@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Auto-Save Indicator - JaZeR Component Library</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            color: #ffffff;
+        }
+        
+        :root {
+            --jazer-cyan: #00d9ff;
+            --jazer-purple: #b100ff;
+            --success: #39ff14;
+            --warning: #ffaa00;
+        }
+        
+        .back-button {
+            align-self: flex-start;
+            padding: 0.75rem 1.5rem;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px var(--jazer-cyan);
+        }
+        
+        .container { max-width: 700px; width: 100%; }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+        
+        .description {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+        
+        .demo-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 217, 255, 0.1);
+            position: relative;
+        }
+        
+        .save-status {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .save-status.show { opacity: 1; }
+        
+        .save-status.saving {
+            background: rgba(255, 170, 0, 0.2);
+            border: 2px solid var(--warning);
+            color: var(--warning);
+        }
+        
+        .save-status.saved {
+            background: rgba(57, 255, 20, 0.2);
+            border: 2px solid var(--success);
+            color: var(--success);
+        }
+        
+        .spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+        }
+        
+        .info-box {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 217, 255, 0.1);
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .info-box h3 {
+            color: var(--jazer-cyan);
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-box p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            h1 { font-size: 2rem; }
+            .demo-card { padding: 1.5rem; padding-top: 3.5rem; }
+            .save-status { top: 1rem; right: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+    
+    <div class="container">
+        <h1>Form Auto-Save Indicator</h1>
+        <p class="description">Real-time auto-save with visual status indicators</p>
+        
+        <div class="demo-card">
+            <div class="save-status" id="saveStatus">
+                <span class="spinner"></span>
+                <span id="statusText">Saving...</span>
+            </div>
+            
+            <form id="autoSaveForm">
+                <div class="form-group">
+                    <label for="title">Document Title</label>
+                    <input type="text" id="title" placeholder="Untitled Document" value="My Draft">
+                </div>
+                
+                <div class="form-group">
+                    <label for="author">Author</label>
+                    <input type="text" id="author" placeholder="Your name" value="John Doe">
+                </div>
+                
+                <div class="form-group">
+                    <label for="content">Content</label>
+                    <textarea id="content" placeholder="Start typing...">This is a demonstration of auto-save functionality. Try editing any field and watch the status indicator in the top-right corner.</textarea>
+                </div>
+            </form>
+            
+            <div class="info-box">
+                <h3>Last Saved</h3>
+                <p id="lastSavedTime">Never</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const saveStatus = document.getElementById('saveStatus');
+        const statusText = document.getElementById('statusText');
+        const lastSavedTime = document.getElementById('lastSavedTime');
+        const form = document.getElementById('autoSaveForm');
+        const inputs = form.querySelectorAll('input, textarea');
+        
+        let saveTimeout;
+        let lastSaveData = {};
+
+        // Initialize with current form data
+        function captureFormData() {
+            const data = {};
+            inputs.forEach(input => {
+                data[input.id] = input.value;
+            });
+            return JSON.stringify(data);
+        }
+
+        lastSaveData = captureFormData();
+
+        // Show saving indicator
+        function showSaving() {
+            saveStatus.className = 'save-status show saving';
+            statusText.textContent = 'Saving...';
+        }
+
+        // Show saved indicator
+        function showSaved() {
+            saveStatus.className = 'save-status show saved';
+            statusText.textContent = 'Saved';
+            statusText.innerHTML = '✓ Saved';
+            
+            const now = new Date();
+            lastSavedTime.textContent = now.toLocaleTimeString();
+            
+            // Hide after 2 seconds
+            setTimeout(() => {
+                saveStatus.classList.remove('show');
+            }, 2000);
+        }
+
+        // Simulate save operation
+        function saveForm() {
+            return new Promise((resolve) => {
+                // Simulate network delay
+                setTimeout(() => {
+                    lastSaveData = captureFormData();
+                    resolve();
+                }, 800);
+            });
+        }
+
+        // Auto-save handler
+        function handleInput() {
+            // Check if data actually changed
+            const currentData = captureFormData();
+            if (currentData === lastSaveData) return;
+
+            // Clear existing timeout
+            clearTimeout(saveTimeout);
+            
+            // Show saving immediately
+            showSaving();
+            
+            // Wait 1 second after user stops typing
+            saveTimeout = setTimeout(async () => {
+                await saveForm();
+                showSaved();
+            }, 1000);
+        }
+
+        // Add event listeners to all inputs
+        inputs.forEach(input => {
+            input.addEventListener('input', handleInput);
+        });
+    </script>
+</body>
+</html>

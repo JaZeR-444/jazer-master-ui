@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regex Tester</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            background: rgba(0, 217, 255, 0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateX(-5px);
+        }
+        h1 {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+        }
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+        }
+        .flags {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .flag-check {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .flag-check input {
+            width: auto;
+        }
+        .results {
+            background: rgba(0, 217, 255, 0.05);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        .match-count {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .match-item {
+            background: rgba(177, 0, 255, 0.1);
+            border: 1px solid var(--jazer-purple);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            font-family: 'Courier New', monospace;
+        }
+        .match-text {
+            color: #39ff14;
+            font-weight: 600;
+        }
+        .error {
+            background: rgba(255, 51, 102, 0.1);
+            border: 2px solid #ff3366;
+            color: #ff3366;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    
+    <div class="container">
+        <h1>🔍 Regex Tester</h1>
+        
+        <div class="input-group">
+            <label>Regular Expression</label>
+            <input type="text" id="regex" value="\w+@\w+\.\w+" placeholder="Enter regex pattern...">
+        </div>
+        
+        <div class="flags">
+            <div class="flag-check">
+                <input type="checkbox" id="flagG" checked>
+                <label>g (global)</label>
+            </div>
+            <div class="flag-check">
+                <input type="checkbox" id="flagI">
+                <label>i (case-insensitive)</label>
+            </div>
+            <div class="flag-check">
+                <input type="checkbox" id="flagM">
+                <label>m (multiline)</label>
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <label>Test String</label>
+            <textarea id="testString" placeholder="Enter text to test...">Contact us at support@example.com or sales@company.org</textarea>
+        </div>
+        
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <div class="results">
+            <div class="match-count" id="matchCount">0 matches</div>
+            <div id="matches"></div>
+        </div>
+    </div>
+    
+    <script>
+        const regexInput = document.getElementById('regex');
+        const testString = document.getElementById('testString');
+        const flagG = document.getElementById('flagG');
+        const flagI = document.getElementById('flagI');
+        const flagM = document.getElementById('flagM');
+        
+        function test() {
+            const pattern = regexInput.value;
+            const text = testString.value;
+            const errorDiv = document.getElementById('error');
+            const matchesDiv = document.getElementById('matches');
+            const matchCount = document.getElementById('matchCount');
+            
+            try {
+                let flags = '';
+                if (flagG.checked) flags += 'g';
+                if (flagI.checked) flags += 'i';
+                if (flagM.checked) flags += 'm';
+                
+                const regex = new RegExp(pattern, flags);
+                const matches = text.matchAll(regex);
+                const matchArray = Array.from(matches);
+                
+                errorDiv.style.display = 'none';
+                
+                matchCount.textContent = `${matchArray.length} match${matchArray.length !== 1 ? 'es' : ''}`;
+                
+                if (matchArray.length === 0) {
+                    matchesDiv.innerHTML = '<div style="color: #ff3366;">No matches found</div>';
+                } else {
+                    matchesDiv.innerHTML = matchArray.map((match, i) => `
+                        <div class="match-item">
+                            <div><strong>Match ${i + 1}:</strong> <span class="match-text">${match[0]}</span></div>
+                            <div style="font-size: 0.9rem; margin-top: 0.5rem; color: var(--jazer-purple);">
+                                Index: ${match.index}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = 'Invalid regex: ' + e.message;
+                matchesDiv.innerHTML = '';
+                matchCount.textContent = '0 matches';
+            }
+        }
+        
+        regexInput.addEventListener('input', test);
+        testString.addEventListener('input', test);
+        flagG.addEventListener('change', test);
+        flagI.addEventListener('change', test);
+        flagM.addEventListener('change', test);
+        
+        test();
+    </script>
+</body>
+</html>

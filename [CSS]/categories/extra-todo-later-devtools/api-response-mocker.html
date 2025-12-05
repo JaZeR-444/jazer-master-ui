@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Response Mocker - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: #0a0a0a;
+            min-height: 100vh; 
+            color: #e0e0e0;
+        }
+        .devtools-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .devtools-header {
+            background: #1a1a1a;
+            border-bottom: 2px solid var(--jazer-cyan);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.4rem 0.8rem;
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 4px;
+            background: rgba(0, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+        }
+        .header-title {
+            font-size: 1rem;
+            color: var(--jazer-cyan);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .header-title::before {
+            content: '🎭';
+        }
+        .header-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        .mock-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+        }
+        .mock-toggle-label {
+            color: #888;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #333;
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: #666;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        .toggle-switch input:checked + .toggle-slider {
+            background: #39ff14;
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+        }
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+            background: #fff;
+        }
+        .mock-status {
+            font-weight: 600;
+        }
+        .mock-status.active { color: #39ff14; }
+        .mock-status.inactive { color: #666; }
+
+        /* Toolbar */
+        .toolbar {
+            background: #141414;
+            border-bottom: 1px solid #333;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .search-input {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: inherit;
+            width: 250px;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+        .toolbar-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #1a1a1a;
+            color: #aaa;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+        .toolbar-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+        .toolbar-btn.primary {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+            color: #0a0a0a;
+            font-weight: 600;
+        }
+        .toolbar-spacer { flex: 1; }
+        .mock-count {
+            font-size: 0.75rem;
+            color: #666;
+        }
+        .mock-count span { color: var(--jazer-cyan); font-weight: 600; }
+
+        /* Main Layout */
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Mock List */
+        .mock-list-panel {
+            width: 400px;
+            background: #141414;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .mock-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .mock-item {
+            padding: 1rem;
+            border-bottom: 1px solid #2a2a2a;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .mock-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .mock-item.selected {
+            background: rgba(0, 255, 255, 0.1);
+            border-left: 3px solid var(--jazer-cyan);
+        }
+        .mock-item-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .mock-item-toggle {
+            width: 32px;
+            height: 18px;
+        }
+        .mock-item-toggle .toggle-slider:before {
+            height: 12px;
+            width: 12px;
+        }
+        .mock-item-toggle input:checked + .toggle-slider:before {
+            transform: translateX(14px);
+        }
+        .mock-method {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.6rem;
+            font-weight: 700;
+        }
+        .mock-method.GET { background: rgba(57, 255, 20, 0.2); color: #39ff14; }
+        .mock-method.POST { background: rgba(255, 190, 11, 0.2); color: #ffbe0b; }
+        .mock-method.PUT { background: rgba(6, 182, 212, 0.2); color: var(--jazer-cyan); }
+        .mock-method.PATCH { background: rgba(147, 51, 234, 0.2); color: #a78bfa; }
+        .mock-method.DELETE { background: rgba(255, 71, 87, 0.2); color: #ff4757; }
+        .mock-item-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #fff;
+            flex: 1;
+        }
+        .mock-item-actions {
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+        .mock-item:hover .mock-item-actions {
+            opacity: 1;
+        }
+        .mock-action-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0.2rem;
+        }
+        .mock-action-btn:hover { color: var(--jazer-cyan); }
+        .mock-action-btn.delete:hover { color: #ff4757; }
+        .mock-item-url {
+            font-size: 0.75rem;
+            color: #888;
+            font-family: 'Courier New', monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-item-meta {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.65rem;
+            color: #555;
+        }
+        .mock-item-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .mock-item-stat.status { color: #39ff14; }
+        .mock-item-stat.delay { color: #ffbe0b; }
+
+        /* Editor Panel */
+        .editor-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .editor-header {
+            padding: 1rem;
+            background: #141414;
+            border-bottom: 1px solid #333;
+        }
+        .editor-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        .editor-subtitle {
+            font-size: 0.75rem;
+            color: #666;
+        }
+        .editor-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        .editor-section {
+            margin-bottom: 1.5rem;
+        }
+        .editor-section-title {
+            font-size: 0.7rem;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .editor-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        .editor-field {
+            flex: 1;
+        }
+        .editor-field.small {
+            flex: 0 0 120px;
+        }
+        .editor-label {
+            display: block;
+            font-size: 0.7rem;
+            color: #888;
+            margin-bottom: 0.3rem;
+        }
+        .editor-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            font-family: inherit;
+        }
+        .editor-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+        .editor-select {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .editor-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 0.75rem;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+        }
+        .editor-textarea:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+
+        /* Response Headers Editor */
+        .headers-editor {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .header-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .header-input {
+            flex: 1;
+            padding: 0.4rem 0.6rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            font-family: inherit;
+        }
+        .header-input.key {
+            max-width: 180px;
+        }
+        .header-delete {
+            background: none;
+            border: none;
+            color: #555;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .header-delete:hover { color: #ff4757; }
+        .add-header-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.7rem;
+            border-radius: 4px;
+            border: 1px dashed #444;
+            background: transparent;
+            color: #666;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 0.5rem;
+        }
+        .add-header-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        /* Conditions */
+        .conditions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .condition-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            padding: 0.5rem;
+            background: #0f0f0f;
+            border-radius: 4px;
+        }
+        .condition-select {
+            padding: 0.3rem 0.5rem;
+            font-size: 0.7rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: #141414;
+            color: #aaa;
+            font-family: inherit;
+        }
+        .condition-input {
+            flex: 1;
+            padding: 0.3rem 0.5rem;
+            font-size: 0.7rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: #141414;
+            color: #e0e0e0;
+            font-family: inherit;
+        }
+
+        /* Editor Footer */
+        .editor-footer {
+            padding: 1rem;
+            background: #141414;
+            border-top: 1px solid #333;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+        .footer-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: transparent;
+            color: #aaa;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+        .footer-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+        .footer-btn.primary {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+            color: #0a0a0a;
+            font-weight: 600;
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #555;
+            text-align: center;
+            padding: 2rem;
+        }
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        .empty-state-text {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        .empty-state-hint {
+            font-size: 0.75rem;
+            color: #444;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.7rem;
+        }
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #666;
+        }
+        .status-item span:last-child {
+            color: var(--jazer-cyan);
+        }
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .status-indicator.active { color: #39ff14; }
+        .status-indicator.inactive { color: #666; }
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .mock-list-panel {
+                width: 300px;
+            }
+        }
+        @media (max-width: 700px) {
+            .mock-list-panel {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="devtools-container">
+        <header class="devtools-header">
+            <a href="index.html" class="back-button">← Back</a>
+            <div class="header-title">API Response Mocker</div>
+            <div class="header-actions">
+                <div class="mock-toggle">
+                    <span class="mock-toggle-label">Mock Server:</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="globalToggle" checked onchange="toggleGlobalMock()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="mock-status active" id="mockStatus">Active</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="toolbar">
+            <input type="text" class="search-input" placeholder="Search mocks by URL or name..." id="searchInput" oninput="filterMocks()">
+            <button class="toolbar-btn" onclick="importMocks()">Import</button>
+            <button class="toolbar-btn" onclick="exportMocks()">Export</button>
+            <div class="toolbar-spacer"></div>
+            <div class="mock-count">
+                <span id="activeCount">6</span> active / <span id="totalCount">8</span> total
+            </div>
+            <button class="toolbar-btn primary" onclick="createMock()">+ New Mock</button>
+        </div>
+
+        <div class="main-content">
+            <aside class="mock-list-panel">
+                <div class="mock-list" id="mockList">
+                    <!-- Mock items rendered here -->
+                </div>
+            </aside>
+
+            <div class="editor-panel" id="editorPanel">
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-state-icon">🎭</div>
+                    <div class="empty-state-text">Select a mock to edit</div>
+                    <div class="empty-state-hint">Or create a new mock to intercept API requests</div>
+                </div>
+
+                <div id="editorContent" style="display: none; flex-direction: column; flex: 1; overflow: hidden;">
+                    <div class="editor-header">
+                        <div class="editor-title" id="editorTitle">Edit Mock</div>
+                        <div class="editor-subtitle" id="editorSubtitle">Configure the mock response</div>
+                    </div>
+
+                    <div class="editor-content">
+                        <div class="editor-section">
+                            <div class="editor-section-title">Request Matching</div>
+                            <div class="editor-row">
+                                <div class="editor-field small">
+                                    <label class="editor-label">Method</label>
+                                    <select class="editor-select" id="mockMethod">
+                                        <option value="GET">GET</option>
+                                        <option value="POST">POST</option>
+                                        <option value="PUT">PUT</option>
+                                        <option value="PATCH">PATCH</option>
+                                        <option value="DELETE">DELETE</option>
+                                        <option value="*">ANY</option>
+                                    </select>
+                                </div>
+                                <div class="editor-field">
+                                    <label class="editor-label">URL Pattern</label>
+                                    <input type="text" class="editor-input" id="mockUrl" placeholder="/api/users/*">
+                                </div>
+                            </div>
+                            <div class="editor-row">
+                                <div class="editor-field">
+                                    <label class="editor-label">Name (optional)</label>
+                                    <input type="text" class="editor-input" id="mockName" placeholder="Get User Details">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="editor-section">
+                            <div class="editor-section-title">Response</div>
+                            <div class="editor-row">
+                                <div class="editor-field small">
+                                    <label class="editor-label">Status Code</label>
+                                    <select class="editor-select" id="mockStatus">
+                                        <option value="200">200 OK</option>
+                                        <option value="201">201 Created</option>
+                                        <option value="204">204 No Content</option>
+                                        <option value="400">400 Bad Request</option>
+                                        <option value="401">401 Unauthorized</option>
+                                        <option value="403">403 Forbidden</option>
+                                        <option value="404">404 Not Found</option>
+                                        <option value="500">500 Server Error</option>
+                                    </select>
+                                </div>
+                                <div class="editor-field small">
+                                    <label class="editor-label">Delay (ms)</label>
+                                    <input type="number" class="editor-input" id="mockDelay" value="0" min="0" max="10000">
+                                </div>
+                            </div>
+                            <div class="editor-row">
+                                <div class="editor-field">
+                                    <label class="editor-label">Response Body (JSON)</label>
+                                    <textarea class="editor-textarea" id="mockBody" placeholder='{\n  "message": "Success"\n}'></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="editor-section">
+                            <div class="editor-section-title">Response Headers</div>
+                            <div class="headers-editor" id="headersEditor">
+                                <!-- Headers rendered here -->
+                            </div>
+                            <button class="add-header-btn" onclick="addHeader()">+ Add Header</button>
+                        </div>
+
+                        <div class="editor-section">
+                            <div class="editor-section-title">Conditional Responses (Optional)</div>
+                            <div class="conditions-list" id="conditionsList">
+                                <!-- Conditions rendered here -->
+                            </div>
+                            <button class="add-header-btn" onclick="addCondition()">+ Add Condition</button>
+                        </div>
+                    </div>
+
+                    <div class="editor-footer">
+                        <button class="footer-btn" onclick="cancelEdit()">Cancel</button>
+                        <button class="footer-btn" onclick="testMock()">Test</button>
+                        <button class="footer-btn primary" onclick="saveMock()">Save Mock</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Intercepted:</span>
+                    <span id="interceptedCount">47</span>
+                </div>
+                <div class="status-item">
+                    <span>Last match:</span>
+                    <span id="lastMatch">2 min ago</span>
+                </div>
+            </div>
+            <div class="status-indicator active" id="statusIndicator">
+                <span class="status-dot"></span>
+                <span>Intercepting</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Mock Data
+        let mocks = [
+            {
+                id: 1,
+                enabled: true,
+                method: 'GET',
+                url: '/api/users',
+                name: 'Get All Users',
+                status: 200,
+                delay: 100,
+                body: JSON.stringify([
+                    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'admin' },
+                    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'user' },
+                    { id: 3, name: 'Bob Johnson', email: 'bob@example.com', role: 'user' }
+                ], null, 2),
+                headers: [
+                    { key: 'Content-Type', value: 'application/json' },
+                    { key: 'X-Total-Count', value: '3' }
+                ],
+                hits: 23
+            },
+            {
+                id: 2,
+                enabled: true,
+                method: 'GET',
+                url: '/api/users/:id',
+                name: 'Get User by ID',
+                status: 200,
+                delay: 50,
+                body: JSON.stringify({
+                    id: 1,
+                    name: 'John Doe',
+                    email: 'john@example.com',
+                    role: 'admin',
+                    createdAt: '2024-01-15T10:30:00Z'
+                }, null, 2),
+                headers: [
+                    { key: 'Content-Type', value: 'application/json' }
+                ],
+                hits: 15
+            },
+            {
+                id: 3,
+                enabled: true,
+                method: 'POST',
+                url: '/api/users',
+                name: 'Create User',
+                status: 201,
+                delay: 200,
+                body: JSON.stringify({
+                    id: 4,
+                    name: '{{request.body.name}}',
+                    email: '{{request.body.email}}',
+                    createdAt: '{{now}}'
+                }, null, 2),
+                headers: [
+                    { key: 'Content-Type', value: 'application/json' },
+                    { key: 'Location', value: '/api/users/4' }
+                ],
+                hits: 8
+            },
+            {
+                id: 4,
+                enabled: true,
+                method: 'DELETE',
+                url: '/api/users/:id',
+                name: 'Delete User',
+                status: 204,
+                delay: 100,
+                body: '',
+                headers: [],
+                hits: 3
+            },
+            {
+                id: 5,
+                enabled: false,
+                method: 'GET',
+                url: '/api/products',
+                name: 'Get Products (Disabled)',
+                status: 200,
+                delay: 0,
+                body: JSON.stringify({ products: [] }, null, 2),
+                headers: [
+                    { key: 'Content-Type', value: 'application/json' }
+                ],
+                hits: 0
+            },
+            {
+                id: 6,
+                enabled: true,
+                method: 'POST',
+                url: '/api/auth/login',
+                name: 'Login',
+                status: 200,
+                delay: 300,
+                body: JSON.stringify({
+                    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                    user: { id: 1, name: 'John Doe', role: 'admin' },
+                    expiresIn: 3600
+                }, null, 2),
+                headers: [
+                    { key: 'Content-Type', value: 'application/json' },
+                    { key: 'Set-Cookie', value: 'session=abc123; HttpOnly' }
+                ],
+                hits: 12
+            },
+            {
+                id: 7,
+                enabled: true,
+                method: 'GET',
+                url: '/api/auth/me',
+                name: 'Get Current User',
+                status: 200,
+                delay: 50,
+                body: JSON.stringify({
+                    id: 1,
+                    name: 'John Doe',
+                    email: 'john@example.com',
+                    role: 'admin'
+                }, null, 2),
+                headers: [
+                    { key: 'Content-Type', value: 'application/json' }
+                ],
+                hits: 31
+            },
+            {
+                id: 8,
+                enabled: false,
+                method: 'GET',
+                url: '/api/error-test',
+                name: 'Error Response Test',
+                status: 500,
+                delay: 0,
+                body: JSON.stringify({
+                    error: 'Internal Server Error',
+                    message: 'Something went wrong',
+                    code: 'ERR_INTERNAL'
+                }, null, 2),
+                headers: [
+                    { key: 'Content-Type', value: 'application/json' }
+                ],
+                hits: 0
+            }
+        ];
+
+        let selectedMock = null;
+        let globalMockEnabled = true;
+        let currentHeaders = [];
+
+        // Render mocks list
+        function renderMocks() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const filteredMocks = mocks.filter(m => 
+                m.name.toLowerCase().includes(search) || 
+                m.url.toLowerCase().includes(search)
+            );
+
+            const list = document.getElementById('mockList');
+            list.innerHTML = filteredMocks.map(mock => `
+                <div class="mock-item ${selectedMock?.id === mock.id ? 'selected' : ''}" onclick="selectMock(${mock.id})">
+                    <div class="mock-item-header">
+                        <label class="toggle-switch mock-item-toggle" onclick="event.stopPropagation()">
+                            <input type="checkbox" ${mock.enabled ? 'checked' : ''} onchange="toggleMock(${mock.id})">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="mock-method ${mock.method}">${mock.method}</span>
+                        <span class="mock-item-name">${mock.name}</span>
+                        <div class="mock-item-actions">
+                            <button class="mock-action-btn" onclick="event.stopPropagation(); duplicateMock(${mock.id})" title="Duplicate">⧉</button>
+                            <button class="mock-action-btn delete" onclick="event.stopPropagation(); deleteMock(${mock.id})" title="Delete">×</button>
+                        </div>
+                    </div>
+                    <div class="mock-item-url">${mock.url}</div>
+                    <div class="mock-item-meta">
+                        <span class="mock-item-stat status">${mock.status}</span>
+                        <span class="mock-item-stat delay">${mock.delay}ms delay</span>
+                        <span class="mock-item-stat">${mock.hits} hits</span>
+                    </div>
+                </div>
+            `).join('');
+
+            updateCounts();
+        }
+
+        function updateCounts() {
+            const active = mocks.filter(m => m.enabled).length;
+            document.getElementById('activeCount').textContent = active;
+            document.getElementById('totalCount').textContent = mocks.length;
+        }
+
+        // Select mock for editing
+        function selectMock(id) {
+            selectedMock = mocks.find(m => m.id === id);
+            renderMocks();
+            showEditor();
+        }
+
+        function showEditor() {
+            if (!selectedMock) return;
+
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('editorContent').style.display = 'flex';
+
+            document.getElementById('editorTitle').textContent = selectedMock.name || 'Edit Mock';
+            document.getElementById('mockMethod').value = selectedMock.method;
+            document.getElementById('mockUrl').value = selectedMock.url;
+            document.getElementById('mockName').value = selectedMock.name;
+            document.getElementById('mockStatus').value = selectedMock.status;
+            document.getElementById('mockDelay').value = selectedMock.delay;
+            document.getElementById('mockBody').value = selectedMock.body;
+
+            currentHeaders = [...selectedMock.headers];
+            renderHeaders();
+        }
+
+        function renderHeaders() {
+            const editor = document.getElementById('headersEditor');
+            editor.innerHTML = currentHeaders.map((h, i) => `
+                <div class="header-row">
+                    <input type="text" class="header-input key" placeholder="Header name" value="${h.key}" onchange="updateHeader(${i}, 'key', this.value)">
+                    <input type="text" class="header-input" placeholder="Value" value="${h.value}" onchange="updateHeader(${i}, 'value', this.value)">
+                    <button class="header-delete" onclick="deleteHeader(${i})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function addHeader() {
+            currentHeaders.push({ key: '', value: '' });
+            renderHeaders();
+        }
+
+        function updateHeader(index, field, value) {
+            currentHeaders[index][field] = value;
+        }
+
+        function deleteHeader(index) {
+            currentHeaders.splice(index, 1);
+            renderHeaders();
+        }
+
+        function addCondition() {
+            alert('Conditional responses allow different responses based on:\n- Request body content\n- Query parameters\n- Header values\n\nExample: Return 404 if user ID > 100');
+        }
+
+        // CRUD operations
+        function createMock() {
+            const newMock = {
+                id: Date.now(),
+                enabled: true,
+                method: 'GET',
+                url: '/api/new-endpoint',
+                name: 'New Mock',
+                status: 200,
+                delay: 0,
+                body: JSON.stringify({ message: 'Success' }, null, 2),
+                headers: [{ key: 'Content-Type', value: 'application/json' }],
+                hits: 0
+            };
+            mocks.unshift(newMock);
+            selectMock(newMock.id);
+            renderMocks();
+        }
+
+        function saveMock() {
+            if (!selectedMock) return;
+
+            selectedMock.method = document.getElementById('mockMethod').value;
+            selectedMock.url = document.getElementById('mockUrl').value;
+            selectedMock.name = document.getElementById('mockName').value;
+            selectedMock.status = parseInt(document.getElementById('mockStatus').value);
+            selectedMock.delay = parseInt(document.getElementById('mockDelay').value);
+            selectedMock.body = document.getElementById('mockBody').value;
+            selectedMock.headers = [...currentHeaders];
+
+            renderMocks();
+        }
+
+        function cancelEdit() {
+            selectedMock = null;
+            document.getElementById('emptyState').style.display = 'flex';
+            document.getElementById('editorContent').style.display = 'none';
+            renderMocks();
+        }
+
+        function testMock() {
+            const status = document.getElementById('mockStatus').value;
+            const delay = document.getElementById('mockDelay').value;
+            const body = document.getElementById('mockBody').value;
+
+            alert(`Test Response:\n\nStatus: ${status}\nDelay: ${delay}ms\nBody Preview:\n${body.substring(0, 200)}${body.length > 200 ? '...' : ''}`);
+        }
+
+        function toggleMock(id) {
+            const mock = mocks.find(m => m.id === id);
+            if (mock) {
+                mock.enabled = !mock.enabled;
+                updateCounts();
+            }
+        }
+
+        function duplicateMock(id) {
+            const original = mocks.find(m => m.id === id);
+            if (original) {
+                const copy = {
+                    ...original,
+                    id: Date.now(),
+                    name: `${original.name} (Copy)`,
+                    hits: 0
+                };
+                mocks.unshift(copy);
+                renderMocks();
+            }
+        }
+
+        function deleteMock(id) {
+            if (confirm('Delete this mock?')) {
+                mocks = mocks.filter(m => m.id !== id);
+                if (selectedMock?.id === id) {
+                    cancelEdit();
+                }
+                renderMocks();
+            }
+        }
+
+        // Global controls
+        function toggleGlobalMock() {
+            globalMockEnabled = document.getElementById('globalToggle').checked;
+            const status = document.getElementById('mockStatus');
+            const indicator = document.getElementById('statusIndicator');
+
+            if (globalMockEnabled) {
+                status.textContent = 'Active';
+                status.className = 'mock-status active';
+                indicator.className = 'status-indicator active';
+                indicator.innerHTML = '<span class="status-dot"></span><span>Intercepting</span>';
+            } else {
+                status.textContent = 'Paused';
+                status.className = 'mock-status inactive';
+                indicator.className = 'status-indicator inactive';
+                indicator.innerHTML = '<span class="status-dot"></span><span>Paused</span>';
+            }
+        }
+
+        function filterMocks() {
+            renderMocks();
+        }
+
+        function importMocks() {
+            alert('Import mocks from:\n- JSON file\n- Postman collection\n- OpenAPI spec\n- HAR file');
+        }
+
+        function exportMocks() {
+            const data = JSON.stringify(mocks, null, 2);
+            console.log('Exported mocks:', data);
+            alert('Mocks exported to console.\n\nIn production, this would download a JSON file.');
+        }
+
+        // Initialize
+        renderMocks();
+
+        // Simulate activity
+        setInterval(() => {
+            if (globalMockEnabled) {
+                const activeMocks = mocks.filter(m => m.enabled);
+                if (activeMocks.length > 0) {
+                    const randomMock = activeMocks[Math.floor(Math.random() * activeMocks.length)];
+                    randomMock.hits++;
+                    document.getElementById('interceptedCount').textContent = 
+                        parseInt(document.getElementById('interceptedCount').textContent) + 1;
+                    document.getElementById('lastMatch').textContent = 'Just now';
+                }
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Prompt Input - JaZeR Components</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .demo-container {
+            max-width: 800px;
+            margin: 2rem auto;
+        }
+
+        /* AI Prompt Input Component */
+        .ai-prompt-input {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 20px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-prompt-input::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 242, 234, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .ai-prompt-input:focus-within::before {
+            opacity: 1;
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .ai-prompt-input:focus-within {
+            border-color: var(--jazer-cyan);
+            box-shadow: var(--shadow-cyan);
+        }
+
+        .prompt-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .prompt-label {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .ai-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--jazer-cyan);
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .character-count {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: var(--font-body);
+        }
+
+        .character-count.warning {
+            color: var(--jazer-yellow);
+        }
+
+        .character-count.limit {
+            color: var(--jazer-pink);
+        }
+
+        /* Prompt Textarea */
+        .prompt-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        .prompt-textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-cyan);
+            border-radius: 12px;
+            padding: 1.25rem;
+            color: var(--text-light);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            min-height: 150px;
+            resize: vertical;
+            transition: all 0.3s ease;
+            line-height: 1.6;
+        }
+
+        .prompt-textarea:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 25px rgba(0, 242, 234, 0.3);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .prompt-textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Suggestions */
+        .prompt-suggestions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .suggestion-chip {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid var(--border-cyan);
+            color: var(--jazer-cyan);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-body);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .suggestion-chip:hover {
+            background: var(--jazer-cyan);
+            color: var(--bg-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 242, 234, 0.3);
+        }
+
+        /* Prompt Actions */
+        .prompt-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .action-tools {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tool-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid var(--border-cyan);
+            color: var(--jazer-cyan);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+            position: relative;
+        }
+
+        .tool-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--bg-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 242, 234, 0.3);
+        }
+
+        .tool-button:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: var(--jazer-cyan);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            border: 1px solid var(--border-cyan);
+            z-index: 10;
+        }
+
+        .submit-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .clear-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            background: transparent;
+            border: 2px solid var(--border-default);
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clear-button:hover {
+            border-color: var(--jazer-pink);
+            color: var(--jazer-pink);
+            box-shadow: 0 0 15px rgba(255, 0, 110, 0.2);
+        }
+
+        .generate-button {
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            background: var(--gradient-accent);
+            border: none;
+            color: var(--text-light);
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .generate-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 0, 110, 0.4);
+        }
+
+        .generate-button:active {
+            transform: translateY(-1px);
+        }
+
+        .generate-button.loading {
+            opacity: 0.8;
+            cursor: not-allowed;
+        }
+
+        .generate-button.loading .button-icon {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Tips Section */
+        .prompt-tips {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(147, 51, 234, 0.05);
+            border: 1px solid var(--border-purple);
+            border-radius: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tips-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-purple);
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tips-list {
+            color: var(--text-gray);
+            font-size: 0.875rem;
+            line-height: 1.6;
+            margin-left: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .prompt-actions {
+                flex-direction: column;
+            }
+
+            .action-tools {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .submit-group {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .clear-button,
+            .generate-button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to AI & Voice Interactions</a>
+    
+    <div class="demo-container">
+        <h1 class="gradient-text">AI Prompt Input</h1>
+        <p style="color: var(--text-gray); margin-bottom: 2rem;">Enhanced prompt input field with suggestions and formatting tools</p>
+
+        <div class="ai-prompt-input">
+            <div class="prompt-header">
+                <div class="prompt-label">
+                    <span class="ai-indicator"></span>
+                    AI Prompt
+                </div>
+                <div class="character-count" id="charCount">0 / 2000</div>
+            </div>
+
+            <div class="prompt-wrapper">
+                <textarea 
+                    class="prompt-textarea" 
+                    id="promptTextarea"
+                    placeholder="Describe what you want the AI to generate... Be specific and detailed for best results!"
+                    maxlength="2000"
+                ></textarea>
+            </div>
+
+            <div class="prompt-suggestions">
+                <div class="suggestion-chip" data-text="Write a creative story about">
+                    📖 Write a story
+                </div>
+                <div class="suggestion-chip" data-text="Explain the concept of">
+                    💡 Explain concept
+                </div>
+                <div class="suggestion-chip" data-text="Generate code for">
+                    💻 Generate code
+                </div>
+                <div class="suggestion-chip" data-text="Analyze and summarize">
+                    📊 Analyze data
+                </div>
+                <div class="suggestion-chip" data-text="Create a plan for">
+                    📋 Create plan
+                </div>
+            </div>
+
+            <div class="prompt-actions">
+                <div class="action-tools">
+                    <button class="tool-button" data-tooltip="Add template" title="Add template">📝</button>
+                    <button class="tool-button" data-tooltip="Insert variable" title="Insert variable">🔤</button>
+                    <button class="tool-button" data-tooltip="Add context" title="Add context">🎯</button>
+                    <button class="tool-button" data-tooltip="History" title="History">🕐</button>
+                    <button class="tool-button" data-tooltip="Save prompt" title="Save prompt">💾</button>
+                </div>
+
+                <div class="submit-group">
+                    <button class="clear-button" id="clearBtn">Clear</button>
+                    <button class="generate-button" id="generateBtn">
+                        <span class="button-icon">✨</span>
+                        Generate
+                    </button>
+                </div>
+            </div>
+
+            <div class="prompt-tips">
+                <div class="tips-header">
+                    💡 Pro Tips
+                </div>
+                <ul class="tips-list">
+                    <li>Be specific about what you want</li>
+                    <li>Include context and constraints</li>
+                    <li>Use examples when possible</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const promptTextarea = document.getElementById('promptTextarea');
+        const charCount = document.getElementById('charCount');
+        const clearBtn = document.getElementById('clearBtn');
+        const generateBtn = document.getElementById('generateBtn');
+        const suggestionChips = document.querySelectorAll('.suggestion-chip');
+
+        // Character counter
+        promptTextarea.addEventListener('input', () => {
+            const length = promptTextarea.value.length;
+            charCount.textContent = `${length} / 2000`;
+
+            charCount.classList.remove('warning', 'limit');
+            if (length > 1800) {
+                charCount.classList.add('limit');
+            } else if (length > 1500) {
+                charCount.classList.add('warning');
+            }
+        });
+
+        // Suggestion chips
+        suggestionChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                const text = chip.dataset.text;
+                const currentText = promptTextarea.value;
+                promptTextarea.value = currentText ? currentText + ' ' + text : text;
+                promptTextarea.focus();
+                promptTextarea.dispatchEvent(new Event('input'));
+            });
+        });
+
+        // Clear button
+        clearBtn.addEventListener('click', () => {
+            promptTextarea.value = '';
+            promptTextarea.dispatchEvent(new Event('input'));
+        });
+
+        // Generate button
+        generateBtn.addEventListener('click', () => {
+            if (promptTextarea.value.trim() === '') {
+                alert('Please enter a prompt first!');
+                return;
+            }
+
+            generateBtn.classList.add('loading');
+            generateBtn.innerHTML = '<span class="button-icon">⏳</span> Generating...';
+
+            setTimeout(() => {
+                generateBtn.classList.remove('loading');
+                generateBtn.innerHTML = '<span class="button-icon">✨</span> Generate';
+                alert('AI generation complete! (Demo)');
+            }, 3000);
+        });
+    </script>
+</body>
+</html>

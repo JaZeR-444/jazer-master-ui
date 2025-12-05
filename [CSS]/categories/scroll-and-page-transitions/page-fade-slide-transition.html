@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Fade & Slide Transition - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header h1 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 1rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        /* Control Panel */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            padding: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .control-btn.active {
+            background: var(--jazer-cyan, #00f2ea);
+            border-color: var(--jazer-cyan, #00f2ea);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Navigation */
+        .page-nav {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            padding: 2rem;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 10;
+        }
+
+        .nav-btn {
+            padding: 1rem 2rem;
+            background: rgba(147, 51, 234, 0.1);
+            border: 2px solid var(--jazer-purple, #9333ea);
+            color: var(--jazer-purple, #9333ea);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+        }
+
+        .nav-btn:hover {
+            background: rgba(147, 51, 234, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(147, 51, 234, 0.3);
+        }
+
+        .nav-btn.current {
+            background: var(--jazer-purple, #9333ea);
+            color: #0a0a0a;
+        }
+
+        /* Page Container */
+        .page-container {
+            position: relative;
+            min-height: 100vh;
+        }
+
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            min-height: 100vh;
+            padding: 4rem 2rem;
+            display: none;
+            opacity: 0;
+        }
+
+        .page.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Page Content */
+        .page-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .page-hero {
+            margin-bottom: 4rem;
+        }
+
+        .page-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            margin-bottom: 1.5rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 2rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .feature-card:hover {
+            border-color: var(--jazer-cyan, #00f2ea);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 242, 234, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+            color: var(--jazer-cyan, #00f2ea);
+        }
+
+        .feature-text {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Transition Overlay */
+        .transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0a;
+            z-index: 9999;
+            display: none;
+            pointer-events: none;
+        }
+
+        .transition-overlay.active {
+            display: block;
+            pointer-events: all;
+        }
+
+        /* Loading Indicator */
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(0, 242, 234, 0.1);
+            border-top: 4px solid var(--jazer-cyan, #00f2ea);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Transition Animations */
+        /* Fade Slide Up */
+        .transition-fade-slide-up .page.exiting {
+            animation: fadeSlideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .transition-fade-slide-up .page.entering {
+            animation: fadeSlideUpIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes fadeSlideUp {
+            to { opacity: 0; transform: translateY(-50px); }
+        }
+
+        @keyframes fadeSlideUpIn {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Fade Slide Down */
+        .transition-fade-slide-down .page.exiting {
+            animation: fadeSlideDown 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .transition-fade-slide-down .page.entering {
+            animation: fadeSlideDownIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes fadeSlideDown {
+            to { opacity: 0; transform: translateY(50px); }
+        }
+
+        @keyframes fadeSlideDownIn {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Fade Slide Left */
+        .transition-fade-slide-left .page.exiting {
+            animation: fadeSlideLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .transition-fade-slide-left .page.entering {
+            animation: fadeSlideLeftIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes fadeSlideLeft {
+            to { opacity: 0; transform: translateX(-50px); }
+        }
+
+        @keyframes fadeSlideLeftIn {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Fade Slide Right */
+        .transition-fade-slide-right .page.exiting {
+            animation: fadeSlideRight 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .transition-fade-slide-right .page.entering {
+            animation: fadeSlideRightIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes fadeSlideRight {
+            to { opacity: 0; transform: translateX(50px); }
+        }
+
+        @keyframes fadeSlideRightIn {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Cross Fade */
+        .transition-cross-fade .page.exiting {
+            animation: crossFadeOut 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .transition-cross-fade .page.entering {
+            animation: crossFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes crossFadeOut {
+            to { opacity: 0; }
+        }
+
+        @keyframes crossFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Zoom Fade */
+        .transition-zoom-fade .page.exiting {
+            animation: zoomFadeOut 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .transition-zoom-fade .page.entering {
+            animation: zoomFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes zoomFadeOut {
+            to { opacity: 0; transform: scale(0.8); }
+        }
+
+        @keyframes zoomFadeIn {
+            from { opacity: 0; transform: scale(1.2); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Speed Variations */
+        .speed-fast .page { animation-duration: 0.3s !important; }
+        .speed-medium .page { animation-duration: 0.6s !important; }
+        .speed-slow .page { animation-duration: 1s !important; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 6rem 1rem 3rem;
+            }
+
+            .controls {
+                padding: 1rem;
+            }
+
+            .control-group {
+                width: 100%;
+            }
+
+            .button-group {
+                justify-content: center;
+            }
+
+            .page-nav {
+                padding: 1rem;
+            }
+
+            .nav-btn {
+                padding: 0.75rem 1.5rem;
+                font-size: 0.875rem;
+            }
+
+            .page {
+                padding: 3rem 1rem;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .back-button {
+                top: 1rem;
+                left: 1rem;
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <div class="header">
+        <h1>Page Fade & Slide Transition</h1>
+        <p>Smooth page transitions with fade and slide effects. Simulate a single-page application experience with customizable transition styles and speeds.</p>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Transition Effect</label>
+            <div class="button-group">
+                <button class="control-btn effect-btn active" data-effect="fade-slide-up">Fade Slide Up</button>
+                <button class="control-btn effect-btn" data-effect="fade-slide-down">Fade Slide Down</button>
+                <button class="control-btn effect-btn" data-effect="fade-slide-left">Fade Slide Left</button>
+                <button class="control-btn effect-btn" data-effect="fade-slide-right">Fade Slide Right</button>
+                <button class="control-btn effect-btn" data-effect="cross-fade">Cross Fade</button>
+                <button class="control-btn effect-btn" data-effect="zoom-fade">Zoom Fade</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Transition Speed</label>
+            <div class="button-group">
+                <button class="control-btn speed-btn" data-speed="fast">Fast</button>
+                <button class="control-btn speed-btn active" data-speed="medium">Medium</button>
+                <button class="control-btn speed-btn" data-speed="slow">Slow</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-nav">
+        <button class="nav-btn current" data-page="home">Home</button>
+        <button class="nav-btn" data-page="features">Features</button>
+        <button class="nav-btn" data-page="services">Services</button>
+        <button class="nav-btn" data-page="contact">Contact</button>
+    </div>
+
+    <div class="page-container transition-fade-slide-up speed-medium">
+        <!-- Home Page -->
+        <div class="page active" id="home">
+            <div class="page-content">
+                <div class="page-hero">
+                    <h2 class="page-title">Welcome Home</h2>
+                    <p class="page-subtitle">Experience seamless page transitions</p>
+                </div>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🏠</div>
+                        <h3 class="feature-title">Home Base</h3>
+                        <p class="feature-text">Your starting point for exploring smooth page transitions.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3 class="feature-title">Lightning Fast</h3>
+                        <p class="feature-text">Instant page changes with smooth animations.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎨</div>
+                        <h3 class="feature-title">Beautiful Design</h3>
+                        <p class="feature-text">Cyberpunk aesthetics with vibrant gradients.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Page -->
+        <div class="page" id="features">
+            <div class="page-content">
+                <div class="page-hero">
+                    <h2 class="page-title">Amazing Features</h2>
+                    <p class="page-subtitle">Discover what makes this special</p>
+                </div>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🚀</div>
+                        <h3 class="feature-title">Performance</h3>
+                        <p class="feature-text">GPU-accelerated for 60fps animations.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <h3 class="feature-title">Precise Timing</h3>
+                        <p class="feature-text">Carefully choreographed transitions.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">✨</div>
+                        <h3 class="feature-title">Six Effects</h3>
+                        <p class="feature-text">Multiple transition styles to choose from.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚙️</div>
+                        <h3 class="feature-title">Customizable</h3>
+                        <p class="feature-text">Control effect and speed settings.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Services Page -->
+        <div class="page" id="services">
+            <div class="page-content">
+                <div class="page-hero">
+                    <h2 class="page-title">Our Services</h2>
+                    <p class="page-subtitle">Solutions for every need</p>
+                </div>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">💼</div>
+                        <h3 class="feature-title">Consulting</h3>
+                        <p class="feature-text">Expert guidance for your projects.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🛠️</div>
+                        <h3 class="feature-title">Development</h3>
+                        <p class="feature-text">Custom solutions built to perfection.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎓</div>
+                        <h3 class="feature-title">Training</h3>
+                        <p class="feature-text">Learn from industry professionals.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3 class="feature-title">Analytics</h3>
+                        <p class="feature-text">Data-driven insights for growth.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Page -->
+        <div class="page" id="contact">
+            <div class="page-content">
+                <div class="page-hero">
+                    <h2 class="page-title">Get In Touch</h2>
+                    <p class="page-subtitle">We'd love to hear from you</p>
+                </div>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📧</div>
+                        <h3 class="feature-title">Email</h3>
+                        <p class="feature-text">hello@example.com</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📱</div>
+                        <h3 class="feature-title">Phone</h3>
+                        <p class="feature-text">+1 (555) 123-4567</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🌐</div>
+                        <h3 class="feature-title">Social</h3>
+                        <p class="feature-text">@yourhandle</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📍</div>
+                        <h3 class="feature-title">Location</h3>
+                        <p class="feature-text">San Francisco, CA</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="transition-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script>
+        let currentEffect = 'fade-slide-up';
+        let currentSpeed = 'medium';
+        let isTransitioning = false;
+
+        // Initialize
+        function init() {
+            setupControls();
+            setupNavigation();
+        }
+
+        // Setup control buttons
+        function setupControls() {
+            // Effect controls
+            const effectBtns = document.querySelectorAll('.effect-btn');
+            effectBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    effectBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentEffect = btn.dataset.effect;
+                    updateTransitionClass();
+                });
+            });
+
+            // Speed controls
+            const speedBtns = document.querySelectorAll('.speed-btn');
+            speedBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    speedBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentSpeed = btn.dataset.speed;
+                    updateTransitionClass();
+                });
+            });
+        }
+
+        // Setup page navigation
+        function setupNavigation() {
+            const navBtns = document.querySelectorAll('.nav-btn');
+            navBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetPage = btn.dataset.page;
+                    navigateToPage(targetPage, btn);
+                });
+            });
+        }
+
+        // Navigate to page with transition
+        function navigateToPage(targetPageId, clickedBtn) {
+            if (isTransitioning) return;
+
+            const currentPage = document.querySelector('.page.active');
+            const targetPage = document.getElementById(targetPageId);
+
+            if (currentPage === targetPage) return;
+
+            isTransitioning = true;
+
+            // Update nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('current'));
+            clickedBtn.classList.add('current');
+
+            // Show overlay
+            const overlay = document.querySelector('.transition-overlay');
+            overlay.classList.add('active');
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.3s';
+            setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+
+            // Start exit animation
+            currentPage.classList.add('exiting');
+
+            setTimeout(() => {
+                // Hide current page
+                currentPage.classList.remove('active', 'exiting');
+                
+                // Show target page
+                targetPage.classList.add('active', 'entering');
+
+                // Hide overlay
+                overlay.style.opacity = '0';
+                
+                setTimeout(() => {
+                    targetPage.classList.remove('entering');
+                    overlay.classList.remove('active');
+                    isTransitioning = false;
+                }, 600);
+            }, 300);
+        }
+
+        // Update transition class
+        function updateTransitionClass() {
+            const container = document.querySelector('.page-container');
+            
+            // Remove all transition classes
+            container.classList.remove(
+                'transition-fade-slide-up',
+                'transition-fade-slide-down',
+                'transition-fade-slide-left',
+                'transition-fade-slide-right',
+                'transition-cross-fade',
+                'transition-zoom-fade',
+                'speed-fast',
+                'speed-medium',
+                'speed-slow'
+            );
+
+            // Add current classes
+            container.classList.add(`transition-${currentEffect}`);
+            container.classList.add(`speed-${currentSpeed}`);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

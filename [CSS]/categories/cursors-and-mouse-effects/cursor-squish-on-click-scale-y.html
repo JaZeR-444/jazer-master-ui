@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor Squish on Click (Scale Y)</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0b2e 100%);
+            color: var(--jazer-cyan);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            cursor: none;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 50%, rgba(255, 0, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: backgroundPulse 10s ease-in-out infinite;
+        }
+
+        @keyframes backgroundPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        .container, .back-button, .controls, .stats, .combo-indicator {
+            position: relative;
+            z-index: 1;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            font-size: 0.9rem;
+            border: 1px solid var(--jazer-cyan);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--gradient-primary);
+            box-shadow: 0 0 20px var(--jazer-cyan);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: var(--font-primary);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .squish-cursor {
+            position: fixed;
+            width: 30px;
+            height: 30px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease-out;
+            box-shadow: 0 0 20px var(--jazer-cyan);
+        }
+
+        .squish-cursor.squishing {
+            animation: squish 0.3s ease-out;
+        }
+
+        @keyframes squish {
+            0% {
+                transform: translate(-50%, -50%) scaleY(1);
+            }
+            30% {
+                transform: translate(-50%, -50%) scaleY(0.3) scaleX(1.5);
+            }
+            60% {
+                transform: translate(-50%, -50%) scaleY(1.3) scaleX(0.8);
+            }
+            100% {
+                transform: translate(-50%, -50%) scaleY(1);
+            }
+        }
+
+        .ripple {
+            position: fixed;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            animation: rippleExpand 0.6s ease-out forwards;
+        }
+
+        @keyframes rippleExpand {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+            100% {
+                width: 100px;
+                height: 100px;
+                opacity: 0;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .demo-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .demo-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-section h2 {
+            font-family: var(--font-primary);
+            margin-bottom: 1rem;
+            color: var(--jazer-purple);
+        }
+
+        .click-zone {
+            width: 100%;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px dashed var(--jazer-pink);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1rem 0;
+            position: relative;
+            overflow: hidden;
+            cursor: none;
+            transition: all 0.3s ease;
+        }
+
+        .click-zone:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: var(--jazer-cyan);
+        }
+
+        .click-zone::before {
+            content: 'Click to squish!';
+            color: var(--jazer-pink);
+            font-family: var(--font-secondary);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .controls {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            min-width: 250px;
+            z-index: 1001;
+        }
+
+        .control-group {
+            margin: 1rem 0;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--jazer-purple);
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 0.25rem;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 0.25rem;
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 0.25rem;
+        }
+
+        .stats {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            font-size: 0.9rem;
+        }
+
+        .stats div {
+            margin: 0.25rem 0;
+        }
+
+        .interactive-button {
+            background: var(--gradient-accent);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            font-size: 1.1rem;
+            cursor: none;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .interactive-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px var(--jazer-pink);
+        }
+
+        .interactive-button:active {
+            transform: scale(0.95);
+        }
+
+        .squish-particle {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9997;
+            animation: particleFly 0.8s ease-out forwards;
+        }
+
+        @keyframes particleFly {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0);
+                opacity: 0;
+            }
+        }
+
+        .instructions {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 2rem;
+            border-left: 4px solid var(--jazer-purple);
+        }
+
+        .instructions h3 {
+            font-family: var(--font-primary);
+            color: var(--jazer-purple);
+            margin-top: 0;
+        }
+
+        .instructions ul {
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .instructions li {
+            margin: 0.5rem 0;
+        }
+
+        .bounce-element {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-accent);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-primary);
+            font-weight: bold;
+            color: white;
+            margin: 0.5rem;
+            cursor: none;
+            transition: transform 0.3s ease;
+        }
+
+        .bounce-element:hover {
+            transform: scale(1.1);
+        }
+
+        .bounce-element.bouncing {
+            animation: bounce 0.6s ease-out;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0) scaleY(1);
+            }
+            30% {
+                transform: translateY(-20px) scaleY(0.8);
+            }
+            50% {
+                transform: translateY(-30px) scaleY(1.1);
+            }
+            70% {
+                transform: translateY(-15px) scaleY(0.9);
+            }
+        }
+
+        .squish-meter {
+            width: 200px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1rem auto;
+        }
+
+        .squish-fill {
+            height: 100%;
+            background: var(--gradient-accent);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .combo-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: var(--font-primary);
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--jazer-pink);
+            pointer-events: none;
+            z-index: 10000;
+            opacity: 0;
+            text-shadow: 0 0 20px var(--jazer-pink);
+        }
+
+        .combo-indicator.show {
+            animation: comboShow 1s ease-out forwards;
+        }
+
+        @keyframes comboShow {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+
+    <div class="controls">
+        <h3 style="margin-top: 0; color: var(--jazer-cyan);">Squish Controls</h3>
+        
+        <div class="control-group">
+            <label for="squishIntensity">Squish Intensity: <span id="intensityValue">0.3</span></label>
+            <input type="range" id="squishIntensity" min="0.1" max="0.8" step="0.1" value="0.3">
+        </div>
+        
+        <div class="control-group">
+            <label for="squishSpeed">Squish Speed: <span id="speedValue">0.3</span>s</label>
+            <input type="range" id="squishSpeed" min="0.1" max="0.8" step="0.1" value="0.3">
+        </div>
+        
+        <div class="control-group">
+            <label for="cursorSize">Cursor Size: <span id="sizeValue">30</span>px</label>
+            <input type="range" id="cursorSize" min="20" max="60" step="5" value="30">
+        </div>
+        
+        <div class="control-group">
+            <label for="squishStyle">Squish Style:</label>
+            <select id="squishStyle">
+                <option value="vertical">Vertical</option>
+                <option value="horizontal">Horizontal</option>
+                <option value="both">Both</option>
+                <option value="rotate">Rotate</option>
+                <option value="elastic">Elastic</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="particleEffect">Particle Effect:</label>
+            <select id="particleEffect">
+                <option value="none">None</option>
+                <option value="spray">Spray</option>
+                <option value="explosion">Explosion</option>
+                <option value="sparkles">Sparkles</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div>Clicks: <span id="clickCount">0</span></div>
+        <div>Combo: <span id="comboCount">0</span>x</div>
+        <div>Position: <span id="cursorPos">0, 0</span></div>
+        <div>Squish Power: <span id="squishPower">0</span>%</div>
+    </div>
+
+    <div class="combo-indicator" id="comboIndicator"></div>
+
+    <div class="container">
+        <h1>Cursor Squish on Click</h1>
+        <p class="description">
+            Interactive cursor that squishes and deforms when you click. 
+            Different squish styles, particle effects, and combo system for satisfying feedback.
+        </p>
+
+        <div class="demo-area">
+            <div class="demo-section">
+                <h2>Click Zone</h2>
+                <div class="click-zone" id="clickZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Click anywhere!
+                    </div>
+                </div>
+                <div class="squish-meter">
+                    <div class="squish-fill" id="squishFill"></div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Interactive Buttons</h2>
+                <button class="interactive-button" id="button1">Click Me!</button>
+                <button class="interactive-button" id="button2">Squish Me!</button>
+                <button class="interactive-button" id="button3">Bounce!</button>
+            </div>
+
+            <div class="demo-section">
+                <h2>Bouncing Elements</h2>
+                <div>
+                    <div class="bounce-element" id="bounce1">🎯</div>
+                    <div class="bounce-element" id="bounce2">🎨</div>
+                    <div class="bounce-element" id="bounce3">🚀</div>
+                    <div class="bounce-element" id="bounce4">⭐</div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Rapid Click Zone</h2>
+                <div class="click-zone" id="rapidZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Click rapidly for combo!
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Power Meter</h2>
+                <div class="click-zone" id="powerZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Hold and release for power!
+                    </div>
+                </div>
+                <div class="squish-meter">
+                    <div class="squish-fill" id="powerFill"></div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Free Play</h2>
+                <div class="click-zone" id="freeZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Experiment freely!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>How It Works:</h3>
+            <ul>
+                <li>Click anywhere to trigger cursor squish animation</li>
+                <li>Different squish styles: vertical, horizontal, both, rotate, elastic</li>
+                <li>Particle effects: spray, explosion, sparkles</li>
+                <li>Build combos by clicking rapidly in succession</li>
+                <li>Power meter for charged clicks</li>
+                <li>Customizable intensity, speed, and cursor size</li>
+                <li>Visual feedback with ripples and particles</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="squish-cursor" id="squishCursor"></div>
+
+    <script>
+        class SquishCursor {
+            constructor() {
+                this.cursor = document.getElementById('squishCursor');
+                this.intensityInput = document.getElementById('squishIntensity');
+                this.speedInput = document.getElementById('squishSpeed');
+                this.sizeInput = document.getElementById('cursorSize');
+                this.styleSelect = document.getElementById('squishStyle');
+                this.particleSelect = document.getElementById('particleEffect');
+                
+                this.intensityValueDisplay = document.getElementById('intensityValue');
+                this.speedValueDisplay = document.getElementById('speedValue');
+                this.sizeValueDisplay = document.getElementById('sizeValue');
+                this.clickCountDisplay = document.getElementById('clickCount');
+                this.comboCountDisplay = document.getElementById('comboCount');
+                this.cursorPosDisplay = document.getElementById('cursorPos');
+                this.squishPowerDisplay = document.getElementById('squishPower');
+                this.squishFill = document.getElementById('squishFill');
+                this.powerFill = document.getElementById('powerFill');
+                this.comboIndicator = document.getElementById('comboIndicator');
+                
+                this.squishIntensity = 0.3;
+                this.squishSpeed = 0.3;
+                this.cursorSize = 30;
+                this.squishStyle = 'vertical';
+                this.particleEffect = 'none';
+                
+                this.currentX = 0;
+                this.currentY = 0;
+                this.clickCount = 0;
+                this.comboCount = 0;
+                this.comboTimer = null;
+                this.powerLevel = 0;
+                this.powerCharging = false;
+                
+                this.init();
+            }
+
+            init() {
+                // Set up event listeners
+                document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                document.addEventListener('click', (e) => this.handleClick(e));
+                document.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+                document.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+                document.addEventListener('mouseenter', () => this.showCursor());
+                document.addEventListener('mouseleave', () => this.hideCursor());
+                
+                // Control listeners
+                this.intensityInput.addEventListener('input', (e) => this.updateIntensity(e.target.value));
+                this.speedInput.addEventListener('input', (e) => this.updateSpeed(e.target.value));
+                this.sizeInput.addEventListener('input', (e) => this.updateSize(e.target.value));
+                this.styleSelect.addEventListener('change', (e) => this.updateStyle(e.target.value));
+                this.particleSelect.addEventListener('change', (e) => this.updateParticleEffect(e.target.value));
+                
+                // Set up interactive elements
+                this.setupInteractiveElements();
+                
+                // Hide default cursor
+                document.body.style.cursor = 'none';
+                
+                // Start animation loop
+                this.animate();
+            }
+
+            setupInteractiveElements() {
+                // Interactive buttons
+                document.querySelectorAll('.interactive-button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.triggerSquish(e.clientX, e.clientY);
+                        this.createRipple(e.clientX, e.clientY);
+                    });
+                });
+                
+                // Bounce elements
+                document.querySelectorAll('.bounce-element').forEach(element => {
+                    element.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.triggerSquish(e.clientX, e.clientY);
+                        element.classList.add('bouncing');
+                        setTimeout(() => element.classList.remove('bouncing'), 600);
+                    });
+                });
+                
+                // Power zone
+                const powerZone = document.getElementById('powerZone');
+                powerZone.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    this.powerCharging = true;
+                    this.chargePower();
+                });
+                
+                powerZone.addEventListener('mouseup', (e) => {
+                    e.stopPropagation();
+                    if (this.powerCharging) {
+                        this.powerCharging = false;
+                        this.releasePower(e.clientX, e.clientY);
+                    }
+                });
+            }
+
+            handleMouseMove(e) {
+                this.currentX = e.clientX;
+                this.currentY = e.clientY;
+                
+                // Update cursor position
+                this.cursor.style.left = this.currentX + 'px';
+                this.cursor.style.top = this.currentY + 'px';
+                
+                // Update displays
+                this.cursorPosDisplay.textContent = `${Math.round(this.currentX)}, ${Math.round(this.currentY)}`;
+            }
+
+            handleClick(e) {
+                // Don't trigger on interactive elements
+                if (e.target.closest('.interactive-button') || 
+                    e.target.closest('.bounce-element') ||
+                    e.target.closest('#powerZone')) {
+                    return;
+                }
+                
+                this.triggerSquish(e.clientX, e.clientY);
+                this.createRipple(e.clientX, e.clientY);
+                this.updateCombo();
+            }
+
+            handleMouseDown(e) {
+                // Handle power charging in power zone
+                if (e.target.closest('#powerZone')) {
+                    this.powerCharging = true;
+                    this.chargePower();
+                }
+            }
+
+            handleMouseUp(e) {
+                if (this.powerCharging) {
+                    this.powerCharging = false;
+                    this.releasePower(e.clientX, e.clientY);
+                }
+            }
+
+            triggerSquish(x, y) {
+                // Remove existing animation
+                this.cursor.classList.remove('squishing');
+                
+                // Force reflow
+                void this.cursor.offsetWidth;
+                
+                // Add squish animation
+                this.cursor.classList.add('squishing');
+                
+                // Update animation based on style
+                this.updateSquishAnimation();
+                
+                // Create particles
+                this.createParticles(x, y);
+                
+                // Update click count
+                this.clickCount++;
+                this.clickCountDisplay.textContent = this.clickCount;
+                
+                // Update squish power meter
+                const power = Math.min(100, this.clickCount * 5);
+                this.squishPowerDisplay.textContent = power;
+                this.squishFill.style.width = power + '%';
+                
+                // Remove animation class after completion
+                setTimeout(() => {
+                    this.cursor.classList.remove('squishing');
+                }, this.squishSpeed * 1000);
+            }
+
+            updateSquishAnimation() {
+                const intensity = this.squishIntensity;
+                const speed = this.squishSpeed;
+                
+                let keyframes = '';
+                
+                switch (this.squishStyle) {
+                    case 'vertical':
+                        keyframes = `
+                            @keyframes squish {
+                                0% { transform: translate(-50%, -50%) scaleY(1); }
+                                30% { transform: translate(-50%, -50%) scaleY(${intensity}) scaleX(${1 + (1 - intensity) * 0.5}); }
+                                60% { transform: translate(-50%, -50%) scaleY(${1 + (1 - intensity) * 0.3}) scaleX(${1 - (1 - intensity) * 0.2}); }
+                                100% { transform: translate(-50%, -50%) scaleY(1); }
+                            }
+                        `;
+                        break;
+                    case 'horizontal':
+                        keyframes = `
+                            @keyframes squish {
+                                0% { transform: translate(-50%, -50%) scaleX(1); }
+                                30% { transform: translate(-50%, -50%) scaleX(${intensity}) scaleY(${1 + (1 - intensity) * 0.5}); }
+                                60% { transform: translate(-50%, -50%) scaleX(${1 + (1 - intensity) * 0.3}) scaleY(${1 - (1 - intensity) * 0.2}); }
+                                100% { transform: translate(-50%, -50%) scaleX(1); }
+                            }
+                        `;
+                        break;
+                    case 'both':
+                        keyframes = `
+                            @keyframes squish {
+                                0% { transform: translate(-50%, -50%) scale(1); }
+                                30% { transform: translate(-50%, -50%) scale(${intensity}, ${intensity}); }
+                                60% { transform: translate(-50%, -50%) scale(${1 + (1 - intensity) * 0.3}); }
+                                100% { transform: translate(-50%, -50%) scale(1); }
+                            }
+                        `;
+                        break;
+                    case 'rotate':
+                        keyframes = `
+                            @keyframes squish {
+                                0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+                                30% { transform: translate(-50%, -50%) rotate(180deg) scale(${intensity}); }
+                                60% { transform: translate(-50%, -50%) rotate(270deg) scale(${1 + (1 - intensity) * 0.3}); }
+                                100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); }
+                            }
+                        `;
+                        break;
+                    case 'elastic':
+                        keyframes = `
+                            @keyframes squish {
+                                0% { transform: translate(-50%, -50%) scale(1); }
+                                20% { transform: translate(-50%, -50%) scale(${intensity}) rotate(10deg); }
+                                40% { transform: translate(-50%, -50%) scale(${1 + (1 - intensity) * 0.5}) rotate(-10deg); }
+                                60% { transform: translate(-50%, -50%) scale(${intensity * 0.8}) rotate(5deg); }
+                                80% { transform: translate(-50%, -50%) scale(${1 + (1 - intensity) * 0.2}) rotate(-5deg); }
+                                100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+                            }
+                        `;
+                        break;
+                }
+                
+                // Update CSS animation
+                let styleElement = document.getElementById('squishStyles');
+                if (!styleElement) {
+                    styleElement = document.createElement('style');
+                    styleElement.id = 'squishStyles';
+                    document.head.appendChild(styleElement);
+                }
+                styleElement.textContent = keyframes;
+                
+                // Update animation duration
+                this.cursor.style.animationDuration = speed + 's';
+            }
+
+            createParticles(x, y) {
+                if (this.particleEffect === 'none') return;
+                
+                const particleCount = this.particleEffect === 'explosion' ? 12 : 6;
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'squish-particle';
+                    particle.style.left = x + 'px';
+                    particle.style.top = y + 'px';
+                    
+                    // Set particle direction
+                    const angle = (i / particleCount) * Math.PI * 2;
+                    const distance = this.particleEffect === 'explosion' ? 100 : 50;
+                    const tx = Math.cos(angle) * distance;
+                    const ty = Math.sin(angle) * distance;
+                    
+                    particle.style.setProperty('--tx', tx + 'px');
+                    particle.style.setProperty('--ty', ty + 'px');
+                    
+                    // Vary particle appearance
+                    if (this.particleEffect === 'sparkles') {
+                        particle.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                        particle.style.width = '4px';
+                        particle.style.height = '4px';
+                    } else if (this.particleEffect === 'spray') {
+                        particle.style.background = 'var(--jazer-cyan)';
+                        particle.style.width = '3px';
+                        particle.style.height = '3px';
+                    }
+                    
+                    document.body.appendChild(particle);
+                    
+                    // Remove particle after animation
+                    setTimeout(() => particle.remove(), 800);
+                }
+            }
+
+            createRipple(x, y) {
+                const ripple = document.createElement('div');
+                ripple.className = 'ripple';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                
+                document.body.appendChild(ripple);
+                
+                setTimeout(() => ripple.remove(), 600);
+            }
+
+            updateCombo() {
+                this.comboCount++;
+                this.comboCountDisplay.textContent = this.comboCount;
+                
+                // Show combo indicator for milestones
+                if (this.comboCount % 5 === 0) {
+                    this.showComboIndicator(this.comboCount);
+                }
+                
+                // Reset combo timer
+                clearTimeout(this.comboTimer);
+                this.comboTimer = setTimeout(() => {
+                    this.comboCount = 0;
+                    this.comboCountDisplay.textContent = '0';
+                }, 1000);
+            }
+
+            showComboIndicator(combo) {
+                this.comboIndicator.textContent = `${combo}x COMBO!`;
+                this.comboIndicator.classList.remove('show');
+                void this.comboIndicator.offsetWidth;
+                this.comboIndicator.classList.add('show');
+            }
+
+            chargePower() {
+                if (!this.powerCharging) return;
+                
+                this.powerLevel = Math.min(100, this.powerLevel + 2);
+                this.powerFill.style.width = this.powerLevel + '%';
+                
+                if (this.powerCharging) {
+                    requestAnimationFrame(() => this.chargePower());
+                }
+            }
+
+            releasePower(x, y) {
+                if (this.powerLevel > 0) {
+                    // Trigger super squish based on power level
+                    const intensity = this.squishIntensity * (1 + this.powerLevel / 100);
+                    this.squishIntensity = intensity;
+                    this.triggerSquish(x, y);
+                    this.squishIntensity = parseFloat(this.intensityInput.value);
+                    
+                    // Create extra effects
+                    this.createParticles(x, y);
+                    this.createRipple(x, y);
+                    
+                    // Reset power
+                    this.powerLevel = 0;
+                    this.powerFill.style.width = '0%';
+                }
+            }
+
+            updateIntensity(value) {
+                this.squishIntensity = parseFloat(value);
+                this.intensityValueDisplay.textContent = value;
+            }
+
+            updateSpeed(value) {
+                this.squishSpeed = parseFloat(value);
+                this.speedValueDisplay.textContent = value;
+            }
+
+            updateSize(value) {
+                this.cursorSize = parseInt(value);
+                this.sizeValueDisplay.textContent = value;
+                this.cursor.style.width = this.cursorSize + 'px';
+                this.cursor.style.height = this.cursorSize + 'px';
+            }
+
+            updateStyle(value) {
+                this.squishStyle = value;
+            }
+
+            updateParticleEffect(value) {
+                this.particleEffect = value;
+            }
+
+            showCursor() {
+                this.cursor.style.display = 'block';
+            }
+
+            hideCursor() {
+                this.cursor.style.display = 'none';
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // Initialize squish cursor
+        const squishCursor = new SquishCursor();
+    </script>
+</body>
+</html>

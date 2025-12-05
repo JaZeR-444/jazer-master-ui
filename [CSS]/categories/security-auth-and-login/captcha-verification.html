@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAPTCHA Verification - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            font-family: var(--font-body);
+            color: #ffffff;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            transform: translateX(-5px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        .variants-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .captcha-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .captcha-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 255, 255, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        /* Image Selection CAPTCHA */
+        .captcha-instruction {
+            color: #e0e0e0;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .image-tile {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(139, 0, 255, 0.1));
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            position: relative;
+        }
+
+        .image-tile:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .image-tile.selected {
+            border-color: var(--jazer-neon-green);
+            background: linear-gradient(135deg, rgba(57, 255, 20, 0.2), rgba(0, 255, 255, 0.2));
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.5);
+        }
+
+        .image-tile.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 24px;
+            height: 24px;
+            background: var(--jazer-neon-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #0a0a0a;
+            font-weight: bold;
+        }
+
+        /* Checkbox CAPTCHA */
+        .checkbox-captcha {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.05), rgba(139, 0, 255, 0.05));
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .checkbox-captcha:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .checkbox-captcha.verified {
+            border-color: var(--jazer-neon-green);
+            background: linear-gradient(135deg, rgba(57, 255, 20, 0.1), rgba(0, 255, 255, 0.1));
+        }
+
+        .captcha-checkbox {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--jazer-cyan);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .checkbox-captcha.verified .captcha-checkbox {
+            background: var(--jazer-neon-green);
+            border-color: var(--jazer-neon-green);
+            animation: checkPulse 0.5s ease;
+        }
+
+        @keyframes checkPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .checkbox-label {
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(0, 255, 255, 0.3);
+            border-top-color: var(--jazer-cyan);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Math CAPTCHA */
+        .math-captcha {
+            text-align: center;
+        }
+
+        .math-equation {
+            font-size: 2rem;
+            font-weight: bold;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 1.5rem 0;
+            letter-spacing: 0.5rem;
+        }
+
+        .math-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 1.2rem;
+            text-align: center;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .math-input:focus {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        /* Slider CAPTCHA */
+        .slider-captcha {
+            position: relative;
+        }
+
+        .slider-track {
+            height: 60px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 30px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .slider-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--jazer-cyan), var(--jazer-purple));
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .slider-handle {
+            position: absolute;
+            top: 50%;
+            left: 0%;
+            transform: translate(-50%, -50%);
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            border: 3px solid #0a0a0a;
+            border-radius: 50%;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+            transition: transform 0.1s ease;
+        }
+
+        .slider-handle:active {
+            cursor: grabbing;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .slider-instruction {
+            text-align: center;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        /* Verify Button */
+        .verify-button {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(139, 0, 255, 0.1));
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .verify-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .verify-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-message.success {
+            background: rgba(57, 255, 20, 0.2);
+            border: 2px solid var(--jazer-neon-green);
+            color: var(--jazer-neon-green);
+        }
+
+        .status-message.error {
+            background: rgba(255, 0, 127, 0.2);
+            border: 2px solid var(--jazer-pink);
+            color: var(--jazer-pink);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .variants-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to Security, Auth & Login</a>
+    
+    <div class="header">
+        <h1>CAPTCHA Verification</h1>
+        <p>Four professional CAPTCHA variants for human verification</p>
+    </div>
+
+    <div class="variants-container">
+        <!-- Image Selection CAPTCHA -->
+        <div class="captcha-card">
+            <div class="card-title">Image Selection</div>
+            <div class="captcha-instruction">Select all images containing <strong>traffic lights</strong></div>
+            <div class="image-grid" id="imageGrid">
+                <div class="image-tile" data-type="traffic">🚦</div>
+                <div class="image-tile" data-type="car">🚗</div>
+                <div class="image-tile" data-type="traffic">🚦</div>
+                <div class="image-tile" data-type="tree">🌲</div>
+                <div class="image-tile" data-type="traffic">🚦</div>
+                <div class="image-tile" data-type="building">🏢</div>
+                <div class="image-tile" data-type="car">🚙</div>
+                <div class="image-tile" data-type="tree">🌳</div>
+                <div class="image-tile" data-type="building">🏛️</div>
+            </div>
+            <button class="verify-button" onclick="verifyImages()">Verify Selection</button>
+            <div id="imageStatus"></div>
+        </div>
+
+        <!-- Checkbox CAPTCHA -->
+        <div class="captcha-card">
+            <div class="card-title">Checkbox Verification</div>
+            <div class="checkbox-captcha" id="checkboxCaptcha" onclick="verifyCheckbox()">
+                <div class="captcha-checkbox" id="checkbox"></div>
+                <div class="checkbox-label">I'm not a robot</div>
+            </div>
+            <div id="checkboxStatus"></div>
+        </div>
+
+        <!-- Math CAPTCHA -->
+        <div class="captcha-card">
+            <div class="card-title">Math Challenge</div>
+            <div class="math-captcha">
+                <div class="captcha-instruction">Solve the equation below</div>
+                <div class="math-equation" id="mathEquation">7 + 5 = ?</div>
+                <input type="number" class="math-input" id="mathInput" placeholder="Enter answer">
+                <button class="verify-button" onclick="verifyMath()">Submit Answer</button>
+                <div id="mathStatus"></div>
+            </div>
+        </div>
+
+        <!-- Slider CAPTCHA -->
+        <div class="captcha-card">
+            <div class="card-title">Slider Verification</div>
+            <div class="slider-captcha">
+                <div class="captcha-instruction">Slide to complete verification</div>
+                <div class="slider-track" id="sliderTrack">
+                    <div class="slider-progress" id="sliderProgress"></div>
+                    <div class="slider-handle" id="sliderHandle">→</div>
+                </div>
+                <div class="slider-instruction">Drag the slider to the right</div>
+                <div id="sliderStatus"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Image Selection CAPTCHA
+        const imageTiles = document.querySelectorAll('.image-tile');
+        imageTiles.forEach(tile => {
+            tile.addEventListener('click', () => {
+                tile.classList.toggle('selected');
+            });
+        });
+
+        function verifyImages() {
+            const selected = document.querySelectorAll('.image-tile.selected');
+            const correctSelections = Array.from(selected).filter(tile => 
+                tile.dataset.type === 'traffic'
+            );
+            const allTrafficLights = document.querySelectorAll('[data-type="traffic"]');
+            
+            const statusDiv = document.getElementById('imageStatus');
+            
+            if (correctSelections.length === allTrafficLights.length && selected.length === allTrafficLights.length) {
+                statusDiv.innerHTML = '<div class="status-message success">✓ Verification successful!</div>';
+            } else {
+                statusDiv.innerHTML = '<div class="status-message error">✗ Incorrect selection. Try again.</div>';
+            }
+        }
+
+        // Checkbox CAPTCHA
+        let checkboxVerified = false;
+        function verifyCheckbox() {
+            if (checkboxVerified) return;
+            
+            const checkbox = document.getElementById('checkbox');
+            const captchaDiv = document.getElementById('checkboxCaptcha');
+            const statusDiv = document.getElementById('checkboxStatus');
+            
+            checkbox.innerHTML = '<div class="loading-spinner"></div>';
+            captchaDiv.style.pointerEvents = 'none';
+            
+            setTimeout(() => {
+                checkbox.innerHTML = '✓';
+                checkbox.style.color = '#0a0a0a';
+                captchaDiv.classList.add('verified');
+                checkboxVerified = true;
+                captchaDiv.style.pointerEvents = 'auto';
+                statusDiv.innerHTML = '<div class="status-message success">✓ Verification successful!</div>';
+            }, 1500);
+        }
+
+        // Math CAPTCHA
+        let mathAnswer = 12;
+        function generateMathProblem() {
+            const num1 = Math.floor(Math.random() * 10) + 1;
+            const num2 = Math.floor(Math.random() * 10) + 1;
+            mathAnswer = num1 + num2;
+            document.getElementById('mathEquation').textContent = `${num1} + ${num2} = ?`;
+        }
+
+        function verifyMath() {
+            const input = document.getElementById('mathInput');
+            const statusDiv = document.getElementById('mathStatus');
+            const userAnswer = parseInt(input.value);
+            
+            if (userAnswer === mathAnswer) {
+                statusDiv.innerHTML = '<div class="status-message success">✓ Correct answer!</div>';
+                setTimeout(generateMathProblem, 2000);
+            } else {
+                statusDiv.innerHTML = '<div class="status-message error">✗ Incorrect. Try again.</div>';
+            }
+            input.value = '';
+        }
+
+        // Slider CAPTCHA
+        const sliderHandle = document.getElementById('sliderHandle');
+        const sliderTrack = document.getElementById('sliderTrack');
+        const sliderProgress = document.getElementById('sliderProgress');
+        let isDragging = false;
+        let sliderVerified = false;
+
+        sliderHandle.addEventListener('mousedown', () => {
+            if (!sliderVerified) isDragging = true;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            
+            const trackRect = sliderTrack.getBoundingClientRect();
+            let x = e.clientX - trackRect.left;
+            x = Math.max(0, Math.min(x, trackRect.width));
+            
+            const percentage = (x / trackRect.width) * 100;
+            sliderProgress.style.width = percentage + '%';
+            sliderHandle.style.left = percentage + '%';
+            
+            if (percentage >= 95) {
+                completeSlider();
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging && !sliderVerified) {
+                // Reset if not completed
+                sliderProgress.style.width = '0%';
+                sliderHandle.style.left = '0%';
+            }
+            isDragging = false;
+        });
+
+        function completeSlider() {
+            if (sliderVerified) return;
+            
+            isDragging = false;
+            sliderVerified = true;
+            sliderProgress.style.width = '100%';
+            sliderHandle.style.left = '100%';
+            sliderHandle.innerHTML = '✓';
+            sliderHandle.style.cursor = 'default';
+            
+            const statusDiv = document.getElementById('sliderStatus');
+            statusDiv.innerHTML = '<div class="status-message success">✓ Slider verified!</div>';
+        }
+
+        // Initialize
+        generateMathProblem();
+    </script>
+</body>
+</html>

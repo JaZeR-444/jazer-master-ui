@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Card Validator</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            background: rgba(0, 217, 255, 0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateX(-5px);
+        }
+        h1 {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        .card-display {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .card-number {
+            font-family: 'Courier New', monospace;
+            font-size: 1.8rem;
+            letter-spacing: 3px;
+            color: white;
+        }
+        .card-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+        .card-type {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+        }
+        input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 1.1rem;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            margin-bottom: 1.5rem;
+        }
+        input.valid {
+            border-color: #39ff14;
+        }
+        input.invalid {
+            border-color: #ff3366;
+        }
+        .result {
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .result.valid {
+            background: rgba(57, 255, 20, 0.1);
+            border: 2px solid #39ff14;
+            color: #39ff14;
+        }
+        .result.invalid {
+            background: rgba(255, 51, 102, 0.1);
+            border: 2px solid #ff3366;
+            color: #ff3366;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    
+    <div class="container">
+        <h1>💳 Credit Card Validator</h1>
+        
+        <div class="card-display">
+            <div class="card-number" id="cardNumber">•••• •••• •••• ••••</div>
+            <div class="card-info">
+                <div class="card-type" id="cardType">CARD TYPE</div>
+            </div>
+        </div>
+        
+        <input type="text" id="input" placeholder="Enter card number" maxlength="19">
+        
+        <div class="result" id="result" style="display: none;"></div>
+    </div>
+    
+    <script>
+        const input = document.getElementById('input');
+        
+        input.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\s/g, '');
+            if (value.length > 16) value = value.slice(0, 16);
+            
+            // Format with spaces
+            const formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formatted;
+            
+            validate(value);
+        });
+        
+        function validate(cardNumber) {
+            const display = document.getElementById('cardNumber');
+            const typeDisplay = document.getElementById('cardType');
+            const result = document.getElementById('result');
+            
+            if (!cardNumber) {
+                display.textContent = '•••• •••• •••• ••••';
+                typeDisplay.textContent = 'CARD TYPE';
+                result.style.display = 'none';
+                input.className = '';
+                return;
+            }
+            
+            // Display formatted number
+            const formatted = cardNumber.match(/.{1,4}/g)?.join(' ') || cardNumber;
+            const padded = formatted + ' ••••'.repeat(Math.max(0, 4 - Math.ceil(cardNumber.length / 4)));
+            display.textContent = padded.slice(0, 19);
+            
+            // Detect card type
+            const type = detectCardType(cardNumber);
+            typeDisplay.textContent = type;
+            
+            // Validate with Luhn algorithm
+            const isValid = luhnCheck(cardNumber);
+            
+            input.className = isValid && cardNumber.length >= 13 ? 'valid' : 'invalid';
+            result.style.display = 'block';
+            result.className = 'result ' + (isValid && cardNumber.length >= 13 ? 'valid' : 'invalid');
+            result.textContent = isValid && cardNumber.length >= 13 ? '✓ Valid Card' : '✗ Invalid Card';
+        }
+        
+        function detectCardType(number) {
+            if (/^4/.test(number)) return 'VISA';
+            if (/^5[1-5]/.test(number)) return 'MASTERCARD';
+            if (/^3[47]/.test(number)) return 'AMEX';
+            if (/^6(?:011|5)/.test(number)) return 'DISCOVER';
+            return 'UNKNOWN';
+        }
+        
+        function luhnCheck(cardNumber) {
+            if (!/^\d+$/.test(cardNumber)) return false;
+            
+            let sum = 0;
+            let isEven = false;
+            
+            for (let i = cardNumber.length - 1; i >= 0; i--) {
+                let digit = parseInt(cardNumber[i]);
+                
+                if (isEven) {
+                    digit *= 2;
+                    if (digit > 9) digit -= 9;
+                }
+                
+                sum += digit;
+                isEven = !isEven;
+            }
+            
+            return sum % 10 === 0;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Step Progress Wizard - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%); 
+            min-height: 100vh; 
+            padding: 2rem; 
+            color: white; 
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        /* Header */
+        .back-button { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            padding: 0.75rem 1.5rem; 
+            border: 2px solid var(--jazer-cyan); 
+            border-radius: 12px; 
+            background: rgba(0, 255, 255, 0.1); 
+            transition: all 0.3s ease; 
+            margin-bottom: 2rem; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: #0a0a0a; 
+            transform: translateX(-5px); 
+        }
+        
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 3rem 2rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.1) 0%, rgba(147, 51, 234, 0.1) 50%, rgba(255, 0, 110, 0.1) 100%);
+            border-radius: 24px;
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink), transparent);
+        }
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            background: linear-gradient(135deg, #00f2ea, #9333ea, #ff006e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 60px rgba(0, 242, 234, 0.5);
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+        .control-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            background: rgba(0, 242, 234, 0.1);
+            color: var(--jazer-cyan);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-secondary);
+        }
+        .control-btn:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 242, 234, 0.3);
+        }
+        .control-btn.active {
+            background: var(--jazer-purple);
+            border-color: var(--jazer-purple);
+            color: white;
+        }
+        
+        /* Grid Layout */
+        .styles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+        
+        /* Style Card */
+        .style-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 20px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .style-card:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 40px rgba(0, 242, 234, 0.2);
+            transform: translateY(-5px);
+        }
+        .style-label {
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: var(--jazer-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .style-label::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--jazer-cyan);
+        }
+        
+        .demo-area {
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ==================== STYLE 1: Horizontal Numbered ==================== */
+        .wizard-horizontal {
+            width: 100%;
+        }
+        .wizard-horizontal__steps {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        .wizard-horizontal__line {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            right: 30px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 0;
+        }
+        .wizard-horizontal__progress {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--jazer-cyan), var(--jazer-purple));
+            z-index: 1;
+            transition: width 0.5s ease;
+        }
+        .wizard-horizontal__step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+        .wizard-horizontal__number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(20, 20, 30, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        .wizard-horizontal__step--completed .wizard-horizontal__number {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            border-color: transparent;
+            color: #0a0a0a;
+        }
+        .wizard-horizontal__step--active .wizard-horizontal__number {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.5);
+            color: var(--jazer-cyan);
+        }
+        .wizard-horizontal__label {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+        }
+        .wizard-horizontal__step--completed .wizard-horizontal__label,
+        .wizard-horizontal__step--active .wizard-horizontal__label {
+            color: var(--jazer-cyan);
+        }
+
+        /* ==================== STYLE 2: Vertical Timeline ==================== */
+        .wizard-vertical {
+            width: 100%;
+            padding-left: 2rem;
+        }
+        .wizard-vertical__step {
+            position: relative;
+            padding-bottom: 1.5rem;
+            padding-left: 2rem;
+        }
+        .wizard-vertical__step:last-child { padding-bottom: 0; }
+        .wizard-vertical__step::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .wizard-vertical__step:last-child::before { display: none; }
+        .wizard-vertical__step--completed::before {
+            background: linear-gradient(180deg, var(--jazer-cyan), var(--jazer-purple));
+        }
+        .wizard-vertical__dot {
+            position: absolute;
+            left: -8px;
+            top: 0;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(20, 20, 30, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .wizard-vertical__step--completed .wizard-vertical__dot {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+        }
+        .wizard-vertical__step--active .wizard-vertical__dot {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(0, 242, 234, 0.5);
+        }
+        .wizard-vertical__title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 0.25rem;
+        }
+        .wizard-vertical__step--completed .wizard-vertical__title,
+        .wizard-vertical__step--active .wizard-vertical__title {
+            color: white;
+        }
+        .wizard-vertical__desc {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* ==================== STYLE 3: Icon Steps ==================== */
+        .wizard-icons {
+            width: 100%;
+        }
+        .wizard-icons__steps {
+            display: flex;
+            justify-content: space-around;
+            position: relative;
+        }
+        .wizard-icons__connector {
+            position: absolute;
+            top: 25px;
+            left: 15%;
+            right: 15%;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .wizard-icons__step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        .wizard-icons__icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: rgba(20, 20, 30, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            transition: all 0.3s ease;
+        }
+        .wizard-icons__step--completed .wizard-icons__icon {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            border-color: transparent;
+        }
+        .wizard-icons__step--active .wizard-icons__icon {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 25px rgba(0, 242, 234, 0.4);
+        }
+        .wizard-icons__label {
+            margin-top: 0.5rem;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .wizard-icons__step--completed .wizard-icons__label,
+        .wizard-icons__step--active .wizard-icons__label {
+            color: var(--jazer-cyan);
+        }
+
+        /* ==================== STYLE 4: Progress Bar ==================== */
+        .wizard-progress {
+            width: 100%;
+        }
+        .wizard-progress__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        .wizard-progress__title {
+            font-size: 0.9rem;
+            color: white;
+            font-weight: 600;
+        }
+        .wizard-progress__count {
+            font-size: 0.85rem;
+            color: var(--jazer-cyan);
+            font-family: var(--font-secondary);
+        }
+        .wizard-progress__bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        .wizard-progress__fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .wizard-progress__steps {
+            display: flex;
+            justify-content: space-between;
+        }
+        .wizard-progress__step {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: center;
+        }
+        .wizard-progress__step--completed,
+        .wizard-progress__step--active {
+            color: var(--jazer-cyan);
+        }
+
+        /* ==================== STYLE 5: Card Steps ==================== */
+        .wizard-cards {
+            width: 100%;
+            display: flex;
+            gap: 0.75rem;
+        }
+        .wizard-cards__step {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .wizard-cards__step--completed {
+            background: rgba(0, 242, 234, 0.1);
+            border-color: rgba(0, 242, 234, 0.3);
+        }
+        .wizard-cards__step--active {
+            background: rgba(147, 51, 234, 0.1);
+            border-color: var(--jazer-purple);
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.3);
+        }
+        .wizard-cards__number {
+            font-family: var(--font-primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.2);
+            margin-bottom: 0.25rem;
+        }
+        .wizard-cards__step--completed .wizard-cards__number {
+            color: var(--jazer-cyan);
+        }
+        .wizard-cards__step--active .wizard-cards__number {
+            color: var(--jazer-purple);
+        }
+        .wizard-cards__label {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .wizard-cards__step--completed .wizard-cards__label,
+        .wizard-cards__step--active .wizard-cards__label {
+            color: white;
+        }
+
+        /* ==================== STYLE 6: Dots Style ==================== */
+        .wizard-dots {
+            width: 100%;
+            text-align: center;
+        }
+        .wizard-dots__track {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .wizard-dots__dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .wizard-dots__dot--completed {
+            background: var(--jazer-cyan);
+            box-shadow: 0 0 10px var(--jazer-cyan);
+        }
+        .wizard-dots__dot--active {
+            width: 30px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, var(--jazer-cyan), var(--jazer-purple));
+        }
+        .wizard-dots__connector {
+            width: 20px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .wizard-dots__connector--completed {
+            background: var(--jazer-cyan);
+        }
+        .wizard-dots__label {
+            font-size: 0.9rem;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+        .wizard-dots__sublabel {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 0.25rem;
+        }
+
+        /* ==================== STYLE 7: Breadcrumb Style ==================== */
+        .wizard-breadcrumb {
+            width: 100%;
+        }
+        .wizard-breadcrumb__track {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+        .wizard-breadcrumb__step {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+        .wizard-breadcrumb__step--completed {
+            background: rgba(0, 242, 234, 0.1);
+            color: var(--jazer-cyan);
+        }
+        .wizard-breadcrumb__step--active {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+        }
+        .wizard-breadcrumb__check {
+            font-size: 0.9rem;
+        }
+        .wizard-breadcrumb__arrow {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        .wizard-breadcrumb__info {
+            padding: 1rem;
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 8px;
+        }
+        .wizard-breadcrumb__title {
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+        .wizard-breadcrumb__desc {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* ==================== STYLE 8: Cyberpunk Style ==================== */
+        .wizard-cyberpunk {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(0, 10, 20, 0.8) 0%, rgba(20, 0, 30, 0.8) 100%);
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            position: relative;
+        }
+        .wizard-cyberpunk::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--jazer-cyan), var(--jazer-purple), transparent);
+        }
+        .wizard-cyberpunk__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .wizard-cyberpunk__title {
+            font-family: var(--font-secondary);
+            font-size: 0.7rem;
+            color: var(--jazer-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .wizard-cyberpunk__percent {
+            font-family: var(--font-primary);
+            font-size: 1.2rem;
+            color: var(--jazer-purple);
+        }
+        .wizard-cyberpunk__steps {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .wizard-cyberpunk__step {
+            flex: 1;
+            position: relative;
+        }
+        .wizard-cyberpunk__bar {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-bottom: 0.5rem;
+        }
+        .wizard-cyberpunk__bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--jazer-cyan), var(--jazer-purple));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        .wizard-cyberpunk__step--completed .wizard-cyberpunk__bar-fill {
+            width: 100%;
+        }
+        .wizard-cyberpunk__step--active .wizard-cyberpunk__bar-fill {
+            width: 50%;
+            animation: cyber-pulse 1.5s infinite;
+        }
+        @keyframes cyber-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .wizard-cyberpunk__label {
+            font-size: 0.6rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .wizard-cyberpunk__step--completed .wizard-cyberpunk__label,
+        .wizard-cyberpunk__step--active .wizard-cyberpunk__label {
+            color: var(--jazer-cyan);
+        }
+        .wizard-cyberpunk__status {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            color: rgba(0, 242, 234, 0.7);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            margin-top: 3rem;
+            border-top: 1px solid rgba(0, 242, 234, 0.2);
+        }
+        footer p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+        .keyboard-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--jazer-cyan);
+        }
+        .keyboard-hint kbd {
+            background: rgba(0, 242, 234, 0.2);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .styles-grid { grid-template-columns: 1fr; }
+            .hero { padding: 2rem 1rem; }
+            .hero h1 { font-size: 2rem; }
+            .controls { gap: 0.5rem; }
+            .control-btn { padding: 0.5rem 1rem; font-size: 0.85rem; }
+            .wizard-cards { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back</a>
+        
+        <div class="hero">
+            <h1>Step Progress Wizard</h1>
+            <p>8 stylish multi-step progress indicators for wizards and onboarding flows</p>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" onclick="prevStep()">← Previous</button>
+            <button class="control-btn active" onclick="resetSteps()">Reset</button>
+            <button class="control-btn" onclick="nextStep()">Next →</button>
+        </div>
+
+        <div class="styles-grid">
+            <!-- Style 1: Horizontal Numbered -->
+            <div class="style-card">
+                <div class="style-label">Horizontal Numbered</div>
+                <div class="demo-area">
+                    <div class="wizard-horizontal">
+                        <div class="wizard-horizontal__steps">
+                            <div class="wizard-horizontal__line"></div>
+                            <div class="wizard-horizontal__progress" id="h-progress"></div>
+                            <div class="wizard-horizontal__step wizard-horizontal__step--completed" data-step="1">
+                                <div class="wizard-horizontal__number">✓</div>
+                                <div class="wizard-horizontal__label">Account</div>
+                            </div>
+                            <div class="wizard-horizontal__step wizard-horizontal__step--active" data-step="2">
+                                <div class="wizard-horizontal__number">2</div>
+                                <div class="wizard-horizontal__label">Profile</div>
+                            </div>
+                            <div class="wizard-horizontal__step" data-step="3">
+                                <div class="wizard-horizontal__number">3</div>
+                                <div class="wizard-horizontal__label">Settings</div>
+                            </div>
+                            <div class="wizard-horizontal__step" data-step="4">
+                                <div class="wizard-horizontal__number">4</div>
+                                <div class="wizard-horizontal__label">Complete</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 2: Vertical Timeline -->
+            <div class="style-card">
+                <div class="style-label">Vertical Timeline</div>
+                <div class="demo-area">
+                    <div class="wizard-vertical">
+                        <div class="wizard-vertical__step wizard-vertical__step--completed" data-step="1">
+                            <div class="wizard-vertical__dot"></div>
+                            <div class="wizard-vertical__title">Create Account</div>
+                            <div class="wizard-vertical__desc">Email verified</div>
+                        </div>
+                        <div class="wizard-vertical__step wizard-vertical__step--active" data-step="2">
+                            <div class="wizard-vertical__dot"></div>
+                            <div class="wizard-vertical__title">Setup Profile</div>
+                            <div class="wizard-vertical__desc">In progress...</div>
+                        </div>
+                        <div class="wizard-vertical__step" data-step="3">
+                            <div class="wizard-vertical__dot"></div>
+                            <div class="wizard-vertical__title">Configure Settings</div>
+                            <div class="wizard-vertical__desc">Pending</div>
+                        </div>
+                        <div class="wizard-vertical__step" data-step="4">
+                            <div class="wizard-vertical__dot"></div>
+                            <div class="wizard-vertical__title">Finish Setup</div>
+                            <div class="wizard-vertical__desc">Pending</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 3: Icon Steps -->
+            <div class="style-card">
+                <div class="style-label">Icon Steps</div>
+                <div class="demo-area">
+                    <div class="wizard-icons">
+                        <div class="wizard-icons__steps">
+                            <div class="wizard-icons__connector"></div>
+                            <div class="wizard-icons__step wizard-icons__step--completed" data-step="1">
+                                <div class="wizard-icons__icon">✓</div>
+                                <div class="wizard-icons__label">Cart</div>
+                            </div>
+                            <div class="wizard-icons__step wizard-icons__step--active" data-step="2">
+                                <div class="wizard-icons__icon">📍</div>
+                                <div class="wizard-icons__label">Shipping</div>
+                            </div>
+                            <div class="wizard-icons__step" data-step="3">
+                                <div class="wizard-icons__icon">💳</div>
+                                <div class="wizard-icons__label">Payment</div>
+                            </div>
+                            <div class="wizard-icons__step" data-step="4">
+                                <div class="wizard-icons__icon">📦</div>
+                                <div class="wizard-icons__label">Confirm</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 4: Progress Bar -->
+            <div class="style-card">
+                <div class="style-label">Progress Bar</div>
+                <div class="demo-area">
+                    <div class="wizard-progress">
+                        <div class="wizard-progress__header">
+                            <span class="wizard-progress__title">Onboarding Progress</span>
+                            <span class="wizard-progress__count" id="progress-count">Step 2 of 4</span>
+                        </div>
+                        <div class="wizard-progress__bar">
+                            <div class="wizard-progress__fill" id="progress-fill" style="width: 50%"></div>
+                        </div>
+                        <div class="wizard-progress__steps">
+                            <span class="wizard-progress__step wizard-progress__step--completed">Welcome</span>
+                            <span class="wizard-progress__step wizard-progress__step--active">Profile</span>
+                            <span class="wizard-progress__step">Preferences</span>
+                            <span class="wizard-progress__step">Complete</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 5: Card Steps -->
+            <div class="style-card">
+                <div class="style-label">Card Steps</div>
+                <div class="demo-area">
+                    <div class="wizard-cards">
+                        <div class="wizard-cards__step wizard-cards__step--completed" data-step="1">
+                            <div class="wizard-cards__number">01</div>
+                            <div class="wizard-cards__label">Details</div>
+                        </div>
+                        <div class="wizard-cards__step wizard-cards__step--active" data-step="2">
+                            <div class="wizard-cards__number">02</div>
+                            <div class="wizard-cards__label">Review</div>
+                        </div>
+                        <div class="wizard-cards__step" data-step="3">
+                            <div class="wizard-cards__number">03</div>
+                            <div class="wizard-cards__label">Payment</div>
+                        </div>
+                        <div class="wizard-cards__step" data-step="4">
+                            <div class="wizard-cards__number">04</div>
+                            <div class="wizard-cards__label">Done</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 6: Dots Style -->
+            <div class="style-card">
+                <div class="style-label">Dots Navigation</div>
+                <div class="demo-area">
+                    <div class="wizard-dots">
+                        <div class="wizard-dots__track">
+                            <div class="wizard-dots__dot wizard-dots__dot--completed" data-step="1"></div>
+                            <div class="wizard-dots__connector wizard-dots__connector--completed"></div>
+                            <div class="wizard-dots__dot wizard-dots__dot--active" data-step="2"></div>
+                            <div class="wizard-dots__connector"></div>
+                            <div class="wizard-dots__dot" data-step="3"></div>
+                            <div class="wizard-dots__connector"></div>
+                            <div class="wizard-dots__dot" data-step="4"></div>
+                        </div>
+                        <div class="wizard-dots__label" id="dots-label">Step 2: Profile Setup</div>
+                        <div class="wizard-dots__sublabel">Complete your profile information</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 7: Breadcrumb Style -->
+            <div class="style-card">
+                <div class="style-label">Breadcrumb</div>
+                <div class="demo-area">
+                    <div class="wizard-breadcrumb">
+                        <div class="wizard-breadcrumb__track">
+                            <div class="wizard-breadcrumb__step wizard-breadcrumb__step--completed" data-step="1">
+                                <span class="wizard-breadcrumb__check">✓</span> Account
+                            </div>
+                            <span class="wizard-breadcrumb__arrow">→</span>
+                            <div class="wizard-breadcrumb__step wizard-breadcrumb__step--active" data-step="2">
+                                Profile
+                            </div>
+                            <span class="wizard-breadcrumb__arrow">→</span>
+                            <div class="wizard-breadcrumb__step" data-step="3">Settings</div>
+                            <span class="wizard-breadcrumb__arrow">→</span>
+                            <div class="wizard-breadcrumb__step" data-step="4">Finish</div>
+                        </div>
+                        <div class="wizard-breadcrumb__info">
+                            <div class="wizard-breadcrumb__title">Profile Setup</div>
+                            <div class="wizard-breadcrumb__desc">Add your personal information and photo</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 8: Cyberpunk Style -->
+            <div class="style-card">
+                <div class="style-label">Cyberpunk</div>
+                <div class="demo-area">
+                    <div class="wizard-cyberpunk">
+                        <div class="wizard-cyberpunk__header">
+                            <span class="wizard-cyberpunk__title">System Setup Protocol</span>
+                            <span class="wizard-cyberpunk__percent" id="cyber-percent">37%</span>
+                        </div>
+                        <div class="wizard-cyberpunk__steps">
+                            <div class="wizard-cyberpunk__step wizard-cyberpunk__step--completed" data-step="1">
+                                <div class="wizard-cyberpunk__bar">
+                                    <div class="wizard-cyberpunk__bar-fill"></div>
+                                </div>
+                                <div class="wizard-cyberpunk__label">Init</div>
+                            </div>
+                            <div class="wizard-cyberpunk__step wizard-cyberpunk__step--active" data-step="2">
+                                <div class="wizard-cyberpunk__bar">
+                                    <div class="wizard-cyberpunk__bar-fill"></div>
+                                </div>
+                                <div class="wizard-cyberpunk__label">Config</div>
+                            </div>
+                            <div class="wizard-cyberpunk__step" data-step="3">
+                                <div class="wizard-cyberpunk__bar">
+                                    <div class="wizard-cyberpunk__bar-fill"></div>
+                                </div>
+                                <div class="wizard-cyberpunk__label">Sync</div>
+                            </div>
+                            <div class="wizard-cyberpunk__step" data-step="4">
+                                <div class="wizard-cyberpunk__bar">
+                                    <div class="wizard-cyberpunk__bar-fill"></div>
+                                </div>
+                                <div class="wizard-cyberpunk__label">Deploy</div>
+                            </div>
+                        </div>
+                        <div class="wizard-cyberpunk__status" id="cyber-status">
+                            [SYS] Executing step 2... CONFIG_IN_PROGRESS
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Step Progress Wizard Components - JaZeR UI Library</p>
+            <div class="keyboard-hint">
+                <kbd>Space</kbd> to advance steps
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        let currentStep = 2;
+        const totalSteps = 4;
+
+        function updateAllWizards() {
+            // Update horizontal wizard
+            const hProgress = document.getElementById('h-progress');
+            const progressWidth = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            hProgress.style.width = `calc(${progressWidth}% - 30px)`;
+
+            // Update progress bar wizard
+            const progressFill = document.getElementById('progress-fill');
+            progressFill.style.width = `${(currentStep / totalSteps) * 100}%`;
+            document.getElementById('progress-count').textContent = `Step ${currentStep} of ${totalSteps}`;
+
+            // Update cyberpunk wizard
+            const cyberPercent = Math.round(((currentStep - 0.5) / totalSteps) * 100);
+            document.getElementById('cyber-percent').textContent = `${cyberPercent}%`;
+            const statusMessages = [
+                '[SYS] Initializing... INIT_COMPLETE',
+                '[SYS] Executing step 2... CONFIG_IN_PROGRESS',
+                '[SYS] Syncing data... SYNC_ACTIVE',
+                '[SYS] Deploying... DEPLOYMENT_READY'
+            ];
+            document.getElementById('cyber-status').textContent = statusMessages[currentStep - 1] || statusMessages[0];
+
+            // Update dots label
+            const stepLabels = ['Welcome', 'Profile Setup', 'Preferences', 'Complete'];
+            document.getElementById('dots-label').textContent = `Step ${currentStep}: ${stepLabels[currentStep - 1]}`;
+
+            // Update all step elements
+            document.querySelectorAll('[data-step]').forEach(el => {
+                const step = parseInt(el.dataset.step);
+                const completedClass = el.className.match(/wizard-\w+__step--completed/)?.[0] || 
+                                       el.className.match(/wizard-\w+__dot--completed/)?.[0];
+                const activeClass = el.className.match(/wizard-\w+__step--active/)?.[0] || 
+                                    el.className.match(/wizard-\w+__dot--active/)?.[0];
+                
+                // Remove existing state classes
+                el.classList.remove(
+                    'wizard-horizontal__step--completed', 'wizard-horizontal__step--active',
+                    'wizard-vertical__step--completed', 'wizard-vertical__step--active',
+                    'wizard-icons__step--completed', 'wizard-icons__step--active',
+                    'wizard-cards__step--completed', 'wizard-cards__step--active',
+                    'wizard-dots__dot--completed', 'wizard-dots__dot--active',
+                    'wizard-breadcrumb__step--completed', 'wizard-breadcrumb__step--active',
+                    'wizard-cyberpunk__step--completed', 'wizard-cyberpunk__step--active'
+                );
+
+                // Get base class name
+                const baseClass = el.className.split(' ')[0];
+
+                if (step < currentStep) {
+                    el.classList.add(`${baseClass}--completed`);
+                    // Update number display for horizontal wizard
+                    const numEl = el.querySelector('.wizard-horizontal__number');
+                    if (numEl) numEl.textContent = '✓';
+                } else if (step === currentStep) {
+                    el.classList.add(`${baseClass}--active`);
+                    const numEl = el.querySelector('.wizard-horizontal__number');
+                    if (numEl) numEl.textContent = step;
+                } else {
+                    const numEl = el.querySelector('.wizard-horizontal__number');
+                    if (numEl) numEl.textContent = step;
+                }
+            });
+
+            // Update progress step labels
+            document.querySelectorAll('.wizard-progress__step').forEach((el, i) => {
+                el.classList.remove('wizard-progress__step--completed', 'wizard-progress__step--active');
+                if (i + 1 < currentStep) {
+                    el.classList.add('wizard-progress__step--completed');
+                } else if (i + 1 === currentStep) {
+                    el.classList.add('wizard-progress__step--active');
+                }
+            });
+
+            // Update dots connectors
+            document.querySelectorAll('.wizard-dots__connector').forEach((el, i) => {
+                el.classList.toggle('wizard-dots__connector--completed', i + 1 < currentStep);
+            });
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateAllWizards();
+            }
+            updateActiveButton(2);
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateAllWizards();
+            }
+            updateActiveButton(0);
+        }
+
+        function resetSteps() {
+            currentStep = 2;
+            updateAllWizards();
+            updateActiveButton(1);
+        }
+
+        function updateActiveButton(index) {
+            document.querySelectorAll('.control-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target !== document.body) return;
+            
+            if (e.code === 'Space') {
+                e.preventDefault();
+                nextStep();
+            } else if (e.code === 'ArrowRight') {
+                nextStep();
+            } else if (e.code === 'ArrowLeft') {
+                prevStep();
+            }
+        });
+
+        // Initialize
+        updateAllWizards();
+    </script>
+</body>
+</html>

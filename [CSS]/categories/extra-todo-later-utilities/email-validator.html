@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Validator</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            background: rgba(0, 217, 255, 0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateX(-5px);
+        }
+        h1 {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        .input-group {
+            margin-bottom: 2rem;
+        }
+        label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 1.2rem;
+        }
+        input.valid {
+            border-color: #39ff14;
+        }
+        input.invalid {
+            border-color: #ff3366;
+        }
+        .result {
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .result.valid {
+            background: rgba(57, 255, 20, 0.1);
+            border: 2px solid #39ff14;
+            color: #39ff14;
+        }
+        .result.invalid {
+            background: rgba(255, 51, 102, 0.1);
+            border: 2px solid #ff3366;
+            color: #ff3366;
+        }
+        .checks {
+            display: grid;
+            gap: 1rem;
+        }
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(0, 217, 255, 0.05);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            border-radius: 8px;
+        }
+        .check-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        .check-icon.pass {
+            background: #39ff14;
+            color: black;
+        }
+        .check-icon.fail {
+            background: #ff3366;
+            color: white;
+        }
+        .check-text {
+            flex: 1;
+            color: white;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .info-card {
+            background: rgba(177, 0, 255, 0.1);
+            border: 1px solid var(--jazer-purple);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        .info-label {
+            color: var(--jazer-purple);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        .info-value {
+            color: white;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    
+    <div class="container">
+        <h1>📧 Email Validator</h1>
+        
+        <div class="input-group">
+            <label>Enter Email Address</label>
+            <input type="email" id="email" placeholder="example@domain.com">
+        </div>
+        
+        <div class="result" id="result" style="display: none;"></div>
+        
+        <div class="checks" id="checks"></div>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-label">Local Part</div>
+                <div class="info-value" id="localPart">-</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Domain</div>
+                <div class="info-value" id="domain">-</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">TLD</div>
+                <div class="info-value" id="tld">-</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const emailInput = document.getElementById('email');
+        
+        emailInput.addEventListener('input', validate);
+        
+        function validate() {
+            const email = emailInput.value.trim();
+            const result = document.getElementById('result');
+            const checksDiv = document.getElementById('checks');
+            
+            if (!email) {
+                result.style.display = 'none';
+                checksDiv.innerHTML = '';
+                emailInput.className = '';
+                document.getElementById('localPart').textContent = '-';
+                document.getElementById('domain').textContent = '-';
+                document.getElementById('tld').textContent = '-';
+                return;
+            }
+            
+            const checks = [
+                { test: email.length > 0, label: 'Email not empty' },
+                { test: email.includes('@'), label: 'Contains @ symbol' },
+                { test: email.split('@').length === 2, label: 'Has exactly one @ symbol' },
+                { test: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), label: 'Valid format' },
+                { test: email.split('@')[0]?.length >= 1, label: 'Has local part (before @)' },
+                { test: email.split('@')[1]?.length >= 3, label: 'Has valid domain' },
+                { test: /\.[a-z]{2,}$/i.test(email), label: 'Has valid TLD' },
+                { test: !/\.\./.test(email), label: 'No consecutive dots' },
+                { test: !/^[.]/.test(email) && !/[.]@/.test(email), label: 'No leading/trailing dots' },
+            ];
+            
+            const allPassed = checks.every(check => check.test);
+            
+            // Update input styling
+            emailInput.className = allPassed ? 'valid' : 'invalid';
+            
+            // Update result
+            result.style.display = 'block';
+            result.className = 'result ' + (allPassed ? 'valid' : 'invalid');
+            result.textContent = allPassed ? '✓ Valid Email Address' : '✗ Invalid Email Address';
+            
+            // Update checks
+            checksDiv.innerHTML = checks.map(check => `
+                <div class="check-item">
+                    <div class="check-icon ${check.test ? 'pass' : 'fail'}">
+                        ${check.test ? '✓' : '✗'}
+                    </div>
+                    <div class="check-text">${check.label}</div>
+                </div>
+            `).join('');
+            
+            // Update info
+            if (email.includes('@')) {
+                const parts = email.split('@');
+                document.getElementById('localPart').textContent = parts[0] || '-';
+                document.getElementById('domain').textContent = parts[1] || '-';
+                const tld = parts[1]?.split('.').pop() || '-';
+                document.getElementById('tld').textContent = tld;
+            } else {
+                document.getElementById('localPart').textContent = email;
+                document.getElementById('domain').textContent = '-';
+                document.getElementById('tld').textContent = '-';
+            }
+        }
+    </script>
+</body>
+</html>

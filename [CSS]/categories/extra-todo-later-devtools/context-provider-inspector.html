@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Context Provider Inspector - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: #0a0a0a;
+            min-height: 100vh;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        .devtools-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .devtools-header {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%);
+            border-bottom: 2px solid rgba(147, 51, 234, 0.4);
+            padding: 1rem 1.5rem;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-purple);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(147, 51, 234, 0.4);
+            border-radius: 6px;
+            background: rgba(147, 51, 234, 0.1);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-purple);
+            color: white;
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);
+        }
+
+        .devtools-title {
+            font-family: var(--font-primary);
+            font-size: 1.4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--jazer-purple), var(--jazer-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 6px;
+            padding: 0.4rem 0.75rem;
+        }
+
+        .search-box input {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            width: 180px;
+            outline: none;
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-icon {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .control-btn {
+            padding: 0.5rem 0.75rem;
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 6px;
+            color: var(--jazer-purple);
+            font-family: var(--font-secondary);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(147, 51, 234, 0.2);
+            border-color: var(--jazer-purple);
+        }
+
+        .control-btn.active {
+            background: var(--jazer-purple);
+            color: white;
+        }
+
+        /* Main Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        @media (min-width: 1100px) {
+            .main-content {
+                grid-template-columns: 320px 1fr 340px;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 1099px) {
+            .main-content {
+                grid-template-columns: 280px 1fr;
+            }
+        }
+
+        /* Provider Tree Panel */
+        .tree-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-right: 1px solid rgba(147, 51, 234, 0.2);
+            overflow-y: auto;
+            max-height: calc(100vh - 120px);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: rgba(147, 51, 234, 0.05);
+            border-bottom: 1px solid rgba(147, 51, 234, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .panel-title {
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .panel-badge {
+            background: rgba(147, 51, 234, 0.2);
+            color: var(--jazer-purple);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .tree-content {
+            padding: 0.5rem;
+        }
+
+        /* Provider Node */
+        .provider-node {
+            margin-bottom: 2px;
+        }
+
+        .provider-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 0.75rem;
+            background: rgba(147, 51, 234, 0.05);
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .provider-header:hover {
+            background: rgba(147, 51, 234, 0.1);
+            border-color: rgba(147, 51, 234, 0.2);
+        }
+
+        .provider-header.selected {
+            background: rgba(147, 51, 234, 0.15);
+            border-color: var(--jazer-purple);
+            box-shadow: 0 0 10px rgba(147, 51, 234, 0.2);
+        }
+
+        .provider-toggle {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            transition: transform 0.2s ease;
+        }
+
+        .provider-toggle.expanded {
+            transform: rotate(90deg);
+        }
+
+        .provider-toggle.empty {
+            visibility: hidden;
+        }
+
+        .provider-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+        }
+
+        .provider-icon.theme {
+            background: rgba(255, 190, 11, 0.2);
+            color: var(--jazer-yellow);
+        }
+
+        .provider-icon.auth {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .provider-icon.store {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--jazer-cyan);
+        }
+
+        .provider-icon.router {
+            background: rgba(236, 72, 153, 0.2);
+            color: var(--jazer-pink);
+        }
+
+        .provider-icon.i18n {
+            background: rgba(255, 136, 0, 0.2);
+            color: var(--jazer-orange);
+        }
+
+        .provider-icon.modal {
+            background: rgba(147, 51, 234, 0.2);
+            color: var(--jazer-purple);
+        }
+
+        .provider-icon.toast {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .provider-name {
+            flex: 1;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .provider-consumers {
+            background: rgba(147, 51, 234, 0.15);
+            color: var(--jazer-purple);
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+
+        .provider-children {
+            padding-left: 1.25rem;
+            border-left: 1px dashed rgba(147, 51, 234, 0.2);
+            margin-left: 0.75rem;
+        }
+
+        /* Context Details Panel */
+        .details-panel {
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(147, 51, 234, 0.02) 100%);
+            border-right: 1px solid rgba(147, 51, 234, 0.2);
+            overflow: hidden;
+        }
+
+        .details-tabs {
+            display: flex;
+            background: rgba(147, 51, 234, 0.05);
+            border-bottom: 1px solid rgba(147, 51, 234, 0.2);
+        }
+
+        .details-tab {
+            flex: 1;
+            padding: 0.75rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 2px solid transparent;
+        }
+
+        .details-tab:hover {
+            color: var(--text-light);
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .details-tab.active {
+            color: var(--jazer-purple);
+            border-bottom-color: var(--jazer-purple);
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .details-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* Context Value Display */
+        .context-name {
+            font-family: var(--font-primary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--jazer-purple);
+            margin-bottom: 0.5rem;
+        }
+
+        .context-path {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        .value-tree {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+        }
+
+        .value-node {
+            margin-bottom: 2px;
+        }
+
+        .value-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .value-row:hover {
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .value-toggle {
+            width: 14px;
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            flex-shrink: 0;
+            padding-top: 2px;
+        }
+
+        .value-key {
+            color: var(--jazer-purple);
+        }
+
+        .value-colon {
+            color: var(--text-muted);
+        }
+
+        .value-string {
+            color: #22c55e;
+        }
+
+        .value-number {
+            color: var(--jazer-cyan);
+        }
+
+        .value-boolean {
+            color: var(--jazer-orange);
+        }
+
+        .value-null {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .value-object {
+            color: var(--text-gray);
+        }
+
+        .value-function {
+            color: var(--jazer-pink);
+            font-style: italic;
+        }
+
+        .value-children {
+            padding-left: 1rem;
+            border-left: 1px dashed rgba(147, 51, 234, 0.15);
+            margin-left: 0.4rem;
+        }
+
+        /* Consumers List */
+        .consumer-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(147, 51, 234, 0.05);
+            border: 1px solid rgba(147, 51, 234, 0.1);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            transition: all 0.15s ease;
+        }
+
+        .consumer-item:hover {
+            background: rgba(147, 51, 234, 0.1);
+            border-color: rgba(147, 51, 234, 0.3);
+        }
+
+        .consumer-icon {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(147, 51, 234, 0.15);
+            border-radius: 6px;
+            color: var(--jazer-purple);
+            font-size: 0.8rem;
+        }
+
+        .consumer-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .consumer-name {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-bottom: 0.2rem;
+        }
+
+        .consumer-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .consumer-renders {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .render-count {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        /* Renders Panel */
+        .renders-panel {
+            background: rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+            max-height: calc(100vh - 120px);
+        }
+
+        .render-timeline {
+            padding: 0.5rem;
+        }
+
+        .render-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 0.25rem;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .render-item:hover {
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .render-item.highlight {
+            background: rgba(255, 190, 11, 0.1);
+            border: 1px solid rgba(255, 190, 11, 0.3);
+        }
+
+        .render-time-col {
+            width: 60px;
+            flex-shrink: 0;
+        }
+
+        .render-time {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .render-duration {
+            font-size: 0.65rem;
+            color: var(--jazer-cyan);
+            margin-top: 0.2rem;
+        }
+
+        .render-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .render-context {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: var(--jazer-purple);
+            margin-bottom: 0.25rem;
+        }
+
+        .render-trigger {
+            font-size: 0.7rem;
+            color: var(--text-gray);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .trigger-badge {
+            padding: 0.1rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+
+        .trigger-badge.value {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--jazer-cyan);
+        }
+
+        .trigger-badge.mount {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .trigger-badge.prop {
+            background: rgba(255, 136, 0, 0.2);
+            color: var(--jazer-orange);
+        }
+
+        .render-affected {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            margin-top: 0.4rem;
+        }
+
+        .affected-chip {
+            padding: 0.15rem 0.5rem;
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid rgba(147, 51, 234, 0.2);
+            border-radius: 3px;
+            font-size: 0.65rem;
+            color: var(--text-gray);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(147, 51, 234, 0.2);
+        }
+
+        .stat-card {
+            background: rgba(147, 51, 234, 0.08);
+            border: 1px solid rgba(147, 51, 234, 0.15);
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: var(--font-primary);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--jazer-purple);
+        }
+
+        .stat-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.25rem;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 1rem;
+            background: rgba(147, 51, 234, 0.05);
+            border-top: 1px solid rgba(147, 51, 234, 0.2);
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.7rem;
+        }
+
+        .status-label {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-value {
+            color: var(--jazer-purple);
+            font-weight: 600;
+        }
+
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-purple);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--jazer-purple); }
+            50% { opacity: 0.5; box-shadow: 0 0 8px var(--jazer-purple); }
+        }
+
+        .status-text {
+            font-size: 0.7rem;
+            color: var(--text-gray);
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Mobile */
+        @media (max-width: 767px) {
+            .main-content {
+                display: block;
+            }
+
+            .tree-panel,
+            .details-panel,
+            .renders-panel {
+                max-height: none;
+                border-right: none;
+                border-bottom: 1px solid rgba(147, 51, 234, 0.2);
+            }
+
+            .header-top {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-controls {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .search-box {
+                flex: 1;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .stat-card {
+                padding: 0.5rem;
+            }
+
+            .stat-value {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(147, 51, 234, 0.3);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(147, 51, 234, 0.5);
+        }
+
+        /* Render flash animation */
+        @keyframes renderFlash {
+            0% { background: rgba(255, 190, 11, 0.3); }
+            100% { background: transparent; }
+        }
+
+        .flash {
+            animation: renderFlash 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="devtools-wrapper">
+        <!-- Header -->
+        <header class="devtools-header">
+            <div class="header-top">
+                <div class="header-left">
+                    <a href="index.html" class="back-button">← Back to Dev Tools</a>
+                    <h1 class="devtools-title">Context Provider Inspector</h1>
+                </div>
+                <div class="header-controls">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchInput" placeholder="Search contexts...">
+                    </div>
+                    <button class="control-btn" id="pauseBtn">Pause</button>
+                    <button class="control-btn" id="clearBtn">Clear</button>
+                    <button class="control-btn active" id="highlightBtn">Highlight</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Provider Tree Panel -->
+            <aside class="tree-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Provider Tree</span>
+                    <span class="panel-badge" id="providerCount">7 Providers</span>
+                </div>
+                <div class="tree-content" id="providerTree">
+                    <!-- Dynamic provider tree -->
+                </div>
+            </aside>
+
+            <!-- Context Details Panel -->
+            <main class="details-panel">
+                <div class="details-tabs">
+                    <button class="details-tab active" data-tab="value">Value</button>
+                    <button class="details-tab" data-tab="consumers">Consumers</button>
+                    <button class="details-tab" data-tab="history">History</button>
+                </div>
+                <div class="details-content">
+                    <!-- Value Tab -->
+                    <div class="tab-panel active" id="valueTab">
+                        <div id="contextDetails">
+                            <div class="empty-state">
+                                <div class="empty-icon">📦</div>
+                                <div class="empty-text">Select a context provider<br>to view its value</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Consumers Tab -->
+                    <div class="tab-panel" id="consumersTab">
+                        <div id="consumersList">
+                            <!-- Dynamic consumers list -->
+                        </div>
+                    </div>
+
+                    <!-- History Tab -->
+                    <div class="tab-panel" id="historyTab">
+                        <div id="valueHistory">
+                            <!-- Dynamic value history -->
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Renders Panel -->
+            <aside class="renders-panel">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalRenders">47</div>
+                        <div class="stat-label">Renders</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalUpdates">12</div>
+                        <div class="stat-label">Updates</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgDuration">2.4ms</div>
+                        <div class="stat-label">Avg Time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="cascadeCount">3</div>
+                        <div class="stat-label">Cascades</div>
+                    </div>
+                </div>
+                <div class="panel-header">
+                    <span class="panel-title">Render Timeline</span>
+                    <span class="panel-badge" id="renderBadge">Live</span>
+                </div>
+                <div class="render-timeline" id="renderTimeline">
+                    <!-- Dynamic render timeline -->
+                </div>
+            </aside>
+        </div>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <div class="status-left">
+                <div class="status-item">
+                    <span class="status-label">Selected:</span>
+                    <span class="status-value" id="statusSelected">None</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Consumers:</span>
+                    <span class="status-value" id="statusConsumers">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Last Update:</span>
+                    <span class="status-value" id="statusUpdate">--</span>
+                </div>
+            </div>
+            <div class="status-right">
+                <div class="status-dot"></div>
+                <span class="status-text">Monitoring Active</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Mock data - Provider tree structure
+        const providerData = {
+            id: 'app',
+            name: 'AppProvider',
+            type: 'store',
+            consumers: 15,
+            value: {
+                version: '2.4.1',
+                environment: 'development',
+                features: {
+                    darkMode: true,
+                    analytics: false,
+                    betaFeatures: true
+                }
+            },
+            children: [
+                {
+                    id: 'theme',
+                    name: 'ThemeProvider',
+                    type: 'theme',
+                    consumers: 8,
+                    value: {
+                        mode: 'dark',
+                        primaryColor: '#9333ea',
+                        accentColor: '#ec4899',
+                        fontFamily: 'Inter, sans-serif',
+                        spacing: { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 },
+                        borderRadius: 8
+                    },
+                    children: []
+                },
+                {
+                    id: 'auth',
+                    name: 'AuthProvider',
+                    type: 'auth',
+                    consumers: 6,
+                    value: {
+                        isAuthenticated: true,
+                        user: {
+                            id: 'usr_2x8kL9',
+                            name: 'Alex Chen',
+                            email: 'alex@example.com',
+                            role: 'admin',
+                            avatar: null
+                        },
+                        permissions: ['read', 'write', 'delete', 'admin'],
+                        sessionExpiry: '2024-12-06T10:30:00Z'
+                    },
+                    children: [
+                        {
+                            id: 'modal',
+                            name: 'ModalProvider',
+                            type: 'modal',
+                            consumers: 4,
+                            value: {
+                                isOpen: false,
+                                modalType: null,
+                                modalProps: {},
+                                stack: []
+                            },
+                            children: []
+                        }
+                    ]
+                },
+                {
+                    id: 'router',
+                    name: 'RouterProvider',
+                    type: 'router',
+                    consumers: 12,
+                    value: {
+                        currentPath: '/dashboard/analytics',
+                        params: { view: 'weekly' },
+                        query: { filter: 'active' },
+                        history: ['/login', '/dashboard', '/dashboard/analytics'],
+                        isNavigating: false
+                    },
+                    children: [
+                        {
+                            id: 'i18n',
+                            name: 'I18nProvider',
+                            type: 'i18n',
+                            consumers: 5,
+                            value: {
+                                locale: 'en-US',
+                                fallbackLocale: 'en',
+                                messages: '{ ... 847 keys }',
+                                formatters: {
+                                    date: 'Intl.DateTimeFormat',
+                                    number: 'Intl.NumberFormat',
+                                    currency: 'Intl.NumberFormat'
+                                }
+                            },
+                            children: []
+                        },
+                        {
+                            id: 'toast',
+                            name: 'ToastProvider',
+                            type: 'toast',
+                            consumers: 3,
+                            value: {
+                                toasts: [],
+                                maxToasts: 5,
+                                position: 'bottom-right',
+                                duration: 5000,
+                                pauseOnHover: true
+                            },
+                            children: []
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Mock consumers data
+        const consumersData = {
+            theme: [
+                { name: 'Header', renders: 12, lastRender: '2.1ms' },
+                { name: 'Sidebar', renders: 8, lastRender: '1.8ms' },
+                { name: 'Card', renders: 45, lastRender: '0.9ms' },
+                { name: 'Button', renders: 156, lastRender: '0.3ms' },
+                { name: 'Modal', renders: 4, lastRender: '3.2ms' },
+                { name: 'Footer', renders: 6, lastRender: '1.1ms' },
+                { name: 'Input', renders: 89, lastRender: '0.5ms' },
+                { name: 'Badge', renders: 34, lastRender: '0.4ms' }
+            ],
+            auth: [
+                { name: 'UserMenu', renders: 8, lastRender: '2.4ms' },
+                { name: 'ProtectedRoute', renders: 15, lastRender: '0.8ms' },
+                { name: 'ProfileCard', renders: 3, lastRender: '4.1ms' },
+                { name: 'PermissionGate', renders: 28, lastRender: '0.6ms' },
+                { name: 'SessionTimer', renders: 120, lastRender: '0.2ms' },
+                { name: 'LogoutButton', renders: 2, lastRender: '1.5ms' }
+            ],
+            router: [
+                { name: 'NavLink', renders: 45, lastRender: '0.4ms' },
+                { name: 'Breadcrumb', renders: 12, lastRender: '1.2ms' },
+                { name: 'PageTransition', renders: 8, lastRender: '5.6ms' },
+                { name: 'RouteGuard', renders: 15, lastRender: '0.7ms' }
+            ]
+        };
+
+        // Mock render events
+        const renderEvents = [
+            { time: '10:42:15', duration: '2.4ms', context: 'ThemeProvider', trigger: 'value', affected: ['Header', 'Card', 'Button'] },
+            { time: '10:42:14', duration: '0.8ms', context: 'AuthProvider', trigger: 'mount', affected: ['UserMenu'] },
+            { time: '10:42:12', duration: '1.2ms', context: 'RouterProvider', trigger: 'value', affected: ['NavLink', 'Breadcrumb'] },
+            { time: '10:42:10', duration: '3.1ms', context: 'I18nProvider', trigger: 'prop', affected: ['Header', 'Footer'] },
+            { time: '10:42:08', duration: '0.5ms', context: 'ToastProvider', trigger: 'value', affected: ['ToastContainer'] },
+            { time: '10:42:05', duration: '1.8ms', context: 'ModalProvider', trigger: 'value', affected: ['Modal', 'Overlay'] },
+            { time: '10:42:02', duration: '4.2ms', context: 'ThemeProvider', trigger: 'value', affected: ['Sidebar', 'Card', 'Input'] },
+            { time: '10:41:58', duration: '0.9ms', context: 'AuthProvider', trigger: 'value', affected: ['PermissionGate'] },
+        ];
+
+        // State
+        const state = {
+            selectedProvider: null,
+            expandedNodes: new Set(['app', 'auth', 'router']),
+            isPaused: false,
+            highlightEnabled: true
+        };
+
+        // DOM Elements
+        const providerTree = document.getElementById('providerTree');
+        const contextDetails = document.getElementById('contextDetails');
+        const consumersList = document.getElementById('consumersList');
+        const valueHistory = document.getElementById('valueHistory');
+        const renderTimeline = document.getElementById('renderTimeline');
+
+        // Initialize
+        function init() {
+            renderProviderTree();
+            renderRenderTimeline();
+            setupEventListeners();
+            simulateRenders();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Tab switching
+            document.querySelectorAll('.details-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.details-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
+                });
+            });
+
+            // Control buttons
+            document.getElementById('pauseBtn').addEventListener('click', (e) => {
+                state.isPaused = !state.isPaused;
+                e.target.textContent = state.isPaused ? 'Resume' : 'Pause';
+                e.target.classList.toggle('active', state.isPaused);
+                document.getElementById('renderBadge').textContent = state.isPaused ? 'Paused' : 'Live';
+            });
+
+            document.getElementById('clearBtn').addEventListener('click', () => {
+                renderEvents.length = 0;
+                renderTimeline.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">Timeline cleared</div></div>';
+                document.getElementById('totalRenders').textContent = '0';
+                document.getElementById('totalUpdates').textContent = '0';
+            });
+
+            document.getElementById('highlightBtn').addEventListener('click', (e) => {
+                state.highlightEnabled = !state.highlightEnabled;
+                e.target.classList.toggle('active', state.highlightEnabled);
+            });
+
+            // Search
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                filterProviders(query);
+            });
+        }
+
+        // Render provider tree
+        function renderProviderTree() {
+            providerTree.innerHTML = renderProviderNode(providerData, 0);
+
+            // Add click handlers
+            providerTree.querySelectorAll('.provider-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const id = header.dataset.id;
+                    selectProvider(id);
+                });
+            });
+
+            providerTree.querySelectorAll('.provider-toggle').forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = toggle.dataset.id;
+                    toggleNode(id);
+                });
+            });
+        }
+
+        // Render provider node recursively
+        function renderProviderNode(node, depth) {
+            const hasChildren = node.children && node.children.length > 0;
+            const isExpanded = state.expandedNodes.has(node.id);
+            const isSelected = state.selectedProvider === node.id;
+
+            let html = `
+                <div class="provider-node" data-id="${node.id}">
+                    <div class="provider-header ${isSelected ? 'selected' : ''}" data-id="${node.id}">
+                        <span class="provider-toggle ${isExpanded ? 'expanded' : ''} ${!hasChildren ? 'empty' : ''}" data-id="${node.id}">▶</span>
+                        <span class="provider-icon ${node.type}">${getProviderIcon(node.type)}</span>
+                        <span class="provider-name">${node.name}</span>
+                        <span class="provider-consumers">${node.consumers}</span>
+                    </div>
+            `;
+
+            if (hasChildren && isExpanded) {
+                html += '<div class="provider-children">';
+                node.children.forEach(child => {
+                    html += renderProviderNode(child, depth + 1);
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        // Get provider icon
+        function getProviderIcon(type) {
+            const icons = {
+                store: '📦',
+                theme: '🎨',
+                auth: '🔐',
+                router: '🧭',
+                i18n: '🌍',
+                modal: '📱',
+                toast: '🔔'
+            };
+            return icons[type] || '📦';
+        }
+
+        // Toggle node expansion
+        function toggleNode(id) {
+            if (state.expandedNodes.has(id)) {
+                state.expandedNodes.delete(id);
+            } else {
+                state.expandedNodes.add(id);
+            }
+            renderProviderTree();
+        }
+
+        // Select provider
+        function selectProvider(id) {
+            state.selectedProvider = id;
+            renderProviderTree();
+
+            const provider = findProvider(providerData, id);
+            if (provider) {
+                renderContextDetails(provider);
+                renderConsumers(provider);
+                renderValueHistory(provider);
+                updateStatus(provider);
+            }
+        }
+
+        // Find provider by id
+        function findProvider(node, id) {
+            if (node.id === id) return node;
+            if (node.children) {
+                for (const child of node.children) {
+                    const found = findProvider(child, id);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        // Render context details
+        function renderContextDetails(provider) {
+            contextDetails.innerHTML = `
+                <div class="context-name">${provider.name}</div>
+                <div class="context-path">src/contexts/${provider.name}.tsx</div>
+                <div class="value-tree">
+                    ${renderValueTree(provider.value)}
+                </div>
+            `;
+
+            // Add toggle handlers for nested values
+            contextDetails.querySelectorAll('.value-toggle').forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const row = toggle.closest('.value-node');
+                    const children = row.querySelector('.value-children');
+                    if (children) {
+                        children.style.display = children.style.display === 'none' ? 'block' : 'none';
+                        toggle.textContent = children.style.display === 'none' ? '▶' : '▼';
+                    }
+                });
+            });
+        }
+
+        // Render value tree
+        function renderValueTree(value, key = null) {
+            if (value === null) {
+                return `<div class="value-node">
+                    <div class="value-row">
+                        <span class="value-toggle"></span>
+                        ${key ? `<span class="value-key">${key}</span><span class="value-colon">: </span>` : ''}
+                        <span class="value-null">null</span>
+                    </div>
+                </div>`;
+            }
+
+            if (typeof value === 'function') {
+                return `<div class="value-node">
+                    <div class="value-row">
+                        <span class="value-toggle"></span>
+                        ${key ? `<span class="value-key">${key}</span><span class="value-colon">: </span>` : ''}
+                        <span class="value-function">ƒ ${key || 'anonymous'}()</span>
+                    </div>
+                </div>`;
+            }
+
+            if (Array.isArray(value)) {
+                if (value.length === 0) {
+                    return `<div class="value-node">
+                        <div class="value-row">
+                            <span class="value-toggle"></span>
+                            ${key ? `<span class="value-key">${key}</span><span class="value-colon">: </span>` : ''}
+                            <span class="value-object">[]</span>
+                        </div>
+                    </div>`;
+                }
+
+                let html = `<div class="value-node">
+                    <div class="value-row">
+                        <span class="value-toggle">▼</span>
+                        ${key ? `<span class="value-key">${key}</span><span class="value-colon">: </span>` : ''}
+                        <span class="value-object">Array(${value.length})</span>
+                    </div>
+                    <div class="value-children">`;
+
+                value.forEach((item, index) => {
+                    html += renderValueTree(item, index);
+                });
+
+                html += '</div></div>';
+                return html;
+            }
+
+            if (typeof value === 'object') {
+                const keys = Object.keys(value);
+                if (keys.length === 0) {
+                    return `<div class="value-node">
+                        <div class="value-row">
+                            <span class="value-toggle"></span>
+                            ${key ? `<span class="value-key">${key}</span><span class="value-colon">: </span>` : ''}
+                            <span class="value-object">{}</span>
+                        </div>
+                    </div>`;
+                }
+
+                let html = `<div class="value-node">
+                    <div class="value-row">
+                        <span class="value-toggle">▼</span>
+                        ${key ? `<span class="value-key">${key}</span><span class="value-colon">: </span>` : ''}
+                        <span class="value-object">{...}</span>
+                    </div>
+                    <div class="value-children">`;
+
+                keys.forEach(k => {
+                    html += renderValueTree(value[k], k);
+                });
+
+                html += '</div></div>';
+                return html;
+            }
+
+            if (typeof value === 'string') {
+                return `<div class="value-node">
+                    <div class="value-row">
+                        <span class="value-toggle"></span>
+                        ${key !== null ? `<span class="value-key">${key}</span><span class="value-colon">: </span>` : ''}
+                        <span class="value-string">"${value}"</span>
+                    </div>
+                </div>`;
+            }
+
+            if (typeof value === 'number') {
+                return `<div class="value-node">
+                    <div class="value-row">
+                        <span class="value-toggle"></span>
+                        ${key !== null ? `<span class="value-key">${key}</span><span class="value-colon">: </span>` : ''}
+                        <span class="value-number">${value}</span>
+                    </div>
+                </div>`;
+            }
+
+            if (typeof value === 'boolean') {
+                return `<div class="value-node">
+                    <div class="value-row">
+                        <span class="value-toggle"></span>
+                        ${key !== null ? `<span class="value-key">${key}</span><span class="value-colon">: </span>` : ''}
+                        <span class="value-boolean">${value}</span>
+                    </div>
+                </div>`;
+            }
+
+            return '';
+        }
+
+        // Render consumers
+        function renderConsumers(provider) {
+            const consumers = consumersData[provider.id] || [];
+
+            if (consumers.length === 0) {
+                consumersList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">👥</div>
+                        <div class="empty-text">No consumers found</div>
+                    </div>
+                `;
+                return;
+            }
+
+            consumersList.innerHTML = consumers.map(consumer => `
+                <div class="consumer-item">
+                    <div class="consumer-icon">⚛</div>
+                    <div class="consumer-details">
+                        <div class="consumer-name">&lt;${consumer.name} /&gt;</div>
+                        <div class="consumer-meta">
+                            <span class="consumer-renders">
+                                <span class="render-count">${consumer.renders}</span> renders
+                            </span>
+                            <span>Last: ${consumer.lastRender}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render value history
+        function renderValueHistory(provider) {
+            // Generate mock history
+            const history = [
+                { time: '10:42:15', key: 'mode', oldValue: 'light', newValue: 'dark' },
+                { time: '10:40:32', key: 'accentColor', oldValue: '#06b6d4', newValue: '#ec4899' },
+                { time: '10:38:05', key: 'borderRadius', oldValue: '4', newValue: '8' },
+            ];
+
+            valueHistory.innerHTML = history.map(item => `
+                <div class="consumer-item">
+                    <div class="consumer-icon">📝</div>
+                    <div class="consumer-details">
+                        <div class="consumer-name">${item.key}</div>
+                        <div class="consumer-meta">
+                            <span style="color: #ef4444; text-decoration: line-through;">${item.oldValue}</span>
+                            <span>→</span>
+                            <span style="color: #22c55e;">${item.newValue}</span>
+                            <span style="margin-left: auto;">${item.time}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render render timeline
+        function renderRenderTimeline() {
+            renderTimeline.innerHTML = renderEvents.map((event, index) => `
+                <div class="render-item ${index === 0 && state.highlightEnabled ? 'highlight' : ''}">
+                    <div class="render-time-col">
+                        <div class="render-time">${event.time}</div>
+                        <div class="render-duration">${event.duration}</div>
+                    </div>
+                    <div class="render-details">
+                        <div class="render-context">${event.context}</div>
+                        <div class="render-trigger">
+                            <span class="trigger-badge ${event.trigger}">${event.trigger}</span>
+                            triggered re-render
+                        </div>
+                        <div class="render-affected">
+                            ${event.affected.map(comp => `<span class="affected-chip">${comp}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update status bar
+        function updateStatus(provider) {
+            document.getElementById('statusSelected').textContent = provider.name;
+            document.getElementById('statusConsumers').textContent = provider.consumers;
+            document.getElementById('statusUpdate').textContent = new Date().toLocaleTimeString();
+        }
+
+        // Filter providers
+        function filterProviders(query) {
+            const nodes = providerTree.querySelectorAll('.provider-node');
+            nodes.forEach(node => {
+                const name = node.querySelector('.provider-name').textContent.toLowerCase();
+                node.style.display = name.includes(query) ? 'block' : 'none';
+            });
+        }
+
+        // Simulate render events
+        function simulateRenders() {
+            setInterval(() => {
+                if (state.isPaused) return;
+
+                const contexts = ['ThemeProvider', 'AuthProvider', 'RouterProvider', 'ModalProvider', 'ToastProvider'];
+                const triggers = ['value', 'mount', 'prop'];
+                const components = ['Header', 'Sidebar', 'Card', 'Button', 'Modal', 'Input', 'NavLink', 'Footer'];
+
+                const newEvent = {
+                    time: new Date().toLocaleTimeString(),
+                    duration: (Math.random() * 4 + 0.5).toFixed(1) + 'ms',
+                    context: contexts[Math.floor(Math.random() * contexts.length)],
+                    trigger: triggers[Math.floor(Math.random() * triggers.length)],
+                    affected: Array.from({ length: Math.floor(Math.random() * 3) + 1 }, () => 
+                        components[Math.floor(Math.random() * components.length)]
+                    )
+                };
+
+                renderEvents.unshift(newEvent);
+                if (renderEvents.length > 50) renderEvents.pop();
+
+                // Update stats
+                const totalRenders = parseInt(document.getElementById('totalRenders').textContent) + 1;
+                document.getElementById('totalRenders').textContent = totalRenders;
+
+                if (newEvent.trigger === 'value') {
+                    const updates = parseInt(document.getElementById('totalUpdates').textContent) + 1;
+                    document.getElementById('totalUpdates').textContent = updates;
+                }
+
+                renderRenderTimeline();
+
+                // Flash effect on selected provider
+                if (state.highlightEnabled && state.selectedProvider) {
+                    const header = providerTree.querySelector(`[data-id="${state.selectedProvider}"].provider-header`);
+                    if (header) {
+                        header.classList.add('flash');
+                        setTimeout(() => header.classList.remove('flash'), 500);
+                    }
+                }
+            }, 3000 + Math.random() * 4000);
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>

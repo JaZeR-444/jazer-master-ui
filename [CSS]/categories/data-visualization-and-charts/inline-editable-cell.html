@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inline Editable Cell - JaZeR CSS Patterns</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-light);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            padding: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            padding: 0.5rem 0;
+            transition: gap 0.3s ease;
+        }
+
+        .back-button:hover {
+            gap: 0.85rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(147, 51, 234, 0.08) 50%, rgba(236, 72, 153, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 1000px) {
+            .main-grid {
+                grid-template-columns: 1fr 340px;
+            }
+        }
+
+        /* Panel Styling */
+        .panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .panel:hover {
+            border-color: rgba(6, 182, 212, 0.3);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-default);
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .panel-title {
+            font-family: var(--font-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--jazer-cyan);
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Edit History Toolbar */
+        .history-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 10px;
+        }
+
+        .history-info {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 0.35rem;
+            margin-left: auto;
+        }
+
+        .history-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 2px solid var(--border-default);
+            background: transparent;
+            color: var(--text-gray);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .history-btn:hover:not(:disabled) {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        .history-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Table Container */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border-default);
+        }
+
+        .table-container::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: var(--jazer-purple);
+            border-radius: 3px;
+        }
+
+        /* Table Styling */
+        .editable-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        .editable-table th,
+        .editable-table td {
+            padding: 0.875rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .editable-table th {
+            background: rgba(147, 51, 234, 0.1);
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--jazer-purple);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .editable-table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .editable-table tbody tr:hover {
+            background: rgba(6, 182, 212, 0.05);
+        }
+
+        .editable-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Editable Cell */
+        .editable-cell {
+            position: relative;
+            cursor: pointer;
+            min-width: 100px;
+            transition: all 0.2s ease;
+        }
+
+        .editable-cell:hover {
+            background: rgba(6, 182, 212, 0.08);
+        }
+
+        .editable-cell::after {
+            content: '✏️';
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.7rem;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .editable-cell:hover::after {
+            opacity: 0.5;
+        }
+
+        .cell-content {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .cell-value {
+            flex: 1;
+        }
+
+        /* Editing State */
+        .editable-cell.editing {
+            background: rgba(6, 182, 212, 0.15);
+            padding: 0.5rem;
+        }
+
+        .editable-cell.editing::after {
+            display: none;
+        }
+
+        .edit-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            font-family: var(--font-body);
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 6px;
+            color: var(--text-light);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .edit-input:focus {
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+        }
+
+        .edit-input.invalid {
+            border-color: var(--jazer-pink);
+            box-shadow: 0 0 10px rgba(236, 72, 153, 0.3);
+        }
+
+        /* Edit select dropdown */
+        .edit-select {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            font-family: var(--font-body);
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 6px;
+            color: var(--text-light);
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2306b6d4' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+        }
+
+        .edit-select option {
+            background: #1a1a1a;
+            color: var(--text-light);
+        }
+
+        /* Edit controls */
+        .edit-controls {
+            display: flex;
+            gap: 0.35rem;
+            margin-top: 0.5rem;
+        }
+
+        .edit-btn {
+            padding: 0.35rem 0.6rem;
+            font-size: 0.7rem;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .edit-btn.save {
+            background: var(--jazer-cyan);
+            color: #000;
+        }
+
+        .edit-btn.save:hover {
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+        }
+
+        .edit-btn.cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-gray);
+        }
+
+        .edit-btn.cancel:hover {
+            background: rgba(236, 72, 153, 0.2);
+            color: var(--jazer-pink);
+        }
+
+        /* Validation tooltip */
+        .validation-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: rgba(236, 72, 153, 0.95);
+            color: white;
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 100;
+            margin-bottom: 4px;
+        }
+
+        .validation-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 20px;
+            border: 6px solid transparent;
+            border-top-color: rgba(236, 72, 153, 0.95);
+        }
+
+        /* Modified indicator */
+        .cell-modified {
+            position: relative;
+        }
+
+        .cell-modified::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--jazer-cyan);
+        }
+
+        /* Cell type icons */
+        .cell-type-icon {
+            font-size: 0.7rem;
+            opacity: 0.5;
+        }
+
+        /* Non-editable cells */
+        .readonly-cell {
+            color: var(--text-muted);
+            cursor: default;
+        }
+
+        .readonly-cell:hover {
+            background: transparent;
+        }
+
+        .readonly-cell::after {
+            content: '🔒';
+        }
+
+        /* Controls Sidebar */
+        .controls-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* Accordion Controls */
+        details {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: border-color 0.3s ease;
+        }
+
+        details:hover {
+            border-color: rgba(147, 51, 234, 0.3);
+        }
+
+        details[open] {
+            border-color: var(--jazer-purple);
+        }
+
+        summary {
+            padding: 1rem 1.25rem;
+            font-family: var(--font-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-light);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            list-style: none;
+            user-select: none;
+            transition: background-color 0.2s ease;
+        }
+
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        summary::after {
+            content: '+';
+            font-size: 1.2rem;
+            color: var(--jazer-purple);
+            transition: transform 0.3s ease;
+        }
+
+        details[open] summary::after {
+            content: '-';
+        }
+
+        summary:hover {
+            background: rgba(147, 51, 234, 0.05);
+        }
+
+        .details-content {
+            padding: 1rem 1.25rem;
+            border-top: 1px solid var(--border-default);
+        }
+
+        /* Control Groups */
+        .control-group {
+            margin-bottom: 1rem;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-label {
+            display: block;
+            font-family: var(--font-secondary);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Select Dropdown */
+        .control-select {
+            width: 100%;
+            padding: 0.6rem 0.9rem;
+            font-size: 0.85rem;
+            font-family: var(--font-body);
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2306b6d4' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+        }
+
+        .control-select:hover,
+        .control-select:focus {
+            border-color: var(--jazer-cyan);
+            outline: none;
+        }
+
+        .control-select option {
+            background: #1a1a1a;
+            color: var(--text-light);
+        }
+
+        /* Checkbox Toggle */
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+        }
+
+        .checkbox-toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .checkbox-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .checkbox-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--border-default);
+            border-radius: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-slider::before {
+            content: '';
+            position: absolute;
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background: var(--text-gray);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-toggle input:checked + .checkbox-slider {
+            background: rgba(6, 182, 212, 0.2);
+            border-color: var(--jazer-cyan);
+        }
+
+        .checkbox-toggle input:checked + .checkbox-slider::before {
+            transform: translateX(20px);
+            background: var(--jazer-cyan);
+            box-shadow: 0 0 8px var(--jazer-cyan);
+        }
+
+        .checkbox-label {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+        }
+
+        /* Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1rem;
+            font-family: var(--font-secondary);
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: 2px solid var(--border-default);
+            background: transparent;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            border: none;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* Data Preset Buttons */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .preset-btn {
+            padding: 0.75rem 0.5rem;
+            font-size: 0.75rem;
+            text-align: center;
+            border-radius: 8px;
+            border: 2px solid var(--border-default);
+            background: transparent;
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .preset-btn.active {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.1);
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .status-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        .status-dot-indicator {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(20, 20, 20, 0.95);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            padding: 0.875rem 1.5rem;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.error {
+            border-color: var(--jazer-pink);
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .panel {
+                padding: 1rem;
+            }
+
+            .preset-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .panel-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .panel-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to Data Visualization</a>
+
+    <header class="hero">
+        <h1>Inline Editable Cell</h1>
+        <p class="hero-description">Click-to-edit table cells with validation, multiple input types, and undo/redo support for seamless data editing workflows.</p>
+    </header>
+
+    <div class="main-grid">
+        <!-- Demo Area -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">Live Preview</span>
+                <div class="panel-actions">
+                    <button class="btn btn-sm" onclick="revertAllChanges()">Revert All</button>
+                    <button class="btn btn-sm btn-primary" onclick="saveAllChanges()">Save All</button>
+                </div>
+            </div>
+
+            <!-- Edit History Toolbar -->
+            <div class="history-toolbar">
+                <span class="history-info">Click any highlighted cell to edit</span>
+                <div class="history-actions">
+                    <button class="history-btn" id="undoBtn" onclick="undo()" disabled title="Undo (Ctrl+Z)">↩️</button>
+                    <button class="history-btn" id="redoBtn" onclick="redo()" disabled title="Redo (Ctrl+Y)">↪️</button>
+                </div>
+            </div>
+
+            <div class="table-container" id="tableContainer">
+                <table class="editable-table" id="editableTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Salary</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Controls Sidebar -->
+        <div class="controls-sidebar">
+            <!-- Data Set Selection -->
+            <details open>
+                <summary>Data Scenario</summary>
+                <div class="details-content">
+                    <div class="control-group">
+                        <label class="control-label">Select Data Type</label>
+                        <div class="preset-grid">
+                            <button class="preset-btn active" data-preset="employees" onclick="setDataPreset('employees')">Employees</button>
+                            <button class="preset-btn" data-preset="products" onclick="setDataPreset('products')">Products</button>
+                            <button class="preset-btn" data-preset="inventory" onclick="setDataPreset('inventory')">Inventory</button>
+                            <button class="preset-btn" data-preset="settings" onclick="setDataPreset('settings')">Settings</button>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- Edit Behavior -->
+            <details open>
+                <summary>Edit Behavior</summary>
+                <div class="details-content">
+                    <div class="control-group">
+                        <label class="control-label">Edit Trigger</label>
+                        <select class="control-select" id="triggerSelect" onchange="updateTrigger()">
+                            <option value="click">Single Click</option>
+                            <option value="dblclick">Double Click</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Save Mode</label>
+                        <select class="control-select" id="saveModeSelect" onchange="updateSaveMode()">
+                            <option value="blur">On Blur (Auto)</option>
+                            <option value="buttons">With Buttons</option>
+                            <option value="enter">On Enter Key</option>
+                        </select>
+                    </div>
+                </div>
+            </details>
+
+            <!-- Validation -->
+            <details>
+                <summary>Validation Options</summary>
+                <div class="details-content">
+                    <div class="checkbox-row">
+                        <label class="checkbox-toggle">
+                            <input type="checkbox" id="validationToggle" checked onchange="toggleValidation()">
+                            <span class="checkbox-slider"></span>
+                        </label>
+                        <span class="checkbox-label">Enable Validation</span>
+                    </div>
+                    <div class="checkbox-row">
+                        <label class="checkbox-toggle">
+                            <input type="checkbox" id="requiredToggle" checked onchange="toggleRequired()">
+                            <span class="checkbox-slider"></span>
+                        </label>
+                        <span class="checkbox-label">Required Fields</span>
+                    </div>
+                    <div class="checkbox-row">
+                        <label class="checkbox-toggle">
+                            <input type="checkbox" id="tooltipToggle" checked onchange="toggleTooltips()">
+                            <span class="checkbox-slider"></span>
+                        </label>
+                        <span class="checkbox-label">Show Error Tooltips</span>
+                    </div>
+                </div>
+            </details>
+
+            <!-- Display Options -->
+            <details>
+                <summary>Display Options</summary>
+                <div class="details-content">
+                    <div class="checkbox-row">
+                        <label class="checkbox-toggle">
+                            <input type="checkbox" id="editIconToggle" checked onchange="toggleEditIcon()">
+                            <span class="checkbox-slider"></span>
+                        </label>
+                        <span class="checkbox-label">Show Edit Icon</span>
+                    </div>
+                    <div class="checkbox-row">
+                        <label class="checkbox-toggle">
+                            <input type="checkbox" id="modifiedToggle" checked onchange="toggleModified()">
+                            <span class="checkbox-slider"></span>
+                        </label>
+                        <span class="checkbox-label">Highlight Modified</span>
+                    </div>
+                    <div class="checkbox-row">
+                        <label class="checkbox-toggle">
+                            <input type="checkbox" id="hoverToggle" checked onchange="toggleHover()">
+                            <span class="checkbox-slider"></span>
+                        </label>
+                        <span class="checkbox-label">Row Hover Effect</span>
+                    </div>
+                </div>
+            </details>
+
+            <!-- Actions -->
+            <details>
+                <summary>Controls</summary>
+                <div class="details-content">
+                    <div class="btn-group">
+                        <button class="btn" onclick="randomizeData()">Randomize</button>
+                        <button class="btn btn-primary" onclick="resetDefaults()">Reset All</button>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <!-- Status Bar -->
+    <footer class="status-bar">
+        <div class="status-info">
+            <div class="status-item">
+                <span>Dataset:</span>
+                <span id="statusDataset">Employees</span>
+            </div>
+            <div class="status-item">
+                <span>Modified:</span>
+                <span id="statusModified">0</span>
+            </div>
+            <div class="status-item">
+                <span>History:</span>
+                <span id="statusHistory">0</span>
+            </div>
+            <div class="status-item">
+                <span>Trigger:</span>
+                <span id="statusTrigger">Click</span>
+            </div>
+        </div>
+        <div class="status-indicator">
+            <span class="status-dot-indicator"></span>
+            <span>Component Ready</span>
+        </div>
+    </footer>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // State Management
+        const state = {
+            dataPreset: 'employees',
+            editTrigger: 'click',
+            saveMode: 'blur',
+            validation: true,
+            required: true,
+            showTooltips: true,
+            showEditIcon: true,
+            showModified: true,
+            hoverEffect: true,
+            editingCell: null,
+            modifiedCells: new Set(),
+            history: [],
+            historyIndex: -1,
+            originalData: null
+        };
+
+        // Data Sets with field configurations
+        const dataSets = {
+            employees: {
+                headers: ['ID', 'Name', 'Email', 'Role', 'Salary'],
+                fields: [
+                    { key: 'id', type: 'readonly' },
+                    { key: 'name', type: 'text', required: true },
+                    { key: 'email', type: 'email', required: true },
+                    { key: 'role', type: 'select', options: ['Developer', 'Designer', 'Manager', 'Analyst', 'DevOps'] },
+                    { key: 'salary', type: 'number', prefix: '$' }
+                ],
+                rows: [
+                    { id: 'EMP-001', name: 'Alex Chen', email: 'alex.chen@company.com', role: 'Developer', salary: 85000 },
+                    { id: 'EMP-002', name: 'Sarah Johnson', email: 'sarah.j@company.com', role: 'Designer', salary: 78000 },
+                    { id: 'EMP-003', name: 'Mike Torres', email: 'mike.t@company.com', role: 'Manager', salary: 95000 },
+                    { id: 'EMP-004', name: 'Emily Davis', email: 'emily.d@company.com', role: 'Analyst', salary: 72000 },
+                    { id: 'EMP-005', name: 'James Wilson', email: 'james.w@company.com', role: 'DevOps', salary: 88000 },
+                    { id: 'EMP-006', name: 'Lisa Park', email: 'lisa.p@company.com', role: 'Developer', salary: 82000 }
+                ]
+            },
+            products: {
+                headers: ['SKU', 'Product', 'Category', 'Price', 'Stock'],
+                fields: [
+                    { key: 'sku', type: 'readonly' },
+                    { key: 'product', type: 'text', required: true },
+                    { key: 'category', type: 'select', options: ['Electronics', 'Accessories', 'Software', 'Hardware'] },
+                    { key: 'price', type: 'number', prefix: '$' },
+                    { key: 'stock', type: 'number' }
+                ],
+                rows: [
+                    { sku: 'PRD-001', product: 'Wireless Mouse', category: 'Accessories', price: 49.99, stock: 234 },
+                    { sku: 'PRD-002', product: 'Mechanical Keyboard', category: 'Accessories', price: 149.99, stock: 156 },
+                    { sku: 'PRD-003', product: 'USB-C Hub', category: 'Electronics', price: 79.99, stock: 89 },
+                    { sku: 'PRD-004', product: 'Webcam HD', category: 'Electronics', price: 129.99, stock: 312 },
+                    { sku: 'PRD-005', product: 'Monitor Stand', category: 'Hardware', price: 59.99, stock: 45 },
+                    { sku: 'PRD-006', product: 'Cloud Storage', category: 'Software', price: 9.99, stock: 999 }
+                ]
+            },
+            inventory: {
+                headers: ['Code', 'Item', 'Location', 'Quantity', 'Status'],
+                fields: [
+                    { key: 'code', type: 'readonly' },
+                    { key: 'item', type: 'text', required: true },
+                    { key: 'location', type: 'select', options: ['Warehouse A', 'Warehouse B', 'Store Front', 'Transit'] },
+                    { key: 'quantity', type: 'number' },
+                    { key: 'status', type: 'select', options: ['In Stock', 'Low Stock', 'Out of Stock', 'On Order'] }
+                ],
+                rows: [
+                    { code: 'INV-001', item: 'Widget Alpha', location: 'Warehouse A', quantity: 500, status: 'In Stock' },
+                    { code: 'INV-002', item: 'Widget Beta', location: 'Warehouse B', quantity: 23, status: 'Low Stock' },
+                    { code: 'INV-003', item: 'Gadget Pro', location: 'Store Front', quantity: 0, status: 'Out of Stock' },
+                    { code: 'INV-004', item: 'Tool Set', location: 'Warehouse A', quantity: 150, status: 'In Stock' },
+                    { code: 'INV-005', item: 'Component X', location: 'Transit', quantity: 200, status: 'On Order' },
+                    { code: 'INV-006', item: 'Module Y', location: 'Warehouse B', quantity: 75, status: 'In Stock' }
+                ]
+            },
+            settings: {
+                headers: ['Key', 'Setting', 'Value', 'Type', 'Default'],
+                fields: [
+                    { key: 'key', type: 'readonly' },
+                    { key: 'setting', type: 'readonly' },
+                    { key: 'value', type: 'text' },
+                    { key: 'type', type: 'select', options: ['String', 'Number', 'Boolean', 'JSON'] },
+                    { key: 'default', type: 'readonly' }
+                ],
+                rows: [
+                    { key: 'app.name', setting: 'Application Name', value: 'MyApp', type: 'String', default: 'MyApp' },
+                    { key: 'app.version', setting: 'Version', value: '2.1.0', type: 'String', default: '1.0.0' },
+                    { key: 'api.timeout', setting: 'API Timeout', value: '30000', type: 'Number', default: '30000' },
+                    { key: 'debug.enabled', setting: 'Debug Mode', value: 'false', type: 'Boolean', default: 'false' },
+                    { key: 'cache.ttl', setting: 'Cache TTL', value: '3600', type: 'Number', default: '3600' },
+                    { key: 'log.level', setting: 'Log Level', value: 'info', type: 'String', default: 'warn' }
+                ]
+            }
+        };
+
+        const presetLabels = {
+            employees: 'Employees',
+            products: 'Products',
+            inventory: 'Inventory',
+            settings: 'Settings'
+        };
+
+        // DOM Elements
+        const tableContainer = document.getElementById('tableContainer');
+        const tableBody = document.getElementById('tableBody');
+        const editableTable = document.getElementById('editableTable');
+        const toast = document.getElementById('toast');
+
+        // Initialize
+        function init() {
+            state.originalData = JSON.parse(JSON.stringify(dataSets));
+            renderTable();
+            updateStatusBar();
+            setupKeyboardShortcuts();
+        }
+
+        // Render Table
+        function renderTable() {
+            const data = dataSets[state.dataPreset];
+            
+            // Update headers
+            const thead = editableTable.querySelector('thead tr');
+            thead.innerHTML = data.headers.map(h => `<th>${h}</th>`).join('');
+            
+            // Update body
+            tableBody.innerHTML = data.rows.map((row, rowIndex) => `
+                <tr>
+                    ${data.fields.map((field, colIndex) => {
+                        const cellKey = `${rowIndex}-${colIndex}`;
+                        const isModified = state.modifiedCells.has(cellKey);
+                        const isReadonly = field.type === 'readonly';
+                        const value = formatValue(row[field.key], field);
+                        
+                        return `
+                            <td class="${isReadonly ? 'readonly-cell' : 'editable-cell'} ${isModified && state.showModified ? 'cell-modified' : ''}"
+                                data-row="${rowIndex}"
+                                data-col="${colIndex}"
+                                data-field="${field.key}"
+                                data-type="${field.type}"
+                                ${!isReadonly ? `on${state.editTrigger}="startEdit(${rowIndex}, ${colIndex})"` : ''}>
+                                <span class="cell-value">${value}</span>
+                            </td>
+                        `;
+                    }).join('')}
+                </tr>
+            `).join('');
+
+            applyStyles();
+        }
+
+        // Format display value
+        function formatValue(value, field) {
+            if (field.prefix && typeof value === 'number') {
+                return field.prefix + value.toLocaleString();
+            }
+            return value;
+        }
+
+        // Start editing
+        function startEdit(rowIndex, colIndex) {
+            if (state.editingCell) {
+                cancelEdit();
+            }
+
+            const data = dataSets[state.dataPreset];
+            const field = data.fields[colIndex];
+            const row = data.rows[rowIndex];
+            const value = row[field.key];
+
+            state.editingCell = { rowIndex, colIndex, originalValue: value };
+
+            const cell = tableBody.querySelector(`td[data-row="${rowIndex}"][data-col="${colIndex}"]`);
+            cell.classList.add('editing');
+
+            let inputHtml = '';
+            
+            if (field.type === 'select') {
+                inputHtml = `
+                    <select class="edit-select" id="editInput" onchange="handleSelectChange()">
+                        ${field.options.map(opt => `<option value="${opt}" ${opt === value ? 'selected' : ''}>${opt}</option>`).join('')}
+                    </select>
+                `;
+            } else {
+                const inputType = field.type === 'number' ? 'number' : field.type === 'email' ? 'email' : 'text';
+                inputHtml = `<input type="${inputType}" class="edit-input" id="editInput" value="${value}" onkeydown="handleKeyDown(event)">`;
+            }
+
+            if (state.saveMode === 'buttons') {
+                inputHtml += `
+                    <div class="edit-controls">
+                        <button class="edit-btn save" onclick="saveEdit()">Save</button>
+                        <button class="edit-btn cancel" onclick="cancelEdit()">Cancel</button>
+                    </div>
+                `;
+            }
+
+            cell.innerHTML = inputHtml;
+
+            const input = document.getElementById('editInput');
+            input.focus();
+            if (input.select) input.select();
+
+            if (state.saveMode === 'blur') {
+                input.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        if (state.editingCell) saveEdit();
+                    }, 100);
+                });
+            }
+        }
+
+        // Handle keyboard
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && (state.saveMode === 'enter' || state.saveMode === 'blur')) {
+                event.preventDefault();
+                saveEdit();
+            } else if (event.key === 'Escape') {
+                cancelEdit();
+            } else if (event.key === 'Tab') {
+                event.preventDefault();
+                saveEdit();
+                moveToNextCell(event.shiftKey);
+            }
+        }
+
+        // Handle select change
+        function handleSelectChange() {
+            if (state.saveMode === 'blur') {
+                saveEdit();
+            }
+        }
+
+        // Save edit
+        function saveEdit() {
+            if (!state.editingCell) return;
+
+            const { rowIndex, colIndex, originalValue } = state.editingCell;
+            const input = document.getElementById('editInput');
+            let newValue = input.value;
+
+            const data = dataSets[state.dataPreset];
+            const field = data.fields[colIndex];
+
+            // Validation
+            if (state.validation) {
+                const validation = validateValue(newValue, field);
+                if (!validation.valid) {
+                    if (state.showTooltips) {
+                        showValidationError(input, validation.message);
+                    }
+                    input.classList.add('invalid');
+                    showToast(validation.message, true);
+                    return;
+                }
+            }
+
+            // Convert type
+            if (field.type === 'number') {
+                newValue = parseFloat(newValue) || 0;
+            }
+
+            // Check if changed
+            if (newValue !== originalValue) {
+                // Add to history
+                addToHistory({
+                    type: 'edit',
+                    rowIndex,
+                    colIndex,
+                    field: field.key,
+                    oldValue: originalValue,
+                    newValue
+                });
+
+                // Update data
+                data.rows[rowIndex][field.key] = newValue;
+                
+                // Mark as modified
+                const cellKey = `${rowIndex}-${colIndex}`;
+                state.modifiedCells.add(cellKey);
+            }
+
+            state.editingCell = null;
+            renderTable();
+            updateStatusBar();
+        }
+
+        // Cancel edit
+        function cancelEdit() {
+            if (!state.editingCell) return;
+            state.editingCell = null;
+            renderTable();
+        }
+
+        // Validate value
+        function validateValue(value, field) {
+            if (state.required && field.required && !value.trim()) {
+                return { valid: false, message: 'This field is required' };
+            }
+
+            if (field.type === 'email' && value) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(value)) {
+                    return { valid: false, message: 'Invalid email format' };
+                }
+            }
+
+            if (field.type === 'number' && value) {
+                if (isNaN(parseFloat(value))) {
+                    return { valid: false, message: 'Must be a number' };
+                }
+            }
+
+            return { valid: true };
+        }
+
+        // Show validation error
+        function showValidationError(input, message) {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'validation-tooltip';
+            tooltip.textContent = message;
+            input.parentElement.appendChild(tooltip);
+
+            setTimeout(() => tooltip.remove(), 3000);
+        }
+
+        // Move to next cell
+        function moveToNextCell(reverse = false) {
+            if (!state.editingCell) return;
+
+            const { rowIndex, colIndex } = state.editingCell;
+            const data = dataSets[state.dataPreset];
+            
+            let nextRow = rowIndex;
+            let nextCol = colIndex + (reverse ? -1 : 1);
+
+            // Find next editable cell
+            while (true) {
+                if (nextCol >= data.fields.length) {
+                    nextCol = 0;
+                    nextRow++;
+                } else if (nextCol < 0) {
+                    nextCol = data.fields.length - 1;
+                    nextRow--;
+                }
+
+                if (nextRow >= data.rows.length) {
+                    nextRow = 0;
+                } else if (nextRow < 0) {
+                    nextRow = data.rows.length - 1;
+                }
+
+                if (data.fields[nextCol].type !== 'readonly') {
+                    break;
+                }
+
+                nextCol += reverse ? -1 : 1;
+
+                // Prevent infinite loop
+                if (nextRow === rowIndex && nextCol === colIndex) break;
+            }
+
+            startEdit(nextRow, nextCol);
+        }
+
+        // History management
+        function addToHistory(action) {
+            // Remove any future history if we're not at the end
+            state.history = state.history.slice(0, state.historyIndex + 1);
+            state.history.push(action);
+            state.historyIndex = state.history.length - 1;
+            updateHistoryButtons();
+        }
+
+        function undo() {
+            if (state.historyIndex < 0) return;
+
+            const action = state.history[state.historyIndex];
+            const data = dataSets[state.dataPreset];
+            
+            data.rows[action.rowIndex][action.field] = action.oldValue;
+            
+            const cellKey = `${action.rowIndex}-${action.colIndex}`;
+            state.modifiedCells.delete(cellKey);
+            
+            state.historyIndex--;
+            renderTable();
+            updateStatusBar();
+            updateHistoryButtons();
+            showToast('Undo successful');
+        }
+
+        function redo() {
+            if (state.historyIndex >= state.history.length - 1) return;
+
+            state.historyIndex++;
+            const action = state.history[state.historyIndex];
+            const data = dataSets[state.dataPreset];
+            
+            data.rows[action.rowIndex][action.field] = action.newValue;
+            
+            const cellKey = `${action.rowIndex}-${action.colIndex}`;
+            state.modifiedCells.add(cellKey);
+            
+            renderTable();
+            updateStatusBar();
+            updateHistoryButtons();
+            showToast('Redo successful');
+        }
+
+        function updateHistoryButtons() {
+            document.getElementById('undoBtn').disabled = state.historyIndex < 0;
+            document.getElementById('redoBtn').disabled = state.historyIndex >= state.history.length - 1;
+        }
+
+        // Keyboard shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+                    e.preventDefault();
+                    undo();
+                } else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+                    e.preventDefault();
+                    redo();
+                }
+            });
+        }
+
+        // Apply styles
+        function applyStyles() {
+            if (!state.showEditIcon) {
+                document.querySelectorAll('.editable-cell').forEach(cell => {
+                    cell.style.setProperty('--edit-icon-display', 'none');
+                });
+            }
+        }
+
+        // Save all changes
+        function saveAllChanges() {
+            showToast(`Saved ${state.modifiedCells.size} change(s)`);
+            state.modifiedCells.clear();
+            state.history = [];
+            state.historyIndex = -1;
+            state.originalData = JSON.parse(JSON.stringify(dataSets));
+            renderTable();
+            updateStatusBar();
+            updateHistoryButtons();
+        }
+
+        // Revert all changes
+        function revertAllChanges() {
+            dataSets[state.dataPreset] = JSON.parse(JSON.stringify(state.originalData[state.dataPreset]));
+            state.modifiedCells.clear();
+            state.history = [];
+            state.historyIndex = -1;
+            renderTable();
+            updateStatusBar();
+            updateHistoryButtons();
+            showToast('All changes reverted');
+        }
+
+        // Randomize data
+        function randomizeData() {
+            const data = dataSets[state.dataPreset];
+            data.rows.forEach((row, rowIndex) => {
+                data.fields.forEach((field, colIndex) => {
+                    if (field.type === 'select') {
+                        const randomOption = field.options[Math.floor(Math.random() * field.options.length)];
+                        if (row[field.key] !== randomOption) {
+                            addToHistory({
+                                type: 'edit',
+                                rowIndex,
+                                colIndex,
+                                field: field.key,
+                                oldValue: row[field.key],
+                                newValue: randomOption
+                            });
+                            row[field.key] = randomOption;
+                            state.modifiedCells.add(`${rowIndex}-${colIndex}`);
+                        }
+                    }
+                });
+            });
+            renderTable();
+            updateStatusBar();
+        }
+
+        // Update Status Bar
+        function updateStatusBar() {
+            document.getElementById('statusDataset').textContent = presetLabels[state.dataPreset];
+            document.getElementById('statusModified').textContent = state.modifiedCells.size;
+            document.getElementById('statusHistory').textContent = state.history.length;
+            document.getElementById('statusTrigger').textContent = state.editTrigger === 'click' ? 'Click' : 'Double Click';
+        }
+
+        // Show toast notification
+        function showToast(message, isError = false) {
+            toast.textContent = message;
+            toast.className = 'toast' + (isError ? ' error' : '');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Event Handlers
+        function setDataPreset(preset) {
+            state.dataPreset = preset;
+            state.modifiedCells.clear();
+            state.history = [];
+            state.historyIndex = -1;
+            state.editingCell = null;
+            
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.preset === preset);
+            });
+            
+            renderTable();
+            updateStatusBar();
+            updateHistoryButtons();
+        }
+
+        function updateTrigger() {
+            state.editTrigger = document.getElementById('triggerSelect').value;
+            renderTable();
+            updateStatusBar();
+        }
+
+        function updateSaveMode() {
+            state.saveMode = document.getElementById('saveModeSelect').value;
+        }
+
+        function toggleValidation() {
+            state.validation = document.getElementById('validationToggle').checked;
+        }
+
+        function toggleRequired() {
+            state.required = document.getElementById('requiredToggle').checked;
+        }
+
+        function toggleTooltips() {
+            state.showTooltips = document.getElementById('tooltipToggle').checked;
+        }
+
+        function toggleEditIcon() {
+            state.showEditIcon = document.getElementById('editIconToggle').checked;
+            renderTable();
+        }
+
+        function toggleModified() {
+            state.showModified = document.getElementById('modifiedToggle').checked;
+            renderTable();
+        }
+
+        function toggleHover() {
+            state.hoverEffect = document.getElementById('hoverToggle').checked;
+        }
+
+        function resetDefaults() {
+            // Reset data
+            dataSets[state.dataPreset] = JSON.parse(JSON.stringify(state.originalData[state.dataPreset]));
+            
+            // Reset state
+            state.dataPreset = 'employees';
+            state.editTrigger = 'click';
+            state.saveMode = 'blur';
+            state.validation = true;
+            state.required = true;
+            state.showTooltips = true;
+            state.showEditIcon = true;
+            state.showModified = true;
+            state.hoverEffect = true;
+            state.modifiedCells.clear();
+            state.history = [];
+            state.historyIndex = -1;
+            state.editingCell = null;
+
+            // Reset UI controls
+            document.getElementById('triggerSelect').value = 'click';
+            document.getElementById('saveModeSelect').value = 'blur';
+            document.getElementById('validationToggle').checked = true;
+            document.getElementById('requiredToggle').checked = true;
+            document.getElementById('tooltipToggle').checked = true;
+            document.getElementById('editIconToggle').checked = true;
+            document.getElementById('modifiedToggle').checked = true;
+            document.getElementById('hoverToggle').checked = true;
+
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.preset === 'employees');
+            });
+
+            renderTable();
+            updateStatusBar();
+            updateHistoryButtons();
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Loader - AI & Voice Interactions</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.1rem;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .loader-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .neural-loader-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid rgba(0, 212, 255, 0.4);
+            border-radius: 20px;
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 60px rgba(0, 212, 255, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            color: var(--jazer-cyan);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .training-badge {
+            background: var(--gradient-accent);
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 0 20px rgba(255, 0, 128, 0.3);
+            animation: badge-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes badge-pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 0, 128, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(255, 0, 128, 0.5); }
+        }
+
+        .network-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        /* SVG Canvas */
+        .connections-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .connection-line {
+            stroke: var(--jazer-cyan);
+            stroke-width: 2;
+            opacity: 0.3;
+            transition: all 0.3s ease;
+        }
+
+        .connection-line.active {
+            stroke: var(--jazer-pink);
+            stroke-width: 3;
+            opacity: 0.8;
+            animation: data-pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes data-pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Network Nodes */
+        .network-node {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid var(--jazer-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            z-index: 2;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .network-node:hover {
+            transform: scale(1.4);
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.8);
+            z-index: 10;
+        }
+
+        .network-node.active {
+            background: var(--gradient-primary);
+            border-color: var(--jazer-neon-green);
+            box-shadow: 0 0 35px rgba(0, 255, 136, 0.6);
+            animation: node-fire 0.5s ease-out;
+        }
+
+        @keyframes node-fire {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        /* Input Layer (left) */
+        .network-node[data-layer="input"]:nth-child(1) { left: 8%; top: 20%; }
+        .network-node[data-layer="input"]:nth-child(2) { left: 8%; top: 40%; }
+        .network-node[data-layer="input"]:nth-child(3) { left: 8%; top: 60%; }
+        .network-node[data-layer="input"]:nth-child(4) { left: 8%; top: 80%; }
+
+        /* Hidden Layer 1 */
+        .network-node[data-layer="hidden1"]:nth-child(5) { left: 30%; top: 10%; }
+        .network-node[data-layer="hidden1"]:nth-child(6) { left: 30%; top: 30%; }
+        .network-node[data-layer="hidden1"]:nth-child(7) { left: 30%; top: 50%; }
+        .network-node[data-layer="hidden1"]:nth-child(8) { left: 30%; top: 70%; }
+        .network-node[data-layer="hidden1"]:nth-child(9) { left: 30%; top: 90%; }
+
+        /* Hidden Layer 2 */
+        .network-node[data-layer="hidden2"]:nth-child(10) { left: 55%; top: 10%; }
+        .network-node[data-layer="hidden2"]:nth-child(11) { left: 55%; top: 30%; }
+        .network-node[data-layer="hidden2"]:nth-child(12) { left: 55%; top: 50%; }
+        .network-node[data-layer="hidden2"]:nth-child(13) { left: 55%; top: 70%; }
+        .network-node[data-layer="hidden2"]:nth-child(14) { left: 55%; top: 90%; }
+
+        /* Output Layer */
+        .network-node[data-layer="output"]:nth-child(15) { left: 85%; top: 30%; }
+        .network-node[data-layer="output"]:nth-child(16) { left: 85%; top: 50%; }
+        .network-node[data-layer="output"]:nth-child(17) { left: 85%; top: 70%; }
+
+        /* Particles */
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--jazer-neon-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--jazer-neon-green);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* Progress Section */
+        .progress-section {
+            margin-bottom: 2rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .progress-label {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .progress-percent {
+            color: var(--jazer-neon-green);
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 8px;
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+            animation: progress-shimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes progress-shimmer {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(0, 212, 255, 0.8); }
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            padding: 1.2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Status Section */
+        .status-section {
+            background: rgba(0, 212, 255, 0.05);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .status-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-icon {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--jazer-neon-green);
+            animation: status-blink 2s ease-in-out infinite;
+        }
+
+        @keyframes status-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .status-text {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+        }
+
+        /* Control Buttons */
+        .control-section {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .control-btn {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            color: var(--jazer-cyan);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-primary);
+        }
+
+        .control-btn:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .control-btn.primary {
+            background: var(--gradient-primary);
+            border-color: transparent;
+            color: var(--text-light);
+        }
+
+        .control-btn.primary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 30px rgba(0, 212, 255, 0.5);
+        }
+
+        .info-panel {
+            background: rgba(255, 0, 128, 0.1);
+            border: 2px solid rgba(255, 0, 128, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+        }
+
+        .info-panel strong {
+            color: var(--jazer-pink);
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .control-section {
+                flex-direction: column;
+            }
+
+            .network-node {
+                width: 30px;
+                height: 30px;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to AI & Voice Interactions</a>
+
+    <div class="header">
+        <h1>Neural Network Loader</h1>
+        <p>Real-time visualization of neural network training with live stats</p>
+    </div>
+
+    <div class="demo-container">
+        <div class="loader-grid">
+            <div class="neural-loader-card">
+                <div class="card-header">
+                    <h2 class="card-title">🧠 Neural Network Training</h2>
+                    <div class="training-badge">Training Active</div>
+                </div>
+
+                <div class="network-container" id="networkContainer">
+                    <svg class="connections-svg" id="connectionsSvg"></svg>
+                    
+                    <!-- Input Layer -->
+                    <div class="network-node" data-layer="input" data-id="i1">I1</div>
+                    <div class="network-node" data-layer="input" data-id="i2">I2</div>
+                    <div class="network-node" data-layer="input" data-id="i3">I3</div>
+                    <div class="network-node" data-layer="input" data-id="i4">I4</div>
+                    
+                    <!-- Hidden Layer 1 -->
+                    <div class="network-node" data-layer="hidden1" data-id="h1">H1</div>
+                    <div class="network-node" data-layer="hidden1" data-id="h2">H2</div>
+                    <div class="network-node" data-layer="hidden1" data-id="h3">H3</div>
+                    <div class="network-node" data-layer="hidden1" data-id="h4">H4</div>
+                    <div class="network-node" data-layer="hidden1" data-id="h5">H5</div>
+                    
+                    <!-- Hidden Layer 2 -->
+                    <div class="network-node" data-layer="hidden2" data-id="h6">H6</div>
+                    <div class="network-node" data-layer="hidden2" data-id="h7">H7</div>
+                    <div class="network-node" data-layer="hidden2" data-id="h8">H8</div>
+                    <div class="network-node" data-layer="hidden2" data-id="h9">H9</div>
+                    <div class="network-node" data-layer="hidden2" data-id="h10">H10</div>
+                    
+                    <!-- Output Layer -->
+                    <div class="network-node" data-layer="output" data-id="o1">O1</div>
+                    <div class="network-node" data-layer="output" data-id="o2">O2</div>
+                    <div class="network-node" data-layer="output" data-id="o3">O3</div>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-header">
+                        <span class="progress-label">Training Progress</span>
+                        <span class="progress-percent" id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="epochCount">0</div>
+                        <div class="stat-label">Epoch</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="accuracy">0%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="loss">1.000</div>
+                        <div class="stat-label">Loss</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="speed">0</div>
+                        <div class="stat-label">Samples/s</div>
+                    </div>
+                </div>
+
+                <div class="status-section">
+                    <div class="status-row">
+                        <span class="status-icon"></span>
+                        <span class="status-text" id="status1">Initializing neural pathways...</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-icon"></span>
+                        <span class="status-text" id="status2">Loading training data...</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-icon"></span>
+                        <span class="status-text" id="status3">Ready to train</span>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <button class="control-btn" id="pauseBtn">Pause Training</button>
+                    <button class="control-btn" id="resetBtn">Reset Network</button>
+                    <button class="control-btn primary" id="startBtn">Start Training</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <strong>💡 Neural Network Visualization:</strong> Watch a live neural network training in real-time. The network has 4 input nodes, two hidden layers (5 nodes each), and 3 output nodes. Active connections pulse with data flow, nodes light up during computation, and training stats update continuously. Use controls to pause, reset, or start training cycles.
+        </div>
+    </div>
+
+    <script>
+        let isTraining = false;
+        let trainingInterval = null;
+        let progress = 0;
+        let epoch = 0;
+
+        // Draw connections between nodes
+        function drawConnections() {
+            const svg = document.getElementById('connectionsSvg');
+            const nodes = document.querySelectorAll('.network-node');
+            svg.innerHTML = '';
+            
+            const nodePositions = Array.from(nodes).map(node => {
+                const rect = node.getBoundingClientRect();
+                const containerRect = node.closest('.network-container').getBoundingClientRect();
+                return {
+                    x: rect.left - containerRect.left + rect.width / 2,
+                    y: rect.top - containerRect.top + rect.height / 2,
+                    layer: node.getAttribute('data-layer'),
+                    id: node.getAttribute('data-id')
+                };
+            });
+
+            const layers = ['input', 'hidden1', 'hidden2', 'output'];
+            
+            for (let i = 0; i < layers.length - 1; i++) {
+                const fromLayer = nodePositions.filter(n => n.layer === layers[i]);
+                const toLayer = nodePositions.filter(n => n.layer === layers[i + 1]);
+                
+                fromLayer.forEach(from => {
+                    toLayer.forEach(to => {
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', from.x);
+                        line.setAttribute('y1', from.y);
+                        line.setAttribute('x2', to.x);
+                        line.setAttribute('y2', to.y);
+                        line.classList.add('connection-line');
+                        line.setAttribute('data-from', from.id);
+                        line.setAttribute('data-to', to.id);
+                        svg.appendChild(line);
+                    });
+                });
+            }
+        }
+
+        // Activate random nodes and connections
+        function activateNodes() {
+            const nodes = document.querySelectorAll('.network-node');
+            const lines = document.querySelectorAll('.connection-line');
+            
+            // Remove all active states
+            nodes.forEach(n => n.classList.remove('active'));
+            lines.forEach(l => l.classList.remove('active'));
+            
+            // Activate random nodes
+            const randomCount = Math.floor(Math.random() * 3) + 2;
+            for (let i = 0; i < randomCount; i++) {
+                const randomNode = nodes[Math.floor(Math.random() * nodes.length)];
+                randomNode.classList.add('active');
+                
+                // Activate connected lines
+                const nodeId = randomNode.getAttribute('data-id');
+                lines.forEach(line => {
+                    if (line.getAttribute('data-from') === nodeId || 
+                        line.getAttribute('data-to') === nodeId) {
+                        if (Math.random() > 0.5) {
+                            line.classList.add('active');
+                        }
+                    }
+                });
+            }
+        }
+
+        // Update training stats
+        function updateStats() {
+            if (!isTraining) return;
+            
+            // Update progress
+            progress = Math.min(progress + (Math.random() * 2), 100);
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('progressPercent').textContent = Math.floor(progress) + '%';
+            
+            // Update epoch
+            if (progress >= 100) {
+                epoch++;
+                progress = 0;
+                document.getElementById('epochCount').textContent = epoch;
+            }
+            
+            // Update accuracy
+            const accuracy = Math.min(50 + epoch * 5 + Math.random() * 10, 99);
+            document.getElementById('accuracy').textContent = accuracy.toFixed(1) + '%';
+            
+            // Update loss
+            const loss = Math.max(1.0 - (epoch * 0.08) - Math.random() * 0.1, 0.001);
+            document.getElementById('loss').textContent = loss.toFixed(3);
+            
+            // Update speed
+            const speed = Math.floor(800 + Math.random() * 400);
+            document.getElementById('speed').textContent = speed;
+            
+            // Update status messages
+            const statuses = [
+                'Forward propagation active...',
+                'Computing gradients...',
+                'Backpropagation in progress...',
+                'Updating weights and biases...',
+                'Optimizing network parameters...',
+                'Validating training batch...'
+            ];
+            
+            document.getElementById('status1').textContent = statuses[Math.floor(Math.random() * statuses.length)];
+            document.getElementById('status2').textContent = statuses[Math.floor(Math.random() * statuses.length)];
+            document.getElementById('status3').textContent = `Processing batch ${Math.floor(progress / 10) + 1}/10`;
+        }
+
+        // Start training
+        function startTraining() {
+            isTraining = true;
+            document.getElementById('startBtn').textContent = 'Training...';
+            
+            trainingInterval = setInterval(() => {
+                activateNodes();
+                updateStats();
+            }, 500);
+        }
+
+        // Pause training
+        function pauseTraining() {
+            isTraining = false;
+            clearInterval(trainingInterval);
+            document.getElementById('startBtn').textContent = 'Resume Training';
+        }
+
+        // Reset network
+        function resetNetwork() {
+            pauseTraining();
+            progress = 0;
+            epoch = 0;
+            
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressPercent').textContent = '0%';
+            document.getElementById('epochCount').textContent = '0';
+            document.getElementById('accuracy').textContent = '0%';
+            document.getElementById('loss').textContent = '1.000';
+            document.getElementById('speed').textContent = '0';
+            document.getElementById('startBtn').textContent = 'Start Training';
+            
+            document.querySelectorAll('.network-node').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.connection-line').forEach(l => l.classList.remove('active'));
+        }
+
+        // Event listeners
+        document.getElementById('startBtn').addEventListener('click', () => {
+            if (isTraining) {
+                pauseTraining();
+            } else {
+                startTraining();
+            }
+        });
+
+        document.getElementById('pauseBtn').addEventListener('click', pauseTraining);
+        document.getElementById('resetBtn').addEventListener('click', resetNetwork);
+
+        // Initialize
+        window.addEventListener('load', () => {
+            drawConnections();
+            
+            // Auto-start after 1 second
+            setTimeout(startTraining, 1000);
+        });
+
+        // Redraw on resize
+        window.addEventListener('resize', () => {
+            drawConnections();
+        });
+    </script>
+</body>
+</html>

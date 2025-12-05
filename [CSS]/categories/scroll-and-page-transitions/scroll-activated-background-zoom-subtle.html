@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll-Activated Background Zoom (Subtle) - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        .header {
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header h1 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 1rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .control-btn {
+            padding: 0.875rem 1.75rem;
+            background: rgba(147, 51, 234, 0.1);
+            border: 2px solid var(--jazer-purple, #9333ea);
+            color: var(--jazer-purple, #9333ea);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .control-btn:hover {
+            background: rgba(147, 51, 234, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(147, 51, 234, 0.4);
+        }
+
+        .control-btn.active {
+            background: var(--jazer-purple, #9333ea);
+            color: #000000;
+            box-shadow: 0 0 30px rgba(147, 51, 234, 0.6);
+        }
+
+        /* Zoom Sections */
+        .zoom-section {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin: 4rem 0;
+        }
+
+        .zoom-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .zoom-background::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            transform: translate(-50%, -50%) scale(1);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+        }
+
+        /* Background Variations */
+        .zoom-background.gradient-mesh::before {
+            background: radial-gradient(circle at 30% 40%, rgba(0, 242, 234, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(147, 51, 234, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 50% 50%, rgba(255, 0, 110, 0.2) 0%, transparent 70%);
+            filter: blur(40px);
+        }
+
+        .zoom-background.geometric::before {
+            background-image: 
+                linear-gradient(45deg, rgba(0, 242, 234, 0.1) 25%, transparent 25%),
+                linear-gradient(-45deg, rgba(147, 51, 234, 0.1) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, rgba(255, 0, 110, 0.1) 75%),
+                linear-gradient(-45deg, transparent 75%, rgba(0, 242, 234, 0.1) 75%);
+            background-size: 100px 100px;
+            background-position: 0 0, 0 50px, 50px -50px, -50px 0px;
+        }
+
+        .zoom-background.radial-burst::before {
+            background: radial-gradient(circle at center, 
+                        rgba(0, 242, 234, 0.4) 0%, 
+                        rgba(147, 51, 234, 0.3) 30%, 
+                        rgba(255, 0, 110, 0.2) 60%, 
+                        transparent 100%);
+            filter: blur(20px);
+        }
+
+        .zoom-background.particle-field::before {
+            background-image: 
+                radial-gradient(2px 2px at 20% 30%, rgba(0, 242, 234, 0.8), transparent),
+                radial-gradient(2px 2px at 60% 70%, rgba(147, 51, 234, 0.8), transparent),
+                radial-gradient(1px 1px at 50% 50%, rgba(255, 0, 110, 0.6), transparent),
+                radial-gradient(2px 2px at 80% 10%, rgba(0, 242, 234, 0.7), transparent),
+                radial-gradient(1px 1px at 90% 60%, rgba(147, 51, 234, 0.6), transparent),
+                radial-gradient(2px 2px at 33% 80%, rgba(255, 0, 110, 0.7), transparent),
+                radial-gradient(1px 1px at 15% 90%, rgba(0, 242, 234, 0.5), transparent);
+            background-size: 200% 200%;
+            background-position: 0 0, 40% 60%, 130% 270%, 70% 100%, 20% 40%, 80% 90%, 45% 30%;
+        }
+
+        .zoom-background.neon-grid::before {
+            background-image: 
+                linear-gradient(rgba(0, 242, 234, 0.2) 2px, transparent 2px),
+                linear-gradient(90deg, rgba(147, 51, 234, 0.2) 2px, transparent 2px);
+            background-size: 80px 80px;
+            background-position: center center;
+        }
+
+        /* Zoom Active State */
+        .zoom-section.zooming .zoom-background::before {
+            transform: translate(-50%, -50%) scale(1.15);
+        }
+
+        /* Content Overlay */
+        .zoom-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 3rem;
+            max-width: 800px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .zoom-content h2 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            margin-bottom: 1rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .zoom-content p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .section-number {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.2);
+            border: 1px solid var(--jazer-cyan, #00f2ea);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            color: var(--jazer-cyan, #00f2ea);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Scroll Indicator */
+        .scroll-indicator {
+            position: fixed;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            text-align: center;
+            animation: bounce 2s infinite;
+        }
+
+        .scroll-indicator__text {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .scroll-indicator__arrow {
+            width: 30px;
+            height: 50px;
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            border-radius: 20px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .scroll-indicator__arrow::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: var(--jazer-cyan, #00f2ea);
+            border-radius: 50%;
+            animation: scroll-down 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            40% {
+                transform: translateX(-50%) translateY(-10px);
+            }
+            60% {
+                transform: translateX(-50%) translateY(-5px);
+            }
+        }
+
+        @keyframes scroll-down {
+            0% {
+                opacity: 0;
+                top: 8px;
+            }
+            40% {
+                opacity: 1;
+            }
+            80% {
+                opacity: 0;
+                top: 25px;
+            }
+            100% {
+                opacity: 0;
+                top: 8px;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .back-button {
+                top: 1rem;
+                left: 1rem;
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .header {
+                padding: 6rem 1rem 3rem;
+            }
+
+            .controls {
+                padding: 1rem;
+                gap: 0.5rem;
+            }
+
+            .control-btn {
+                padding: 0.75rem 1.25rem;
+                font-size: 0.875rem;
+            }
+
+            .zoom-content {
+                padding: 2rem 1.5rem;
+                margin: 0 1rem;
+            }
+
+            .zoom-section {
+                min-height: 80vh;
+                margin: 2rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <div class="header">
+        <h1>Scroll-Activated Background Zoom (Subtle)</h1>
+        <p>Backgrounds that gently scale up as sections enter the viewport, creating depth and immersion without overwhelming the content</p>
+    </div>
+
+    <div class="controls">
+        <button class="control-btn active" data-type="gradient-mesh">Gradient Mesh</button>
+        <button class="control-btn" data-type="geometric">Geometric Pattern</button>
+        <button class="control-btn" data-type="radial-burst">Radial Burst</button>
+        <button class="control-btn" data-type="particle-field">Particle Field</button>
+        <button class="control-btn" data-type="neon-grid">Neon Grid</button>
+    </div>
+
+    <div class="scroll-indicator">
+        <div class="scroll-indicator__text">Scroll Down</div>
+        <div class="scroll-indicator__arrow"></div>
+    </div>
+
+    <!-- Section 1 -->
+    <section class="zoom-section" data-section="1">
+        <div class="zoom-background gradient-mesh"></div>
+        <div class="zoom-content">
+            <span class="section-number">Section 01</span>
+            <h2>Welcome to the Experience</h2>
+            <p>As you scroll through each section, notice how the background subtly expands, creating a sense of depth and drawing you deeper into the content. This technique adds dimensionality without distraction.</p>
+        </div>
+    </section>
+
+    <!-- Section 2 -->
+    <section class="zoom-section" data-section="2">
+        <div class="zoom-background gradient-mesh"></div>
+        <div class="zoom-content">
+            <span class="section-number">Section 02</span>
+            <h2>Immersive Storytelling</h2>
+            <p>The zoom effect creates a cinematic quality, making each section feel like a new scene in a visual narrative. The 15% scale increase is carefully calibrated to be noticeable yet elegant.</p>
+        </div>
+    </section>
+
+    <!-- Section 3 -->
+    <section class="zoom-section" data-section="3">
+        <div class="zoom-background gradient-mesh"></div>
+        <div class="zoom-content">
+            <span class="section-number">Section 03</span>
+            <h2>Performance Optimized</h2>
+            <p>Using CSS transforms with will-change and GPU acceleration, these animations run at a smooth 60fps. The Intersection Observer API ensures efficient scroll detection without performance degradation.</p>
+        </div>
+    </section>
+
+    <!-- Section 4 -->
+    <section class="zoom-section" data-section="4">
+        <div class="zoom-background gradient-mesh"></div>
+        <div class="zoom-content">
+            <span class="section-number">Section 04</span>
+            <h2>Multiple Background Styles</h2>
+            <p>Switch between different background patterns using the controls above. Each pattern responds to scroll with the same subtle zoom effect, demonstrating versatility across visual styles.</p>
+        </div>
+    </section>
+
+    <!-- Section 5 -->
+    <section class="zoom-section" data-section="5">
+        <div class="zoom-background gradient-mesh"></div>
+        <div class="zoom-content">
+            <span class="section-number">Section 05</span>
+            <h2>Engaging User Experience</h2>
+            <p>This technique enhances user engagement by rewarding scrolling behavior with visual feedback. It creates a dynamic, interactive feel while maintaining content readability and focus.</p>
+        </div>
+    </section>
+
+    <script>
+        // Intersection Observer for zoom effect
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: [0, 0.25, 0.5, 0.75, 1]
+        };
+
+        const zoomObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                // Activate zoom when section is more than 30% visible
+                if (entry.intersectionRatio > 0.3) {
+                    entry.target.classList.add('zooming');
+                } else {
+                    entry.target.classList.remove('zooming');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all zoom sections
+        const zoomSections = document.querySelectorAll('.zoom-section');
+        zoomSections.forEach(section => {
+            zoomObserver.observe(section);
+        });
+
+        // Background type switching
+        const controlButtons = document.querySelectorAll('.control-btn');
+        const backgrounds = document.querySelectorAll('.zoom-background');
+
+        controlButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                controlButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                // Get selected background type
+                const selectedType = button.getAttribute('data-type');
+
+                // Update all backgrounds
+                backgrounds.forEach(bg => {
+                    // Remove all type classes
+                    bg.classList.remove('gradient-mesh', 'geometric', 'radial-burst', 'particle-field', 'neon-grid');
+                    // Add selected type
+                    bg.classList.add(selectedType);
+                });
+            });
+        });
+
+        // Hide scroll indicator after first scroll
+        let hasScrolled = false;
+        const scrollIndicator = document.querySelector('.scroll-indicator');
+
+        window.addEventListener('scroll', () => {
+            if (!hasScrolled && window.scrollY > 100) {
+                hasScrolled = true;
+                scrollIndicator.style.opacity = '0';
+                scrollIndicator.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => {
+                    scrollIndicator.style.display = 'none';
+                }, 500);
+            }
+        });
+
+        // Smooth scroll enhancement
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Performance: Pause animations when tab is not visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                zoomSections.forEach(section => {
+                    section.style.animationPlayState = 'paused';
+                });
+            } else {
+                zoomSections.forEach(section => {
+                    section.style.animationPlayState = 'running';
+                });
+            }
+        });
+
+        // Add keyboard navigation support
+        document.addEventListener('keydown', (e) => {
+            const currentScroll = window.scrollY;
+            const viewportHeight = window.innerHeight;
+
+            if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+                e.preventDefault();
+                window.scrollTo({
+                    top: currentScroll + viewportHeight,
+                    behavior: 'smooth'
+                });
+            } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+                e.preventDefault();
+                window.scrollTo({
+                    top: currentScroll - viewportHeight,
+                    behavior: 'smooth'
+                });
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                window.scrollTo({
+                    top: document.body.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    </script>
+</body>
+</html>

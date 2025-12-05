@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assertion Viewer - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: #0a0a0a;
+            min-height: 100vh;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        .devtools-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .devtools-header {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(6, 182, 212, 0.05) 100%);
+            border-bottom: 2px solid rgba(34, 197, 94, 0.4);
+            padding: 1rem 1.5rem;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #22c55e;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            border-radius: 6px;
+            background: rgba(34, 197, 94, 0.1);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .back-button:hover {
+            background: #22c55e;
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+        }
+
+        .devtools-title {
+            font-family: var(--font-primary);
+            font-size: 1.4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #22c55e, var(--jazer-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .filter-select {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 6px;
+            padding: 0.5rem 2rem 0.5rem 0.75rem;
+            color: #22c55e;
+            font-family: var(--font-secondary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+        }
+
+        .control-btn {
+            padding: 0.5rem 0.75rem;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 6px;
+            color: #22c55e;
+            font-family: var(--font-secondary);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: #22c55e;
+        }
+
+        .control-btn.active {
+            background: #22c55e;
+            color: #0a0a0a;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(34, 197, 94, 0.2);
+            overflow-x: auto;
+        }
+
+        .stat-card {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.25rem;
+            background: rgba(34, 197, 94, 0.05);
+            border: 1px solid rgba(34, 197, 94, 0.15);
+            border-radius: 8px;
+            min-width: 140px;
+        }
+
+        .stat-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 1.1rem;
+        }
+
+        .stat-icon.pass {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .stat-icon.fail {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .stat-icon.skip {
+            background: rgba(255, 190, 11, 0.2);
+            color: var(--jazer-yellow);
+        }
+
+        .stat-icon.total {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--jazer-cyan);
+        }
+
+        .stat-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-family: var(--font-primary);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-light);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.25rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .suites-panel { display: none; }
+        }
+
+        /* Suites Panel */
+        .suites-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-right: 1px solid rgba(34, 197, 94, 0.2);
+            overflow-y: auto;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: rgba(34, 197, 94, 0.05);
+            border-bottom: 1px solid rgba(34, 197, 94, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .panel-title {
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .suite-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .suite-item:hover {
+            background: rgba(34, 197, 94, 0.08);
+        }
+
+        .suite-item.active {
+            background: rgba(34, 197, 94, 0.12);
+            border-left-color: #22c55e;
+        }
+
+        .suite-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .suite-icon.pass {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .suite-icon.fail {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .suite-icon.mixed {
+            background: rgba(255, 190, 11, 0.2);
+            color: var(--jazer-yellow);
+        }
+
+        .suite-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .suite-name {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .suite-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        .suite-count {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .count-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .count-dot.pass { background: #22c55e; }
+        .count-dot.fail { background: #ef4444; }
+
+        /* Assertions Panel */
+        .assertions-panel {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .assertions-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: rgba(34, 197, 94, 0.05);
+            border-bottom: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .suite-title {
+            font-family: var(--font-primary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .suite-duration {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .assertions-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        /* Assertion Item */
+        .assertion-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(34, 197, 94, 0.1);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .assertion-item:hover {
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .assertion-item.pass {
+            border-left: 3px solid #22c55e;
+        }
+
+        .assertion-item.fail {
+            border-left: 3px solid #ef4444;
+        }
+
+        .assertion-item.skip {
+            border-left: 3px solid var(--jazer-yellow);
+            opacity: 0.7;
+        }
+
+        .assertion-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .assertion-header:hover {
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .assertion-status {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .assertion-status.pass {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .assertion-status.fail {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .assertion-status.skip {
+            background: rgba(255, 190, 11, 0.2);
+            color: var(--jazer-yellow);
+        }
+
+        .assertion-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .assertion-name {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .assertion-type {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        .assertion-duration {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: var(--jazer-cyan);
+        }
+
+        .assertion-toggle {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            transition: transform 0.2s ease;
+        }
+
+        .assertion-item.expanded .assertion-toggle {
+            transform: rotate(90deg);
+        }
+
+        /* Assertion Details */
+        .assertion-details {
+            display: none;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.4);
+            border-top: 1px solid rgba(34, 197, 94, 0.1);
+        }
+
+        .assertion-item.expanded .assertion-details {
+            display: block;
+        }
+
+        .detail-section {
+            margin-bottom: 1rem;
+        }
+
+        .detail-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-label {
+            font-family: var(--font-secondary);
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-value {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(34, 197, 94, 0.1);
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+
+        .expected {
+            color: #22c55e;
+        }
+
+        .actual {
+            color: #ef4444;
+        }
+
+        .diff-line {
+            display: block;
+            padding: 0.2rem 0;
+        }
+
+        .diff-line.add {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+
+        .diff-line.remove {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        /* Stack Trace */
+        .stack-trace {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            line-height: 1.6;
+        }
+
+        .stack-frame {
+            display: block;
+            padding: 0.3rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stack-frame:last-child {
+            border-bottom: none;
+        }
+
+        .stack-function {
+            color: var(--jazer-yellow);
+        }
+
+        .stack-location {
+            color: var(--text-muted);
+        }
+
+        .stack-location:hover {
+            color: var(--jazer-cyan);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 1rem;
+            background: rgba(34, 197, 94, 0.05);
+            border-top: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.7rem;
+        }
+
+        .status-label {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-value {
+            color: #22c55e;
+            font-weight: 600;
+        }
+
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 4px #22c55e; }
+            50% { opacity: 0.5; box-shadow: 0 0 8px #22c55e; }
+        }
+
+        .status-text {
+            font-size: 0.7rem;
+            color: var(--text-gray);
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            height: 3px;
+            background: rgba(34, 197, 94, 0.2);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, var(--jazer-cyan));
+            width: 85%;
+            transition: width 0.3s ease;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(34, 197, 94, 0.3);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(34, 197, 94, 0.5);
+        }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+            .stats-bar {
+                flex-wrap: wrap;
+            }
+            .stat-card {
+                min-width: calc(50% - 0.5rem);
+            }
+            .header-controls {
+                width: 100%;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .assertion-item {
+            animation: fadeIn 0.2s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="devtools-wrapper">
+        <!-- Header -->
+        <header class="devtools-header">
+            <div class="header-top">
+                <div class="header-left">
+                    <a href="index.html" class="back-button">← Back to Dev Tools</a>
+                    <h1 class="devtools-title">Assertion Viewer</h1>
+                </div>
+                <div class="header-controls">
+                    <select class="filter-select" id="filterSelect">
+                        <option value="all">All Assertions</option>
+                        <option value="pass">Passed Only</option>
+                        <option value="fail">Failed Only</option>
+                        <option value="skip">Skipped Only</option>
+                    </select>
+                    <button class="control-btn" id="expandAllBtn">Expand All</button>
+                    <button class="control-btn" id="rerunBtn">Re-run</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-icon pass">✓</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="passCount">42</div>
+                    <div class="stat-label">Passed</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon fail">✗</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="failCount">3</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon skip">○</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="skipCount">5</div>
+                    <div class="stat-label">Skipped</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon total">Σ</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="totalCount">50</div>
+                    <div class="stat-label">Total</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Suites Panel -->
+            <aside class="suites-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Test Suites</span>
+                </div>
+                <div id="suitesList">
+                    <!-- Dynamic suites -->
+                </div>
+            </aside>
+
+            <!-- Assertions Panel -->
+            <main class="assertions-panel">
+                <div class="assertions-header">
+                    <div>
+                        <div class="suite-title" id="currentSuiteTitle">Button.test.tsx</div>
+                        <div class="suite-duration" id="currentSuiteDuration">Duration: 245ms</div>
+                    </div>
+                </div>
+                <div class="assertions-list" id="assertionsList">
+                    <!-- Dynamic assertions -->
+                </div>
+            </main>
+        </div>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <div class="status-left">
+                <div class="status-item">
+                    <span class="status-label">Suite:</span>
+                    <span class="status-value" id="statusSuite">Button.test.tsx</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Coverage:</span>
+                    <span class="status-value">87.3%</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Duration:</span>
+                    <span class="status-value" id="statusDuration">1.24s</span>
+                </div>
+            </div>
+            <div class="status-right">
+                <div class="status-dot"></div>
+                <span class="status-text">Tests Complete</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Mock data - Test suites
+        const testSuites = [
+            {
+                name: 'Button.test.tsx',
+                status: 'mixed',
+                passed: 8,
+                failed: 1,
+                skipped: 1,
+                duration: 245,
+                assertions: [
+                    {
+                        name: 'should render button with text',
+                        status: 'pass',
+                        type: 'expect().toBeInTheDocument()',
+                        duration: 12,
+                        expected: null,
+                        actual: null
+                    },
+                    {
+                        name: 'should call onClick when clicked',
+                        status: 'pass',
+                        type: 'expect().toHaveBeenCalledTimes()',
+                        duration: 18,
+                        expected: null,
+                        actual: null
+                    },
+                    {
+                        name: 'should apply variant styles correctly',
+                        status: 'fail',
+                        type: 'expect().toHaveClass()',
+                        duration: 24,
+                        expected: '"btn-primary bg-blue-500"',
+                        actual: '"btn-primary"',
+                        diff: [
+                            { type: 'context', content: 'Expected element to have class:' },
+                            { type: 'remove', content: '- btn-primary bg-blue-500' },
+                            { type: 'add', content: '+ btn-primary' },
+                            { type: 'context', content: '' },
+                            { type: 'context', content: 'Received class:' },
+                            { type: 'context', content: '  btn-primary' }
+                        ],
+                        stackTrace: [
+                            { func: 'Object.<anonymous>', file: 'Button.test.tsx', line: 45 },
+                            { func: 'processTicksAndRejections', file: 'internal/process/task_queues.js', line: 95 }
+                        ]
+                    },
+                    {
+                        name: 'should disable button when loading',
+                        status: 'pass',
+                        type: 'expect().toBeDisabled()',
+                        duration: 15
+                    },
+                    {
+                        name: 'should show loading spinner',
+                        status: 'pass',
+                        type: 'expect().toBeVisible()',
+                        duration: 22
+                    },
+                    {
+                        name: 'should handle keyboard navigation',
+                        status: 'skip',
+                        type: 'expect().toHaveFocus()',
+                        duration: 0,
+                        skipReason: 'TODO: Implement keyboard navigation'
+                    },
+                    {
+                        name: 'should render icon when provided',
+                        status: 'pass',
+                        type: 'expect().toContainElement()',
+                        duration: 14
+                    },
+                    {
+                        name: 'should apply size classes',
+                        status: 'pass',
+                        type: 'expect().toHaveClass()',
+                        duration: 11
+                    },
+                    {
+                        name: 'should be accessible',
+                        status: 'pass',
+                        type: 'expect().toHaveAccessibleName()',
+                        duration: 28
+                    },
+                    {
+                        name: 'should support custom className',
+                        status: 'pass',
+                        type: 'expect().toHaveClass()',
+                        duration: 9
+                    }
+                ]
+            },
+            {
+                name: 'Card.test.tsx',
+                status: 'pass',
+                passed: 6,
+                failed: 0,
+                skipped: 0,
+                duration: 156,
+                assertions: [
+                    { name: 'should render card with title', status: 'pass', type: 'expect().toBeInTheDocument()', duration: 8 },
+                    { name: 'should render card body content', status: 'pass', type: 'expect().toBeInTheDocument()', duration: 7 },
+                    { name: 'should apply shadow styles', status: 'pass', type: 'expect().toHaveStyle()', duration: 12 },
+                    { name: 'should handle click events', status: 'pass', type: 'expect().toHaveBeenCalled()', duration: 15 },
+                    { name: 'should render footer slot', status: 'pass', type: 'expect().toContainElement()', duration: 9 },
+                    { name: 'should support custom border radius', status: 'pass', type: 'expect().toHaveStyle()', duration: 11 }
+                ]
+            },
+            {
+                name: 'Modal.test.tsx',
+                status: 'fail',
+                passed: 4,
+                failed: 2,
+                skipped: 1,
+                duration: 312,
+                assertions: [
+                    { name: 'should open when triggered', status: 'pass', type: 'expect().toBeVisible()', duration: 18 },
+                    { name: 'should close on backdrop click', status: 'fail', type: 'expect().not.toBeVisible()', duration: 45, expected: 'not visible', actual: 'visible', stackTrace: [{ func: 'handleBackdropClick', file: 'Modal.test.tsx', line: 67 }] },
+                    { name: 'should trap focus inside modal', status: 'pass', type: 'expect().toHaveFocus()', duration: 32 },
+                    { name: 'should close on escape key', status: 'fail', type: 'expect().toHaveBeenCalled()', duration: 28, expected: 'called once', actual: 'not called' },
+                    { name: 'should render portal to body', status: 'pass', type: 'expect().toContainElement()', duration: 14 },
+                    { name: 'should animate on enter/exit', status: 'skip', type: 'expect().toHaveClass()', duration: 0, skipReason: 'Animation testing not configured' },
+                    { name: 'should support custom z-index', status: 'pass', type: 'expect().toHaveStyle()', duration: 11 }
+                ]
+            },
+            {
+                name: 'useAuth.test.ts',
+                status: 'pass',
+                passed: 12,
+                failed: 0,
+                skipped: 2,
+                duration: 423,
+                assertions: [
+                    { name: 'should initialize with null user', status: 'pass', type: 'expect().toBeNull()', duration: 5 },
+                    { name: 'should set user on login', status: 'pass', type: 'expect().toEqual()', duration: 45 },
+                    { name: 'should clear user on logout', status: 'pass', type: 'expect().toBeNull()', duration: 12 },
+                    { name: 'should persist session', status: 'pass', type: 'expect().toBeTruthy()', duration: 67 },
+                    { name: 'should handle login errors', status: 'pass', type: 'expect().rejects.toThrow()', duration: 34 },
+                    { name: 'should refresh token automatically', status: 'pass', type: 'expect().toHaveBeenCalled()', duration: 89 },
+                    { name: 'should handle expired tokens', status: 'pass', type: 'expect().toBeFalsy()', duration: 23 },
+                    { name: 'should validate permissions', status: 'pass', type: 'expect().toBe()', duration: 8 },
+                    { name: 'should sync across tabs', status: 'skip', type: 'expect().toEqual()', duration: 0, skipReason: 'BroadcastChannel not available in test env' },
+                    { name: 'should handle network errors', status: 'pass', type: 'expect().rejects.toThrow()', duration: 42 },
+                    { name: 'should cache user data', status: 'pass', type: 'expect().toHaveBeenCalledTimes()', duration: 15 },
+                    { name: 'should support remember me', status: 'pass', type: 'expect().toBe()', duration: 18 },
+                    { name: 'should emit auth events', status: 'pass', type: 'expect().toHaveBeenCalledWith()', duration: 11 },
+                    { name: 'should handle SSO login', status: 'skip', type: 'expect().resolves.toBeTruthy()', duration: 0, skipReason: 'SSO provider not mocked' }
+                ]
+            },
+            {
+                name: 'utils.test.ts',
+                status: 'pass',
+                passed: 10,
+                failed: 0,
+                skipped: 1,
+                duration: 89,
+                assertions: [
+                    { name: 'formatDate should format correctly', status: 'pass', type: 'expect().toBe()', duration: 3 },
+                    { name: 'debounce should delay execution', status: 'pass', type: 'expect().toHaveBeenCalledTimes()', duration: 15 },
+                    { name: 'throttle should limit calls', status: 'pass', type: 'expect().toHaveBeenCalledTimes()', duration: 18 },
+                    { name: 'deepMerge should merge objects', status: 'pass', type: 'expect().toEqual()', duration: 4 },
+                    { name: 'isEmpty should detect empty values', status: 'pass', type: 'expect().toBe()', duration: 2 },
+                    { name: 'generateId should be unique', status: 'pass', type: 'expect().not.toBe()', duration: 5 },
+                    { name: 'parseQuery should parse URL params', status: 'pass', type: 'expect().toEqual()', duration: 3 },
+                    { name: 'slugify should create valid slugs', status: 'pass', type: 'expect().toBe()', duration: 2 },
+                    { name: 'clamp should constrain values', status: 'pass', type: 'expect().toBe()', duration: 1 },
+                    { name: 'retry should attempt multiple times', status: 'pass', type: 'expect().toHaveBeenCalledTimes()', duration: 28 },
+                    { name: 'memoize should cache results', status: 'skip', type: 'expect().toBe()', duration: 0, skipReason: 'Flaky test - needs investigation' }
+                ]
+            }
+        ];
+
+        // State
+        const state = {
+            currentSuite: 'Button.test.tsx',
+            filter: 'all',
+            expandedAssertions: new Set(),
+            allExpanded: false
+        };
+
+        // DOM Elements
+        const suitesList = document.getElementById('suitesList');
+        const assertionsList = document.getElementById('assertionsList');
+        const filterSelect = document.getElementById('filterSelect');
+
+        // Initialize
+        function init() {
+            renderSuites();
+            renderAssertions();
+            updateStats();
+            setupEventListeners();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            filterSelect.addEventListener('change', (e) => {
+                state.filter = e.target.value;
+                renderAssertions();
+            });
+
+            document.getElementById('expandAllBtn').addEventListener('click', () => {
+                state.allExpanded = !state.allExpanded;
+                const suite = testSuites.find(s => s.name === state.currentSuite);
+                if (state.allExpanded) {
+                    suite.assertions.forEach((_, i) => state.expandedAssertions.add(`${state.currentSuite}-${i}`));
+                } else {
+                    state.expandedAssertions.clear();
+                }
+                document.getElementById('expandAllBtn').textContent = state.allExpanded ? 'Collapse All' : 'Expand All';
+                renderAssertions();
+            });
+
+            document.getElementById('rerunBtn').addEventListener('click', () => {
+                simulateRerun();
+            });
+        }
+
+        // Render suites
+        function renderSuites() {
+            suitesList.innerHTML = testSuites.map(suite => `
+                <div class="suite-item ${suite.name === state.currentSuite ? 'active' : ''}" data-suite="${suite.name}">
+                    <div class="suite-icon ${suite.status}">${getSuiteIcon(suite.status)}</div>
+                    <div class="suite-details">
+                        <div class="suite-name">${suite.name}</div>
+                        <div class="suite-meta">
+                            <span class="suite-count">
+                                <span class="count-dot pass"></span> ${suite.passed}
+                            </span>
+                            ${suite.failed > 0 ? `
+                            <span class="suite-count">
+                                <span class="count-dot fail"></span> ${suite.failed}
+                            </span>` : ''}
+                            <span>${suite.duration}ms</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            suitesList.querySelectorAll('.suite-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    state.currentSuite = item.dataset.suite;
+                    state.expandedAssertions.clear();
+                    state.allExpanded = false;
+                    document.getElementById('expandAllBtn').textContent = 'Expand All';
+                    renderSuites();
+                    renderAssertions();
+                    updateSuiteHeader();
+                });
+            });
+        }
+
+        function getSuiteIcon(status) {
+            switch (status) {
+                case 'pass': return '✓';
+                case 'fail': return '✗';
+                case 'mixed': return '!';
+                default: return '○';
+            }
+        }
+
+        // Render assertions
+        function renderAssertions() {
+            const suite = testSuites.find(s => s.name === state.currentSuite);
+            if (!suite) return;
+
+            let assertions = suite.assertions;
+            
+            // Apply filter
+            if (state.filter !== 'all') {
+                assertions = assertions.filter(a => a.status === state.filter);
+            }
+
+            assertionsList.innerHTML = assertions.map((assertion, index) => {
+                const key = `${state.currentSuite}-${index}`;
+                const isExpanded = state.expandedAssertions.has(key);
+
+                return `
+                    <div class="assertion-item ${assertion.status} ${isExpanded ? 'expanded' : ''}" data-key="${key}">
+                        <div class="assertion-header">
+                            <div class="assertion-status ${assertion.status}">${getStatusIcon(assertion.status)}</div>
+                            <div class="assertion-info">
+                                <div class="assertion-name">${assertion.name}</div>
+                                <div class="assertion-type">${assertion.type}</div>
+                            </div>
+                            <div class="assertion-duration">${assertion.duration}ms</div>
+                            <div class="assertion-toggle">▶</div>
+                        </div>
+                        <div class="assertion-details">
+                            ${renderAssertionDetails(assertion)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            assertionsList.querySelectorAll('.assertion-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const item = header.closest('.assertion-item');
+                    const key = item.dataset.key;
+                    if (state.expandedAssertions.has(key)) {
+                        state.expandedAssertions.delete(key);
+                    } else {
+                        state.expandedAssertions.add(key);
+                    }
+                    item.classList.toggle('expanded');
+                });
+            });
+        }
+
+        function getStatusIcon(status) {
+            switch (status) {
+                case 'pass': return '✓';
+                case 'fail': return '✗';
+                case 'skip': return '○';
+                default: return '?';
+            }
+        }
+
+        function renderAssertionDetails(assertion) {
+            if (assertion.status === 'skip') {
+                return `
+                    <div class="detail-section">
+                        <div class="detail-label">Skip Reason</div>
+                        <div class="detail-value" style="color: var(--jazer-yellow);">
+                            ${assertion.skipReason || 'No reason provided'}
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (assertion.status === 'pass') {
+                return `
+                    <div class="detail-section">
+                        <div class="detail-label">Result</div>
+                        <div class="detail-value" style="color: #22c55e;">
+                            Assertion passed successfully
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Failed assertion
+            let html = '';
+
+            if (assertion.expected !== undefined && assertion.actual !== undefined) {
+                html += `
+                    <div class="detail-section">
+                        <div class="detail-label">Expected</div>
+                        <div class="detail-value expected">${assertion.expected}</div>
+                    </div>
+                    <div class="detail-section">
+                        <div class="detail-label">Received</div>
+                        <div class="detail-value actual">${assertion.actual}</div>
+                    </div>
+                `;
+            }
+
+            if (assertion.diff) {
+                html += `
+                    <div class="detail-section">
+                        <div class="detail-label">Diff</div>
+                        <div class="detail-value">
+                            ${assertion.diff.map(line => `
+                                <span class="diff-line ${line.type === 'add' ? 'add' : line.type === 'remove' ? 'remove' : ''}">${line.content}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (assertion.stackTrace) {
+                html += `
+                    <div class="detail-section">
+                        <div class="detail-label">Stack Trace</div>
+                        <div class="detail-value stack-trace">
+                            ${assertion.stackTrace.map(frame => `
+                                <span class="stack-frame">
+                                    at <span class="stack-function">${frame.func}</span>
+                                    (<span class="stack-location">${frame.file}:${frame.line}</span>)
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            return html || '<div class="detail-value">No additional details</div>';
+        }
+
+        // Update suite header
+        function updateSuiteHeader() {
+            const suite = testSuites.find(s => s.name === state.currentSuite);
+            if (suite) {
+                document.getElementById('currentSuiteTitle').textContent = suite.name;
+                document.getElementById('currentSuiteDuration').textContent = `Duration: ${suite.duration}ms`;
+                document.getElementById('statusSuite').textContent = suite.name;
+            }
+        }
+
+        // Update stats
+        function updateStats() {
+            let totalPassed = 0, totalFailed = 0, totalSkipped = 0;
+            
+            testSuites.forEach(suite => {
+                totalPassed += suite.passed;
+                totalFailed += suite.failed;
+                totalSkipped += suite.skipped;
+            });
+
+            const total = totalPassed + totalFailed + totalSkipped;
+            const passRate = Math.round((totalPassed / total) * 100);
+
+            document.getElementById('passCount').textContent = totalPassed;
+            document.getElementById('failCount').textContent = totalFailed;
+            document.getElementById('skipCount').textContent = totalSkipped;
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('progressFill').style.width = `${passRate}%`;
+        }
+
+        // Simulate re-run
+        function simulateRerun() {
+            const btn = document.getElementById('rerunBtn');
+            btn.textContent = 'Running...';
+            btn.disabled = true;
+
+            document.querySelector('.status-text').textContent = 'Running tests...';
+            document.querySelector('.status-dot').style.background = 'var(--jazer-yellow)';
+
+            // Simulate progress
+            let progress = 0;
+            const progressFill = document.getElementById('progressFill');
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 100) progress = 100;
+                progressFill.style.width = `${progress}%`;
+            }, 200);
+
+            setTimeout(() => {
+                clearInterval(interval);
+                progressFill.style.width = '85%';
+                btn.textContent = 'Re-run';
+                btn.disabled = false;
+                document.querySelector('.status-text').textContent = 'Tests Complete';
+                document.querySelector('.status-dot').style.background = '#22c55e';
+            }, 2000);
+        }
+
+        // Start
+        init();
+        updateSuiteHeader();
+    </script>
+</body>
+</html>

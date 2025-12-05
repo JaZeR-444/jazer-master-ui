@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circular Progress - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            margin-bottom: 0.5rem; 
+            font-size: 2.5rem; 
+        }
+        
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .back-button { 
+            display: inline-block; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(6, 182, 212, 0.1); 
+            margin-bottom: 2rem; 
+            transition: all 0.3s ease; 
+        }
+        
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5); 
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .control-group label {
+            font-size: 0.85rem;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .control-group select,
+        .control-group input {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--jazer-purple);
+            color: var(--text-light);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+        
+        .control-group select:hover,
+        .control-group input:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+        
+        .trigger-btn {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(6, 182, 212, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .trigger-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.6);
+        }
+        
+        .demo-container {
+            border: 2px solid var(--jazer-pink);
+            border-radius: 16px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.9), rgba(30, 20, 50, 0.9));
+            padding: 2rem;
+        }
+        
+        /* Progress ring variants */
+        .progress-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .progress-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 16px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .progress-card:hover {
+            border-color: var(--jazer-cyan);
+            transform: translateY(-5px);
+        }
+        
+        .progress-card h3 {
+            margin-top: 1rem;
+            color: var(--jazer-pink);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        /* Base circular progress */
+        .circular-progress {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+        
+        .circular-progress svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+        
+        .progress-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+        }
+        
+        .progress-fill {
+            fill: none;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+        
+        /* Gradient stroke */
+        .progress-fill.gradient {
+            stroke: url(#progressGradient);
+        }
+        
+        /* Solid colors */
+        .progress-fill.cyan { stroke: var(--jazer-cyan); }
+        .progress-fill.pink { stroke: var(--jazer-pink); }
+        .progress-fill.purple { stroke: var(--jazer-purple); }
+        .progress-fill.green { stroke: #00ff88; }
+        
+        /* Glow effect */
+        .progress-fill.glow {
+            filter: drop-shadow(0 0 6px currentColor);
+        }
+        
+        /* Center content */
+        .progress-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .progress-value {
+            font-size: 1.75rem;
+            font-weight: 900;
+            font-family: var(--font-primary);
+            color: var(--jazer-cyan);
+            line-height: 1;
+        }
+        
+        .progress-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 0.25rem;
+        }
+        
+        /* Animated style */
+        .circular-progress.animated .progress-fill {
+            animation: progressPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes progressPulse {
+            0%, 100% { filter: drop-shadow(0 0 5px currentColor); }
+            50% { filter: drop-shadow(0 0 15px currentColor); }
+        }
+        
+        /* Dashed style */
+        .circular-progress.dashed .progress-bg {
+            stroke-dasharray: 8 4;
+        }
+        
+        /* Thick style */
+        .circular-progress.thick .progress-bg,
+        .circular-progress.thick .progress-fill {
+            stroke-width: 12;
+        }
+        
+        /* Thin style */
+        .circular-progress.thin .progress-bg,
+        .circular-progress.thin .progress-fill {
+            stroke-width: 4;
+        }
+        
+        /* Interactive demo */
+        .interactive-demo {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .main-progress {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+        
+        .main-progress svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+        
+        .main-progress .progress-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .main-progress .progress-value {
+            font-size: 3rem;
+        }
+        
+        .main-progress .progress-label {
+            font-size: 0.85rem;
+        }
+        
+        /* Progress slider */
+        .progress-slider {
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .progress-slider input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .progress-slider input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 242, 234, 0.5);
+        }
+        
+        /* Stats row */
+        .stats-row {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: var(--font-primary);
+            color: var(--jazer-cyan);
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        
+        .keyboard-hint {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--jazer-purple);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .keyboard-hint kbd {
+            background: var(--jazer-purple);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-primary);
+            margin: 0 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .control-group select { min-width: 100%; }
+            .progress-grid { grid-template-columns: repeat(2, 1fr); }
+            .main-progress { width: 150px; height: 150px; }
+            .main-progress .progress-value { font-size: 2rem; }
+            .keyboard-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    <h1>Circular Progress</h1>
+    <p class="subtitle">Ring-based progress indicators with multiple styles and animations</p>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label>Style</label>
+            <select id="styleSelect" onchange="updateMainProgress()">
+                <option value="default">Default</option>
+                <option value="thick">Thick</option>
+                <option value="thin">Thin</option>
+                <option value="dashed">Dashed</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Color</label>
+            <select id="colorSelect" onchange="updateMainProgress()">
+                <option value="gradient">Gradient</option>
+                <option value="cyan">Cyan</option>
+                <option value="pink">Pink</option>
+                <option value="purple">Purple</option>
+                <option value="green">Green</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Animation</label>
+            <select id="animSelect" onchange="updateMainProgress()">
+                <option value="none">None</option>
+                <option value="glow">Glow Pulse</option>
+            </select>
+        </div>
+        <button class="trigger-btn" onclick="animateProgress()">Animate to 100%</button>
+    </div>
+    
+    <div class="demo-container">
+        <!-- SVG Gradient Definition -->
+        <svg width="0" height="0">
+            <defs>
+                <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="var(--jazer-cyan)" />
+                    <stop offset="50%" stop-color="var(--jazer-purple)" />
+                    <stop offset="100%" stop-color="var(--jazer-pink)" />
+                </linearGradient>
+            </defs>
+        </svg>
+        
+        <div class="interactive-demo">
+            <div class="main-progress" id="mainProgress">
+                <svg viewBox="0 0 100 100">
+                    <circle class="progress-bg" cx="50" cy="50" r="42" stroke-width="8" />
+                    <circle class="progress-fill gradient glow" id="mainFill" cx="50" cy="50" r="42" stroke-width="8" 
+                        stroke-dasharray="264" stroke-dashoffset="66" />
+                </svg>
+                <div class="progress-center">
+                    <span class="progress-value" id="mainValue">75%</span>
+                    <span class="progress-label">Complete</span>
+                </div>
+            </div>
+            
+            <div class="progress-slider">
+                <input type="range" id="progressSlider" min="0" max="100" value="75" oninput="setProgress(this.value)">
+            </div>
+            
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-value" id="statRemaining">25%</div>
+                    <div class="stat-label">Remaining</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statDegrees">270°</div>
+                    <div class="stat-label">Degrees</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statOffset">66</div>
+                    <div class="stat-label">Offset</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="progress-grid">
+            <div class="progress-card">
+                <div class="circular-progress">
+                    <svg viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="42" stroke-width="8" />
+                        <circle class="progress-fill cyan glow" cx="50" cy="50" r="42" stroke-width="8" 
+                            stroke-dasharray="264" stroke-dashoffset="106" />
+                    </svg>
+                    <div class="progress-center">
+                        <span class="progress-value">60%</span>
+                    </div>
+                </div>
+                <h3>Cyan Glow</h3>
+            </div>
+            
+            <div class="progress-card">
+                <div class="circular-progress thick">
+                    <svg viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="42" />
+                        <circle class="progress-fill pink" cx="50" cy="50" r="42" 
+                            stroke-dasharray="264" stroke-dashoffset="53" />
+                    </svg>
+                    <div class="progress-center">
+                        <span class="progress-value" style="color: var(--jazer-pink)">80%</span>
+                    </div>
+                </div>
+                <h3>Thick Pink</h3>
+            </div>
+            
+            <div class="progress-card">
+                <div class="circular-progress thin animated">
+                    <svg viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="42" />
+                        <circle class="progress-fill green glow" cx="50" cy="50" r="42" 
+                            stroke-dasharray="264" stroke-dashoffset="26" />
+                    </svg>
+                    <div class="progress-center">
+                        <span class="progress-value" style="color: #00ff88">90%</span>
+                    </div>
+                </div>
+                <h3>Thin Animated</h3>
+            </div>
+            
+            <div class="progress-card">
+                <div class="circular-progress dashed">
+                    <svg viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="42" stroke-width="8" />
+                        <circle class="progress-fill purple" cx="50" cy="50" r="42" stroke-width="8" 
+                            stroke-dasharray="264" stroke-dashoffset="158" />
+                    </svg>
+                    <div class="progress-center">
+                        <span class="progress-value" style="color: var(--jazer-purple)">40%</span>
+                    </div>
+                </div>
+                <h3>Dashed</h3>
+            </div>
+            
+            <div class="progress-card">
+                <div class="circular-progress">
+                    <svg viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="42" stroke-width="8" />
+                        <circle class="progress-fill gradient" cx="50" cy="50" r="42" stroke-width="8" 
+                            stroke-dasharray="264" stroke-dashoffset="132" />
+                    </svg>
+                    <div class="progress-center">
+                        <span class="progress-value">50%</span>
+                        <span class="progress-label">Storage</span>
+                    </div>
+                </div>
+                <h3>With Label</h3>
+            </div>
+            
+            <div class="progress-card">
+                <div class="circular-progress animated">
+                    <svg viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="42" stroke-width="8" />
+                        <circle class="progress-fill gradient glow" cx="50" cy="50" r="42" stroke-width="8" 
+                            stroke-dasharray="264" stroke-dashoffset="0" />
+                    </svg>
+                    <div class="progress-center">
+                        <span class="progress-value">100%</span>
+                    </div>
+                </div>
+                <h3>Complete</h3>
+            </div>
+        </div>
+    </div>
+    
+    <div class="keyboard-hint">
+        Press <kbd>Space</kbd> to animate
+    </div>
+    
+    <script>
+        const circumference = 2 * Math.PI * 42; // ~264
+        
+        function setProgress(value) {
+            const offset = circumference - (value / 100) * circumference;
+            const fill = document.getElementById('mainFill');
+            fill.style.strokeDashoffset = offset;
+            
+            document.getElementById('mainValue').textContent = value + '%';
+            document.getElementById('progressSlider').value = value;
+            document.getElementById('statRemaining').textContent = (100 - value) + '%';
+            document.getElementById('statDegrees').textContent = Math.round(value * 3.6) + '°';
+            document.getElementById('statOffset').textContent = Math.round(offset);
+        }
+        
+        function updateMainProgress() {
+            const style = document.getElementById('styleSelect').value;
+            const color = document.getElementById('colorSelect').value;
+            const anim = document.getElementById('animSelect').value;
+            
+            const progress = document.getElementById('mainProgress').querySelector('.circular-progress') || 
+                            document.getElementById('mainProgress');
+            const fill = document.getElementById('mainFill');
+            const bg = progress.querySelector('.progress-bg');
+            
+            // Reset classes
+            progress.className = 'main-progress';
+            fill.className = 'progress-fill';
+            
+            // Apply style
+            if (style === 'thick') {
+                fill.setAttribute('stroke-width', '12');
+                bg.setAttribute('stroke-width', '12');
+            } else if (style === 'thin') {
+                fill.setAttribute('stroke-width', '4');
+                bg.setAttribute('stroke-width', '4');
+            } else if (style === 'dashed') {
+                bg.style.strokeDasharray = '8 4';
+                fill.setAttribute('stroke-width', '8');
+                bg.setAttribute('stroke-width', '8');
+            } else {
+                bg.style.strokeDasharray = 'none';
+                fill.setAttribute('stroke-width', '8');
+                bg.setAttribute('stroke-width', '8');
+            }
+            
+            // Apply color
+            fill.classList.add(color);
+            
+            // Apply animation
+            if (anim === 'glow') {
+                fill.classList.add('glow');
+            }
+        }
+        
+        function animateProgress() {
+            let current = parseInt(document.getElementById('progressSlider').value);
+            const target = 100;
+            const duration = 1500;
+            const steps = 60;
+            const increment = (target - current) / steps;
+            let step = 0;
+            
+            const interval = setInterval(() => {
+                current += increment;
+                step++;
+                
+                if (step >= steps) {
+                    current = target;
+                    clearInterval(interval);
+                }
+                
+                setProgress(Math.round(current));
+            }, duration / steps);
+        }
+        
+        // Initialize
+        updateMainProgress();
+        
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !e.repeat) {
+                e.preventDefault();
+                animateProgress();
+            }
+        });
+    </script>
+</body>
+</html>

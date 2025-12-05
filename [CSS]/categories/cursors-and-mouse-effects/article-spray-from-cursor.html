@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Particle Spray from Cursor - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a, #1a0a2a, #0a1a2a);
+            font-family: var(--font-body);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Hide default cursor */
+        * {
+            cursor: none !important;
+        }
+
+        /* Custom cursor */
+        .custom-cursor {
+            position: fixed;
+            width: 16px;
+            height: 16px;
+            background: radial-gradient(circle, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px var(--jazer-cyan);
+            transition: transform 0.1s ease;
+        }
+
+        .custom-cursor.clicking {
+            transform: translate(-50%, -50%) scale(1.5);
+        }
+
+        /* Particle spray */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            border-radius: 50%;
+            animation: particleFade 2s ease-out forwards;
+        }
+
+        @keyframes particleFade {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0.2);
+            }
+        }
+
+        /* Content area */
+        .content {
+            position: relative;
+            z-index: 1;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+
+        /* Demo area */
+        .demo-area {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-title {
+            font-size: 1.5rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        /* Interactive zones */
+        .interactive-zones {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .zone-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .zone-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .zone-card:hover::before {
+            left: 100%;
+        }
+
+        .zone-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+        }
+
+        .zone-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .zone-title {
+            font-size: 1.2rem;
+            color: var(--jazer-pink);
+            margin-bottom: 0.5rem;
+        }
+
+        .zone-description {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* Controls */
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .controls-title {
+            font-size: 1.3rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-input {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .control-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+        }
+
+        .control-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+            border: none;
+        }
+
+        .color-picker {
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: none;
+        }
+
+        /* Stats display */
+        .stats {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            display: block;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            background: linear-gradient(45deg, var(--jazer-purple), var(--jazer-pink));
+            border: none;
+            border-radius: 25px;
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 0, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--jazer-cyan);
+        }
+
+        .btn-secondary:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+        }
+
+        /* Spray modes */
+        .spray-modes {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 0.5rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--jazer-purple);
+            color: var(--jazer-purple);
+            border-radius: 20px;
+            cursor: none;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn.active,
+        .mode-btn:hover {
+            background: var(--jazer-purple);
+            color: #fff;
+        }
+
+        /* Canvas for special effects */
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        /* Back navigation */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 25px;
+            border: 1px solid var(--jazer-cyan);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .interactive-zones {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Canvas for advanced effects -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Back navigation -->
+    <a href="index.html" class="back-button">← Back to Cursors</a>
+
+    <!-- Custom cursor -->
+    <div class="custom-cursor" id="customCursor"></div>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">✨ Particle Spray from Cursor</h1>
+            <p class="subtitle">Dynamic particle spray effects that emit from cursor position with customizable patterns, colors, and physics</p>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value" id="particleCount">0</span>
+                    <span class="stat-label">Active Particles</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="sprayRate">5</span>
+                    <span class="stat-label">Spray Rate</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="particleSize">6</span>
+                    <span class="stat-label">Particle Size</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="currentMode">Burst</span>
+                    <span class="stat-label">Current Mode</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spray Modes -->
+        <div class="spray-modes">
+            <button class="mode-btn active" data-mode="burst">💥 Burst</button>
+            <button class="mode-btn" data-mode="continuous">🌊 Continuous</button>
+            <button class="mode-btn" data-mode="fountain">⛲ Fountain</button>
+            <button class="mode-btn" data-mode="explosion">🎆 Explosion</button>
+            <button class="mode-btn" data-mode="spiral">🌀 Spiral</button>
+            <button class="mode-btn" data-mode="fireworks">🎇 Fireworks</button>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <h2 class="controls-title">🎛️ Spray Controls</h2>
+            <div class="control-group">
+                <div class="control-item">
+                    <label class="control-label">Spray Rate</label>
+                    <input type="range" class="control-slider" id="sprayRateSlider" min="1" max="20" value="5">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Particle Size</label>
+                    <input type="range" class="control-slider" id="particleSizeSlider" min="2" max="15" value="6">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Spray Force</label>
+                    <input type="range" class="control-slider" id="sprayForceSlider" min="50" max="300" value="150">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Gravity</label>
+                    <input type="range" class="control-slider" id="gravitySlider" min="0" max="1" step="0.1" value="0.2">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Primary Color</label>
+                    <input type="color" class="color-picker" id="primaryColor" value="#00ffff">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Secondary Color</label>
+                    <input type="color" class="color-picker" id="secondaryColor" value="#ff00ff">
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Area -->
+        <div class="demo-area">
+            <h2 class="demo-title">🎮 Interactive Spray Zones</h2>
+            <div class="interactive-zones">
+                <div class="zone-card" data-zone="click">
+                    <span class="zone-icon">🖱️</span>
+                    <h3 class="zone-title">Click to Spray</h3>
+                    <p class="zone-description">Click anywhere in this zone to create particle bursts</p>
+                </div>
+                <div class="zone-card" data-zone="move">
+                    <span class="zone-icon">👆</span>
+                    <h3 class="zone-title">Move to Spray</h3>
+                    <p class="zone-description">Move your cursor here for continuous particle emission</p>
+                </div>
+                <div class="zone-card" data-zone="hold">
+                    <span class="zone-icon">🤚</span>
+                    <h3 class="zone-title">Hold to Spray</h3>
+                    <p class="zone-description">Hold down mouse button for sustained particle effects</p>
+                </div>
+                <div class="zone-card" data-zone="special">
+                    <span class="zone-icon">⭐</span>
+                    <h3 class="zone-title">Special Effects</h3>
+                    <p class="zone-description">Experience unique particle behaviors in this zone</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+            <button class="btn" id="toggleEffect">Toggle Effect</button>
+            <button class="btn btn-secondary" id="resetSettings">Reset Settings</button>
+            <button class="btn btn-secondary" id="clearParticles">Clear Particles</button>
+            <button class="btn btn-secondary" id="randomizeColors">Randomize Colors</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        let config = {
+            sprayRate: 5,
+            particleSize: 6,
+            sprayForce: 150,
+            gravity: 0.2,
+            primaryColor: '#00ffff',
+            secondaryColor: '#ff00ff',
+            mode: 'burst',
+            enabled: true
+        };
+
+        // State
+        let mouseX = 0, mouseY = 0;
+        let isMouseDown = false;
+        let particleCount = 0;
+        let particles = [];
+        let lastSprayTime = 0;
+        let animationId = null;
+
+        // Elements
+        const customCursor = document.getElementById('customCursor');
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        const particleCountEl = document.getElementById('particleCount');
+        const sprayRateEl = document.getElementById('sprayRate');
+        const particleSizeEl = document.getElementById('particleSize');
+        const currentModeEl = document.getElementById('currentMode');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupCanvas();
+            setupEventListeners();
+            updateStats();
+            animate();
+        });
+
+        // Setup canvas
+        function setupCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Mouse events
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mousedown', handleMouseDown);
+            document.addEventListener('mouseup', handleMouseUp);
+            document.addEventListener('click', handleClick);
+            
+            // Control inputs
+            document.getElementById('sprayRateSlider').addEventListener('input', (e) => {
+                config.sprayRate = parseInt(e.target.value);
+                updateStats();
+            });
+            
+            document.getElementById('particleSizeSlider').addEventListener('input', (e) => {
+                config.particleSize = parseInt(e.target.value);
+                updateStats();
+            });
+            
+            document.getElementById('sprayForceSlider').addEventListener('input', (e) => {
+                config.sprayForce = parseInt(e.target.value);
+            });
+            
+            document.getElementById('gravitySlider').addEventListener('input', (e) => {
+                config.gravity = parseFloat(e.target.value);
+            });
+            
+            document.getElementById('primaryColor').addEventListener('input', (e) => {
+                config.primaryColor = e.target.value;
+            });
+            
+            document.getElementById('secondaryColor').addEventListener('input', (e) => {
+                config.secondaryColor = e.target.value;
+            });
+            
+            // Mode buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    config.mode = btn.dataset.mode;
+                    updateStats();
+                });
+            });
+            
+            // Action buttons
+            document.getElementById('toggleEffect').addEventListener('click', toggleEffect);
+            document.getElementById('resetSettings').addEventListener('click', resetSettings);
+            document.getElementById('clearParticles').addEventListener('click', clearAllParticles);
+            document.getElementById('randomizeColors').addEventListener('click', randomizeColors);
+        }
+
+        // Handle mouse movement
+        function handleMouseMove(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Update custom cursor position
+            customCursor.style.left = mouseX + 'px';
+            customCursor.style.top = mouseY + 'px';
+            
+            // Check if we're in a move zone
+            const zone = getZoneFromElement(e.target);
+            if (zone === 'move' && config.enabled) {
+                const now = Date.now();
+                if (now - lastSprayTime > 100 / config.sprayRate) {
+                    createSpray(mouseX, mouseY);
+                    lastSprayTime = now;
+                }
+            }
+            
+            // Hold zone spraying
+            if (isMouseDown && zone === 'hold' && config.enabled) {
+                const now = Date.now();
+                if (now - lastSprayTime > 50 / config.sprayRate) {
+                    createSpray(mouseX, mouseY);
+                    lastSprayTime = now;
+                }
+            }
+        }
+
+        // Handle mouse down
+        function handleMouseDown(e) {
+            isMouseDown = true;
+            customCursor.classList.add('clicking');
+        }
+
+        // Handle mouse up
+        function handleMouseUp(e) {
+            isMouseDown = false;
+            customCursor.classList.remove('clicking');
+        }
+
+        // Handle click
+        function handleClick(e) {
+            const zone = getZoneFromElement(e.target);
+            if (zone === 'click' && config.enabled) {
+                createSpray(e.clientX, e.clientY);
+            }
+        }
+
+        // Get zone from element
+        function getZoneFromElement(element) {
+            const zoneCard = element.closest('.zone-card');
+            return zoneCard ? zoneCard.dataset.zone : null;
+        }
+
+        // Create spray effect
+        function createSpray(x, y) {
+            const particleCount = config.sprayRate;
+            
+            switch (config.mode) {
+                case 'burst':
+                    createBurstSpray(x, y, particleCount);
+                    break;
+                case 'continuous':
+                    createContinuousSpray(x, y, Math.ceil(particleCount / 2));
+                    break;
+                case 'fountain':
+                    createFountainSpray(x, y, particleCount);
+                    break;
+                case 'explosion':
+                    createExplosionSpray(x, y, particleCount * 2);
+                    break;
+                case 'spiral':
+                    createSpiralSpray(x, y, particleCount);
+                    break;
+                case 'fireworks':
+                    createFireworksSpray(x, y, particleCount);
+                    break;
+            }
+        }
+
+        // Create burst spray
+        function createBurstSpray(x, y, count) {
+            for (let i = 0; i < count; i++) {
+                const angle = (Math.PI * 2 * i) / count;
+                const velocity = config.sprayForce * (0.5 + Math.random() * 0.5);
+                createParticle(x, y, angle, velocity);
+            }
+        }
+
+        // Create continuous spray
+        function createContinuousSpray(x, y, count) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = config.sprayForce * (0.3 + Math.random() * 0.7);
+                createParticle(x, y, angle, velocity);
+            }
+        }
+
+        // Create fountain spray
+        function createFountainSpray(x, y, count) {
+            for (let i = 0; i < count; i++) {
+                const angle = -Math.PI/2 + (Math.random() - 0.5) * Math.PI/3;
+                const velocity = config.sprayForce * (0.7 + Math.random() * 0.3);
+                createParticle(x, y, angle, velocity);
+            }
+        }
+
+        // Create explosion spray
+        function createExplosionSpray(x, y, count) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = config.sprayForce * (0.8 + Math.random() * 0.4);
+                createParticle(x, y, angle, velocity);
+            }
+        }
+
+        // Create spiral spray
+        function createSpiralSpray(x, y, count) {
+            for (let i = 0; i < count; i++) {
+                const angle = (Math.PI * 2 * i) / count + Date.now() * 0.001;
+                const velocity = config.sprayForce * 0.8;
+                createParticle(x, y, angle, velocity);
+            }
+        }
+
+        // Create fireworks spray
+        function createFireworksSpray(x, y, count) {
+            // Create initial burst
+            for (let i = 0; i < count / 2; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = config.sprayForce * 1.2;
+                const particle = createParticle(x, y, angle, velocity);
+                
+                // Secondary explosion after delay
+                setTimeout(() => {
+                    if (particle && particle.y) {
+                        for (let j = 0; j < 3; j++) {
+                            const subAngle = Math.random() * Math.PI * 2;
+                            const subVelocity = config.sprayForce * 0.5;
+                            createParticle(particle.x, particle.y, subAngle, subVelocity, true);
+                        }
+                    }
+                }, 300);
+            }
+        }
+
+        // Create particle
+        function createParticle(x, y, angle, velocity, isSecondary = false) {
+            const particle = {
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * velocity,
+                vy: Math.sin(angle) * velocity,
+                size: config.particleSize * (isSecondary ? 0.5 : (0.5 + Math.random() * 0.5)),
+                color: Math.random() > 0.5 ? config.primaryColor : config.secondaryColor,
+                life: 1,
+                decay: 0.01 + Math.random() * 0.02
+            };
+            
+            particles.push(particle);
+            particleCount++;
+            updateStats();
+            
+            return particle;
+        }
+
+        // Animation loop
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Update and draw particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const particle = particles[i];
+                
+                // Update physics
+                particle.vy += config.gravity;
+                particle.x += particle.vx * 0.016;
+                particle.y += particle.vy * 0.016;
+                particle.life -= particle.decay;
+                
+                // Remove dead particles
+                if (particle.life <= 0 || particle.y > canvas.height) {
+                    particles.splice(i, 1);
+                    particleCount--;
+                    updateStats();
+                    continue;
+                }
+                
+                // Draw particle
+                ctx.save();
+                ctx.globalAlpha = particle.life;
+                ctx.fillStyle = particle.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = particle.color;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+            
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Update stats display
+        function updateStats() {
+            particleCountEl.textContent = particleCount;
+            sprayRateEl.textContent = config.sprayRate;
+            particleSizeEl.textContent = config.particleSize;
+            currentModeEl.textContent = config.mode.charAt(0).toUpperCase() + config.mode.slice(1);
+        }
+
+        // Toggle effect
+        function toggleEffect() {
+            config.enabled = !config.enabled;
+            const btn = document.getElementById('toggleEffect');
+            btn.textContent = config.enabled ? 'Disable Effect' : 'Enable Effect';
+        }
+
+        // Reset settings
+        function resetSettings() {
+            config = {
+                sprayRate: 5,
+                particleSize: 6,
+                sprayForce: 150,
+                gravity: 0.2,
+                primaryColor: '#00ffff',
+                secondaryColor: '#ff00ff',
+                mode: 'burst',
+                enabled: true
+            };
+            
+            // Update UI controls
+            document.getElementById('sprayRateSlider').value = config.sprayRate;
+            document.getElementById('particleSizeSlider').value = config.particleSize;
+            document.getElementById('sprayForceSlider').value = config.sprayForce;
+            document.getElementById('gravitySlider').value = config.gravity;
+            document.getElementById('primaryColor').value = config.primaryColor;
+            document.getElementById('secondaryColor').value = config.secondaryColor;
+            
+            // Update mode buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === config.mode);
+            });
+            
+            updateStats();
+        }
+
+        // Clear all particles
+        function clearAllParticles() {
+            particles = [];
+            particleCount = 0;
+            updateStats();
+        }
+
+        // Randomize colors
+        function randomizeColors() {
+            const randomColor = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            config.primaryColor = randomColor();
+            config.secondaryColor = randomColor();
+            
+            document.getElementById('primaryColor').value = config.primaryColor;
+            document.getElementById('secondaryColor').value = config.secondaryColor;
+        }
+
+        // Hide default cursor on leave
+        document.addEventListener('mouseleave', () => {
+            customCursor.style.display = 'none';
+        });
+
+        document.addEventListener('mouseenter', () => {
+            if (config.enabled) {
+                customCursor.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

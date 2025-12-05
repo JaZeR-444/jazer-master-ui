@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Calendar Day Unlock</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 3rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(0, 242, 234, 0.05));
+            border-bottom: 1px solid rgba(147, 51, 234, 0.3);
+        }
+        .back-button { 
+            display: inline-block; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(6, 182, 212, 0.1); 
+            margin-bottom: 1.5rem; 
+            transition: all 0.3s ease; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5); 
+        }
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            font-size: clamp(2rem, 5vw, 3rem); 
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+        }
+        .keyboard-hint {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            font-size: 0.9rem;
+        }
+        .keyboard-hint kbd {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin: 0 0.25rem;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+        .control-group label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .control-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(147, 51, 234, 0.5);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+        .control-group select:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+
+        /* Calendar Header */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(0, 242, 234, 0.1));
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 16px 16px 0 0;
+        }
+        .calendar-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .streak-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #ff006e, #ff69b4);
+            border-radius: 50px;
+            font-weight: 700;
+        }
+        .streak-badge .flame {
+            font-size: 1.2rem;
+        }
+
+        /* Calendar Grid */
+        .calendar-container {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-top: none;
+            border-radius: 0 0 16px 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.75rem;
+        }
+
+        /* Day Names */
+        .day-name {
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            padding: 0.5rem;
+        }
+
+        /* Calendar Day */
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(147, 51, 234, 0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .calendar-day:hover:not(.locked):not(.claimed) {
+            border-color: var(--jazer-cyan);
+            transform: scale(1.05);
+        }
+
+        /* Day Number */
+        .day-number {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        /* Day Reward */
+        .day-reward {
+            font-size: 1.5rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Locked Day */
+        .calendar-day.locked {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .calendar-day.locked .day-reward {
+            filter: grayscale(1);
+        }
+        .calendar-day.locked::after {
+            content: '🔒';
+            position: absolute;
+            font-size: 1.2rem;
+        }
+
+        /* Today */
+        .calendar-day.today {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 242, 234, 0.1);
+            animation: todayPulse 2s ease-in-out infinite;
+        }
+        @keyframes todayPulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 242, 234, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(0, 242, 234, 0.6); }
+        }
+        .calendar-day.today .day-number {
+            color: var(--jazer-cyan);
+        }
+
+        /* Claimed Day */
+        .calendar-day.claimed {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 200, 100, 0.1));
+            border-color: #00ff88;
+        }
+        .calendar-day.claimed::before {
+            content: '✓';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 18px;
+            height: 18px;
+            background: #00ff88;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a1a2e;
+            font-weight: 700;
+        }
+
+        /* Claiming Animation */
+        .calendar-day.claiming {
+            animation: claimPop 0.6s ease-out;
+        }
+        @keyframes claimPop {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.2); }
+            60% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+
+        /* Shine Effect */
+        .day-shine {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            pointer-events: none;
+        }
+        .calendar-day.claiming .day-shine {
+            animation: shinePass 0.6s ease-out;
+        }
+        @keyframes shinePass {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Particle Burst */
+        .day-particles {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            opacity: 0;
+        }
+        .particle.burst {
+            animation: particleBurst 0.8s ease-out forwards;
+        }
+        @keyframes particleBurst {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        /* Special Day (7th day) */
+        .calendar-day.special {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 140, 0, 0.1));
+            border-color: #ffd700;
+        }
+        .calendar-day.special .day-number {
+            color: #ffd700;
+        }
+        .calendar-day.special .day-reward {
+            font-size: 2rem;
+        }
+
+        /* Reward Popup */
+        .reward-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .reward-popup.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .popup-content {
+            background: linear-gradient(135deg, rgba(30, 30, 50, 0.98), rgba(20, 20, 40, 0.98));
+            border: 2px solid var(--jazer-purple);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+            max-width: 350px;
+        }
+        .reward-popup.active .popup-content {
+            transform: scale(1);
+        }
+        .popup-day {
+            font-size: 0.9rem;
+            color: var(--jazer-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+        }
+        .popup-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            animation: popupBounce 0.6s ease-out;
+        }
+        @keyframes popupBounce {
+            0% { transform: scale(0) rotate(-20deg); }
+            60% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        .popup-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .popup-desc {
+            color: var(--text-gray);
+            margin-bottom: 1.5rem;
+        }
+        .popup-close {
+            padding: 0.75rem 2rem;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .popup-close:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-label {
+            color: var(--text-gray);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            box-shadow: 0 5px 20px rgba(0, 242, 234, 0.3);
+        }
+        .action-btn.primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 242, 234, 0.4);
+        }
+        .action-btn.secondary {
+            background: rgba(147, 51, 234, 0.2);
+            color: var(--jazer-cyan);
+            border: 2px solid var(--jazer-purple);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .calendar-grid {
+                gap: 0.5rem;
+            }
+            .day-number {
+                font-size: 1rem;
+            }
+            .day-reward {
+                font-size: 1.2rem;
+            }
+            .calendar-day.special .day-reward {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="hero">
+        <a href="index.html" class="back-button">← Back</a>
+        <h1>Daily Calendar Day Unlock</h1>
+        <p class="subtitle">Daily login rewards calendar with unlock animations</p>
+        <div class="keyboard-hint">
+            Press <kbd>Space</kbd> to claim today | <kbd>R</kbd> to reset | Click days to claim
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <div class="control-group">
+                <label>Animation Style</label>
+                <select id="animStyle">
+                    <option value="pop">Pop Effect</option>
+                    <option value="flip">Flip Reveal</option>
+                    <option value="shine">Shine Sweep</option>
+                    <option value="bounce">Bounce</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Theme</label>
+                <select id="theme">
+                    <option value="cyber">Cyberpunk</option>
+                    <option value="gold">Golden</option>
+                    <option value="neon">Neon</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Particle Effects</label>
+                <select id="particleCount">
+                    <option value="0">None</option>
+                    <option value="8">Few (8)</option>
+                    <option value="12" selected>Normal (12)</option>
+                    <option value="20">Many (20)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Current Day</label>
+                <select id="currentDay">
+                    <option value="1">Day 1</option>
+                    <option value="2">Day 2</option>
+                    <option value="3">Day 3</option>
+                    <option value="4">Day 4</option>
+                    <option value="5" selected>Day 5</option>
+                    <option value="6">Day 6</option>
+                    <option value="7">Day 7</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Calendar -->
+        <div class="calendar-header">
+            <div class="calendar-title">🗓️ Daily Rewards</div>
+            <div class="streak-badge">
+                <span class="flame">🔥</span>
+                <span id="streakCount">5</span> Day Streak
+            </div>
+        </div>
+
+        <div class="calendar-container">
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Day names -->
+                <div class="day-name">Mon</div>
+                <div class="day-name">Tue</div>
+                <div class="day-name">Wed</div>
+                <div class="day-name">Thu</div>
+                <div class="day-name">Fri</div>
+                <div class="day-name">Sat</div>
+                <div class="day-name">Sun</div>
+                <!-- Days will be rendered by JS -->
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn primary" onclick="claimToday()">📥 Claim Today's Reward</button>
+                <button class="action-btn secondary" onclick="resetCalendar()">Reset Calendar</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-value" id="daysClaimed">4</div>
+                <div class="stat-label">Days Claimed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalCoins">350</div>
+                <div class="stat-label">Coins Earned</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="currentStreak">5</div>
+                <div class="stat-label">Current Streak</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Reward Popup -->
+    <div class="reward-popup" id="rewardPopup">
+        <div class="popup-content">
+            <div class="popup-day" id="popupDay">Day 5</div>
+            <div class="popup-icon" id="popupIcon">💎</div>
+            <div class="popup-title" id="popupTitle">Daily Reward!</div>
+            <div class="popup-desc" id="popupDesc">You received 100 Coins!</div>
+            <button class="popup-close" onclick="closePopup()">Awesome!</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const config = {
+            animStyle: 'pop',
+            theme: 'cyber',
+            particleCount: 12,
+            currentDay: 5
+        };
+
+        // State
+        const state = {
+            claimedDays: new Set([1, 2, 3, 4]),
+            streak: 5,
+            totalCoins: 350
+        };
+
+        // Daily rewards
+        const dailyRewards = [
+            { day: 1, icon: '🎁', name: '50 Coins', coins: 50 },
+            { day: 2, icon: '💰', name: '75 Coins', coins: 75 },
+            { day: 3, icon: '📦', name: 'Loot Box', coins: 100 },
+            { day: 4, icon: '✨', name: '100 Coins', coins: 100 },
+            { day: 5, icon: '💎', name: '150 Coins', coins: 150 },
+            { day: 6, icon: '🎯', name: '200 Coins', coins: 200 },
+            { day: 7, icon: '👑', name: 'MEGA REWARD', coins: 500, special: true },
+        ];
+
+        // DOM Elements
+        const calendarGrid = document.getElementById('calendarGrid');
+        const rewardPopup = document.getElementById('rewardPopup');
+
+        // Initialize
+        function init() {
+            setupControls();
+            renderCalendar();
+            updateStats();
+        }
+
+        // Setup controls
+        function setupControls() {
+            document.getElementById('animStyle').addEventListener('change', (e) => {
+                config.animStyle = e.target.value;
+            });
+            document.getElementById('theme').addEventListener('change', (e) => {
+                config.theme = e.target.value;
+            });
+            document.getElementById('particleCount').addEventListener('change', (e) => {
+                config.particleCount = parseInt(e.target.value);
+            });
+            document.getElementById('currentDay').addEventListener('change', (e) => {
+                config.currentDay = parseInt(e.target.value);
+                renderCalendar();
+                updateStats();
+            });
+        }
+
+        // Render calendar
+        function renderCalendar() {
+            // Clear existing days (keep day names)
+            const dayElements = calendarGrid.querySelectorAll('.calendar-day');
+            dayElements.forEach(el => el.remove());
+
+            dailyRewards.forEach(reward => {
+                const day = createDayElement(reward);
+                calendarGrid.appendChild(day);
+            });
+        }
+
+        // Create day element
+        function createDayElement(reward) {
+            const day = document.createElement('div');
+            day.className = 'calendar-day';
+            day.dataset.day = reward.day;
+
+            const isClaimed = state.claimedDays.has(reward.day);
+            const isToday = reward.day === config.currentDay;
+            const isLocked = reward.day > config.currentDay;
+            const isSpecial = reward.special;
+
+            if (isClaimed) day.classList.add('claimed');
+            if (isToday && !isClaimed) day.classList.add('today');
+            if (isLocked) day.classList.add('locked');
+            if (isSpecial) day.classList.add('special');
+
+            day.innerHTML = `
+                <div class="day-number">${reward.day}</div>
+                <div class="day-reward">${reward.icon}</div>
+                <div class="day-shine"></div>
+                <div class="day-particles"></div>
+            `;
+
+            day.onclick = () => {
+                if (!isClaimed && !isLocked) {
+                    claimDay(reward.day);
+                }
+            };
+
+            return day;
+        }
+
+        // Claim day
+        function claimDay(dayNum) {
+            const dayEl = document.querySelector(`[data-day="${dayNum}"]`);
+            if (!dayEl || dayEl.classList.contains('claimed') || dayEl.classList.contains('locked')) return;
+
+            const reward = dailyRewards[dayNum - 1];
+
+            // Add claiming animation
+            dayEl.classList.add('claiming');
+            spawnParticles(dayEl);
+
+            // Play sound
+            playClaimSound();
+
+            setTimeout(() => {
+                dayEl.classList.remove('claiming', 'today');
+                dayEl.classList.add('claimed');
+                
+                // Update state
+                state.claimedDays.add(dayNum);
+                state.totalCoins += reward.coins;
+                
+                // Update streak
+                if (dayNum === config.currentDay) {
+                    state.streak = dayNum;
+                }
+                
+                updateStats();
+                showPopup(reward);
+            }, 500);
+        }
+
+        // Spawn particles
+        function spawnParticles(dayEl) {
+            const container = dayEl.querySelector('.day-particles');
+            container.innerHTML = '';
+
+            const colors = ['#00f2ea', '#9333ea', '#ffd700', '#ff006e'];
+
+            for (let i = 0; i < config.particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+
+                const angle = (i / config.particleCount) * Math.PI * 2;
+                const distance = 30 + Math.random() * 30;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+
+                particle.style.cssText = `
+                    --tx: ${tx}px;
+                    --ty: ${ty}px;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                `;
+
+                container.appendChild(particle);
+                requestAnimationFrame(() => particle.classList.add('burst'));
+
+                setTimeout(() => particle.remove(), 800);
+            }
+        }
+
+        // Show popup
+        function showPopup(reward) {
+            document.getElementById('popupDay').textContent = `Day ${reward.day}`;
+            document.getElementById('popupIcon').textContent = reward.icon;
+            document.getElementById('popupTitle').textContent = 'Daily Reward!';
+            document.getElementById('popupDesc').textContent = `You received ${reward.name}!`;
+            rewardPopup.classList.add('active');
+        }
+
+        // Close popup
+        function closePopup() {
+            rewardPopup.classList.remove('active');
+        }
+
+        // Claim today
+        function claimToday() {
+            if (!state.claimedDays.has(config.currentDay)) {
+                claimDay(config.currentDay);
+            }
+        }
+
+        // Reset calendar
+        function resetCalendar() {
+            state.claimedDays.clear();
+            state.streak = 0;
+            state.totalCoins = 0;
+            renderCalendar();
+            updateStats();
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('daysClaimed').textContent = state.claimedDays.size;
+            document.getElementById('totalCoins').textContent = state.totalCoins;
+            document.getElementById('currentStreak').textContent = state.streak;
+            document.getElementById('streakCount').textContent = state.streak;
+        }
+
+        // Play claim sound
+        function playClaimSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+                oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.2);
+
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            } catch (e) {
+                // Audio not supported
+            }
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                claimToday();
+            } else if (e.key === 'r' || e.key === 'R') {
+                resetCalendar();
+            } else if (e.code === 'Escape') {
+                closePopup();
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

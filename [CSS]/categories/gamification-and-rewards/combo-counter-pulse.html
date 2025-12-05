@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combo Counter Pulse</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 3rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(0, 242, 234, 0.05));
+            border-bottom: 1px solid rgba(147, 51, 234, 0.3);
+        }
+        .back-button { 
+            display: inline-block; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(6, 182, 212, 0.1); 
+            margin-bottom: 1.5rem; 
+            transition: all 0.3s ease; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5); 
+        }
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            font-size: clamp(2rem, 5vw, 3rem); 
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+        }
+        .keyboard-hint {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            font-size: 0.9rem;
+        }
+        .keyboard-hint kbd {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin: 0 0.25rem;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+        .control-group label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .control-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(147, 51, 234, 0.5);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+        .control-group select:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 10px rgba(0, 242, 234, 0.3);
+        }
+
+        /* Demo Area */
+        .demo-area {
+            position: relative;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(147, 51, 234, 0.1) 100%);
+            border: 2px solid rgba(147, 51, 234, 0.3);
+            border-radius: 20px;
+            min-height: 450px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            gap: 2rem;
+        }
+
+        /* Combo Counter Base */
+        .combo-counter {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Combo Number Display */
+        .combo-number {
+            font-size: 8rem;
+            font-weight: 900;
+            line-height: 1;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            transition: transform 0.1s ease;
+            text-shadow: none;
+        }
+        .combo-number::before {
+            content: attr(data-combo);
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: blur(20px);
+            opacity: 0.5;
+        }
+
+        /* Combo Label */
+        .combo-label {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            color: var(--jazer-cyan);
+            opacity: 0.8;
+        }
+
+        /* Multiplier Badge */
+        .multiplier-badge {
+            position: absolute;
+            top: -20px;
+            right: -60px;
+            background: linear-gradient(135deg, var(--jazer-pink), var(--jazer-purple));
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            box-shadow: 0 5px 20px rgba(236, 72, 153, 0.5);
+            animation: badgePulse 1s ease-in-out infinite;
+        }
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Pulse Ring Effects */
+        .pulse-rings {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        .pulse-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px;
+            height: 150px;
+            border: 3px solid var(--jazer-cyan);
+            border-radius: 50%;
+            opacity: 0;
+        }
+        .pulse-ring.active {
+            animation: ringExpand 0.6s ease-out forwards;
+        }
+        @keyframes ringExpand {
+            0% { 
+                width: 100px; 
+                height: 100px; 
+                opacity: 1; 
+                border-width: 4px;
+            }
+            100% { 
+                width: 300px; 
+                height: 300px; 
+                opacity: 0; 
+                border-width: 1px;
+            }
+        }
+
+        /* Combo Timer Bar */
+        .combo-timer {
+            width: 200px;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+        .combo-timer-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink));
+            border-radius: 3px;
+            width: 100%;
+            transition: width 0.1s linear;
+        }
+        .combo-timer-fill.warning {
+            background: linear-gradient(90deg, #ff8c00, #ff006e);
+            animation: timerPulse 0.3s ease-in-out infinite;
+        }
+        @keyframes timerPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Hit Button */
+        .hit-button {
+            padding: 1.5rem 4rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            box-shadow: 
+                0 5px 30px rgba(0, 242, 234, 0.4),
+                inset 0 -3px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .hit-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        .hit-button:hover::before {
+            left: 100%;
+        }
+        .hit-button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 
+                0 10px 40px rgba(0, 242, 234, 0.5),
+                inset 0 -3px 10px rgba(0, 0, 0, 0.2);
+        }
+        .hit-button:active {
+            transform: translateY(0) scale(0.98);
+        }
+        .hit-button.pulse {
+            animation: buttonHit 0.15s ease;
+        }
+        @keyframes buttonHit {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+        }
+
+        /* Style Variations */
+        /* Style: Arcade */
+        .combo-counter.style-arcade .combo-number {
+            font-family: 'Press Start 2P', monospace, var(--font-primary);
+            font-size: 6rem;
+            background: linear-gradient(180deg, #ffd700 0%, #ff8c00 50%, #ff4500 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+        }
+        .combo-counter.style-arcade .combo-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1rem;
+            color: #ffd700;
+            letter-spacing: 4px;
+        }
+        .combo-counter.style-arcade .multiplier-badge {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* Style: Minimal */
+        .combo-counter.style-minimal .combo-number {
+            font-weight: 200;
+            font-size: 10rem;
+            background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.5) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .combo-counter.style-minimal .combo-label {
+            font-weight: 300;
+            letter-spacing: 15px;
+            color: rgba(255,255,255,0.5);
+        }
+        .combo-counter.style-minimal .multiplier-badge {
+            background: transparent;
+            border: 2px solid rgba(255,255,255,0.3);
+            box-shadow: none;
+            animation: none;
+        }
+
+        /* Style: Fire */
+        .combo-counter.style-fire .combo-number {
+            background: linear-gradient(180deg, #fff 0%, #ffd700 30%, #ff6600 60%, #ff0000 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fireFlicker 0.1s ease-in-out infinite;
+        }
+        @keyframes fireFlicker {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
+        }
+        .combo-counter.style-fire .combo-label {
+            color: #ff6600;
+            animation: fireGlow 0.5s ease-in-out infinite alternate;
+        }
+        @keyframes fireGlow {
+            from { text-shadow: 0 0 10px #ff6600; }
+            to { text-shadow: 0 0 30px #ff0000, 0 0 50px #ff6600; }
+        }
+        .combo-counter.style-fire .multiplier-badge {
+            background: linear-gradient(135deg, #ff6600, #ff0000);
+        }
+        .combo-counter.style-fire .pulse-ring {
+            border-color: #ff6600;
+        }
+
+        /* Style: Electric */
+        .combo-counter.style-electric .combo-number {
+            background: linear-gradient(180deg, #00ffff 0%, #0088ff 50%, #0044ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: electricShock 0.05s ease-in-out infinite;
+        }
+        @keyframes electricShock {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+        .combo-counter.style-electric .combo-label {
+            color: #00ffff;
+        }
+        .combo-counter.style-electric .multiplier-badge {
+            background: linear-gradient(135deg, #00ffff, #0088ff);
+        }
+        .combo-counter.style-electric .pulse-ring {
+            border-color: #00ffff;
+        }
+
+        /* Style: Neon */
+        .combo-counter.style-neon .combo-number {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: neonFlash 2s ease-in-out infinite;
+        }
+        @keyframes neonFlash {
+            0%, 100% { filter: drop-shadow(0 0 10px var(--jazer-cyan)) drop-shadow(0 0 20px var(--jazer-purple)); }
+            50% { filter: drop-shadow(0 0 20px var(--jazer-cyan)) drop-shadow(0 0 40px var(--jazer-pink)); }
+        }
+
+        /* Combo States */
+        .combo-counter.combo-hot .combo-number {
+            animation: hotCombo 0.3s ease-in-out infinite;
+        }
+        @keyframes hotCombo {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .combo-counter.combo-insane .combo-number {
+            animation: insaneCombo 0.15s ease-in-out infinite;
+        }
+        @keyframes insaneCombo {
+            0%, 100% { transform: scale(1) rotate(-1deg); }
+            50% { transform: scale(1.08) rotate(1deg); }
+        }
+        .combo-counter.combo-legendary {
+            animation: legendaryGlow 0.5s ease-in-out infinite alternate;
+        }
+        @keyframes legendaryGlow {
+            from { filter: drop-shadow(0 0 20px var(--jazer-cyan)); }
+            to { filter: drop-shadow(0 0 50px var(--jazer-pink)) drop-shadow(0 0 80px var(--jazer-purple)); }
+        }
+
+        /* Hit increment animation */
+        .combo-number.hit {
+            animation: comboHit 0.15s ease-out;
+        }
+        @keyframes comboHit {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        /* Floating Points */
+        .floating-points {
+            position: absolute;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            text-shadow: 0 0 10px var(--jazer-cyan);
+        }
+        @keyframes floatUp {
+            0% { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+            100% { 
+                opacity: 0; 
+                transform: translateY(-100px) scale(0.5); 
+            }
+        }
+
+        /* Stats Panel */
+        .stats-panel {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-label {
+            color: var(--text-gray);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Combo Milestones */
+        .milestones-section {
+            margin-top: 3rem;
+        }
+        .section-title {
+            color: var(--jazer-cyan);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section-title::before {
+            content: '';
+            width: 30px;
+            height: 3px;
+            background: var(--gradient-primary);
+            border-radius: 2px;
+        }
+
+        .milestones-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .milestone-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s ease;
+        }
+        .milestone-card.achieved {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 242, 234, 0.1);
+        }
+        .milestone-card.achieved .milestone-icon {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.5);
+        }
+        .milestone-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: rgba(147, 51, 234, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        .milestone-info {
+            flex: 1;
+        }
+        .milestone-name {
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        .milestone-desc {
+            color: var(--text-gray);
+            font-size: 0.85rem;
+        }
+
+        /* Combo Breaker Animation */
+        .combo-breaker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 0, 0, 0.3);
+            pointer-events: none;
+            opacity: 0;
+            z-index: 100;
+        }
+        .combo-breaker.active {
+            animation: breakerFlash 0.5s ease-out;
+        }
+        @keyframes breakerFlash {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .combo-number {
+                font-size: 5rem;
+            }
+            .combo-counter.style-minimal .combo-number {
+                font-size: 7rem;
+            }
+            .combo-counter.style-arcade .combo-number {
+                font-size: 4rem;
+            }
+            .hit-button {
+                padding: 1rem 2.5rem;
+                font-size: 1.2rem;
+            }
+            .stats-panel {
+                gap: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="combo-breaker" id="comboBreaker"></div>
+
+    <header class="hero">
+        <a href="index.html" class="back-button">← Back</a>
+        <h1>Combo Counter Pulse</h1>
+        <p class="subtitle">Dynamic combo tracking with multipliers and pulse effects</p>
+        <div class="keyboard-hint">
+            Press <kbd>Space</kbd> to hit | <kbd>R</kbd> to reset | <kbd>1-5</kbd> for styles
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <div class="control-group">
+                <label>Visual Style</label>
+                <select id="styleSelect">
+                    <option value="neon">Neon Cyber</option>
+                    <option value="arcade">Retro Arcade</option>
+                    <option value="minimal">Minimal Clean</option>
+                    <option value="fire">Fire & Flames</option>
+                    <option value="electric">Electric Shock</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Combo Timeout</label>
+                <select id="timeoutSelect">
+                    <option value="2000">2 Seconds</option>
+                    <option value="3000" selected>3 Seconds</option>
+                    <option value="5000">5 Seconds</option>
+                    <option value="10000">10 Seconds</option>
+                    <option value="0">No Timeout</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Multiplier Mode</label>
+                <select id="multiplierSelect">
+                    <option value="standard">Standard (every 10)</option>
+                    <option value="fast">Fast (every 5)</option>
+                    <option value="slow">Slow (every 25)</option>
+                    <option value="exponential">Exponential</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Pulse Effect</label>
+                <select id="pulseSelect">
+                    <option value="rings">Expanding Rings</option>
+                    <option value="shake">Screen Shake</option>
+                    <option value="flash">Flash</option>
+                    <option value="all">All Effects</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Demo Area -->
+        <div class="demo-area" id="demoArea">
+            <div class="combo-counter" id="comboCounter">
+                <div class="pulse-rings" id="pulseRings">
+                    <div class="pulse-ring" id="ring1"></div>
+                    <div class="pulse-ring" id="ring2"></div>
+                    <div class="pulse-ring" id="ring3"></div>
+                </div>
+                <div class="multiplier-badge" id="multiplierBadge">×1</div>
+                <div class="combo-number" id="comboNumber" data-combo="0">0</div>
+                <div class="combo-label">COMBO</div>
+                <div class="combo-timer">
+                    <div class="combo-timer-fill" id="timerFill"></div>
+                </div>
+            </div>
+
+            <button class="hit-button" id="hitButton">
+                HIT!
+            </button>
+
+            <div class="stats-panel">
+                <div class="stat-item">
+                    <div class="stat-value" id="currentCombo">0</div>
+                    <div class="stat-label">Current</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="maxCombo">0</div>
+                    <div class="stat-label">Best Combo</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalHits">0</div>
+                    <div class="stat-label">Total Hits</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalScore">0</div>
+                    <div class="stat-label">Score</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Milestones Section -->
+        <section class="milestones-section">
+            <h2 class="section-title">Combo Milestones</h2>
+            <div class="milestones-grid">
+                <div class="milestone-card" id="milestone10" data-combo="10">
+                    <div class="milestone-icon">🔥</div>
+                    <div class="milestone-info">
+                        <div class="milestone-name">Getting Warmed Up</div>
+                        <div class="milestone-desc">Reach 10 combo</div>
+                    </div>
+                </div>
+                <div class="milestone-card" id="milestone25" data-combo="25">
+                    <div class="milestone-icon">⚡</div>
+                    <div class="milestone-info">
+                        <div class="milestone-name">Hot Streak</div>
+                        <div class="milestone-desc">Reach 25 combo</div>
+                    </div>
+                </div>
+                <div class="milestone-card" id="milestone50" data-combo="50">
+                    <div class="milestone-icon">💥</div>
+                    <div class="milestone-info">
+                        <div class="milestone-name">Insane!</div>
+                        <div class="milestone-desc">Reach 50 combo</div>
+                    </div>
+                </div>
+                <div class="milestone-card" id="milestone100" data-combo="100">
+                    <div class="milestone-icon">👑</div>
+                    <div class="milestone-info">
+                        <div class="milestone-name">Legendary</div>
+                        <div class="milestone-desc">Reach 100 combo</div>
+                    </div>
+                </div>
+                <div class="milestone-card" id="milestone200" data-combo="200">
+                    <div class="milestone-icon">🌟</div>
+                    <div class="milestone-info">
+                        <div class="milestone-name">Godlike</div>
+                        <div class="milestone-desc">Reach 200 combo</div>
+                    </div>
+                </div>
+                <div class="milestone-card" id="milestone500" data-combo="500">
+                    <div class="milestone-icon">💎</div>
+                    <div class="milestone-info">
+                        <div class="milestone-name">Impossible!</div>
+                        <div class="milestone-desc">Reach 500 combo</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // State
+        let combo = 0;
+        let maxCombo = 0;
+        let totalHits = 0;
+        let totalScore = 0;
+        let multiplier = 1;
+        let comboTimer = null;
+        let timerStartTime = 0;
+
+        // Config
+        const config = {
+            style: 'neon',
+            timeout: 3000,
+            multiplierMode: 'standard',
+            pulseEffect: 'rings'
+        };
+
+        // DOM Elements
+        const comboCounter = document.getElementById('comboCounter');
+        const comboNumber = document.getElementById('comboNumber');
+        const multiplierBadge = document.getElementById('multiplierBadge');
+        const timerFill = document.getElementById('timerFill');
+        const hitButton = document.getElementById('hitButton');
+        const demoArea = document.getElementById('demoArea');
+        const comboBreaker = document.getElementById('comboBreaker');
+
+        // Initialize controls
+        document.getElementById('styleSelect').addEventListener('change', (e) => {
+            config.style = e.target.value;
+            updateStyle();
+        });
+        document.getElementById('timeoutSelect').addEventListener('change', (e) => {
+            config.timeout = parseInt(e.target.value);
+            resetComboTimer();
+        });
+        document.getElementById('multiplierSelect').addEventListener('change', (e) => {
+            config.multiplierMode = e.target.value;
+            updateMultiplier();
+        });
+        document.getElementById('pulseSelect').addEventListener('change', (e) => {
+            config.pulseEffect = e.target.value;
+        });
+
+        // Update visual style
+        function updateStyle() {
+            comboCounter.className = 'combo-counter';
+            comboCounter.classList.add(`style-${config.style}`);
+            updateComboState();
+        }
+
+        // Hit action
+        function hit() {
+            combo++;
+            totalHits++;
+            
+            // Update multiplier
+            updateMultiplier();
+            
+            // Calculate points
+            const points = 10 * multiplier;
+            totalScore += points;
+            
+            // Show floating points
+            showFloatingPoints(points);
+            
+            // Update display
+            updateDisplay();
+            
+            // Trigger effects
+            triggerPulseEffect();
+            
+            // Animate combo number
+            comboNumber.classList.remove('hit');
+            void comboNumber.offsetWidth;
+            comboNumber.classList.add('hit');
+            
+            // Button pulse
+            hitButton.classList.remove('pulse');
+            void hitButton.offsetWidth;
+            hitButton.classList.add('pulse');
+            
+            // Update combo state
+            updateComboState();
+            
+            // Check milestones
+            checkMilestones();
+            
+            // Reset timer
+            resetComboTimer();
+            
+            // Update max combo
+            if (combo > maxCombo) {
+                maxCombo = combo;
+            }
+        }
+
+        // Update multiplier based on mode
+        function updateMultiplier() {
+            switch (config.multiplierMode) {
+                case 'standard':
+                    multiplier = Math.floor(combo / 10) + 1;
+                    break;
+                case 'fast':
+                    multiplier = Math.floor(combo / 5) + 1;
+                    break;
+                case 'slow':
+                    multiplier = Math.floor(combo / 25) + 1;
+                    break;
+                case 'exponential':
+                    multiplier = Math.pow(2, Math.floor(combo / 20));
+                    break;
+            }
+            multiplierBadge.textContent = `×${multiplier}`;
+        }
+
+        // Update combo visual state
+        function updateComboState() {
+            comboCounter.classList.remove('combo-hot', 'combo-insane', 'combo-legendary');
+            
+            if (combo >= 100) {
+                comboCounter.classList.add('combo-legendary');
+            } else if (combo >= 50) {
+                comboCounter.classList.add('combo-insane');
+            } else if (combo >= 25) {
+                comboCounter.classList.add('combo-hot');
+            }
+        }
+
+        // Update display
+        function updateDisplay() {
+            comboNumber.textContent = combo;
+            comboNumber.setAttribute('data-combo', combo);
+            document.getElementById('currentCombo').textContent = combo;
+            document.getElementById('maxCombo').textContent = maxCombo;
+            document.getElementById('totalHits').textContent = totalHits;
+            document.getElementById('totalScore').textContent = totalScore.toLocaleString();
+        }
+
+        // Trigger pulse effect
+        function triggerPulseEffect() {
+            const effect = config.pulseEffect;
+            
+            if (effect === 'rings' || effect === 'all') {
+                // Expanding rings
+                const rings = document.querySelectorAll('.pulse-ring');
+                rings.forEach((ring, i) => {
+                    setTimeout(() => {
+                        ring.classList.remove('active');
+                        void ring.offsetWidth;
+                        ring.classList.add('active');
+                    }, i * 100);
+                });
+            }
+            
+            if (effect === 'shake' || effect === 'all') {
+                // Screen shake
+                demoArea.style.animation = 'none';
+                void demoArea.offsetWidth;
+                demoArea.style.animation = 'screenShake 0.2s ease';
+            }
+            
+            if (effect === 'flash' || effect === 'all') {
+                // Flash effect
+                demoArea.style.background = 'linear-gradient(180deg, rgba(0, 242, 234, 0.2) 0%, rgba(147, 51, 234, 0.2) 100%)';
+                setTimeout(() => {
+                    demoArea.style.background = 'linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(147, 51, 234, 0.1) 100%)';
+                }, 100);
+            }
+        }
+
+        // Show floating points
+        function showFloatingPoints(points) {
+            const floater = document.createElement('div');
+            floater.className = 'floating-points';
+            floater.textContent = `+${points}`;
+            floater.style.left = `${comboNumber.offsetLeft + comboNumber.offsetWidth / 2}px`;
+            floater.style.top = `${comboNumber.offsetTop}px`;
+            
+            comboCounter.appendChild(floater);
+            
+            setTimeout(() => floater.remove(), 1000);
+        }
+
+        // Reset combo timer
+        function resetComboTimer() {
+            if (config.timeout === 0) {
+                timerFill.style.width = '100%';
+                timerFill.classList.remove('warning');
+                return;
+            }
+            
+            clearInterval(comboTimer);
+            timerStartTime = Date.now();
+            timerFill.style.width = '100%';
+            timerFill.classList.remove('warning');
+            
+            comboTimer = setInterval(() => {
+                const elapsed = Date.now() - timerStartTime;
+                const remaining = Math.max(0, config.timeout - elapsed);
+                const percentage = (remaining / config.timeout) * 100;
+                
+                timerFill.style.width = `${percentage}%`;
+                
+                if (percentage < 30) {
+                    timerFill.classList.add('warning');
+                } else {
+                    timerFill.classList.remove('warning');
+                }
+                
+                if (remaining <= 0) {
+                    breakCombo();
+                }
+            }, 50);
+        }
+
+        // Break combo
+        function breakCombo() {
+            clearInterval(comboTimer);
+            
+            if (combo > 0) {
+                // Flash combo breaker
+                comboBreaker.classList.remove('active');
+                void comboBreaker.offsetWidth;
+                comboBreaker.classList.add('active');
+                
+                // Reset combo
+                combo = 0;
+                multiplier = 1;
+                updateDisplay();
+                updateMultiplier();
+                updateComboState();
+                timerFill.style.width = '100%';
+                timerFill.classList.remove('warning');
+            }
+        }
+
+        // Check milestones
+        function checkMilestones() {
+            const milestones = [10, 25, 50, 100, 200, 500];
+            milestones.forEach(m => {
+                if (combo >= m) {
+                    document.getElementById(`milestone${m}`).classList.add('achieved');
+                }
+            });
+        }
+
+        // Reset all
+        function resetAll() {
+            combo = 0;
+            maxCombo = 0;
+            totalHits = 0;
+            totalScore = 0;
+            multiplier = 1;
+            clearInterval(comboTimer);
+            
+            updateDisplay();
+            updateMultiplier();
+            updateComboState();
+            timerFill.style.width = '100%';
+            timerFill.classList.remove('warning');
+            
+            // Reset milestones
+            document.querySelectorAll('.milestone-card').forEach(card => {
+                card.classList.remove('achieved');
+            });
+        }
+
+        // Add screen shake animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes screenShake {
+                0%, 100% { transform: translateX(0); }
+                20% { transform: translateX(-5px); }
+                40% { transform: translateX(5px); }
+                60% { transform: translateX(-3px); }
+                80% { transform: translateX(3px); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Event listeners
+        hitButton.addEventListener('click', hit);
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                hit();
+            } else if (e.key === 'r' || e.key === 'R') {
+                resetAll();
+            } else if (e.key === '1') {
+                document.getElementById('styleSelect').value = 'neon';
+                config.style = 'neon';
+                updateStyle();
+            } else if (e.key === '2') {
+                document.getElementById('styleSelect').value = 'arcade';
+                config.style = 'arcade';
+                updateStyle();
+            } else if (e.key === '3') {
+                document.getElementById('styleSelect').value = 'minimal';
+                config.style = 'minimal';
+                updateStyle();
+            } else if (e.key === '4') {
+                document.getElementById('styleSelect').value = 'fire';
+                config.style = 'fire';
+                updateStyle();
+            } else if (e.key === '5') {
+                document.getElementById('styleSelect').value = 'electric';
+                config.style = 'electric';
+                updateStyle();
+            }
+        });
+
+        // Initialize
+        updateStyle();
+    </script>
+</body>
+</html>

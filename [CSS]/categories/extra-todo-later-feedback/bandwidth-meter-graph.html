@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bandwidth Meter Graph - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            margin-bottom: 0.5rem; 
+            font-size: 2.5rem; 
+        }
+        
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .back-button { 
+            display: inline-block; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(6, 182, 212, 0.1); 
+            margin-bottom: 2rem; 
+            transition: all 0.3s ease; 
+        }
+        
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5); 
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .control-group label {
+            font-size: 0.85rem;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .control-group select {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--jazer-purple);
+            color: var(--text-light);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 160px;
+        }
+        
+        .control-group select:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+        
+        .trigger-btn {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(6, 182, 212, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .trigger-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.6);
+        }
+        
+        .trigger-btn.active {
+            background: linear-gradient(135deg, #ff4444, #ff0066);
+        }
+        
+        .demo-container {
+            border: 2px solid var(--jazer-pink);
+            border-radius: 16px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.9), rgba(30, 20, 50, 0.9));
+            padding: 2rem;
+        }
+        
+        /* Stats overview */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            border-color: var(--jazer-cyan);
+            transform: translateY(-3px);
+        }
+        
+        .stat-card.download { border-top: 3px solid var(--jazer-cyan); }
+        .stat-card.upload { border-top: 3px solid var(--jazer-pink); }
+        .stat-card.latency { border-top: 3px solid var(--jazer-purple); }
+        .stat-card.packets { border-top: 3px solid #ffa500; }
+        
+        .stat-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 900;
+            font-family: var(--font-primary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-card.download .stat-value { color: var(--jazer-cyan); }
+        .stat-card.upload .stat-value { color: var(--jazer-pink); }
+        .stat-card.latency .stat-value { color: var(--jazer-purple); }
+        .stat-card.packets .stat-value { color: #ffa500; }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        /* Graph container */
+        .graph-container {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .graph-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .graph-title {
+            color: var(--jazer-cyan);
+            font-weight: 700;
+        }
+        
+        .graph-legend {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-gray);
+        }
+        
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .legend-dot.download { background: var(--jazer-cyan); box-shadow: 0 0 8px var(--jazer-cyan); }
+        .legend-dot.upload { background: var(--jazer-pink); box-shadow: 0 0 8px var(--jazer-pink); }
+        
+        /* Canvas graph */
+        .graph-canvas-container {
+            position: relative;
+            height: 250px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .graph-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Y-axis labels */
+        .y-axis {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 10px 5px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-align: right;
+            pointer-events: none;
+        }
+        
+        /* Grid lines */
+        .graph-grid {
+            position: absolute;
+            left: 50px;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+        
+        .grid-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Bar graph style */
+        .bar-graph {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 200px;
+            padding: 1rem 0.5rem;
+            gap: 4px;
+        }
+        
+        .bar-group {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            flex: 1;
+            max-width: 40px;
+        }
+        
+        .bar {
+            flex: 1;
+            border-radius: 3px 3px 0 0;
+            transition: height 0.3s ease;
+            min-width: 8px;
+        }
+        
+        .bar.download {
+            background: linear-gradient(to top, var(--jazer-cyan), rgba(0, 242, 234, 0.5));
+            box-shadow: 0 0 10px rgba(0, 242, 234, 0.3);
+        }
+        
+        .bar.upload {
+            background: linear-gradient(to top, var(--jazer-pink), rgba(255, 0, 110, 0.5));
+            box-shadow: 0 0 10px rgba(255, 0, 110, 0.3);
+        }
+        
+        /* Line graph using SVG */
+        .line-graph {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .graph-line {
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        
+        .graph-line.download {
+            stroke: var(--jazer-cyan);
+            filter: drop-shadow(0 0 6px var(--jazer-cyan));
+        }
+        
+        .graph-line.upload {
+            stroke: var(--jazer-pink);
+            filter: drop-shadow(0 0 6px var(--jazer-pink));
+        }
+        
+        .graph-area {
+            opacity: 0.2;
+        }
+        
+        .graph-area.download { fill: var(--jazer-cyan); }
+        .graph-area.upload { fill: var(--jazer-pink); }
+        
+        /* Network activity log */
+        .activity-log {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .activity-log h3 {
+            color: var(--jazer-pink);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        
+        .log-entries {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .log-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: monospace;
+            min-width: 70px;
+        }
+        
+        .log-type {
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .log-type.download { background: rgba(0, 242, 234, 0.2); color: var(--jazer-cyan); }
+        .log-type.upload { background: rgba(255, 0, 110, 0.2); color: var(--jazer-pink); }
+        
+        .log-message {
+            flex: 1;
+            font-size: 0.85rem;
+            color: var(--text-gray);
+        }
+        
+        .log-speed {
+            font-weight: 700;
+            font-family: var(--font-primary);
+        }
+        
+        .log-speed.download { color: var(--jazer-cyan); }
+        .log-speed.upload { color: var(--jazer-pink); }
+        
+        .keyboard-hint {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--jazer-purple);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .keyboard-hint kbd {
+            background: var(--jazer-purple);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-primary);
+            margin: 0 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .control-group select { min-width: 100%; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .graph-legend { flex-direction: column; gap: 0.5rem; }
+            .keyboard-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    <h1>Bandwidth Meter Graph</h1>
+    <p class="subtitle">Real-time network bandwidth monitoring with live download/upload graphs</p>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label>Graph Style</label>
+            <select id="graphStyle">
+                <option value="line">Line Graph</option>
+                <option value="bar">Bar Graph</option>
+                <option value="area">Area Graph</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Network Profile</label>
+            <select id="networkProfile">
+                <option value="fiber">Fiber (1Gbps)</option>
+                <option value="cable">Cable (100Mbps)</option>
+                <option value="dsl">DSL (25Mbps)</option>
+                <option value="mobile">Mobile 4G (50Mbps)</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Activity Level</label>
+            <select id="activityLevel">
+                <option value="normal">Normal</option>
+                <option value="heavy">Heavy Download</option>
+                <option value="streaming">Streaming</option>
+                <option value="idle">Idle</option>
+            </select>
+        </div>
+        <button class="trigger-btn" id="toggleBtn" onclick="toggleMonitoring()">Start Monitoring</button>
+    </div>
+    
+    <div class="demo-container">
+        <div class="stats-row">
+            <div class="stat-card download">
+                <div class="stat-icon">↓</div>
+                <div class="stat-value" id="downloadSpeed">0 Mbps</div>
+                <div class="stat-label">Download</div>
+            </div>
+            <div class="stat-card upload">
+                <div class="stat-icon">↑</div>
+                <div class="stat-value" id="uploadSpeed">0 Mbps</div>
+                <div class="stat-label">Upload</div>
+            </div>
+            <div class="stat-card latency">
+                <div class="stat-icon">⏱</div>
+                <div class="stat-value" id="latency">0 ms</div>
+                <div class="stat-label">Latency</div>
+            </div>
+            <div class="stat-card packets">
+                <div class="stat-icon">📦</div>
+                <div class="stat-value" id="packets">0</div>
+                <div class="stat-label">Packets/s</div>
+            </div>
+        </div>
+        
+        <div class="graph-container">
+            <div class="graph-header">
+                <span class="graph-title">Network Usage Over Time</span>
+                <div class="graph-legend">
+                    <div class="legend-item">
+                        <div class="legend-dot download"></div>
+                        <span>Download</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot upload"></div>
+                        <span>Upload</span>
+                    </div>
+                </div>
+            </div>
+            <div class="graph-canvas-container" id="graphContainer">
+                <div class="y-axis" id="yAxis"></div>
+                <svg class="line-graph" id="lineGraph"></svg>
+            </div>
+        </div>
+        
+        <div class="activity-log">
+            <h3>Network Activity</h3>
+            <div class="log-entries" id="logEntries"></div>
+        </div>
+    </div>
+    
+    <div class="keyboard-hint">
+        Press <kbd>Space</kbd> to toggle monitoring
+    </div>
+    
+    <script>
+        const profiles = {
+            fiber: { maxDown: 1000, maxUp: 500, latency: 5 },
+            cable: { maxDown: 100, maxUp: 20, latency: 15 },
+            dsl: { maxDown: 25, maxUp: 5, latency: 30 },
+            mobile: { maxDown: 50, maxUp: 15, latency: 40 }
+        };
+        
+        const activities = {
+            normal: { downFactor: 0.3, upFactor: 0.1, variance: 0.2 },
+            heavy: { downFactor: 0.85, upFactor: 0.05, variance: 0.15 },
+            streaming: { downFactor: 0.5, upFactor: 0.02, variance: 0.1 },
+            idle: { downFactor: 0.02, upFactor: 0.01, variance: 0.5 }
+        };
+        
+        let isMonitoring = false;
+        let monitorInterval = null;
+        let downloadHistory = [];
+        let uploadHistory = [];
+        let logEntries = [];
+        const maxPoints = 30;
+        
+        function getProfile() {
+            return profiles[document.getElementById('networkProfile').value];
+        }
+        
+        function getActivity() {
+            return activities[document.getElementById('activityLevel').value];
+        }
+        
+        function generateSpeed(max, factor, variance) {
+            const base = max * factor;
+            const variation = base * variance * (Math.random() * 2 - 1);
+            return Math.max(0, base + variation);
+        }
+        
+        function updateStats() {
+            const profile = getProfile();
+            const activity = getActivity();
+            
+            const download = generateSpeed(profile.maxDown, activity.downFactor, activity.variance);
+            const upload = generateSpeed(profile.maxUp, activity.upFactor, activity.variance);
+            const latency = profile.latency + Math.random() * 10 - 5;
+            const packets = Math.floor((download + upload) * 10 + Math.random() * 100);
+            
+            // Update display
+            document.getElementById('downloadSpeed').textContent = download.toFixed(1) + ' Mbps';
+            document.getElementById('uploadSpeed').textContent = upload.toFixed(1) + ' Mbps';
+            document.getElementById('latency').textContent = Math.max(1, Math.floor(latency)) + ' ms';
+            document.getElementById('packets').textContent = packets.toLocaleString();
+            
+            // Add to history
+            downloadHistory.push(download);
+            uploadHistory.push(upload);
+            
+            if (downloadHistory.length > maxPoints) {
+                downloadHistory.shift();
+                uploadHistory.shift();
+            }
+            
+            // Update graph
+            updateGraph();
+            
+            // Occasionally add log entry
+            if (Math.random() < 0.3) {
+                addLogEntry(download, upload);
+            }
+        }
+        
+        function updateGraph() {
+            const style = document.getElementById('graphStyle').value;
+            const container = document.getElementById('graphContainer');
+            const profile = getProfile();
+            
+            // Update Y-axis
+            const yAxis = document.getElementById('yAxis');
+            const maxY = profile.maxDown;
+            yAxis.innerHTML = [100, 75, 50, 25, 0].map(p => 
+                `<span>${Math.round(maxY * p / 100)}</span>`
+            ).join('');
+            
+            if (style === 'line' || style === 'area') {
+                renderLineGraph(maxY, style === 'area');
+            } else {
+                renderBarGraph(maxY);
+            }
+        }
+        
+        function renderLineGraph(maxY, showArea) {
+            const svg = document.getElementById('lineGraph');
+            const width = svg.clientWidth || 600;
+            const height = svg.clientHeight || 250;
+            const padding = { left: 50, right: 10, top: 10, bottom: 10 };
+            
+            const graphWidth = width - padding.left - padding.right;
+            const graphHeight = height - padding.top - padding.bottom;
+            
+            function getPath(data) {
+                if (data.length < 2) return '';
+                const points = data.map((val, i) => {
+                    const x = padding.left + (i / (maxPoints - 1)) * graphWidth;
+                    const y = padding.top + graphHeight - (val / maxY) * graphHeight;
+                    return `${x},${y}`;
+                });
+                return points.join(' ');
+            }
+            
+            function getAreaPath(data) {
+                if (data.length < 2) return '';
+                const linePath = getPath(data);
+                const startX = padding.left;
+                const endX = padding.left + ((data.length - 1) / (maxPoints - 1)) * graphWidth;
+                const bottom = padding.top + graphHeight;
+                return `M ${startX},${bottom} L ${linePath} L ${endX},${bottom} Z`;
+            }
+            
+            let html = '';
+            
+            // Grid lines
+            for (let i = 0; i <= 4; i++) {
+                const y = padding.top + (i / 4) * graphHeight;
+                html += `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(255,255,255,0.05)" />`;
+            }
+            
+            // Area fills
+            if (showArea) {
+                html += `<path class="graph-area download" d="${getAreaPath(downloadHistory)}" />`;
+                html += `<path class="graph-area upload" d="${getAreaPath(uploadHistory)}" />`;
+            }
+            
+            // Lines
+            html += `<polyline class="graph-line download" points="${getPath(downloadHistory)}" />`;
+            html += `<polyline class="graph-line upload" points="${getPath(uploadHistory)}" />`;
+            
+            svg.innerHTML = html;
+        }
+        
+        function renderBarGraph(maxY) {
+            const container = document.getElementById('graphContainer');
+            
+            // Replace SVG with bar container
+            let barContainer = container.querySelector('.bar-graph');
+            if (!barContainer) {
+                container.querySelector('.line-graph').style.display = 'none';
+                barContainer = document.createElement('div');
+                barContainer.className = 'bar-graph';
+                container.appendChild(barContainer);
+            } else {
+                container.querySelector('.line-graph').style.display = 'none';
+                barContainer.style.display = 'flex';
+            }
+            
+            const html = downloadHistory.map((down, i) => {
+                const up = uploadHistory[i] || 0;
+                const downHeight = Math.max(2, (down / maxY) * 100);
+                const upHeight = Math.max(2, (up / maxY) * 100);
+                return `
+                    <div class="bar-group">
+                        <div class="bar download" style="height: ${downHeight}%"></div>
+                        <div class="bar upload" style="height: ${upHeight}%"></div>
+                    </div>
+                `;
+            }).join('');
+            
+            barContainer.innerHTML = html;
+        }
+        
+        function addLogEntry(download, upload) {
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const type = download > upload * 2 ? 'download' : 'upload';
+            const messages = {
+                download: ['Receiving data', 'Download in progress', 'Streaming content', 'Fetching resources'],
+                upload: ['Sending data', 'Upload in progress', 'Syncing files', 'Pushing updates']
+            };
+            
+            const message = messages[type][Math.floor(Math.random() * messages[type].length)];
+            const speed = type === 'download' ? download : upload;
+            
+            logEntries.unshift({ time, type, message, speed });
+            if (logEntries.length > 10) logEntries.pop();
+            
+            renderLog();
+        }
+        
+        function renderLog() {
+            const container = document.getElementById('logEntries');
+            container.innerHTML = logEntries.map(entry => `
+                <div class="log-entry">
+                    <span class="log-time">${entry.time}</span>
+                    <span class="log-type ${entry.type}">${entry.type === 'download' ? '↓' : '↑'}</span>
+                    <span class="log-message">${entry.message}</span>
+                    <span class="log-speed ${entry.type}">${entry.speed.toFixed(1)} Mbps</span>
+                </div>
+            `).join('');
+        }
+        
+        function toggleMonitoring() {
+            const btn = document.getElementById('toggleBtn');
+            
+            if (isMonitoring) {
+                isMonitoring = false;
+                clearInterval(monitorInterval);
+                btn.textContent = 'Start Monitoring';
+                btn.classList.remove('active');
+            } else {
+                isMonitoring = true;
+                monitorInterval = setInterval(updateStats, 500);
+                btn.textContent = 'Stop Monitoring';
+                btn.classList.add('active');
+                updateStats();
+            }
+        }
+        
+        // Graph style change handler
+        document.getElementById('graphStyle').addEventListener('change', () => {
+            const container = document.getElementById('graphContainer');
+            const barGraph = container.querySelector('.bar-graph');
+            const lineGraph = container.querySelector('.line-graph');
+            
+            if (document.getElementById('graphStyle').value === 'bar') {
+                if (lineGraph) lineGraph.style.display = 'none';
+                if (barGraph) barGraph.style.display = 'flex';
+            } else {
+                if (lineGraph) lineGraph.style.display = 'block';
+                if (barGraph) barGraph.style.display = 'none';
+            }
+            
+            if (isMonitoring) updateGraph();
+        });
+        
+        // Initialize
+        for (let i = 0; i < maxPoints; i++) {
+            downloadHistory.push(0);
+            uploadHistory.push(0);
+        }
+        updateGraph();
+        
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !e.repeat) {
+                e.preventDefault();
+                toggleMonitoring();
+            }
+        });
+    </script>
+</body>
+</html>

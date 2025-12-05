@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Recovery Steps - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            font-family: var(--font-body);
+            color: #ffffff;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            transform: translateX(-5px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        .recovery-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 3rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.2);
+        }
+
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 25px;
+            left: 50px;
+            right: 50px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--jazer-cyan), var(--jazer-purple));
+            width: 0%;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        .step-indicator {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .step-indicator.active .step-circle {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
+            animation: stepPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes stepPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .step-indicator.completed .step-circle {
+            background: var(--jazer-neon-green);
+            border-color: var(--jazer-neon-green);
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.6);
+        }
+
+        .step-label {
+            font-size: 0.85rem;
+            color: #888;
+            text-align: center;
+        }
+
+        .step-indicator.active .step-label {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        .step-indicator.completed .step-label {
+            color: var(--jazer-neon-green);
+        }
+
+        .step-content {
+            margin-top: 2rem;
+        }
+
+        .step-card {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-card.active {
+            display: block;
+        }
+
+        .step-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--jazer-cyan);
+            margin-bottom: 1rem;
+        }
+
+        .step-description {
+            color: #e0e0e0;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-label {
+            display: block;
+            font-weight: 600;
+            color: #e0e0e0;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .verification-code {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        .code-input {
+            width: 60px;
+            height: 60px;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 12px;
+            color: #ffffff;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .code-input:focus {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .option-card {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.05), rgba(139, 0, 255, 0.05));
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .option-card:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .option-card.selected {
+            border-color: var(--jazer-cyan);
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(139, 0, 255, 0.15));
+        }
+
+        .option-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .option-title {
+            font-weight: 600;
+            color: var(--jazer-cyan);
+            margin-bottom: 0.25rem;
+        }
+
+        .option-description {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(139, 0, 255, 0.1));
+            color: var(--jazer-cyan);
+        }
+
+        .btn-primary:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #888;
+            border-color: #888;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            border-color: #ffffff;
+        }
+
+        .success-message {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, var(--jazer-neon-green), var(--jazer-cyan));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            box-shadow: 0 0 40px rgba(57, 255, 20, 0.5);
+            animation: successPulse 1.5s ease-in-out;
+        }
+
+        @keyframes successPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .recovery-container {
+                padding: 2rem;
+            }
+
+            .progress-bar {
+                flex-wrap: wrap;
+            }
+
+            .code-input {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to Security, Auth & Login</a>
+    
+    <div class="header">
+        <h1>Account Recovery Steps</h1>
+        <p>Follow these steps to securely recover your account</p>
+    </div>
+
+    <div class="recovery-container">
+        <div class="progress-bar">
+            <div class="progress-line">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="step-indicator active" data-step="1">
+                <div class="step-circle">1</div>
+                <div class="step-label">Verify Identity</div>
+            </div>
+            <div class="step-indicator" data-step="2">
+                <div class="step-circle">2</div>
+                <div class="step-label">Enter Code</div>
+            </div>
+            <div class="step-indicator" data-step="3">
+                <div class="step-circle">3</div>
+                <div class="step-label">Reset Password</div>
+            </div>
+            <div class="step-indicator" data-step="4">
+                <div class="step-circle">4</div>
+                <div class="step-label">Complete</div>
+            </div>
+        </div>
+
+        <div class="step-content">
+            <!-- Step 1: Verify Identity -->
+            <div class="step-card active" id="step1">
+                <div class="step-title">Verify Your Identity</div>
+                <div class="step-description">
+                    Choose how you'd like to receive your verification code.
+                </div>
+
+                <div class="options-grid">
+                    <div class="option-card selected" onclick="selectMethod(this, 'email')">
+                        <div class="option-icon">📧</div>
+                        <div class="option-title">Email</div>
+                        <div class="option-description">user@example.com</div>
+                    </div>
+                    <div class="option-card" onclick="selectMethod(this, 'sms')">
+                        <div class="option-icon">📱</div>
+                        <div class="option-title">SMS</div>
+                        <div class="option-description">+1 (555) ***-**12</div>
+                    </div>
+                    <div class="option-card" onclick="selectMethod(this, 'phone')">
+                        <div class="option-icon">📞</div>
+                        <div class="option-title">Phone Call</div>
+                        <div class="option-description">+1 (555) ***-**12</div>
+                    </div>
+                    <div class="option-card" onclick="selectMethod(this, 'app')">
+                        <div class="option-icon">🔐</div>
+                        <div class="option-title">Auth App</div>
+                        <div class="option-description">Authenticator</div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="alert('Cancelled')">Cancel</button>
+                    <button class="btn btn-primary" onclick="nextStep(2)">Send Code</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Enter Verification Code -->
+            <div class="step-card" id="step2">
+                <div class="step-title">Enter Verification Code</div>
+                <div class="step-description">
+                    We've sent a 6-digit code to your email address.
+                </div>
+
+                <div class="verification-code">
+                    <input type="text" maxlength="1" class="code-input" id="code1" onkeyup="moveToNext(this, 'code2')">
+                    <input type="text" maxlength="1" class="code-input" id="code2" onkeyup="moveToNext(this, 'code3')">
+                    <input type="text" maxlength="1" class="code-input" id="code3" onkeyup="moveToNext(this, 'code4')">
+                    <input type="text" maxlength="1" class="code-input" id="code4" onkeyup="moveToNext(this, 'code5')">
+                    <input type="text" maxlength="1" class="code-input" id="code5" onkeyup="moveToNext(this, 'code6')">
+                    <input type="text" maxlength="1" class="code-input" id="code6">
+                </div>
+
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <a href="#" style="color: var(--jazer-cyan); text-decoration: none;" onclick="alert('New code sent!'); return false;">Didn't receive code? Resend</a>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="nextStep(1)">Back</button>
+                    <button class="btn btn-primary" onclick="nextStep(3)">Verify Code</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Reset Password -->
+            <div class="step-card" id="step3">
+                <div class="step-title">Create New Password</div>
+                <div class="step-description">
+                    Choose a strong password to secure your account.
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">New Password</label>
+                    <input type="password" class="input-field" placeholder="Enter new password">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Confirm Password</label>
+                    <input type="password" class="input-field" placeholder="Confirm new password">
+                </div>
+
+                <div style="padding: 1rem; background: rgba(0, 255, 255, 0.05); border: 2px solid rgba(0, 255, 255, 0.3); border-radius: 8px; margin-bottom: 2rem;">
+                    <div style="font-weight: 600; color: var(--jazer-cyan); margin-bottom: 0.5rem;">Password Requirements:</div>
+                    <ul style="margin: 0; padding-left: 1.5rem; color: #888;">
+                        <li>At least 8 characters long</li>
+                        <li>Contains uppercase and lowercase letters</li>
+                        <li>Includes at least one number</li>
+                        <li>Uses special characters (!@#$%^&*)</li>
+                    </ul>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="nextStep(2)">Back</button>
+                    <button class="btn btn-primary" onclick="nextStep(4)">Reset Password</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Success -->
+            <div class="step-card" id="step4">
+                <div class="success-message">
+                    <div class="success-icon">✓</div>
+                    <div class="step-title">Recovery Complete!</div>
+                    <div class="step-description">
+                        Your password has been successfully reset. You can now sign in with your new password.
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="alert('Redirecting to login...')" style="width: 100%;">Go to Login</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let selectedMethod = 'email';
+
+        function selectMethod(card, method) {
+            document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedMethod = method;
+        }
+
+        function nextStep(step) {
+            // Hide current step
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            
+            // Mark previous step as completed
+            if (step > currentStep) {
+                document.querySelector(`[data-step="${currentStep}"]`).classList.add('completed');
+                document.querySelector(`[data-step="${currentStep}"]`).classList.remove('active');
+            }
+            
+            // Show new step
+            currentStep = step;
+            document.getElementById(`step${currentStep}`).classList.add('active');
+            
+            // Update progress bar
+            document.querySelector(`[data-step="${currentStep}"]`).classList.add('active');
+            const progress = ((currentStep - 1) / 3) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function moveToNext(current, nextFieldId) {
+            if (current.value.length === 1) {
+                const nextField = document.getElementById(nextFieldId);
+                if (nextField) {
+                    nextField.focus();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

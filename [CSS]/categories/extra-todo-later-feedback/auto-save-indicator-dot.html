@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Save Indicator Dot - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            margin-bottom: 0.5rem; 
+            font-size: 2.5rem; 
+        }
+        
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .back-button { 
+            display: inline-block; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(6, 182, 212, 0.1); 
+            margin-bottom: 2rem; 
+            transition: all 0.3s ease; 
+        }
+        
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5); 
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .control-group label {
+            font-size: 0.85rem;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .control-group select {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--jazer-purple);
+            color: var(--text-light);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 160px;
+        }
+        
+        .control-group select:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+        
+        .demo-container {
+            border: 2px solid var(--jazer-pink);
+            border-radius: 16px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.9), rgba(30, 20, 50, 0.9));
+            padding: 2rem;
+        }
+        
+        /* Mock document editor */
+        .editor-container {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .editor-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .doc-title {
+            font-weight: 700;
+            color: var(--jazer-cyan);
+        }
+        
+        .save-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        /* Save states */
+        .save-indicator.saved {
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+        }
+        
+        .save-indicator.saving {
+            background: rgba(0, 242, 234, 0.15);
+            color: var(--jazer-cyan);
+        }
+        
+        .save-indicator.unsaved {
+            background: rgba(255, 165, 0, 0.15);
+            color: #ffa500;
+        }
+        
+        .save-indicator.error {
+            background: rgba(255, 68, 68, 0.15);
+            color: #ff4444;
+        }
+        
+        /* Dot styles */
+        .save-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        /* Dot style variations */
+        .save-dot.style-pulse.saved {
+            background: #00ff88;
+            box-shadow: 0 0 8px #00ff88;
+        }
+        
+        .save-dot.style-pulse.saving {
+            background: var(--jazer-cyan);
+            animation: pulseDot 1s ease-in-out infinite;
+        }
+        
+        .save-dot.style-pulse.unsaved {
+            background: #ffa500;
+            animation: pulseDot 0.5s ease-in-out infinite;
+        }
+        
+        .save-dot.style-pulse.error {
+            background: #ff4444;
+            animation: pulseDot 0.3s ease-in-out infinite;
+        }
+        
+        @keyframes pulseDot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+        }
+        
+        /* Spin style */
+        .save-dot.style-spin.saving {
+            background: conic-gradient(var(--jazer-cyan) 0deg, transparent 60deg, transparent 300deg, var(--jazer-cyan) 360deg);
+            animation: spinDot 1s linear infinite;
+        }
+        
+        .save-dot.style-spin.saved { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
+        .save-dot.style-spin.unsaved { background: #ffa500; }
+        .save-dot.style-spin.error { background: #ff4444; }
+        
+        @keyframes spinDot {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Breathe style */
+        .save-dot.style-breathe.saved {
+            background: #00ff88;
+            box-shadow: 0 0 8px #00ff88;
+        }
+        
+        .save-dot.style-breathe.saving {
+            background: var(--jazer-cyan);
+            animation: breatheDot 2s ease-in-out infinite;
+        }
+        
+        .save-dot.style-breathe.unsaved {
+            background: #ffa500;
+            animation: breatheDot 1s ease-in-out infinite;
+        }
+        
+        .save-dot.style-breathe.error {
+            background: #ff4444;
+            animation: breatheDot 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes breatheDot {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 5px currentColor; }
+            50% { transform: scale(1.2); box-shadow: 0 0 15px currentColor; }
+        }
+        
+        /* Ring style */
+        .save-dot.style-ring {
+            position: relative;
+        }
+        
+        .save-dot.style-ring::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            opacity: 0;
+        }
+        
+        .save-dot.style-ring.saved {
+            background: #00ff88;
+            color: #00ff88;
+        }
+        
+        .save-dot.style-ring.saving {
+            background: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+        
+        .save-dot.style-ring.saving::after {
+            animation: ringExpand 1s ease-out infinite;
+        }
+        
+        .save-dot.style-ring.unsaved {
+            background: #ffa500;
+            color: #ffa500;
+        }
+        
+        .save-dot.style-ring.unsaved::after {
+            animation: ringExpand 0.5s ease-out infinite;
+        }
+        
+        .save-dot.style-ring.error {
+            background: #ff4444;
+            color: #ff4444;
+        }
+        
+        .save-dot.style-ring.error::after {
+            animation: ringExpand 0.3s ease-out infinite;
+        }
+        
+        @keyframes ringExpand {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+        }
+        
+        /* Checkmark style */
+        .save-dot.style-check.saved {
+            background: #00ff88;
+            position: relative;
+        }
+        
+        .save-dot.style-check.saved::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 7px;
+            color: #0a0a0a;
+            font-weight: bold;
+        }
+        
+        .save-dot.style-check.saving {
+            background: var(--jazer-cyan);
+            animation: checkSpin 0.8s linear infinite;
+        }
+        
+        .save-dot.style-check.unsaved {
+            background: #ffa500;
+        }
+        
+        .save-dot.style-check.error {
+            background: #ff4444;
+        }
+        
+        @keyframes checkSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        
+        /* Text area */
+        .editor-content {
+            padding: 1.5rem;
+            min-height: 250px;
+        }
+        
+        .editor-content textarea {
+            width: 100%;
+            height: 200px;
+            background: transparent;
+            border: none;
+            color: var(--text-light);
+            font-size: 1rem;
+            line-height: 1.8;
+            resize: none;
+            outline: none;
+            font-family: var(--font-body);
+        }
+        
+        .editor-content textarea::placeholder {
+            color: var(--text-muted);
+        }
+        
+        /* Indicator variants grid */
+        .variants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .variant-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .variant-card:hover {
+            border-color: var(--jazer-cyan);
+            transform: translateY(-5px);
+        }
+        
+        .variant-card h3 {
+            color: var(--jazer-pink);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .variant-demo {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .variant-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .variant-item .save-dot {
+            width: 14px;
+            height: 14px;
+        }
+        
+        .variant-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        
+        .status-history {
+            margin-top: 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .status-history h3 {
+            color: var(--jazer-cyan);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .history-timeline {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            animation: fadeInHistory 0.3s ease-out;
+        }
+        
+        @keyframes fadeInHistory {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .history-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .history-dot.saved { background: #00ff88; }
+        .history-dot.saving { background: var(--jazer-cyan); }
+        .history-dot.unsaved { background: #ffa500; }
+        .history-dot.error { background: #ff4444; }
+        
+        .keyboard-hint {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--jazer-purple);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .keyboard-hint kbd {
+            background: var(--jazer-purple);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-primary);
+            margin: 0 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .control-group select { min-width: 100%; }
+            .editor-toolbar { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
+            .variants-grid { grid-template-columns: 1fr; }
+            .keyboard-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    <h1>Auto-Save Indicator Dot</h1>
+    <p class="subtitle">Visual feedback indicators showing document save status with multiple animation styles</p>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label>Dot Style</label>
+            <select id="dotStyle">
+                <option value="pulse">Pulse</option>
+                <option value="spin">Spin</option>
+                <option value="breathe">Breathe</option>
+                <option value="ring">Ring Expand</option>
+                <option value="check">Checkmark</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Auto-Save Delay</label>
+            <select id="saveDelay">
+                <option value="500">Fast (0.5s)</option>
+                <option value="1000" selected>Normal (1s)</option>
+                <option value="2000">Slow (2s)</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Simulate Error</label>
+            <select id="errorRate">
+                <option value="0">Never</option>
+                <option value="0.1">Rare (10%)</option>
+                <option value="0.3">Sometimes (30%)</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="demo-container">
+        <div class="editor-container">
+            <div class="editor-toolbar">
+                <div class="toolbar-left">
+                    <span class="doc-title">Untitled Document</span>
+                    <div class="save-indicator saved" id="saveIndicator">
+                        <div class="save-dot style-pulse saved" id="saveDot"></div>
+                        <span id="saveText">Saved</span>
+                    </div>
+                </div>
+                <div class="toolbar-right">
+                    <span id="lastSaved">Last saved: just now</span>
+                </div>
+            </div>
+            <div class="editor-content">
+                <textarea id="editorText" placeholder="Start typing to see the auto-save indicator in action..."></textarea>
+            </div>
+        </div>
+        
+        <div class="status-history">
+            <h3>Save History</h3>
+            <div class="history-timeline" id="historyTimeline"></div>
+        </div>
+        
+        <div class="variants-grid">
+            <div class="variant-card">
+                <h3>Pulse Style</h3>
+                <div class="variant-demo">
+                    <div class="variant-item">
+                        <div class="save-dot style-pulse saved"></div>
+                        <span class="variant-label">Saved</span>
+                    </div>
+                    <div class="variant-item">
+                        <div class="save-dot style-pulse saving"></div>
+                        <span class="variant-label">Saving</span>
+                    </div>
+                    <div class="variant-item">
+                        <div class="save-dot style-pulse unsaved"></div>
+                        <span class="variant-label">Unsaved</span>
+                    </div>
+                    <div class="variant-item">
+                        <div class="save-dot style-pulse error"></div>
+                        <span class="variant-label">Error</span>
+                    </div>
+                </div>
+            </div>
+            <div class="variant-card">
+                <h3>Spin Style</h3>
+                <div class="variant-demo">
+                    <div class="variant-item">
+                        <div class="save-dot style-spin saved"></div>
+                        <span class="variant-label">Saved</span>
+                    </div>
+                    <div class="variant-item">
+                        <div class="save-dot style-spin saving"></div>
+                        <span class="variant-label">Saving</span>
+                    </div>
+                    <div class="variant-item">
+                        <div class="save-dot style-spin unsaved"></div>
+                        <span class="variant-label">Unsaved</span>
+                    </div>
+                    <div class="variant-item">
+                        <div class="save-dot style-spin error"></div>
+                        <span class="variant-label">Error</span>
+                    </div>
+                </div>
+            </div>
+            <div class="variant-card">
+                <h3>Breathe Style</h3>
+                <div class="variant-demo">
+                    <div class="variant-item">
+                        <div class="save-dot style-breathe saved"></div>
+                        <span class="variant-label">Saved</span>
+                    </div>
+                    <div class="variant-item">
+                        <div class="save-dot style-breathe saving"></div>
+                        <span class="variant-label">Saving</span>
+                    </div>
+                    <div class="variant-item">
+                        <div class="save-dot style-breathe unsaved"></div>
+                        <span class="variant-label">Unsaved</span>
+                    </div>
+                    <div class="variant-item">
+                        <div class="save-dot style-breathe error"></div>
+                        <span class="variant-label">Error</span>
+                    </div>
+                </div>
+            </div>
+            <div class="variant-card">
+                <h3>Ring Style</h3>
+                <div class="variant-demo">
+                    <div class="variant-item">
+                        <div class="save-dot style-ring saved"></div>
+                        <span class="variant-label">Saved</span>
+                    </div>
+                    <div class="variant-item">
+                        <div class="save-dot style-ring saving"></div>
+                        <span class="variant-label">Saving</span>
+                    </div>
+                    <div class="variant-item">
+                        <div class="save-dot style-ring unsaved"></div>
+                        <span class="variant-label">Unsaved</span>
+                    </div>
+                    <div class="variant-item">
+                        <div class="save-dot style-ring error"></div>
+                        <span class="variant-label">Error</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="keyboard-hint">
+        Press <kbd>Space</kbd> to manually trigger save
+    </div>
+    
+    <script>
+        let saveTimeout = null;
+        let saveHistory = [];
+        const maxHistory = 15;
+        
+        const statusLabels = {
+            saved: 'Saved',
+            saving: 'Saving...',
+            unsaved: 'Unsaved changes',
+            error: 'Save failed'
+        };
+        
+        function updateIndicator(status) {
+            const indicator = document.getElementById('saveIndicator');
+            const dot = document.getElementById('saveDot');
+            const text = document.getElementById('saveText');
+            const style = document.getElementById('dotStyle').value;
+            
+            // Update classes
+            indicator.className = `save-indicator ${status}`;
+            dot.className = `save-dot style-${style} ${status}`;
+            text.textContent = statusLabels[status];
+            
+            // Add to history
+            addToHistory(status);
+            
+            // Update last saved time if saved
+            if (status === 'saved') {
+                document.getElementById('lastSaved').textContent = 'Last saved: just now';
+            }
+        }
+        
+        function addToHistory(status) {
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            saveHistory.unshift({ status, time });
+            if (saveHistory.length > maxHistory) saveHistory.pop();
+            renderHistory();
+        }
+        
+        function renderHistory() {
+            const timeline = document.getElementById('historyTimeline');
+            timeline.innerHTML = saveHistory.map(item => `
+                <div class="history-item">
+                    <div class="history-dot ${item.status}"></div>
+                    <span>${item.time}</span>
+                </div>
+            `).join('');
+        }
+        
+        function simulateSave() {
+            updateIndicator('saving');
+            
+            const delay = parseInt(document.getElementById('saveDelay').value);
+            const errorRate = parseFloat(document.getElementById('errorRate').value);
+            
+            setTimeout(() => {
+                if (Math.random() < errorRate) {
+                    updateIndicator('error');
+                    // Auto-retry after 2 seconds
+                    setTimeout(() => {
+                        updateIndicator('saving');
+                        setTimeout(() => {
+                            updateIndicator('saved');
+                        }, delay);
+                    }, 2000);
+                } else {
+                    updateIndicator('saved');
+                }
+            }, delay);
+        }
+        
+        function handleInput() {
+            updateIndicator('unsaved');
+            
+            // Clear existing timeout
+            if (saveTimeout) clearTimeout(saveTimeout);
+            
+            // Set new auto-save timeout
+            saveTimeout = setTimeout(simulateSave, 1500);
+        }
+        
+        // Editor input handler
+        document.getElementById('editorText').addEventListener('input', handleInput);
+        
+        // Style change handler
+        document.getElementById('dotStyle').addEventListener('change', () => {
+            const dot = document.getElementById('saveDot');
+            const style = document.getElementById('dotStyle').value;
+            const currentStatus = dot.className.split(' ').find(c => ['saved', 'saving', 'unsaved', 'error'].includes(c)) || 'saved';
+            dot.className = `save-dot style-${style} ${currentStatus}`;
+        });
+        
+        // Manual save keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                if (saveTimeout) clearTimeout(saveTimeout);
+                simulateSave();
+            }
+        });
+        
+        // Initialize with saved state
+        addToHistory('saved');
+    </script>
+</body>
+</html>

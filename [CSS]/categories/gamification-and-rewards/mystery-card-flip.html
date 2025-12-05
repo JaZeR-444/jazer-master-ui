@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mystery Card Flip Reveal</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 3rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(0, 242, 234, 0.05));
+            border-bottom: 1px solid rgba(147, 51, 234, 0.3);
+        }
+        .back-button { 
+            display: inline-block; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(6, 182, 212, 0.1); 
+            margin-bottom: 1.5rem; 
+            transition: all 0.3s ease; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5); 
+        }
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            font-size: clamp(2rem, 5vw, 3rem); 
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+        }
+        .keyboard-hint {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            font-size: 0.9rem;
+        }
+        .keyboard-hint kbd {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin: 0 0.25rem;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+        .control-group label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .control-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(147, 51, 234, 0.5);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+        .control-group select:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+
+        /* Cards Container */
+        .cards-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            padding: 3rem;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(147, 51, 234, 0.1) 100%);
+            border: 2px solid rgba(147, 51, 234, 0.3);
+            border-radius: 20px;
+            min-height: 450px;
+            margin-bottom: 2rem;
+            perspective: 2000px;
+        }
+
+        /* Card */
+        .card {
+            width: 180px;
+            height: 260px;
+            position: relative;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card:hover:not(.flipped) {
+            transform: translateY(-10px) rotateY(5deg);
+        }
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* Card Face */
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+
+        /* Card Back */
+        .card-back {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 3px solid var(--jazer-purple);
+        }
+        .card-back::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 2px solid rgba(147, 51, 234, 0.3);
+            border-radius: 10px;
+        }
+        .card-pattern {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(45deg, 
+                    transparent, 
+                    transparent 10px, 
+                    rgba(147, 51, 234, 0.1) 10px, 
+                    rgba(147, 51, 234, 0.1) 20px
+                );
+        }
+        .card-mystery {
+            font-size: 4rem;
+            z-index: 2;
+            filter: drop-shadow(0 0 20px var(--jazer-purple));
+            animation: mysteryGlow 2s ease-in-out infinite alternate;
+        }
+        @keyframes mysteryGlow {
+            from { filter: drop-shadow(0 0 10px var(--jazer-purple)); }
+            to { filter: drop-shadow(0 0 30px var(--jazer-pink)); }
+        }
+
+        /* Card Front */
+        .card-front {
+            transform: rotateY(180deg);
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+            border: 3px solid var(--jazer-cyan);
+        }
+        .card-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+        }
+        .card-icon {
+            font-size: 5rem;
+            filter: drop-shadow(0 0 15px var(--jazer-cyan));
+        }
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            text-align: center;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .card-rarity {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            background: rgba(147, 51, 234, 0.3);
+            color: var(--jazer-purple);
+        }
+
+        /* Rarity Styles */
+        .card.rarity-common .card-front { border-color: #888; }
+        .card.rarity-common .card-rarity { background: rgba(136, 136, 136, 0.3); color: #aaa; }
+        
+        .card.rarity-rare .card-front { border-color: #1e90ff; }
+        .card.rarity-rare .card-rarity { background: rgba(30, 144, 255, 0.3); color: #1e90ff; }
+        
+        .card.rarity-epic .card-front { border-color: #9333ea; }
+        .card.rarity-epic .card-rarity { background: rgba(147, 51, 234, 0.3); color: #9333ea; }
+        
+        .card.rarity-legendary .card-front { 
+            border-color: #ffd700; 
+            background: linear-gradient(180deg, #1a1a2e 0%, #2d2200 100%);
+        }
+        .card.rarity-legendary .card-rarity { background: rgba(255, 215, 0, 0.3); color: #ffd700; }
+        .card.rarity-legendary .card-icon { 
+            filter: drop-shadow(0 0 20px #ffd700); 
+            animation: legendaryPulse 1.5s ease-in-out infinite;
+        }
+        @keyframes legendaryPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .card.rarity-mythic .card-front { 
+            border-color: #ff006e;
+            background: linear-gradient(180deg, #1a1a2e 0%, #2d0020 100%);
+        }
+        .card.rarity-mythic .card-rarity { background: rgba(255, 0, 110, 0.3); color: #ff006e; }
+        .card.rarity-mythic .card-icon { 
+            filter: drop-shadow(0 0 25px #ff006e);
+            animation: mythicGlow 1s ease-in-out infinite alternate;
+        }
+        @keyframes mythicGlow {
+            from { filter: drop-shadow(0 0 15px #ff006e) drop-shadow(0 0 30px #9333ea); }
+            to { filter: drop-shadow(0 0 30px #ff006e) drop-shadow(0 0 50px #9333ea); }
+        }
+
+        /* Flip Animation Styles */
+        .card.style-spin {
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card.style-spin.flipped {
+            animation: spinFlip 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes spinFlip {
+            0% { transform: rotateY(0) rotateZ(0); }
+            50% { transform: rotateY(90deg) rotateZ(180deg) scale(1.1); }
+            100% { transform: rotateY(180deg) rotateZ(360deg); }
+        }
+
+        .card.style-bounce.flipped {
+            animation: bounceFlip 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        @keyframes bounceFlip {
+            0% { transform: rotateY(0) translateY(0); }
+            50% { transform: rotateY(90deg) translateY(-50px); }
+            100% { transform: rotateY(180deg) translateY(0); }
+        }
+
+        .card.style-zoom.flipped {
+            animation: zoomFlip 0.8s ease-in-out;
+        }
+        @keyframes zoomFlip {
+            0% { transform: rotateY(0) scale(1); }
+            50% { transform: rotateY(90deg) scale(1.5); }
+            100% { transform: rotateY(180deg) scale(1); }
+        }
+
+        /* Reveal Effects */
+        .card.revealing .card-front {
+            animation: revealGlow 0.5s ease-out;
+        }
+        @keyframes revealGlow {
+            0% { box-shadow: 0 0 0 rgba(0, 242, 234, 0); }
+            50% { box-shadow: 0 0 60px rgba(0, 242, 234, 0.8), 0 0 100px rgba(147, 51, 234, 0.5); }
+            100% { box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); }
+        }
+
+        /* Particle Burst */
+        .card-particles {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: particleBurst 0.8s ease-out forwards;
+        }
+        @keyframes particleBurst {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            box-shadow: 0 5px 20px rgba(0, 242, 234, 0.3);
+        }
+        .action-btn.primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 242, 234, 0.4);
+        }
+        .action-btn.secondary {
+            background: rgba(147, 51, 234, 0.2);
+            color: var(--jazer-purple);
+            border: 2px solid var(--jazer-purple);
+        }
+        .action-btn.secondary:hover {
+            background: var(--jazer-purple);
+            color: white;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-label {
+            color: var(--text-gray);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Card Collection Display */
+        .collection-section {
+            margin-top: 3rem;
+        }
+        .section-title {
+            color: var(--jazer-cyan);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section-title::before {
+            content: '';
+            width: 30px;
+            height: 3px;
+            background: var(--gradient-primary);
+            border-radius: 2px;
+        }
+        .collection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 1rem;
+        }
+        .collection-card {
+            aspect-ratio: 3/4;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(147, 51, 234, 0.3);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            opacity: 0.3;
+            transition: all 0.3s ease;
+        }
+        .collection-card.collected {
+            opacity: 1;
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 242, 234, 0.1);
+        }
+        .collection-card-label {
+            font-size: 0.6rem;
+            color: var(--text-gray);
+            margin-top: 0.25rem;
+            text-transform: uppercase;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .card {
+                width: 140px;
+                height: 200px;
+            }
+            .card-mystery {
+                font-size: 3rem;
+            }
+            .card-icon {
+                font-size: 3.5rem;
+            }
+            .cards-container {
+                gap: 1rem;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="hero">
+        <a href="index.html" class="back-button">← Back</a>
+        <h1>Mystery Card Flip Reveal</h1>
+        <p class="subtitle">3D card flip animations with dramatic reveals</p>
+        <div class="keyboard-hint">
+            Press <kbd>Space</kbd> to flip all | <kbd>1-5</kbd> for cards | <kbd>R</kbd> to reset
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <div class="control-group">
+                <label>Flip Animation</label>
+                <select id="flipStyle">
+                    <option value="default">Classic Flip</option>
+                    <option value="spin">Spin Flip</option>
+                    <option value="bounce">Bounce Flip</option>
+                    <option value="zoom">Zoom Flip</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Card Count</label>
+                <select id="cardCount">
+                    <option value="3">3 Cards</option>
+                    <option value="5" selected>5 Cards</option>
+                    <option value="7">7 Cards</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Rarity Distribution</label>
+                <select id="rarityDist">
+                    <option value="random" selected>Random</option>
+                    <option value="common">Mostly Common</option>
+                    <option value="balanced">Balanced</option>
+                    <option value="lucky">Lucky (More Rare)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Particle Effects</label>
+                <select id="particleEffect">
+                    <option value="on" selected>On</option>
+                    <option value="off">Off</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Cards Container -->
+        <div class="cards-container" id="cardsContainer">
+            <!-- Cards generated by JS -->
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="action-btn primary" onclick="flipAllCards()">Reveal All</button>
+            <button class="action-btn primary" onclick="flipRandomCard()">Flip Random</button>
+            <button class="action-btn secondary" onclick="resetCards()">New Cards</button>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-value" id="cardsRevealed">0</div>
+                <div class="stat-label">Cards Revealed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="legendaryFound">0</div>
+                <div class="stat-label">Legendaries</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="mythicFound">0</div>
+                <div class="stat-label">Mythics</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalCollected">0</div>
+                <div class="stat-label">Collection</div>
+            </div>
+        </div>
+
+        <!-- Collection Section -->
+        <section class="collection-section">
+            <h2 class="section-title">Your Collection</h2>
+            <div class="collection-grid" id="collectionGrid">
+                <!-- Collection items generated by JS -->
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Card data
+        const cardPool = [
+            { id: 1, icon: '⚔️', name: 'Steel Sword', rarity: 'common' },
+            { id: 2, icon: '🛡️', name: 'Iron Shield', rarity: 'common' },
+            { id: 3, icon: '🏹', name: 'Wooden Bow', rarity: 'common' },
+            { id: 4, icon: '🗡️', name: 'Dagger', rarity: 'common' },
+            { id: 5, icon: '🪄', name: 'Magic Wand', rarity: 'rare' },
+            { id: 6, icon: '💎', name: 'Sapphire Gem', rarity: 'rare' },
+            { id: 7, icon: '🔮', name: 'Crystal Ball', rarity: 'rare' },
+            { id: 8, icon: '📿', name: 'Mystic Amulet', rarity: 'rare' },
+            { id: 9, icon: '🌟', name: 'Star Fragment', rarity: 'epic' },
+            { id: 10, icon: '⚡', name: 'Thunder Bolt', rarity: 'epic' },
+            { id: 11, icon: '🔥', name: 'Fire Essence', rarity: 'epic' },
+            { id: 12, icon: '❄️', name: 'Ice Shard', rarity: 'epic' },
+            { id: 13, icon: '👑', name: 'Golden Crown', rarity: 'legendary' },
+            { id: 14, icon: '🏆', name: 'Champions Trophy', rarity: 'legendary' },
+            { id: 15, icon: '💫', name: 'Cosmic Star', rarity: 'legendary' },
+            { id: 16, icon: '🌈', name: 'Rainbow Stone', rarity: 'legendary' },
+            { id: 17, icon: '🦄', name: 'Unicorn Horn', rarity: 'mythic' },
+            { id: 18, icon: '🐉', name: 'Dragon Scale', rarity: 'mythic' },
+            { id: 19, icon: '✨', name: 'Wish Crystal', rarity: 'mythic' },
+            { id: 20, icon: '🌌', name: 'Galaxy Orb', rarity: 'mythic' }
+        ];
+
+        // Rarity weights
+        const rarityWeights = {
+            random: { common: 40, rare: 30, epic: 20, legendary: 7, mythic: 3 },
+            common: { common: 70, rare: 20, epic: 8, legendary: 1.5, mythic: 0.5 },
+            balanced: { common: 30, rare: 30, epic: 25, legendary: 10, mythic: 5 },
+            lucky: { common: 20, rare: 25, epic: 30, legendary: 15, mythic: 10 }
+        };
+
+        // Particle colors by rarity
+        const rarityColors = {
+            common: ['#888', '#aaa', '#666'],
+            rare: ['#1e90ff', '#4dc3ff', '#0066cc'],
+            epic: ['#9333ea', '#b366ff', '#7722cc'],
+            legendary: ['#ffd700', '#ff8c00', '#ffcc00'],
+            mythic: ['#ff006e', '#ff66aa', '#9333ea']
+        };
+
+        // Config
+        const config = {
+            flipStyle: 'default',
+            cardCount: 5,
+            rarityDist: 'random',
+            particleEffect: 'on'
+        };
+
+        // Stats
+        const stats = {
+            cardsRevealed: 0,
+            legendaryFound: 0,
+            mythicFound: 0,
+            collection: new Set()
+        };
+
+        // DOM Elements
+        const cardsContainer = document.getElementById('cardsContainer');
+        const collectionGrid = document.getElementById('collectionGrid');
+
+        // Active cards
+        let activeCards = [];
+
+        // Initialize controls
+        document.getElementById('flipStyle').addEventListener('change', (e) => {
+            config.flipStyle = e.target.value;
+            updateCardStyles();
+        });
+        document.getElementById('cardCount').addEventListener('change', (e) => {
+            config.cardCount = parseInt(e.target.value);
+            generateCards();
+        });
+        document.getElementById('rarityDist').addEventListener('change', (e) => {
+            config.rarityDist = e.target.value;
+        });
+        document.getElementById('particleEffect').addEventListener('change', (e) => {
+            config.particleEffect = e.target.value;
+        });
+
+        // Get random card based on rarity weights
+        function getRandomCard() {
+            const weights = rarityWeights[config.rarityDist];
+            const total = Object.values(weights).reduce((a, b) => a + b, 0);
+            let random = Math.random() * total;
+            
+            let selectedRarity = 'common';
+            for (const [rarity, weight] of Object.entries(weights)) {
+                random -= weight;
+                if (random <= 0) {
+                    selectedRarity = rarity;
+                    break;
+                }
+            }
+            
+            const cardsOfRarity = cardPool.filter(c => c.rarity === selectedRarity);
+            return cardsOfRarity[Math.floor(Math.random() * cardsOfRarity.length)];
+        }
+
+        // Generate cards
+        function generateCards() {
+            cardsContainer.innerHTML = '';
+            activeCards = [];
+            
+            for (let i = 0; i < config.cardCount; i++) {
+                const cardData = getRandomCard();
+                const card = createCardElement(cardData, i);
+                cardsContainer.appendChild(card);
+                activeCards.push({ element: card, data: cardData, flipped: false });
+            }
+            
+            updateCardStyles();
+        }
+
+        // Create card element
+        function createCardElement(cardData, index) {
+            const card = document.createElement('div');
+            card.className = `card rarity-${cardData.rarity}`;
+            card.dataset.index = index;
+            
+            card.innerHTML = `
+                <div class="card-face card-back">
+                    <div class="card-pattern"></div>
+                    <div class="card-mystery">❓</div>
+                </div>
+                <div class="card-face card-front">
+                    <div class="card-content">
+                        <div class="card-icon">${cardData.icon}</div>
+                        <div class="card-title">${cardData.name}</div>
+                        <div class="card-rarity">${cardData.rarity}</div>
+                    </div>
+                </div>
+                <div class="card-particles"></div>
+            `;
+            
+            card.addEventListener('click', () => flipCard(index));
+            
+            return card;
+        }
+
+        // Flip card
+        function flipCard(index) {
+            const cardInfo = activeCards[index];
+            if (!cardInfo || cardInfo.flipped) return;
+            
+            const card = cardInfo.element;
+            cardInfo.flipped = true;
+            
+            card.classList.add('flipped', 'revealing');
+            
+            // Spawn particles
+            if (config.particleEffect === 'on') {
+                setTimeout(() => spawnParticles(card, cardInfo.data.rarity), 400);
+            }
+            
+            // Update stats
+            stats.cardsRevealed++;
+            stats.collection.add(cardInfo.data.id);
+            
+            if (cardInfo.data.rarity === 'legendary') stats.legendaryFound++;
+            if (cardInfo.data.rarity === 'mythic') stats.mythicFound++;
+            
+            updateStats();
+            updateCollection();
+            
+            // Remove revealing class
+            setTimeout(() => card.classList.remove('revealing'), 800);
+        }
+
+        // Flip all cards
+        function flipAllCards() {
+            activeCards.forEach((cardInfo, index) => {
+                if (!cardInfo.flipped) {
+                    setTimeout(() => flipCard(index), index * 200);
+                }
+            });
+        }
+
+        // Flip random card
+        function flipRandomCard() {
+            const unflipped = activeCards
+                .map((c, i) => ({ ...c, index: i }))
+                .filter(c => !c.flipped);
+            
+            if (unflipped.length > 0) {
+                const random = unflipped[Math.floor(Math.random() * unflipped.length)];
+                flipCard(random.index);
+            }
+        }
+
+        // Reset cards
+        function resetCards() {
+            generateCards();
+        }
+
+        // Spawn particles
+        function spawnParticles(card, rarity) {
+            const particlesEl = card.querySelector('.card-particles');
+            const colors = rarityColors[rarity];
+            const count = rarity === 'mythic' ? 30 : rarity === 'legendary' ? 20 : 12;
+            
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const angle = (Math.PI * 2 / count) * i;
+                const distance = 80 + Math.random() * 60;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                particle.style.cssText = `
+                    background: ${color};
+                    box-shadow: 0 0 10px ${color};
+                    --tx: ${Math.cos(angle) * distance}px;
+                    --ty: ${Math.sin(angle) * distance}px;
+                `;
+                
+                particlesEl.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 800);
+            }
+        }
+
+        // Update card styles
+        function updateCardStyles() {
+            activeCards.forEach(cardInfo => {
+                cardInfo.element.className = `card rarity-${cardInfo.data.rarity}`;
+                if (config.flipStyle !== 'default') {
+                    cardInfo.element.classList.add(`style-${config.flipStyle}`);
+                }
+                if (cardInfo.flipped) {
+                    cardInfo.element.classList.add('flipped');
+                }
+            });
+        }
+
+        // Update stats display
+        function updateStats() {
+            document.getElementById('cardsRevealed').textContent = stats.cardsRevealed;
+            document.getElementById('legendaryFound').textContent = stats.legendaryFound;
+            document.getElementById('mythicFound').textContent = stats.mythicFound;
+            document.getElementById('totalCollected').textContent = `${stats.collection.size}/${cardPool.length}`;
+        }
+
+        // Update collection display
+        function updateCollection() {
+            collectionGrid.innerHTML = cardPool.map(card => `
+                <div class="collection-card ${stats.collection.has(card.id) ? 'collected' : ''}" 
+                     style="border-color: ${stats.collection.has(card.id) ? getColorForRarity(card.rarity) : ''}">
+                    ${stats.collection.has(card.id) ? card.icon : '❓'}
+                    <div class="collection-card-label">${stats.collection.has(card.id) ? card.rarity : '???'}</div>
+                </div>
+            `).join('');
+        }
+
+        // Get color for rarity
+        function getColorForRarity(rarity) {
+            const colors = {
+                common: '#888',
+                rare: '#1e90ff',
+                epic: '#9333ea',
+                legendary: '#ffd700',
+                mythic: '#ff006e'
+            };
+            return colors[rarity] || '#888';
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                flipAllCards();
+            } else if (e.key >= '1' && e.key <= '9') {
+                const index = parseInt(e.key) - 1;
+                if (index < activeCards.length) {
+                    flipCard(index);
+                }
+            } else if (e.key === 'r' || e.key === 'R') {
+                resetCards();
+            }
+        });
+
+        // Initialize
+        generateCards();
+        updateCollection();
+        updateStats();
+    </script>
+</body>
+</html>

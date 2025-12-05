@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matrix Rain Code - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="cyan"] { background: var(--jazer-cyan); }
+    .color-btn[data-color="purple"] { background: var(--jazer-purple); }
+    .color-btn[data-color="pink"] { background: var(--jazer-pink); }
+    .color-btn[data-color="rainbow"] { background: conic-gradient(#0ff, #f0f, #ff0, #0ff); }
+    .color-btn[data-color="mono"] { background: #0f0; }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .charset-select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-light);
+      font-family: var(--font-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .matrix-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    #matrixCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 280px; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .controls { top: auto; bottom: 5rem; right: 1rem; min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Matrix Rain Code</h1>
+    <p>Classic digital rain with glowing character trails</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Reset</span>
+      <span class="key-hint"><kbd>B</kbd> Burst</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn" data-color="cyan" title="Cyan"></button>
+      <button class="color-btn" data-color="purple" title="Purple"></button>
+      <button class="color-btn" data-color="pink" title="Pink"></button>
+      <button class="color-btn" data-color="rainbow" title="Rainbow"></button>
+      <button class="color-btn active" data-color="mono" title="Classic Green"></button>
+    </div>
+    <div class="slider-group">
+      <label>Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.2" max="3" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Density: <span class="slider-value" id="densityValue">50</span></label>
+      <input type="range" id="densitySlider" min="20" max="100" step="5" value="50">
+    </div>
+    <div class="slider-group">
+      <label>Font Size: <span class="slider-value" id="fontValue">16</span></label>
+      <input type="range" id="fontSlider" min="10" max="28" step="2" value="16">
+    </div>
+    <label>Characters</label>
+    <select class="charset-select" id="charsetSelect">
+      <option value="katakana">Katakana (Classic)</option>
+      <option value="binary">Binary</option>
+      <option value="hex">Hexadecimal</option>
+      <option value="symbols">Symbols</option>
+      <option value="mixed">Mixed</option>
+    </select>
+  </div>
+
+  <div class="matrix-container">
+    <canvas id="matrixCanvas"></canvas>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const canvas = document.getElementById('matrixCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      speed: 1.0,
+      density: 50,
+      fontSize: 16,
+      charset: 'katakana',
+      colorScheme: 'mono',
+      paused: false
+    };
+
+    const charsets = {
+      katakana: 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン',
+      binary: '01',
+      hex: '0123456789ABCDEF',
+      symbols: '!@#$%^&*()_+-=[]{}|;:,.<>?/',
+      mixed: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*'
+    };
+
+    const colorSchemes = {
+      cyan: {
+        head: 'rgba(200, 255, 255, 1)',
+        body: 'rgba(0, 242, 234, 0.9)',
+        tail: 'rgba(0, 150, 150, 0.5)',
+        glow: '#00f2ea'
+      },
+      purple: {
+        head: 'rgba(230, 180, 255, 1)',
+        body: 'rgba(147, 51, 234, 0.9)',
+        tail: 'rgba(80, 30, 130, 0.5)',
+        glow: '#9333ea'
+      },
+      pink: {
+        head: 'rgba(255, 200, 220, 1)',
+        body: 'rgba(255, 0, 110, 0.9)',
+        tail: 'rgba(150, 0, 60, 0.5)',
+        glow: '#ff006e'
+      },
+      rainbow: {
+        head: 'rgba(255, 255, 255, 1)',
+        body: 'rgba(255, 255, 255, 0.9)',
+        tail: 'rgba(255, 255, 255, 0.5)',
+        glow: '#ffffff',
+        rainbow: true
+      },
+      mono: {
+        head: 'rgba(220, 255, 220, 1)',
+        body: 'rgba(0, 255, 65, 0.9)',
+        tail: 'rgba(0, 120, 0, 0.5)',
+        glow: '#00ff41'
+      }
+    };
+
+    let drops = [];
+    let columns = 0;
+    let animationId;
+    let rainbowHue = 0;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      initDrops();
+    }
+
+    function initDrops() {
+      columns = Math.floor(canvas.width / config.fontSize);
+      drops = [];
+      
+      for (let i = 0; i < columns; i++) {
+        drops[i] = {
+          y: Math.random() * -200 - (Math.random() * 500),
+          speed: 0.5 + Math.random() * 0.5,
+          chars: []
+        };
+      }
+    }
+
+    function getRandomChar() {
+      const chars = charsets[config.charset];
+      return chars[Math.floor(Math.random() * chars.length)];
+    }
+
+    function getColor(alpha, isHead, dropIndex) {
+      const scheme = colorSchemes[config.colorScheme];
+      
+      if (scheme.rainbow) {
+        const hue = (rainbowHue + dropIndex * 10) % 360;
+        const lightness = isHead ? 80 : 60;
+        return `hsla(${hue}, 100%, ${lightness}%, ${alpha})`;
+      }
+      
+      if (isHead) return scheme.head;
+      if (alpha > 0.7) return scheme.body;
+      return scheme.tail.replace('0.5', alpha.toString());
+    }
+
+    function draw() {
+      // Fade effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.font = `${config.fontSize}px monospace`;
+      ctx.textAlign = 'center';
+      
+      rainbowHue = (rainbowHue + 0.5) % 360;
+      
+      for (let i = 0; i < drops.length; i++) {
+        const drop = drops[i];
+        const x = i * config.fontSize + config.fontSize / 2;
+        
+        // Update position
+        drop.y += drop.speed * config.speed * config.fontSize * 0.1;
+        
+        // Add character
+        if (drop.y > 0 && drop.chars.length < config.density / 2) {
+          if (Math.random() > 0.85) {
+            drop.chars.unshift({
+              char: getRandomChar(),
+              y: drop.y
+            });
+          }
+        }
+        
+        // Limit trail
+        const maxLength = Math.floor(config.density / 2);
+        if (drop.chars.length > maxLength) {
+          drop.chars.pop();
+        }
+        
+        // Draw trail
+        drop.chars.forEach((charObj, index) => {
+          const isHead = index === 0;
+          const alpha = 1 - (index / drop.chars.length);
+          
+          const scheme = colorSchemes[config.colorScheme];
+          
+          if (isHead) {
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = scheme.rainbow ? `hsl(${(rainbowHue + i * 10) % 360}, 100%, 60%)` : scheme.glow;
+          }
+          
+          ctx.fillStyle = getColor(alpha, isHead, i);
+          ctx.fillText(charObj.char, x, charObj.y);
+          
+          if (isHead) {
+            ctx.shadowBlur = 0;
+          }
+          
+          // Random char change
+          if (Math.random() > 0.975) {
+            charObj.char = getRandomChar();
+          }
+          
+          // Update char position
+          charObj.y += drop.speed * config.speed * config.fontSize * 0.05;
+        });
+        
+        // Reset
+        if (drop.y > canvas.height + 100) {
+          drops[i] = {
+            y: Math.random() * -100 - (Math.random() * 300),
+            speed: 0.5 + Math.random() * 0.5,
+            chars: []
+          };
+        }
+      }
+    }
+
+    function animate() {
+      if (!config.paused) {
+        draw();
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function burst() {
+      for (let i = 0; i < drops.length; i++) {
+        drops[i].y = Math.random() * canvas.height * 0.5;
+        drops[i].speed = 1 + Math.random();
+      }
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('densitySlider').addEventListener('input', e => {
+      config.density = parseInt(e.target.value);
+      document.getElementById('densityValue').textContent = config.density;
+    });
+
+    document.getElementById('fontSlider').addEventListener('input', e => {
+      config.fontSize = parseInt(e.target.value);
+      document.getElementById('fontValue').textContent = config.fontSize;
+      initDrops();
+    });
+
+    document.getElementById('charsetSelect').addEventListener('change', e => {
+      config.charset = e.target.value;
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        initDrops();
+      }
+      if (e.code === 'KeyB') {
+        burst();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['cyan', 'purple', 'pink', 'rainbow', 'mono'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    animate();
+  </script>
+</body>
+</html>

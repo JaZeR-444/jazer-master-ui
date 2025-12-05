@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Search Filter</title>
+  <style>
+    /* ==================== RESET ==================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f5f5f5;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 2rem;
+    }
+
+    /* ==================== SEARCH BAR ==================== */
+    .search-wrapper {
+      margin-bottom: 2rem;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 15px;
+      padding-left: 45px; /* Space for icon */
+      border: 2px solid #ddd;
+      border-radius: 25px;
+      font-size: 1.1rem;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #95a5a6;
+      font-size: 1.2rem;
+    }
+
+    /* ==================== FILTERABLE LIST ==================== */
+    .filterable-list {
+      list-style: none;
+      padding: 0;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .list-item {
+      display: flex;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #eee;
+      background-color: #fff;
+      transition: background-color 0.2s;
+    }
+
+    .list-item:last-child {
+      border-bottom: none;
+    }
+
+    .list-item:hover {
+      background-color: #f9f9f9;
+    }
+
+    .list-item__avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #ccc;
+      margin-right: 1rem;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .list-item__content {
+      flex-grow: 1;
+    }
+
+    .list-item__name {
+      font-weight: 600;
+      color: #34495e;
+      margin-bottom: 0.2rem;
+    }
+
+    .list-item__detail {
+      font-size: 0.9rem;
+      color: #777;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 1.5rem;
+      color: #888;
+      font-style: italic;
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../jazer-brand.css">
+  </head>
+<body>
+
+  <div class="container">
+    <h1>Live Search Filter</h1>
+
+    <div class="search-wrapper">
+      <span class="search-icon">&#128269;</span> <!-- Magnifying glass icon -->
+      <input type="text" id="searchInput" class="search-input" placeholder="Search by name, email, or role...">
+    </div>
+
+    <ul class="filterable-list" id="userList">
+      <!-- List items will be populated by JavaScript -->
+    </ul>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('searchInput');
+      const userList = document.getElementById('userList');
+
+      const users = [
+        { id: 1, name: 'Alice Smith', email: 'alice.s@example.com', role: 'Admin' },
+        { id: 2, name: 'Bob Johnson', email: 'bob.j@example.com', role: 'Editor' },
+        { id: 3, name: 'Charlie Brown', email: 'charlie.b@example.com', role: 'Viewer' },
+        { id: 4, name: 'Diana Prince', email: 'diana.p@example.com', role: 'Admin' },
+        { id: 5, name: 'Eve Adams', email: 'eve.a@example.com', role: 'Editor' },
+        { id: 6, name: 'Frank White', email: 'frank.w@example.com', role: 'Viewer' },
+        { id: 7, name: 'Grace Taylor', email: 'grace.t@example.com', role: 'Admin' },
+        { id: 8, name: 'Harry Wilson', email: 'harry.w@example.com', role: 'Editor' },
+        { id: 9, name: 'Ivy Davis', email: 'ivy.d@example.com', role: 'Viewer' },
+        { id: 10, name: 'Jack Miller', email: 'jack.m@example.com', role: 'Admin' },
+        { id: 11, name: 'Karen Green', email: 'karen.g@example.com', role: 'Editor' },
+        { id: 12, name: 'Liam Hall', email: 'liam.h@example.com', role: 'Viewer' },
+        { id: 13, name: 'Mia King', email: 'mia.k@example.com', role: 'Admin' },
+        { id: 14, name: 'Noah Wright', email: 'noah.w@example.com', role: 'Editor' },
+        { id: 15, name: 'Olivia Scott', email: 'olivia.s@example.com', role: 'Viewer' },
+        { id: 16, name: 'Peter Adams', email: 'peter.a@example.com', role: 'Admin' },
+        { id: 17, name: 'Quinn Baker', email: 'quinn.b@example.com', role: 'Editor' },
+        { id: 18, name: 'Rachel Clark', email: 'rachel.c@example.com', role: 'Viewer' },
+        { id: 19, name: 'Steve Davis', email: 'steve.d@example.com', role: 'Admin' },
+        { id: 20, name: 'Tina Evans', email: 'tina.e@example.com', role: 'Editor' }
+      ];
+
+      /**
+       * Renders the list of users based on the provided array.
+       * @param {Array} userArray - The array of user objects to render.
+       */
+      function renderUsers(userArray) {
+        userList.innerHTML = ''; // Clear existing list
+
+        if (userArray.length === 0) {
+          userList.innerHTML = '<li class="no-results">No matching users found.</li>';
+          return;
+        }
+
+        userArray.forEach(user => {
+          const listItem = document.createElement('li');
+          listItem.classList.add('list-item');
+          listItem.innerHTML = `
+            <div class="list-item__avatar" style="background-color: hsl(${user.id * 137 % 360}, 70%, 50%);">
+              ${user.name.charAt(0)}
+            </div>
+            <div class="list-item__content">
+              <div class="list-item__name">${user.name}</div>
+              <div class="list-item__detail">${user.email} | ${user.role}</div>
+            </div>
+          `;
+          userList.appendChild(listItem);
+        });
+      }
+
+      /**
+       * Filters the user list based on the search input value.
+       */
+      function filterList() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const filteredUsers = users.filter(user =>
+          user.name.toLowerCase().includes(searchTerm) ||
+          user.email.toLowerCase().includes(searchTerm) ||
+          user.role.toLowerCase().includes(searchTerm)
+        );
+        renderUsers(filteredUsers);
+      }
+
+      // Event listener for live search
+      searchInput.addEventListener('input', filterList);
+
+      // Initial render of all users
+      renderUsers(users);
+    });
+  </script>
+
+</body>
+</html>

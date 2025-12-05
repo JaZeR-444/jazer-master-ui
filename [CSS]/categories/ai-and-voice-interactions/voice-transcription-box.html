@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Transcription Box - AI & Voice Interactions</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.1rem;
+        }
+
+        .demo-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 3rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .transcription-box {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 15px;
+            padding: 2rem;
+            min-height: 300px;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .transcription-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-primary);
+            animation: scan-line 2s linear infinite;
+        }
+
+        @keyframes scan-line {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .transcription-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recording-indicator {
+            width: 12px;
+            height: 12px;
+            background: #ff4444;
+            border-radius: 50%;
+            animation: recording-blink 1s ease-in-out infinite;
+        }
+
+        @keyframes recording-blink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .status-text {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .confidence-badge {
+            padding: 0.3rem 0.8rem;
+            background: rgba(144, 238, 144, 0.2);
+            border: 1px solid var(--jazer-neon-green);
+            border-radius: 20px;
+            color: var(--jazer-neon-green);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .transcription-content {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+        }
+
+        .current-word {
+            color: var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.2);
+            padding: 0 0.3rem;
+            border-radius: 3px;
+            animation: word-highlight 0.5s ease-in-out;
+        }
+
+        @keyframes word-highlight {
+            from {
+                background: rgba(6, 182, 212, 0.4);
+            }
+            to {
+                background: rgba(6, 182, 212, 0.2);
+            }
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em;
+            background: var(--jazer-cyan);
+            margin-left: 2px;
+            animation: cursor-blink 1s step-end infinite;
+            vertical-align: text-bottom;
+        }
+
+        @keyframes cursor-blink {
+            0%, 50% {
+                opacity: 1;
+            }
+            51%, 100% {
+                opacity: 0;
+            }
+        }
+
+        .transcription-stats {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .stat-value {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        .controls-section {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .control-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient-primary);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+            font-size: 0.95rem;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.6);
+        }
+
+        .variants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .variant-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(6, 182, 212, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .variant-card:hover {
+            border-color: var(--jazer-cyan);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);
+        }
+
+        .variant-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .variant-text {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+        }
+
+        .language-tag {
+            display: inline-block;
+            padding: 0.3rem 0.6rem;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 5px;
+            color: var(--jazer-cyan);
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    
+    <div class="header">
+        <h1>Voice Transcription Box</h1>
+        <p>Real-time speech-to-text transcription display</p>
+    </div>
+
+    <div class="demo-container">
+        <div class="transcription-box">
+            <div class="transcription-header">
+                <div class="header-left">
+                    <div class="recording-indicator"></div>
+                    <span class="status-text">Live Transcription</span>
+                </div>
+                <div class="confidence-badge">95% Confidence</div>
+            </div>
+
+            <div class="transcription-content">
+                Hello, this is a demonstration of the voice transcription system. The text appears in <span class="current-word">real-time</span> as you speak<span class="typing-cursor"></span>
+            </div>
+
+            <div class="transcription-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Words:</span>
+                    <span class="stat-value">18</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Duration:</span>
+                    <span class="stat-value">00:12</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">WPM:</span>
+                    <span class="stat-value">90</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-section">
+            <button class="control-btn">⏸ Pause</button>
+            <button class="control-btn">📋 Copy</button>
+            <button class="control-btn">🗑️ Clear</button>
+            <button class="control-btn">💾 Save</button>
+        </div>
+
+        <div class="variants-grid">
+            <div class="variant-card">
+                <div class="variant-title">Simple Text</div>
+                <div class="variant-text">
+                    The quick brown fox jumps over the lazy dog.
+                    <div class="language-tag">EN-US</div>
+                </div>
+            </div>
+
+            <div class="variant-card">
+                <div class="variant-title">With Punctuation</div>
+                <div class="variant-text">
+                    Hello! How are you today? I'm doing great, thanks for asking.
+                    <div class="language-tag">EN-US</div>
+                </div>
+            </div>
+
+            <div class="variant-card">
+                <div class="variant-title">Technical Terms</div>
+                <div class="variant-text">
+                    Initialize the neural network with gradient descent optimization.
+                    <div class="language-tag">EN-US</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Layer Toggle - JaZeR Maps Patterns</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 1.5rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-gray);
+            text-decoration: none;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 2px solid var(--border-default);
+            background: var(--bg-card);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 1.5rem;
+        }
+        .back-button:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            transform: translateX(-5px);
+            box-shadow: var(--shadow-cyan);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 3rem 1rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
+            border-radius: 24px;
+            border: 1px solid var(--border-default);
+        }
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            color: var(--text-gray);
+            font-size: 1.125rem;
+            max-width: 600px;
+            margin: 0 auto 1.5rem;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 100px;
+            font-family: var(--font-secondary);
+            font-size: 0.875rem;
+            color: var(--jazer-cyan);
+        }
+
+        /* Styles Grid */
+        .styles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Style Card */
+        .style-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+        .style-card:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: var(--shadow-cyan);
+            transform: translateY(-4px);
+        }
+        .style-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        .style-number {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gradient-primary);
+            border-radius: 10px;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+        .style-title {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: var(--text-light);
+        }
+        .style-demo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            min-height: 200px;
+        }
+
+        /* ==================== STYLE 1: Sidebar Panel ==================== */
+        .layers-1 {
+            width: 100%;
+            max-width: 260px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .layers-1 .header {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border-default);
+        }
+        .layers-1 .layer-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .layers-1 .layer-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .layers-1 .layer-item .checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-default);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .layers-1 .layer-item.active .checkbox {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+        }
+        .layers-1 .layer-item .checkbox::after {
+            content: '✓';
+            color: var(--bg-dark);
+            font-size: 0.75rem;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .layers-1 .layer-item.active .checkbox::after {
+            opacity: 1;
+        }
+        .layers-1 .layer-item .icon {
+            font-size: 1rem;
+        }
+        .layers-1 .layer-item .label {
+            font-size: 0.875rem;
+        }
+
+        /* ==================== STYLE 2: Toggle Switches ==================== */
+        .layers-2 {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            width: 100%;
+            max-width: 260px;
+        }
+        .layers-2 .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+        }
+        .layers-2 .toggle-row .label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .layers-2 .toggle-row .label .icon {
+            opacity: 0.7;
+        }
+        .layers-2 .toggle {
+            width: 44px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .layers-2 .toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: var(--text-light);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        .layers-2 .toggle.active {
+            background: var(--jazer-cyan);
+        }
+        .layers-2 .toggle.active::after {
+            left: 22px;
+            background: var(--bg-dark);
+        }
+
+        /* ==================== STYLE 3: Icon Buttons ==================== */
+        .layers-3 {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 12px;
+        }
+        .layers-3 .layer-btn {
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-gray);
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .layers-3 .layer-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+        }
+        .layers-3 .layer-btn.active {
+            background: var(--jazer-cyan);
+            color: var(--bg-dark);
+        }
+
+        /* ==================== STYLE 4: Dropdown Menu ==================== */
+        .layers-4 {
+            position: relative;
+            width: 100%;
+            max-width: 220px;
+        }
+        .layers-4 .trigger {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-family: var(--font-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+        .layers-4 .trigger:hover {
+            border-color: var(--jazer-cyan);
+        }
+        .layers-4 .trigger .arrow {
+            transition: transform 0.2s ease;
+        }
+        .layers-4.open .trigger .arrow {
+            transform: rotate(180deg);
+        }
+        .layers-4 .dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+        }
+        .layers-4.open .dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .layers-4 .dropdown-item {
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s ease;
+        }
+        .layers-4 .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .layers-4 .dropdown-item.active {
+            color: var(--jazer-cyan);
+        }
+        .layers-4 .dropdown-item .check {
+            opacity: 0;
+        }
+        .layers-4 .dropdown-item.active .check {
+            opacity: 1;
+        }
+
+        /* ==================== STYLE 5: Chip Pills ==================== */
+        .layers-5 {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+        .layers-5 .chip {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-default);
+            border-radius: 20px;
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .layers-5 .chip:hover {
+            border-color: var(--jazer-cyan);
+        }
+        .layers-5 .chip.active {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+            color: var(--bg-dark);
+        }
+
+        /* ==================== STYLE 6: Floating Panel ==================== */
+        .layers-6 {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1rem;
+            width: 100%;
+            max-width: 260px;
+        }
+        .layers-6 .title {
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-gray);
+            margin-bottom: 1rem;
+        }
+        .layers-6 .layer-option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+            cursor: pointer;
+        }
+        .layers-6 .layer-option .radio {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-default);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .layers-6 .layer-option .radio::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.2s ease;
+        }
+        .layers-6 .layer-option.active .radio {
+            border-color: var(--jazer-cyan);
+        }
+        .layers-6 .layer-option.active .radio::after {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .layers-6 .layer-option .text {
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to Maps & Geolocation</a>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Map Layer Toggle</h1>
+        <p>Controls for toggling map layers on and off with various UI patterns.</p>
+        <div class="hero-badge">
+            <span>◫</span>
+            <span>6 Styles Included</span>
+        </div>
+    </section>
+
+    <!-- Styles Grid -->
+    <div class="styles-grid">
+
+        <!-- Style 1: Sidebar Panel -->
+        <div class="style-card">
+            <div class="style-header">
+                <span class="style-number">01</span>
+                <span class="style-title">Sidebar Panel</span>
+            </div>
+            <div class="style-demo">
+                <div class="layers-1">
+                    <div class="header">Map Layers</div>
+                    <div class="layer-item active" onclick="this.classList.toggle('active')">
+                        <div class="checkbox"></div>
+                        <span class="icon">🛣️</span>
+                        <span class="label">Traffic</span>
+                    </div>
+                    <div class="layer-item" onclick="this.classList.toggle('active')">
+                        <div class="checkbox"></div>
+                        <span class="icon">🚌</span>
+                        <span class="label">Transit</span>
+                    </div>
+                    <div class="layer-item active" onclick="this.classList.toggle('active')">
+                        <div class="checkbox"></div>
+                        <span class="icon">🚴</span>
+                        <span class="label">Biking</span>
+                    </div>
+                    <div class="layer-item" onclick="this.classList.toggle('active')">
+                        <div class="checkbox"></div>
+                        <span class="icon">🏔️</span>
+                        <span class="label">Terrain</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Style 2: Toggle Switches -->
+        <div class="style-card">
+            <div class="style-header">
+                <span class="style-number">02</span>
+                <span class="style-title">Toggle Switches</span>
+            </div>
+            <div class="style-demo">
+                <div class="layers-2">
+                    <div class="toggle-row">
+                        <span class="label"><span class="icon">🛣️</span> Traffic</span>
+                        <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="label"><span class="icon">🚌</span> Transit</span>
+                        <div class="toggle" onclick="this.classList.toggle('active')"></div>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="label"><span class="icon">🌧️</span> Weather</span>
+                        <div class="toggle" onclick="this.classList.toggle('active')"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Style 3: Icon Buttons -->
+        <div class="style-card">
+            <div class="style-header">
+                <span class="style-number">03</span>
+                <span class="style-title">Icon Buttons</span>
+            </div>
+            <div class="style-demo">
+                <div class="layers-3">
+                    <button class="layer-btn active" onclick="this.classList.toggle('active')">🛣️</button>
+                    <button class="layer-btn" onclick="this.classList.toggle('active')">🚌</button>
+                    <button class="layer-btn" onclick="this.classList.toggle('active')">🚴</button>
+                    <button class="layer-btn active" onclick="this.classList.toggle('active')">🌧️</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Style 4: Dropdown Menu -->
+        <div class="style-card">
+            <div class="style-header">
+                <span class="style-number">04</span>
+                <span class="style-title">Dropdown Menu</span>
+            </div>
+            <div class="style-demo">
+                <div class="layers-4" id="dropdown4">
+                    <div class="trigger" onclick="document.getElementById('dropdown4').classList.toggle('open')">
+                        <span>Select Layers</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="dropdown">
+                        <div class="dropdown-item active" onclick="this.classList.toggle('active')">
+                            <span class="check">✓</span>
+                            <span>Traffic Layer</span>
+                        </div>
+                        <div class="dropdown-item" onclick="this.classList.toggle('active')">
+                            <span class="check">✓</span>
+                            <span>Transit Layer</span>
+                        </div>
+                        <div class="dropdown-item active" onclick="this.classList.toggle('active')">
+                            <span class="check">✓</span>
+                            <span>Bike Routes</span>
+                        </div>
+                        <div class="dropdown-item" onclick="this.classList.toggle('active')">
+                            <span class="check">✓</span>
+                            <span>3D Buildings</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Style 5: Chip Pills -->
+        <div class="style-card">
+            <div class="style-header">
+                <span class="style-number">05</span>
+                <span class="style-title">Chip Pills</span>
+            </div>
+            <div class="style-demo">
+                <div class="layers-5">
+                    <div class="chip active" onclick="this.classList.toggle('active')">🛣️ Traffic</div>
+                    <div class="chip" onclick="this.classList.toggle('active')">🚌 Transit</div>
+                    <div class="chip active" onclick="this.classList.toggle('active')">🚴 Bikes</div>
+                    <div class="chip" onclick="this.classList.toggle('active')">🌧️ Weather</div>
+                    <div class="chip" onclick="this.classList.toggle('active')">🏔️ Terrain</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Style 6: Floating Panel -->
+        <div class="style-card">
+            <div class="style-header">
+                <span class="style-number">06</span>
+                <span class="style-title">Floating Panel</span>
+            </div>
+            <div class="style-demo">
+                <div class="layers-6">
+                    <div class="title">Map Style</div>
+                    <div class="layer-option active" onclick="selectRadio(this)">
+                        <div class="radio"></div>
+                        <span class="text">Standard</span>
+                    </div>
+                    <div class="layer-option" onclick="selectRadio(this)">
+                        <div class="radio"></div>
+                        <span class="text">Satellite</span>
+                    </div>
+                    <div class="layer-option" onclick="selectRadio(this)">
+                        <div class="radio"></div>
+                        <span class="text">Terrain</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function selectRadio(element) {
+            const parent = element.parentElement;
+            parent.querySelectorAll('.layer-option').forEach(opt => opt.classList.remove('active'));
+            element.classList.add('active');
+        }
+    </script>
+</body>
+</html>

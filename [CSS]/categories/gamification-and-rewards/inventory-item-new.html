@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory New Item Glow</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        .hero-section {
+            text-align: center;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+        
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .back-button { 
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(0, 242, 234, 0.1); 
+            margin-bottom: 2rem; 
+            transition: all 0.3s ease; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 30px rgba(0, 242, 234, 0.5); 
+        }
+        
+        /* Main Demo Area */
+        .demo-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            padding: 3rem;
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.05), rgba(147, 51, 234, 0.05));
+            border-radius: 24px;
+            border: 2px solid rgba(0, 242, 234, 0.2);
+            margin-bottom: 3rem;
+        }
+        
+        /* Inventory Grid */
+        .inventory-container {
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .inventory-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .inventory-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .inventory-count {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.75rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Inventory Slot */
+        .inventory-slot {
+            position: relative;
+            aspect-ratio: 1;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .inventory-slot:hover {
+            border-color: var(--jazer-cyan);
+            transform: scale(1.05);
+        }
+        
+        .inventory-slot.empty {
+            opacity: 0.5;
+        }
+        
+        /* New Item Glow */
+        .inventory-slot.new {
+            border-color: #00ff88;
+            animation: newItemPulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes newItemPulse {
+            0%, 100% {
+                box-shadow: 
+                    0 0 10px rgba(0, 255, 136, 0.5),
+                    0 0 20px rgba(0, 255, 136, 0.3),
+                    inset 0 0 15px rgba(0, 255, 136, 0.2);
+            }
+            50% {
+                box-shadow: 
+                    0 0 20px rgba(0, 255, 136, 0.8),
+                    0 0 40px rgba(0, 255, 136, 0.5),
+                    inset 0 0 25px rgba(0, 255, 136, 0.3);
+            }
+        }
+        
+        .inventory-slot.new::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, 
+                transparent 0%,
+                rgba(0, 255, 136, 0.2) 50%,
+                transparent 100%
+            );
+            animation: newItemShine 2s linear infinite;
+        }
+        
+        @keyframes newItemShine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+        
+        /* New Badge */
+        .new-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #00ff88;
+            color: #000;
+            font-size: 0.6rem;
+            font-weight: 900;
+            padding: 2px 6px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            animation: badgeBounce 1s ease-in-out infinite;
+            z-index: 10;
+        }
+        
+        @keyframes badgeBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        /* Rarity Colors */
+        .inventory-slot.common { border-color: #888; }
+        .inventory-slot.uncommon { border-color: #00ff88; }
+        .inventory-slot.rare { border-color: var(--jazer-cyan); }
+        .inventory-slot.epic { border-color: var(--jazer-purple); }
+        .inventory-slot.legendary { border-color: #ffd700; }
+        
+        .inventory-slot.rare.new {
+            animation: rareNewPulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes rareNewPulse {
+            0%, 100% {
+                box-shadow: 
+                    0 0 10px rgba(0, 242, 234, 0.5),
+                    0 0 20px rgba(0, 242, 234, 0.3),
+                    inset 0 0 15px rgba(0, 242, 234, 0.2);
+            }
+            50% {
+                box-shadow: 
+                    0 0 20px rgba(0, 242, 234, 0.8),
+                    0 0 40px rgba(0, 242, 234, 0.5),
+                    inset 0 0 25px rgba(0, 242, 234, 0.3);
+            }
+        }
+        
+        .inventory-slot.epic.new {
+            animation: epicNewPulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes epicNewPulse {
+            0%, 100% {
+                box-shadow: 
+                    0 0 10px rgba(147, 51, 234, 0.5),
+                    0 0 20px rgba(147, 51, 234, 0.3),
+                    inset 0 0 15px rgba(147, 51, 234, 0.2);
+            }
+            50% {
+                box-shadow: 
+                    0 0 20px rgba(147, 51, 234, 0.8),
+                    0 0 40px rgba(147, 51, 234, 0.5),
+                    inset 0 0 25px rgba(147, 51, 234, 0.3);
+            }
+        }
+        
+        .inventory-slot.legendary.new {
+            animation: legendaryNewPulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes legendaryNewPulse {
+            0%, 100% {
+                box-shadow: 
+                    0 0 10px rgba(255, 215, 0, 0.5),
+                    0 0 20px rgba(255, 215, 0, 0.3),
+                    inset 0 0 15px rgba(255, 215, 0, 0.2);
+            }
+            50% {
+                box-shadow: 
+                    0 0 25px rgba(255, 215, 0, 0.8),
+                    0 0 50px rgba(255, 215, 0, 0.5),
+                    inset 0 0 30px rgba(255, 215, 0, 0.3);
+            }
+        }
+        
+        /* Item Acquire Animation */
+        .inventory-slot.acquiring {
+            animation: acquireItem 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        @keyframes acquireItem {
+            0% {
+                transform: scale(0) rotate(-180deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.3) rotate(10deg);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+        
+        /* Item Tooltip */
+        .item-tooltip {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            padding: 1rem;
+            min-width: 200px;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: all 0.2s ease;
+        }
+        
+        .item-tooltip.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .tooltip-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .tooltip-icon {
+            font-size: 2rem;
+        }
+        
+        .tooltip-info h3 {
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .tooltip-rarity {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .tooltip-rarity.common { color: #888; }
+        .tooltip-rarity.uncommon { color: #00ff88; }
+        .tooltip-rarity.rare { color: var(--jazer-cyan); }
+        .tooltip-rarity.epic { color: var(--jazer-purple); }
+        .tooltip-rarity.legendary { color: #ffd700; }
+        
+        .tooltip-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+        
+        .tooltip-new {
+            background: #00ff88;
+            color: #000;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            display: inline-block;
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-body);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            box-shadow: 0 5px 20px rgba(0, 242, 234, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 242, 234, 0.5);
+        }
+        
+        .btn-gold {
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            color: #000;
+        }
+        
+        .btn-gold:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: var(--jazer-cyan);
+        }
+        
+        /* Notification Popup */
+        .notification-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #00ff88;
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transform: translateX(120%);
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 2000;
+            box-shadow: 0 10px 40px rgba(0, 255, 136, 0.3);
+        }
+        
+        .notification-popup.show {
+            transform: translateX(0);
+        }
+        
+        .notification-icon {
+            font-size: 3rem;
+            animation: notifPulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes notifPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .notification-content h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+            color: #00ff88;
+        }
+        
+        .notification-content p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        
+        /* Gallery */
+        .gallery-section {
+            margin-bottom: 3rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--jazer-pink);
+            text-align: center;
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+        
+        .gallery-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .gallery-item:hover {
+            border-color: var(--jazer-cyan);
+        }
+        
+        .gallery-item h3 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            color: var(--jazer-cyan);
+        }
+        
+        .demo-slot {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            position: relative;
+        }
+        
+        /* Keyboard hint */
+        .keyboard-hint {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        .keyboard-hint kbd {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-family: var(--font-body);
+            margin: 0 0.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Particles */
+        .particles-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .demo-area { padding: 1.5rem; }
+            .inventory-grid { grid-template-columns: repeat(4, 1fr); }
+            .gallery { grid-template-columns: repeat(2, 1fr); }
+            .controls { flex-direction: column; }
+            .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    
+    <div class="hero-section">
+        <h1>Inventory New Item Glow</h1>
+        <p class="subtitle">Eye-catching glow effects for newly acquired items with rarity-based animations</p>
+    </div>
+    
+    <!-- Main Demo -->
+    <div class="demo-area">
+        <div class="inventory-container">
+            <div class="inventory-header">
+                <span class="inventory-title">
+                    <span>🎒</span>
+                    Inventory
+                </span>
+                <span class="inventory-count" id="itemCount">12/20 Items</span>
+            </div>
+            <div class="inventory-grid" id="inventoryGrid">
+                <!-- Items will be generated by JS -->
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" id="addItemBtn">Add Random Item</button>
+            <button class="btn btn-gold" id="addLegendaryBtn">Add Legendary!</button>
+            <button class="btn btn-secondary" id="clearNewBtn">Mark All as Seen</button>
+            <button class="btn btn-secondary" id="resetBtn">Reset Inventory</button>
+        </div>
+        
+        <div class="keyboard-hint">
+            Press <kbd>Space</kbd> to add item | <kbd>L</kbd> for legendary | <kbd>C</kbd> to clear new badges
+        </div>
+    </div>
+    
+    <!-- Gallery -->
+    <div class="gallery-section">
+        <h2 class="section-title">Rarity Glow Effects</h2>
+        <div class="gallery">
+            <div class="gallery-item">
+                <h3>Common</h3>
+                <div class="demo-slot inventory-slot common new">🗡️</div>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Subtle gray glow</p>
+            </div>
+            
+            <div class="gallery-item">
+                <h3>Uncommon</h3>
+                <div class="demo-slot inventory-slot uncommon new">🛡️</div>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Green pulse effect</p>
+            </div>
+            
+            <div class="gallery-item">
+                <h3>Rare</h3>
+                <div class="demo-slot inventory-slot rare new">⚔️</div>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Cyan energy glow</p>
+            </div>
+            
+            <div class="gallery-item">
+                <h3>Epic</h3>
+                <div class="demo-slot inventory-slot epic new">🏹</div>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Purple aura pulse</p>
+            </div>
+            
+            <div class="gallery-item">
+                <h3>Legendary</h3>
+                <div class="demo-slot inventory-slot legendary new">👑</div>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Golden radiance</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Item Tooltip -->
+    <div class="item-tooltip" id="itemTooltip">
+        <div class="tooltip-header">
+            <span class="tooltip-icon" id="tooltipIcon">⚔️</span>
+            <div class="tooltip-info">
+                <h3 id="tooltipName">Item Name</h3>
+                <span class="tooltip-rarity" id="tooltipRarity">Rare</span>
+            </div>
+        </div>
+        <p class="tooltip-desc" id="tooltipDesc">Item description goes here.</p>
+        <span class="tooltip-new" id="tooltipNew">NEW!</span>
+    </div>
+    
+    <!-- Notification Popup -->
+    <div class="notification-popup" id="notificationPopup">
+        <span class="notification-icon" id="notifIcon">🎁</span>
+        <div class="notification-content">
+            <h3 id="notifTitle">New Item Acquired!</h3>
+            <p id="notifDesc">You found a Rare Sword</p>
+        </div>
+    </div>
+    
+    <!-- Particles Container -->
+    <div class="particles-container" id="particlesContainer"></div>
+    
+    <script>
+        // Item Data
+        const items = [
+            { emoji: '🗡️', name: 'Iron Sword', rarity: 'common', desc: 'A basic sword for beginners.' },
+            { emoji: '🛡️', name: 'Wooden Shield', rarity: 'common', desc: 'Provides basic protection.' },
+            { emoji: '🧪', name: 'Health Potion', rarity: 'common', desc: 'Restores 50 HP.' },
+            { emoji: '🔮', name: 'Mana Crystal', rarity: 'uncommon', desc: 'Restores 30 MP.' },
+            { emoji: '⚔️', name: 'Steel Blade', rarity: 'uncommon', desc: 'A well-crafted weapon.' },
+            { emoji: '🏹', name: 'Hunter Bow', rarity: 'rare', desc: 'Accurate at long range.' },
+            { emoji: '💍', name: 'Magic Ring', rarity: 'rare', desc: '+10 to all stats.' },
+            { emoji: '🎭', name: 'Shadow Mask', rarity: 'epic', desc: 'Grants invisibility.' },
+            { emoji: '⚡', name: 'Thunder Staff', rarity: 'epic', desc: 'Calls down lightning.' },
+            { emoji: '👑', name: 'Dragon Crown', rarity: 'legendary', desc: 'Worn by ancient kings.' },
+            { emoji: '🌟', name: 'Star Fragment', rarity: 'legendary', desc: 'Fallen from the cosmos.' },
+            { emoji: '💎', name: 'Infinity Gem', rarity: 'legendary', desc: 'Unlimited power.' }
+        ];
+        
+        let inventory = [];
+        const maxSlots = 20;
+        
+        // DOM Elements
+        const inventoryGrid = document.getElementById('inventoryGrid');
+        const itemCount = document.getElementById('itemCount');
+        const itemTooltip = document.getElementById('itemTooltip');
+        const notificationPopup = document.getElementById('notificationPopup');
+        const particlesContainer = document.getElementById('particlesContainer');
+        
+        // Initialize Inventory
+        function initInventory() {
+            inventory = [
+                { ...items[0], isNew: false },
+                { ...items[2], isNew: false },
+                { ...items[4], isNew: true },
+                { ...items[5], isNew: true },
+                { ...items[7], isNew: false },
+            ];
+            renderInventory();
+        }
+        
+        // Render Inventory
+        function renderInventory() {
+            inventoryGrid.innerHTML = '';
+            
+            for (let i = 0; i < maxSlots; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'inventory-slot';
+                
+                if (inventory[i]) {
+                    const item = inventory[i];
+                    slot.classList.add(item.rarity);
+                    if (item.isNew) {
+                        slot.classList.add('new');
+                        const badge = document.createElement('span');
+                        badge.className = 'new-badge';
+                        badge.textContent = 'NEW';
+                        slot.appendChild(badge);
+                    }
+                    slot.textContent = item.emoji;
+                    slot.dataset.index = i;
+                    
+                    // Tooltip events
+                    slot.addEventListener('mouseenter', (e) => showTooltip(e, item));
+                    slot.addEventListener('mousemove', moveTooltip);
+                    slot.addEventListener('mouseleave', hideTooltip);
+                    slot.addEventListener('click', () => markAsSeen(i));
+                } else {
+                    slot.classList.add('empty');
+                }
+                
+                inventoryGrid.appendChild(slot);
+            }
+            
+            itemCount.textContent = `${inventory.length}/${maxSlots} Items`;
+        }
+        
+        // Add Item
+        function addItem(forceRarity = null) {
+            if (inventory.length >= maxSlots) return;
+            
+            let availableItems = [...items];
+            if (forceRarity) {
+                availableItems = items.filter(item => item.rarity === forceRarity);
+            }
+            
+            const item = { ...availableItems[Math.floor(Math.random() * availableItems.length)], isNew: true };
+            inventory.push(item);
+            
+            renderInventory();
+            
+            // Animate the new slot
+            const slots = inventoryGrid.querySelectorAll('.inventory-slot');
+            const newSlot = slots[inventory.length - 1];
+            newSlot.classList.add('acquiring');
+            
+            // Create particles
+            const rect = newSlot.getBoundingClientRect();
+            createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, item.rarity);
+            
+            // Show notification
+            showNotification(item);
+        }
+        
+        // Mark Item as Seen
+        function markAsSeen(index) {
+            if (inventory[index] && inventory[index].isNew) {
+                inventory[index].isNew = false;
+                renderInventory();
+            }
+        }
+        
+        // Clear All New Badges
+        function clearAllNew() {
+            inventory.forEach(item => item.isNew = false);
+            renderInventory();
+        }
+        
+        // Show Tooltip
+        function showTooltip(e, item) {
+            document.getElementById('tooltipIcon').textContent = item.emoji;
+            document.getElementById('tooltipName').textContent = item.name;
+            document.getElementById('tooltipRarity').textContent = item.rarity;
+            document.getElementById('tooltipRarity').className = `tooltip-rarity ${item.rarity}`;
+            document.getElementById('tooltipDesc').textContent = item.desc;
+            document.getElementById('tooltipNew').style.display = item.isNew ? 'inline-block' : 'none';
+            
+            itemTooltip.style.borderColor = getRarityColor(item.rarity);
+            itemTooltip.classList.add('show');
+            moveTooltip(e);
+        }
+        
+        function moveTooltip(e) {
+            itemTooltip.style.left = `${e.clientX + 15}px`;
+            itemTooltip.style.top = `${e.clientY + 15}px`;
+        }
+        
+        function hideTooltip() {
+            itemTooltip.classList.remove('show');
+        }
+        
+        // Get Rarity Color
+        function getRarityColor(rarity) {
+            const colors = {
+                common: '#888',
+                uncommon: '#00ff88',
+                rare: '#00f2ea',
+                epic: '#9333ea',
+                legendary: '#ffd700'
+            };
+            return colors[rarity] || '#888';
+        }
+        
+        // Show Notification
+        function showNotification(item) {
+            document.getElementById('notifIcon').textContent = item.emoji;
+            document.getElementById('notifTitle').textContent = 'New Item Acquired!';
+            document.getElementById('notifDesc').textContent = `You found a ${item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1)} ${item.name}`;
+            
+            notificationPopup.style.borderColor = getRarityColor(item.rarity);
+            notificationPopup.classList.add('show');
+            
+            setTimeout(() => {
+                notificationPopup.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Create Particles
+        function createParticles(x, y, rarity) {
+            const color = getRarityColor(rarity);
+            
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                particle.style.backgroundColor = color;
+                particle.style.boxShadow = `0 0 10px ${color}`;
+                
+                particlesContainer.appendChild(particle);
+                
+                const angle = (Math.random() * Math.PI * 2);
+                const velocity = 50 + Math.random() * 100;
+                const vx = Math.cos(angle) * velocity;
+                const vy = Math.sin(angle) * velocity;
+                
+                particle.animate([
+                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                    { transform: `translate(${vx}px, ${vy}px) scale(0)`, opacity: 0 }
+                ], {
+                    duration: 800,
+                    easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                });
+                
+                setTimeout(() => particle.remove(), 800);
+            }
+        }
+        
+        // Reset Inventory
+        function resetInventory() {
+            inventory = [];
+            initInventory();
+        }
+        
+        // Event Listeners
+        document.getElementById('addItemBtn').addEventListener('click', () => addItem());
+        document.getElementById('addLegendaryBtn').addEventListener('click', () => addItem('legendary'));
+        document.getElementById('clearNewBtn').addEventListener('click', clearAllNew);
+        document.getElementById('resetBtn').addEventListener('click', resetInventory);
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                addItem();
+            } else if (e.code === 'KeyL') {
+                addItem('legendary');
+            } else if (e.code === 'KeyC') {
+                clearAllNew();
+            }
+        });
+        
+        // Initialize
+        initInventory();
+    </script>
+</body>
+</html>

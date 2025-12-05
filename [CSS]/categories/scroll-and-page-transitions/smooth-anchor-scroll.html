@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smooth Anchor Scroll - Scroll & Page Transitions</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            background: rgba(0, 217, 255, 0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1000;
+        }
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateX(-5px);
+        }
+        h1 {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 2.5rem;
+            padding-top: 4rem;
+        }
+        .page-intro {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+        .component-section {
+            max-width: 1000px;
+            margin: 0 auto 3rem;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        .section-title {
+            color: var(--jazer-cyan);
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section-description {
+            color: #888;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+        .style-number {
+            background: var(--gradient-primary);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        /* Demo Container */
+        .demo-container {
+            position: relative;
+            height: 450px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #0a0a0a;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        /* Anchor Navigation */
+        .anchor-nav {
+            position: sticky;
+            top: 0;
+            background: rgba(10, 10, 20, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            z-index: 10;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        .anchor-link {
+            padding: 0.5rem 1rem;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 8px;
+            color: #aaa;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .anchor-link:hover {
+            background: rgba(139, 92, 246, 0.2);
+            color: white;
+            border-color: var(--jazer-purple);
+        }
+        .anchor-link.active {
+            background: var(--gradient-primary);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.4);
+        }
+
+        /* Scroll Content */
+        .scroll-content {
+            height: calc(100% - 60px);
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+            scrollbar-color: var(--jazer-purple) transparent;
+        }
+        .scroll-content::-webkit-scrollbar { width: 6px; }
+        .scroll-content::-webkit-scrollbar-track { background: transparent; }
+        .scroll-content::-webkit-scrollbar-thumb { background: var(--jazer-purple); border-radius: 3px; }
+
+        /* Content Sections */
+        .content-section {
+            min-height: 300px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+        }
+        .content-section:last-child { border-bottom: none; }
+        .content-section__icon { font-size: 3rem; margin-bottom: 1rem; }
+        .content-section__title { font-size: 1.5rem; color: white; margin-bottom: 0.5rem; }
+        .content-section__text { color: #888; max-width: 400px; line-height: 1.6; }
+
+        .content-section--1 { background: linear-gradient(135deg, rgba(0, 217, 255, 0.1), transparent); }
+        .content-section--2 { background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), transparent); }
+        .content-section--3 { background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), transparent); }
+        .content-section--4 { background: linear-gradient(135deg, rgba(251, 146, 60, 0.1), transparent); }
+        .content-section--5 { background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), transparent); }
+
+        /* Highlight animation */
+        .content-section.highlight {
+            animation: highlightPulse 1s ease;
+        }
+        @keyframes highlightPulse {
+            0% { box-shadow: inset 0 0 0 0 rgba(0, 217, 255, 0); }
+            50% { box-shadow: inset 0 0 50px 10px rgba(0, 217, 255, 0.2); }
+            100% { box-shadow: inset 0 0 0 0 rgba(0, 217, 255, 0); }
+        }
+
+        /* ========================================
+           STYLE 1: Basic Smooth Scroll
+        ======================================== */
+        .demo-basic .scroll-content {
+            scroll-behavior: smooth;
+        }
+
+        /* ========================================
+           STYLE 2: With Header Offset
+        ======================================== */
+        .demo-offset .scroll-content {
+            scroll-padding-top: 70px;
+        }
+        .demo-offset .anchor-nav {
+            height: 60px;
+        }
+
+        /* ========================================
+           STYLE 3: Highlight on Arrival
+        ======================================== */
+        /* Uses JS to add .highlight class */
+
+        /* ========================================
+           STYLE 4: Progress Indicator Nav
+        ======================================== */
+        .progress-nav {
+            position: relative;
+        }
+        .progress-nav .anchor-link {
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-nav .anchor-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            width: 0%;
+            background: var(--jazer-cyan);
+            transition: width 0.3s ease;
+        }
+        .progress-nav .anchor-link.active::after {
+            width: 100%;
+        }
+        .progress-nav .anchor-link.passed::after {
+            width: 100%;
+            background: var(--jazer-purple);
+        }
+
+        /* ========================================
+           STYLE 5: Dot Navigation
+        ======================================== */
+        .dot-nav {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            z-index: 20;
+        }
+        .dot-link {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .dot-link:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.2);
+        }
+        .dot-link.active {
+            background: var(--jazer-cyan);
+            border-color: white;
+            box-shadow: 0 0 10px var(--jazer-cyan);
+        }
+        .dot-link::before {
+            content: attr(data-label);
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(10, 10, 20, 0.9);
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: white;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+        .dot-link:hover::before {
+            opacity: 1;
+        }
+
+        /* ========================================
+           STYLE 6: Keyboard Navigation
+        ======================================== */
+        .keyboard-hint {
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 20;
+        }
+        .key-hint {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #666;
+            font-size: 0.8rem;
+        }
+        .key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: white;
+        }
+        .key--wide { width: auto; padding: 0 0.5rem; }
+
+        /* ========================================
+           STYLE 7: Timeline Navigation
+        ======================================== */
+        .timeline-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            padding: 1rem 2rem;
+        }
+        .timeline-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+        }
+        .timeline-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: rgba(139, 92, 246, 0.3);
+            border: 2px solid rgba(139, 92, 246, 0.5);
+            transition: all 0.3s ease;
+        }
+        .timeline-link:hover .timeline-dot {
+            background: var(--jazer-purple);
+            transform: scale(1.2);
+        }
+        .timeline-link.active .timeline-dot {
+            background: var(--jazer-cyan);
+            border-color: white;
+            box-shadow: 0 0 15px var(--jazer-cyan);
+        }
+        .timeline-label {
+            margin-top: 0.5rem;
+            font-size: 0.7rem;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+        .timeline-link.active .timeline-label {
+            color: var(--jazer-cyan);
+        }
+        .timeline-connector {
+            width: 40px;
+            height: 2px;
+            background: rgba(139, 92, 246, 0.3);
+            margin-bottom: 1.5rem;
+        }
+        .timeline-connector.passed {
+            background: var(--gradient-primary);
+        }
+
+        /* Code Block */
+        .code-block {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: var(--jazer-cyan);
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            white-space: pre;
+        }
+        .code-block .comment { color: #6a6a8a; }
+        .code-block .property { color: var(--jazer-pink); }
+        .code-block .value { color: #22c55e; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            h1 { font-size: 1.8rem; padding-top: 5rem; }
+            .component-section { padding: 1.5rem; }
+            .demo-container { height: 400px; }
+            .anchor-nav { gap: 0.25rem; }
+            .anchor-link { padding: 0.4rem 0.75rem; font-size: 0.75rem; }
+            .back-button { padding: 0.5rem 1rem; font-size: 0.9rem; }
+            .dot-nav { right: 0.5rem; }
+            .keyboard-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    
+    <h1>Smooth Anchor Scroll</h1>
+    <p class="page-intro">Smooth scrolling navigation with various indicator styles</p>
+
+    <!-- Style 1: Basic Smooth Scroll -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">1</span> Basic Smooth Scroll</h2>
+        <p class="section-description">Simple CSS scroll-behavior for smooth anchor navigation</p>
+        
+        <div class="demo-container demo-basic">
+            <nav class="anchor-nav" id="nav1">
+                <a class="anchor-link active" data-target="s1-intro">Intro</a>
+                <a class="anchor-link" data-target="s1-features">Features</a>
+                <a class="anchor-link" data-target="s1-pricing">Pricing</a>
+                <a class="anchor-link" data-target="s1-contact">Contact</a>
+            </nav>
+            <div class="scroll-content" id="scroll1">
+                <section class="content-section content-section--1" id="s1-intro">
+                    <span class="content-section__icon">👋</span>
+                    <h3 class="content-section__title">Introduction</h3>
+                    <p class="content-section__text">Welcome to our platform. Scroll down or click navigation links to explore.</p>
+                </section>
+                <section class="content-section content-section--2" id="s1-features">
+                    <span class="content-section__icon">✨</span>
+                    <h3 class="content-section__title">Features</h3>
+                    <p class="content-section__text">Discover all the amazing features we have to offer.</p>
+                </section>
+                <section class="content-section content-section--3" id="s1-pricing">
+                    <span class="content-section__icon">💰</span>
+                    <h3 class="content-section__title">Pricing</h3>
+                    <p class="content-section__text">Flexible plans to fit your needs and budget.</p>
+                </section>
+                <section class="content-section content-section--4" id="s1-contact">
+                    <span class="content-section__icon">📧</span>
+                    <h3 class="content-section__title">Contact</h3>
+                    <p class="content-section__text">Get in touch with our team for any questions.</p>
+                </section>
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="comment">/* CSS-only smooth scroll */</span>
+html, .scroll-container {
+    <span class="property">scroll-behavior</span>: <span class="value">smooth</span>;
+}
+
+<span class="comment">/* Link to section */</span>
+&lt;a href="#section-id"&gt;Go to Section&lt;/a&gt;</code>
+        </div>
+    </section>
+
+    <!-- Style 2: With Header Offset -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">2</span> With Header Offset</h2>
+        <p class="section-description">Accounts for fixed header height using scroll-padding</p>
+        
+        <div class="demo-container demo-offset">
+            <nav class="anchor-nav" id="nav2">
+                <a class="anchor-link active" data-target="s2-home">Home</a>
+                <a class="anchor-link" data-target="s2-about">About</a>
+                <a class="anchor-link" data-target="s2-services">Services</a>
+                <a class="anchor-link" data-target="s2-team">Team</a>
+            </nav>
+            <div class="scroll-content" id="scroll2">
+                <section class="content-section content-section--1" id="s2-home">
+                    <span class="content-section__icon">🏠</span>
+                    <h3 class="content-section__title">Home</h3>
+                    <p class="content-section__text">Section scrolls below the fixed header.</p>
+                </section>
+                <section class="content-section content-section--2" id="s2-about">
+                    <span class="content-section__icon">ℹ️</span>
+                    <h3 class="content-section__title">About Us</h3>
+                    <p class="content-section__text">Learn more about our company and mission.</p>
+                </section>
+                <section class="content-section content-section--3" id="s2-services">
+                    <span class="content-section__icon">🛠️</span>
+                    <h3 class="content-section__title">Services</h3>
+                    <p class="content-section__text">Explore our comprehensive service offerings.</p>
+                </section>
+                <section class="content-section content-section--4" id="s2-team">
+                    <span class="content-section__icon">👥</span>
+                    <h3 class="content-section__title">Our Team</h3>
+                    <p class="content-section__text">Meet the talented people behind our success.</p>
+                </section>
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="comment">/* Offset for fixed header */</span>
+.scroll-container {
+    <span class="property">scroll-padding-top</span>: <span class="value">70px</span>;
+}
+
+<span class="comment">/* Or use scroll-margin on targets */</span>
+.section {
+    <span class="property">scroll-margin-top</span>: <span class="value">70px</span>;
+}</code>
+        </div>
+    </section>
+
+    <!-- Style 3: Highlight on Arrival -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">3</span> Highlight on Arrival</h2>
+        <p class="section-description">Section pulses with glow effect when scrolled to</p>
+        
+        <div class="demo-container">
+            <nav class="anchor-nav" id="nav3">
+                <a class="anchor-link active" data-target="s3-alpha">Alpha</a>
+                <a class="anchor-link" data-target="s3-beta">Beta</a>
+                <a class="anchor-link" data-target="s3-gamma">Gamma</a>
+                <a class="anchor-link" data-target="s3-delta">Delta</a>
+            </nav>
+            <div class="scroll-content" id="scroll3">
+                <section class="content-section content-section--1" id="s3-alpha">
+                    <span class="content-section__icon">🅰️</span>
+                    <h3 class="content-section__title">Alpha Section</h3>
+                    <p class="content-section__text">Click a nav link to see the highlight effect.</p>
+                </section>
+                <section class="content-section content-section--2" id="s3-beta">
+                    <span class="content-section__icon">🅱️</span>
+                    <h3 class="content-section__title">Beta Section</h3>
+                    <p class="content-section__text">A subtle pulse draws attention to the target.</p>
+                </section>
+                <section class="content-section content-section--3" id="s3-gamma">
+                    <span class="content-section__icon">🔷</span>
+                    <h3 class="content-section__title">Gamma Section</h3>
+                    <p class="content-section__text">Great for long pages with many sections.</p>
+                </section>
+                <section class="content-section content-section--4" id="s3-delta">
+                    <span class="content-section__icon">🔶</span>
+                    <h3 class="content-section__title">Delta Section</h3>
+                    <p class="content-section__text">Users always know where they landed.</p>
+                </section>
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="comment">/* Highlight animation */</span>
+@keyframes highlightPulse {
+    0% { box-shadow: inset 0 0 0 0 rgba(0, 217, 255, 0); }
+    50% { box-shadow: inset 0 0 50px 10px rgba(0, 217, 255, 0.2); }
+    100% { box-shadow: inset 0 0 0 0 rgba(0, 217, 255, 0); }
+}
+.section.highlight { animation: highlightPulse 1s ease; }</code>
+        </div>
+    </section>
+
+    <!-- Style 4: Progress Indicator Nav -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">4</span> Progress Indicator Nav</h2>
+        <p class="section-description">Navigation links show reading progress with underline</p>
+        
+        <div class="demo-container">
+            <nav class="anchor-nav progress-nav" id="nav4">
+                <a class="anchor-link active passed" data-target="s4-start">Start</a>
+                <a class="anchor-link" data-target="s4-middle">Middle</a>
+                <a class="anchor-link" data-target="s4-end">End</a>
+                <a class="anchor-link" data-target="s4-finish">Finish</a>
+            </nav>
+            <div class="scroll-content" id="scroll4">
+                <section class="content-section content-section--1" id="s4-start">
+                    <span class="content-section__icon">🚀</span>
+                    <h3 class="content-section__title">Getting Started</h3>
+                    <p class="content-section__text">Begin your journey here.</p>
+                </section>
+                <section class="content-section content-section--2" id="s4-middle">
+                    <span class="content-section__icon">🔄</span>
+                    <h3 class="content-section__title">In Progress</h3>
+                    <p class="content-section__text">You're making great progress!</p>
+                </section>
+                <section class="content-section content-section--3" id="s4-end">
+                    <span class="content-section__icon">🎯</span>
+                    <h3 class="content-section__title">Almost There</h3>
+                    <p class="content-section__text">Just a bit more to go.</p>
+                </section>
+                <section class="content-section content-section--4" id="s4-finish">
+                    <span class="content-section__icon">🏁</span>
+                    <h3 class="content-section__title">Finished!</h3>
+                    <p class="content-section__text">Congratulations on completing the journey!</p>
+                </section>
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="comment">/* Progress underline */</span>
+.anchor-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    <span class="property">width</span>: <span class="value">0%</span>;
+    background: var(--jazer-cyan);
+    transition: width 0.3s ease;
+}
+.anchor-link.passed::after { <span class="property">width</span>: <span class="value">100%</span>; }</code>
+        </div>
+    </section>
+
+    <!-- Style 5: Dot Navigation -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">5</span> Dot Navigation</h2>
+        <p class="section-description">Minimal dot indicators on the side with hover labels</p>
+        
+        <div class="demo-container" style="padding-right: 40px;">
+            <div class="scroll-content" id="scroll5">
+                <section class="content-section content-section--1" id="s5-one">
+                    <span class="content-section__icon">1️⃣</span>
+                    <h3 class="content-section__title">Section One</h3>
+                    <p class="content-section__text">Hover over dots to see labels.</p>
+                </section>
+                <section class="content-section content-section--2" id="s5-two">
+                    <span class="content-section__icon">2️⃣</span>
+                    <h3 class="content-section__title">Section Two</h3>
+                    <p class="content-section__text">Clean, minimal navigation style.</p>
+                </section>
+                <section class="content-section content-section--3" id="s5-three">
+                    <span class="content-section__icon">3️⃣</span>
+                    <h3 class="content-section__title">Section Three</h3>
+                    <p class="content-section__text">Perfect for portfolio sites.</p>
+                </section>
+                <section class="content-section content-section--4" id="s5-four">
+                    <span class="content-section__icon">4️⃣</span>
+                    <h3 class="content-section__title">Section Four</h3>
+                    <p class="content-section__text">Dots update as you scroll.</p>
+                </section>
+            </div>
+            <nav class="dot-nav" id="nav5">
+                <div class="dot-link active" data-target="s5-one" data-label="Section One"></div>
+                <div class="dot-link" data-target="s5-two" data-label="Section Two"></div>
+                <div class="dot-link" data-target="s5-three" data-label="Section Three"></div>
+                <div class="dot-link" data-target="s5-four" data-label="Section Four"></div>
+            </nav>
+        </div>
+
+        <div class="code-block">
+            <code><span class="comment">/* Dot with hover label */</span>
+.dot-link::before {
+    content: attr(data-label);
+    position: absolute;
+    right: 25px;
+    <span class="property">opacity</span>: <span class="value">0</span>;
+}
+.dot-link:hover::before {
+    <span class="property">opacity</span>: <span class="value">1</span>;
+}</code>
+        </div>
+    </section>
+
+    <!-- Style 6: Keyboard Navigation -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">6</span> Keyboard Navigation</h2>
+        <p class="section-description">Navigate between sections using keyboard shortcuts</p>
+        
+        <div class="demo-container" id="demo6" tabindex="0">
+            <nav class="anchor-nav" id="nav6">
+                <a class="anchor-link active" data-target="s6-a">Section A</a>
+                <a class="anchor-link" data-target="s6-b">Section B</a>
+                <a class="anchor-link" data-target="s6-c">Section C</a>
+                <a class="anchor-link" data-target="s6-d">Section D</a>
+            </nav>
+            <div class="scroll-content" id="scroll6">
+                <section class="content-section content-section--1" id="s6-a">
+                    <span class="content-section__icon">⬆️</span>
+                    <h3 class="content-section__title">Section A</h3>
+                    <p class="content-section__text">Click here first, then use arrow keys!</p>
+                </section>
+                <section class="content-section content-section--2" id="s6-b">
+                    <span class="content-section__icon">⬇️</span>
+                    <h3 class="content-section__title">Section B</h3>
+                    <p class="content-section__text">Press Down to go next, Up to go back.</p>
+                </section>
+                <section class="content-section content-section--3" id="s6-c">
+                    <span class="content-section__icon">🏠</span>
+                    <h3 class="content-section__title">Section C</h3>
+                    <p class="content-section__text">Press Home to jump to start.</p>
+                </section>
+                <section class="content-section content-section--4" id="s6-d">
+                    <span class="content-section__icon">🔚</span>
+                    <h3 class="content-section__title">Section D</h3>
+                    <p class="content-section__text">Press End to jump to finish.</p>
+                </section>
+            </div>
+            <div class="keyboard-hint">
+                <span class="key-hint"><span class="key">↑</span> Previous</span>
+                <span class="key-hint"><span class="key">↓</span> Next</span>
+                <span class="key-hint"><span class="key key--wide">Home</span> First</span>
+                <span class="key-hint"><span class="key key--wide">End</span> Last</span>
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="comment">/* Keyboard navigation */</span>
+container.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') goToNext();
+    if (e.key === 'ArrowUp') goToPrev();
+    if (e.key === 'Home') goToFirst();
+    if (e.key === 'End') goToLast();
+});</code>
+        </div>
+    </section>
+
+    <!-- Style 7: Timeline Navigation -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">7</span> Timeline Navigation</h2>
+        <p class="section-description">Connected dots forming a timeline progress indicator</p>
+        
+        <div class="demo-container">
+            <nav class="anchor-nav timeline-nav" id="nav7">
+                <div class="timeline-link active" data-target="s7-2020">
+                    <div class="timeline-dot"></div>
+                    <span class="timeline-label">2020</span>
+                </div>
+                <div class="timeline-connector passed"></div>
+                <div class="timeline-link" data-target="s7-2021">
+                    <div class="timeline-dot"></div>
+                    <span class="timeline-label">2021</span>
+                </div>
+                <div class="timeline-connector"></div>
+                <div class="timeline-link" data-target="s7-2022">
+                    <div class="timeline-dot"></div>
+                    <span class="timeline-label">2022</span>
+                </div>
+                <div class="timeline-connector"></div>
+                <div class="timeline-link" data-target="s7-2023">
+                    <div class="timeline-dot"></div>
+                    <span class="timeline-label">2023</span>
+                </div>
+            </nav>
+            <div class="scroll-content" id="scroll7">
+                <section class="content-section content-section--1" id="s7-2020">
+                    <span class="content-section__icon">🌱</span>
+                    <h3 class="content-section__title">2020 - Foundation</h3>
+                    <p class="content-section__text">Our journey began with a small team and big dreams.</p>
+                </section>
+                <section class="content-section content-section--2" id="s7-2021">
+                    <span class="content-section__icon">📈</span>
+                    <h3 class="content-section__title">2021 - Growth</h3>
+                    <p class="content-section__text">Expanded to new markets and doubled our team.</p>
+                </section>
+                <section class="content-section content-section--3" id="s7-2022">
+                    <span class="content-section__icon">🚀</span>
+                    <h3 class="content-section__title">2022 - Launch</h3>
+                    <p class="content-section__text">Released our flagship product to the world.</p>
+                </section>
+                <section class="content-section content-section--4" id="s7-2023">
+                    <span class="content-section__icon">🌟</span>
+                    <h3 class="content-section__title">2023 - Today</h3>
+                    <p class="content-section__text">Leading innovation in our industry.</p>
+                </section>
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="comment">/* Timeline connector */</span>
+.timeline-connector {
+    width: 40px;
+    height: 2px;
+    background: rgba(139, 92, 246, 0.3);
+}
+.timeline-connector.passed {
+    background: var(--gradient-primary);
+}</code>
+        </div>
+    </section>
+
+    <script>
+        // Initialize all scroll demos
+        function initScrollDemo(navId, scrollId, options = {}) {
+            const nav = document.getElementById(navId);
+            const scrollContainer = document.getElementById(scrollId);
+            if (!nav || !scrollContainer) return;
+
+            const links = nav.querySelectorAll('.anchor-link, .dot-link, .timeline-link');
+            const sections = [];
+            
+            links.forEach(link => {
+                const targetId = link.dataset.target;
+                const section = document.getElementById(targetId);
+                if (section) sections.push({ link, section, id: targetId });
+            });
+
+            // Click handlers
+            links.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.dataset.target;
+                    const target = document.getElementById(targetId);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        
+                        // Highlight effect for demo 3
+                        if (options.highlight) {
+                            target.classList.remove('highlight');
+                            void target.offsetWidth; // Trigger reflow
+                            target.classList.add('highlight');
+                        }
+                    }
+                });
+            });
+
+            // Scroll spy
+            scrollContainer.addEventListener('scroll', () => {
+                const scrollTop = scrollContainer.scrollTop;
+                const containerHeight = scrollContainer.clientHeight;
+                
+                let activeIndex = 0;
+                sections.forEach((item, index) => {
+                    const sectionTop = item.section.offsetTop - scrollContainer.offsetTop;
+                    if (scrollTop >= sectionTop - containerHeight / 3) {
+                        activeIndex = index;
+                    }
+                });
+
+                // Update active states
+                links.forEach((link, index) => {
+                    link.classList.remove('active');
+                    if (options.progress) {
+                        link.classList.toggle('passed', index < activeIndex);
+                    }
+                });
+                links[activeIndex]?.classList.add('active');
+
+                // Update timeline connectors
+                if (options.timeline) {
+                    const connectors = nav.querySelectorAll('.timeline-connector');
+                    connectors.forEach((conn, index) => {
+                        conn.classList.toggle('passed', index < activeIndex);
+                    });
+                }
+            });
+        }
+
+        // Initialize demos
+        initScrollDemo('nav1', 'scroll1');
+        initScrollDemo('nav2', 'scroll2');
+        initScrollDemo('nav3', 'scroll3', { highlight: true });
+        initScrollDemo('nav4', 'scroll4', { progress: true });
+        initScrollDemo('nav5', 'scroll5');
+        initScrollDemo('nav6', 'scroll6');
+        initScrollDemo('nav7', 'scroll7', { timeline: true });
+
+        // Keyboard navigation for demo 6
+        const demo6 = document.getElementById('demo6');
+        const scroll6 = document.getElementById('scroll6');
+        const sections6 = scroll6.querySelectorAll('.content-section');
+        let currentSection6 = 0;
+
+        demo6.addEventListener('keydown', (e) => {
+            if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) {
+                e.preventDefault();
+                
+                if (e.key === 'ArrowDown') {
+                    currentSection6 = Math.min(currentSection6 + 1, sections6.length - 1);
+                } else if (e.key === 'ArrowUp') {
+                    currentSection6 = Math.max(currentSection6 - 1, 0);
+                } else if (e.key === 'Home') {
+                    currentSection6 = 0;
+                } else if (e.key === 'End') {
+                    currentSection6 = sections6.length - 1;
+                }
+
+                sections6[currentSection6].scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+
+        // Update currentSection6 on scroll
+        scroll6.addEventListener('scroll', () => {
+            const scrollTop = scroll6.scrollTop;
+            sections6.forEach((section, index) => {
+                if (scrollTop >= section.offsetTop - scroll6.offsetTop - 100) {
+                    currentSection6 = index;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

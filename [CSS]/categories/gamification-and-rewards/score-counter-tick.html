@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Score Counter Tick Up</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            margin-bottom: 0.5rem; 
+            font-size: 2.5rem; 
+        }
+        
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .back-button { 
+            display: inline-block; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(6, 182, 212, 0.1); 
+            margin-bottom: 2rem; 
+            transition: all 0.3s ease; 
+        }
+        
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5); 
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .control-group label {
+            font-size: 0.85rem;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .control-group select,
+        .control-group input {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--jazer-purple);
+            color: var(--text-light);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+        
+        .control-group select:hover,
+        .control-group input:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+        
+        .trigger-btn {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(6, 182, 212, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .trigger-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.6);
+        }
+        
+        .demo-container {
+            border: 2px solid var(--jazer-pink);
+            border-radius: 16px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.9), rgba(30, 20, 50, 0.9));
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        /* Score display */
+        .score-container {
+            position: relative;
+            text-align: center;
+        }
+        
+        .score-label {
+            font-size: 1rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .score-display {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            gap: 0.25rem;
+            padding: 1.5rem 3rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 3px solid var(--jazer-purple);
+            border-radius: 16px;
+        }
+        
+        .digit-container {
+            position: relative;
+            width: 60px;
+            height: 80px;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(147, 51, 234, 0.2) 0%, rgba(0, 0, 0, 0.4) 50%, rgba(147, 51, 234, 0.2) 100%);
+            border-radius: 8px;
+            border: 2px solid rgba(147, 51, 234, 0.5);
+        }
+        
+        .digit-strip {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .digit {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 900;
+            font-family: var(--font-primary);
+            color: white;
+            text-shadow: 0 0 20px var(--jazer-cyan);
+        }
+        
+        /* Tick animation styles */
+        .digit-container.tick-flip .digit-strip {
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .digit-container.tick-slide .digit-strip {
+            transition: transform 0.25s ease-out;
+        }
+        
+        .digit-container.tick-bounce .digit-strip {
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .digit-container.tick-glitch .digit-strip {
+            transition: none;
+        }
+        
+        .digit-container.tick-glitch.animating {
+            animation: glitchDigit 0.3s steps(3) forwards;
+        }
+        
+        @keyframes glitchDigit {
+            0%, 100% { transform: translateX(0); filter: none; }
+            25% { transform: translateX(-3px); filter: hue-rotate(90deg); }
+            50% { transform: translateX(3px); filter: hue-rotate(180deg); }
+            75% { transform: translateX(-1px); filter: hue-rotate(270deg); }
+        }
+        
+        .digit-container.tick-neon .digit {
+            animation: neonPulse 0.3s ease-out;
+        }
+        
+        @keyframes neonPulse {
+            0% { text-shadow: 0 0 20px var(--jazer-cyan); }
+            50% { text-shadow: 0 0 40px var(--jazer-cyan), 0 0 60px var(--jazer-pink), 0 0 80px white; }
+            100% { text-shadow: 0 0 20px var(--jazer-cyan); }
+        }
+        
+        /* Separator */
+        .separator {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--jazer-pink);
+            display: flex;
+            align-items: center;
+            animation: separatorPulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes separatorPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        /* Points gained popup */
+        .points-popup {
+            position: absolute;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #00ff88;
+            text-shadow: 0 0 15px #00ff88;
+            pointer-events: none;
+            opacity: 0;
+            white-space: nowrap;
+        }
+        
+        .points-popup.active {
+            animation: pointsFloat 1.2s ease-out forwards;
+        }
+        
+        @keyframes pointsFloat {
+            0% { 
+                opacity: 1; 
+                transform: translateY(0) scale(0.5); 
+            }
+            30% {
+                opacity: 1;
+                transform: translateY(-20px) scale(1.2);
+            }
+            100% { 
+                opacity: 0; 
+                transform: translateY(-60px) scale(1); 
+            }
+        }
+        
+        /* Sparkle effects */
+        .sparkle-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+        }
+        
+        .sparkle.active {
+            animation: sparkleBurst 0.6s ease-out forwards;
+        }
+        
+        @keyframes sparkleBurst {
+            0% { 
+                opacity: 1; 
+                transform: translate(0, 0) scale(1); 
+            }
+            100% { 
+                opacity: 0; 
+                transform: translate(var(--tx), var(--ty)) scale(0); 
+            }
+        }
+        
+        /* Combo display */
+        .combo-display {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 2rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 12px;
+        }
+        
+        .combo-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .combo-value {
+            font-size: 2rem;
+            font-weight: 900;
+            font-family: var(--font-primary);
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .combo-multiplier {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #00ff88;
+            padding: 0.25rem 0.75rem;
+            background: rgba(0, 255, 136, 0.2);
+            border-radius: 20px;
+        }
+        
+        /* Action buttons */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .action-btn {
+            background: rgba(147, 51, 234, 0.2);
+            border: 2px solid var(--jazer-purple);
+            color: var(--text-light);
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .action-btn:hover {
+            border-color: var(--jazer-cyan);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(6, 182, 212, 0.3);
+        }
+        
+        .action-btn .value {
+            display: block;
+            font-size: 1.5rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 0.25rem;
+        }
+        
+        .action-btn .label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        
+        /* Preset showcase */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .preset-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .preset-card:hover {
+            border-color: var(--jazer-cyan);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);
+        }
+        
+        .preset-card h3 {
+            color: var(--jazer-pink);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .preset-card .preview {
+            font-size: 1.8rem;
+            font-weight: 900;
+            font-family: var(--font-primary);
+            color: var(--jazer-cyan);
+            margin-bottom: 0.5rem;
+        }
+        
+        .preset-card p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .keyboard-hint {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--jazer-purple);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .keyboard-hint kbd {
+            background: var(--jazer-purple);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-primary);
+            margin: 0 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .control-group select,
+            .control-group input { min-width: 100%; }
+            .digit-container { width: 40px; height: 60px; }
+            .digit { font-size: 2rem; height: 60px; }
+            .score-display { padding: 1rem 1.5rem; }
+            .keyboard-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    <h1>Score Counter Tick Up</h1>
+    <p class="subtitle">Satisfying animated score counter with multiple tick-up styles</p>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label>Tick Style</label>
+            <select id="tickStyle">
+                <option value="flip">Flip</option>
+                <option value="slide">Slide</option>
+                <option value="bounce">Bounce</option>
+                <option value="glitch">Glitch</option>
+                <option value="neon">Neon</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Speed</label>
+            <select id="tickSpeed">
+                <option value="fast">Fast</option>
+                <option value="normal" selected>Normal</option>
+                <option value="slow">Slow</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Add Points</label>
+            <input type="number" id="pointsInput" value="100" min="1" max="99999">
+        </div>
+        <button class="trigger-btn" onclick="addCustomPoints()">Add Points</button>
+    </div>
+    
+    <div class="demo-container">
+        <div class="score-container" id="scoreContainer">
+            <div class="score-label">Score</div>
+            <div class="score-display" id="scoreDisplay">
+                <!-- Digits will be generated by JS -->
+            </div>
+            <div class="sparkle-container" id="sparkleContainer"></div>
+        </div>
+        
+        <div class="combo-display">
+            <span class="combo-label">Combo</span>
+            <span class="combo-value" id="comboValue">1</span>
+            <span class="combo-multiplier" id="comboMultiplier">x1.0</span>
+        </div>
+        
+        <div class="action-grid">
+            <button class="action-btn" onclick="addPoints(10)">
+                <span class="value">+10</span>
+                <span class="label">Small</span>
+            </button>
+            <button class="action-btn" onclick="addPoints(50)">
+                <span class="value">+50</span>
+                <span class="label">Medium</span>
+            </button>
+            <button class="action-btn" onclick="addPoints(100)">
+                <span class="value">+100</span>
+                <span class="label">Large</span>
+            </button>
+            <button class="action-btn" onclick="addPoints(500)">
+                <span class="value">+500</span>
+                <span class="label">Bonus</span>
+            </button>
+            <button class="action-btn" onclick="addPoints(1000)">
+                <span class="value">+1K</span>
+                <span class="label">Mega</span>
+            </button>
+            <button class="action-btn" onclick="resetScore()">
+                <span class="value">Reset</span>
+                <span class="label">Clear</span>
+            </button>
+        </div>
+    </div>
+    
+    <div class="preset-grid">
+        <div class="preset-card" onclick="setStyleAndAdd('flip', 250)">
+            <h3>Flip</h3>
+            <div class="preview">+250</div>
+            <p>Classic flip animation</p>
+        </div>
+        <div class="preset-card" onclick="setStyleAndAdd('slide', 500)">
+            <h3>Slide</h3>
+            <div class="preview">+500</div>
+            <p>Smooth sliding digits</p>
+        </div>
+        <div class="preset-card" onclick="setStyleAndAdd('bounce', 750)">
+            <h3>Bounce</h3>
+            <div class="preview">+750</div>
+            <p>Bouncy overshoot effect</p>
+        </div>
+        <div class="preset-card" onclick="setStyleAndAdd('glitch', 1000)">
+            <h3>Glitch</h3>
+            <div class="preview">+1000</div>
+            <p>Digital glitch effect</p>
+        </div>
+        <div class="preset-card" onclick="setStyleAndAdd('neon', 2500)">
+            <h3>Neon</h3>
+            <div class="preview">+2500</div>
+            <p>Glowing neon pulse</p>
+        </div>
+    </div>
+    
+    <div class="keyboard-hint">
+        Press <kbd>Space</kbd> to add points, <kbd>R</kbd> to reset
+    </div>
+    
+    <script>
+        let currentScore = 0;
+        let targetScore = 0;
+        let combo = 1;
+        let comboTimer = null;
+        let isAnimating = false;
+        const numDigits = 7;
+        
+        // Initialize display
+        function initDisplay() {
+            const display = document.getElementById('scoreDisplay');
+            display.innerHTML = '';
+            
+            for (let i = 0; i < numDigits; i++) {
+                if (i > 0 && (numDigits - i) % 3 === 0) {
+                    const sep = document.createElement('div');
+                    sep.className = 'separator';
+                    sep.textContent = ',';
+                    display.appendChild(sep);
+                }
+                
+                const container = document.createElement('div');
+                container.className = 'digit-container';
+                container.id = `digit-${i}`;
+                
+                const strip = document.createElement('div');
+                strip.className = 'digit-strip';
+                
+                // Create digits 0-9
+                for (let d = 0; d <= 9; d++) {
+                    const digit = document.createElement('div');
+                    digit.className = 'digit';
+                    digit.textContent = d;
+                    strip.appendChild(digit);
+                }
+                
+                container.appendChild(strip);
+                display.appendChild(container);
+            }
+            
+            updateDisplay(0, true);
+        }
+        
+        function updateDisplay(score, instant = false) {
+            const scoreStr = score.toString().padStart(numDigits, '0');
+            const style = document.getElementById('tickStyle').value;
+            const speedMap = { fast: 150, normal: 250, slow: 400 };
+            const speed = speedMap[document.getElementById('tickSpeed').value];
+            
+            for (let i = 0; i < numDigits; i++) {
+                const digitValue = parseInt(scoreStr[i]);
+                const container = document.getElementById(`digit-${i}`);
+                const strip = container.querySelector('.digit-strip');
+                
+                // Apply style class
+                container.className = `digit-container tick-${style}`;
+                
+                if (instant) {
+                    strip.style.transition = 'none';
+                    strip.style.transform = `translateY(-${digitValue * 80}px)`;
+                } else {
+                    strip.style.transition = '';
+                    
+                    // Special handling for glitch style
+                    if (style === 'glitch') {
+                        container.classList.add('animating');
+                        setTimeout(() => {
+                            strip.style.transform = `translateY(-${digitValue * 80}px)`;
+                            container.classList.remove('animating');
+                        }, 150);
+                    } else {
+                        strip.style.transform = `translateY(-${digitValue * 80}px)`;
+                    }
+                    
+                    // Neon pulse for changed digits
+                    if (style === 'neon') {
+                        const currentVal = parseInt(strip.style.transform.match(/-?(\d+)/)?.[1] || 0) / 80;
+                        if (currentVal !== digitValue) {
+                            strip.querySelectorAll('.digit').forEach(d => {
+                                d.style.animation = 'none';
+                                d.offsetHeight;
+                                d.style.animation = 'neonPulse 0.3s ease-out';
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        
+        function createSparkles(x, y) {
+            const container = document.getElementById('sparkleContainer');
+            const count = 12;
+            
+            for (let i = 0; i < count; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                
+                const angle = (i / count) * Math.PI * 2;
+                const distance = 30 + Math.random() * 50;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                sparkle.style.setProperty('--tx', tx + 'px');
+                sparkle.style.setProperty('--ty', ty + 'px');
+                sparkle.style.left = (x || 0) + 'px';
+                sparkle.style.top = (y || 0) + 'px';
+                sparkle.style.animationDelay = (Math.random() * 0.1) + 's';
+                
+                container.appendChild(sparkle);
+                setTimeout(() => sparkle.classList.add('active'), 10);
+                setTimeout(() => sparkle.remove(), 600);
+            }
+        }
+        
+        function createPointsPopup(points) {
+            const scoreContainer = document.getElementById('scoreContainer');
+            const popup = document.createElement('div');
+            popup.className = 'points-popup';
+            popup.textContent = `+${points.toLocaleString()}`;
+            
+            // Random position above score
+            const offsetX = -50 + Math.random() * 100;
+            popup.style.left = `calc(50% + ${offsetX}px)`;
+            popup.style.top = '-20px';
+            popup.style.transform = 'translateX(-50%)';
+            
+            scoreContainer.appendChild(popup);
+            setTimeout(() => popup.classList.add('active'), 10);
+            setTimeout(() => popup.remove(), 1200);
+        }
+        
+        function updateCombo() {
+            // Clear existing timer
+            if (comboTimer) clearTimeout(comboTimer);
+            
+            // Increase combo
+            combo = Math.min(combo + 1, 10);
+            
+            const comboValue = document.getElementById('comboValue');
+            const comboMultiplier = document.getElementById('comboMultiplier');
+            
+            comboValue.textContent = combo;
+            const multiplier = (1 + (combo - 1) * 0.2).toFixed(1);
+            comboMultiplier.textContent = `x${multiplier}`;
+            
+            // Color based on combo
+            if (combo >= 8) {
+                comboMultiplier.style.color = '#ff006e';
+                comboMultiplier.style.background = 'rgba(255, 0, 110, 0.2)';
+            } else if (combo >= 5) {
+                comboMultiplier.style.color = '#ffd700';
+                comboMultiplier.style.background = 'rgba(255, 215, 0, 0.2)';
+            } else {
+                comboMultiplier.style.color = '#00ff88';
+                comboMultiplier.style.background = 'rgba(0, 255, 136, 0.2)';
+            }
+            
+            // Reset combo after 2 seconds of no activity
+            comboTimer = setTimeout(() => {
+                combo = 1;
+                comboValue.textContent = '1';
+                comboMultiplier.textContent = 'x1.0';
+                comboMultiplier.style.color = '#00ff88';
+                comboMultiplier.style.background = 'rgba(0, 255, 136, 0.2)';
+            }, 2000);
+            
+            return parseFloat(multiplier);
+        }
+        
+        function animateScore(from, to, duration) {
+            const startTime = performance.now();
+            
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function
+                const eased = 1 - Math.pow(1 - progress, 3);
+                
+                const current = Math.floor(from + (to - from) * eased);
+                updateDisplay(current);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                } else {
+                    currentScore = to;
+                    isAnimating = false;
+                }
+            }
+            
+            requestAnimationFrame(update);
+        }
+        
+        function addPoints(points) {
+            const multiplier = updateCombo();
+            const actualPoints = Math.floor(points * multiplier);
+            
+            targetScore = currentScore + actualPoints;
+            if (targetScore > 9999999) targetScore = 9999999;
+            
+            createPointsPopup(actualPoints);
+            createSparkles();
+            
+            const speedMap = { fast: 300, normal: 500, slow: 800 };
+            const duration = speedMap[document.getElementById('tickSpeed').value];
+            
+            isAnimating = true;
+            animateScore(currentScore, targetScore, duration);
+        }
+        
+        function addCustomPoints() {
+            const input = document.getElementById('pointsInput');
+            const points = Math.min(Math.max(parseInt(input.value) || 100, 1), 99999);
+            addPoints(points);
+        }
+        
+        function resetScore() {
+            currentScore = 0;
+            targetScore = 0;
+            combo = 1;
+            
+            document.getElementById('comboValue').textContent = '1';
+            document.getElementById('comboMultiplier').textContent = 'x1.0';
+            
+            updateDisplay(0, true);
+        }
+        
+        function setStyleAndAdd(style, points) {
+            document.getElementById('tickStyle').value = style;
+            addPoints(points);
+        }
+        
+        // Initialize
+        initDisplay();
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !e.repeat) {
+                e.preventDefault();
+                addPoints(100);
+            }
+            if (e.code === 'KeyR' && !e.repeat) {
+                e.preventDefault();
+                resetScore();
+            }
+        });
+    </script>
+</body>
+</html>

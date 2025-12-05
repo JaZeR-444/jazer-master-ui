@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom SVG Icon Cursor Swap - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a, #1a0a2a, #0a1a2a);
+            font-family: var(--font-body);
+            color: #fff;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Hide default cursor */
+        * {
+            cursor: none !important;
+        }
+
+        /* Custom cursor container */
+        .custom-cursor {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease;
+        }
+
+        .cursor-icon {
+            width: 32px;
+            height: 32px;
+            filter: drop-shadow(0 0 10px var(--jazer-cyan));
+            transition: all 0.2s ease;
+        }
+
+        .cursor-icon.hovering {
+            transform: scale(1.2);
+            filter: drop-shadow(0 0 15px var(--jazer-pink));
+        }
+
+        .cursor-icon.clicking {
+            transform: scale(0.9);
+        }
+
+        /* Cursor trail effect */
+        .cursor-trail {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.3;
+            animation: fadeOut 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+        }
+
+        /* Content area */
+        .content {
+            position: relative;
+            z-index: 1;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+
+        /* Cursor selector */
+        .cursor-selector {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .selector-title {
+            font-size: 1.3rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .cursor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .cursor-option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 15px;
+            padding: 1rem;
+            text-align: center;
+            cursor: none;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .cursor-option:hover {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .cursor-option.active {
+            border-color: var(--jazer-pink);
+            background: rgba(255, 0, 255, 0.2);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+        }
+
+        .cursor-option svg {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 0.5rem;
+        }
+
+        .cursor-option-name {
+            font-size: 0.8rem;
+            color: #ccc;
+        }
+
+        /* Demo area */
+        .demo-area {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-title {
+            font-size: 1.5rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        /* Interactive elements */
+        .interactive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .interactive-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .interactive-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .interactive-card:hover::before {
+            left: 100%;
+        }
+
+        .interactive-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            color: var(--jazer-pink);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* Test buttons */
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .test-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, var(--jazer-purple), var(--jazer-pink));
+            border: none;
+            border-radius: 25px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            cursor: none;
+        }
+
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 0, 255, 0.3);
+        }
+
+        .test-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--jazer-cyan);
+        }
+
+        .test-btn.secondary:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+        }
+
+        /* Controls */
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .controls-title {
+            font-size: 1.3rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-input {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .control-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+        }
+
+        .control-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+            border: none;
+        }
+
+        .color-picker {
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: none;
+        }
+
+        /* Stats display */
+        .stats {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            display: block;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Back navigation */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 25px;
+            border: 1px solid var(--jazer-cyan);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .cursor-grid {
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            }
+            
+            .interactive-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back navigation -->
+    <a href="index.html" class="back-button">← Back to Cursors</a>
+
+    <!-- Custom cursor -->
+    <div class="custom-cursor" id="customCursor">
+        <svg class="cursor-icon" id="cursorIcon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <!-- Default arrow cursor -->
+            <path d="M2 2 L2 30 L10 22 L14 28 L18 24 L12 18 L20 10 Z" fill="var(--jazer-cyan)" stroke="var(--jazer-purple)" stroke-width="1"/>
+        </svg>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">🖱️ Custom SVG Icon Cursor Swap</h1>
+            <p class="subtitle">Multiple cursor icon styles that change based on context and interaction with smooth transitions</p>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value" id="currentCursor">Arrow</span>
+                    <span class="stat-label">Current Cursor</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="cursorSize">32px</span>
+                    <span class="stat-label">Cursor Size</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="trailEnabled">On</span>
+                    <span class="stat-label">Trail Effect</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="contextMode">Auto</span>
+                    <span class="stat-label">Context Mode</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cursor Selector -->
+        <div class="cursor-selector">
+            <h2 class="selector-title">🎨 Choose Your Cursor Style</h2>
+            <div class="cursor-grid" id="cursorGrid">
+                <!-- Cursor options will be generated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <h2 class="controls-title">🎛️ Cursor Customization</h2>
+            <div class="control-group">
+                <div class="control-item">
+                    <label class="control-label">Cursor Size</label>
+                    <input type="range" class="control-slider" id="cursorSizeSlider" min="16" max="64" value="32">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Trail Opacity</label>
+                    <input type="range" class="control-slider" id="trailOpacity" min="0" max="100" value="30">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Animation Speed</label>
+                    <input type="range" class="control-slider" id="animationSpeed" min="50" max="500" value="200">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Primary Color</label>
+                    <input type="color" class="color-picker" id="primaryColor" value="#00ffff">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Secondary Color</label>
+                    <input type="color" class="color-picker" id="secondaryColor" value="#ff00ff">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Context Mode</label>
+                    <select class="control-input" id="contextModeSelect">
+                        <option value="auto">Auto Switch</option>
+                        <option value="manual">Manual Only</option>
+                        <option value="hybrid">Hybrid Mode</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Area -->
+        <div class="demo-area">
+            <h2 class="demo-title">🎮 Interactive Test Zone</h2>
+            
+            <!-- Interactive cards -->
+            <div class="interactive-grid">
+                <div class="interactive-card" data-cursor="pointer">
+                    <span class="card-icon">👆</span>
+                    <h3 class="card-title">Pointer Area</h3>
+                    <p class="card-description">Hover here to see the pointer cursor style</p>
+                </div>
+                <div class="interactive-card" data-cursor="grab">
+                    <span class="card-icon">✊</span>
+                    <h3 class="card-title">Grab Area</h3>
+                    <p class="card-description">Hover here to see the grab cursor style</p>
+                </div>
+                <div class="interactive-card" data-cursor="crosshair">
+                    <span class="card-icon">🎯</span>
+                    <h3 class="card-title">Crosshair Area</h3>
+                    <p class="card-description">Hover here to see the crosshair cursor style</p>
+                </div>
+                <div class="interactive-card" data-cursor="text">
+                    <span class="card-icon">📝</span>
+                    <h3 class="card-title">Text Area</h3>
+                    <p class="card-description">Hover here to see the text cursor style</p>
+                </div>
+            </div>
+
+            <!-- Test buttons -->
+            <h3 style="color: var(--jazer-pink); text-align: center; margin: 2rem 0;">Interactive Elements</h3>
+            <div class="button-grid">
+                <button class="test-btn" data-cursor="pointer">Primary Button</button>
+                <button class="test-btn secondary" data-cursor="pointer">Secondary Button</button>
+                <button class="test-btn" data-cursor="grab">Drag Me</button>
+                <button class="test-btn secondary" data-cursor="crosshair">Precision Mode</button>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="text-align: center; margin-top: 2rem;">
+            <button class="test-btn" id="toggleTrail">Toggle Trail</button>
+            <button class="test-btn secondary" id="resetSettings">Reset Settings</button>
+            <button class="test-btn secondary" id="randomizeColors">Randomize Colors</button>
+        </div>
+    </div>
+
+    <script>
+        // Cursor definitions
+        const cursors = [
+            {
+                name: 'Arrow',
+                id: 'arrow',
+                svg: '<path d="M2 2 L2 30 L10 22 L14 28 L18 24 L12 18 L20 10 Z" fill="var(--jazer-cyan)" stroke="var(--jazer-purple)" stroke-width="1"/>',
+                contexts: ['default']
+            },
+            {
+                name: 'Pointer',
+                id: 'pointer',
+                svg: '<circle cx="16" cy="16" r="12" fill="none" stroke="var(--jazer-cyan)" stroke-width="2"/><circle cx="16" cy="16" r="6" fill="var(--jazer-purple)"/>',
+                contexts: ['pointer', 'button']
+            },
+            {
+                name: 'Grab',
+                id: 'grab',
+                svg: '<rect x="8" y="8" width="16" height="16" rx="4" fill="none" stroke="var(--jazer-cyan)" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="var(--jazer-purple)"/><circle cx="20" cy="12" r="2" fill="var(--jazer-purple)"/><circle cx="12" cy="20" r="2" fill="var(--jazer-purple)"/><circle cx="20" cy="20" r="2" fill="var(--jazer-purple)"/>',
+                contexts: ['grab', 'drag']
+            },
+            {
+                name: 'Crosshair',
+                id: 'crosshair',
+                svg: '<line x1="16" y1="4" x2="16" y2="28" stroke="var(--jazer-cyan)" stroke-width="2"/><line x1="4" y1="16" x2="28" y2="16" stroke="var(--jazer-cyan)" stroke-width="2"/><circle cx="16" cy="16" r="8" fill="none" stroke="var(--jazer-purple)" stroke-width="1"/>',
+                contexts: ['crosshair', 'precision']
+            },
+            {
+                name: 'Text',
+                id: 'text',
+                svg: '<rect x="6" y="8" width="20" height="16" rx="2" fill="none" stroke="var(--jazer-cyan)" stroke-width="2"/><line x1="10" y1="14" x2="22" y2="14" stroke="var(--jazer-purple)" stroke-width="2"/><line x1="10" y1="18" x2="18" y2="18" stroke="var(--jazer-purple)" stroke-width="2"/>',
+                contexts: ['text', 'input']
+            },
+            {
+                name: 'Move',
+                id: 'move',
+                svg: '<path d="M16 2 L20 8 L26 6 L22 12 L28 16 L22 20 L26 26 L20 24 L16 30 L12 24 L6 26 L10 20 L4 16 L10 12 L6 6 L12 8 Z" fill="var(--jazer-purple)" stroke="var(--jazer-cyan)" stroke-width="1"/>',
+                contexts: ['move', 'resize']
+            },
+            {
+                name: 'Wait',
+                id: 'wait',
+                svg: '<circle cx="16" cy="16" r="14" fill="none" stroke="var(--jazer-cyan)" stroke-width="2"/><path d="M16 8 L16 16 L22 22" stroke="var(--jazer-purple)" stroke-width="2" stroke-linecap="round"/>',
+                contexts: ['wait', 'loading']
+            },
+            {
+                name: 'Help',
+                id: 'help',
+                svg: '<circle cx="16" cy="16" r="14" fill="none" stroke="var(--jazer-cyan)" stroke-width="2"/><text x="16" y="22" text-anchor="middle" fill="var(--jazer-purple)" font-size="16" font-weight="bold">?</text>',
+                contexts: ['help', 'info']
+            }
+        ];
+
+        // Configuration
+        let config = {
+            currentCursor: 'arrow',
+            cursorSize: 32,
+            trailOpacity: 30,
+            animationSpeed: 200,
+            primaryColor: '#00ffff',
+            secondaryColor: '#ff00ff',
+            contextMode: 'auto',
+            trailEnabled: true
+        };
+
+        // State
+        let mouseX = 0, mouseY = 0;
+        let isMouseDown = false;
+        let currentContext = 'default';
+
+        // Elements
+        const customCursor = document.getElementById('customCursor');
+        const cursorIcon = document.getElementById('cursorIcon');
+        const cursorGrid = document.getElementById('cursorGrid');
+        const currentCursorEl = document.getElementById('currentCursor');
+        const cursorSizeEl = document.getElementById('cursorSize');
+        const trailEnabledEl = document.getElementById('trailEnabled');
+        const contextModeEl = document.getElementById('contextMode');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeCursorGrid();
+            setupEventListeners();
+            updateCursorStyles();
+            updateStats();
+        });
+
+        // Initialize cursor grid
+        function initializeCursorGrid() {
+            cursors.forEach(cursor => {
+                const option = document.createElement('div');
+                option.className = 'cursor-option';
+                option.dataset.cursorId = cursor.id;
+                if (cursor.id === config.currentCursor) {
+                    option.classList.add('active');
+                }
+                
+                option.innerHTML = `
+                    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                        ${cursor.svg}
+                    </svg>
+                    <div class="cursor-option-name">${cursor.name}</div>
+                `;
+                
+                option.addEventListener('click', () => selectCursor(cursor.id));
+                cursorGrid.appendChild(option);
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Mouse events
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mousedown', handleMouseDown);
+            document.addEventListener('mouseup', handleMouseUp);
+            
+            // Context detection
+            document.addEventListener('mouseover', handleMouseOver);
+            
+            // Control inputs
+            document.getElementById('cursorSizeSlider').addEventListener('input', (e) => {
+                config.cursorSize = parseInt(e.target.value);
+                updateCursorStyles();
+                updateStats();
+            });
+            
+            document.getElementById('trailOpacity').addEventListener('input', (e) => {
+                config.trailOpacity = parseInt(e.target.value);
+                updateStats();
+            });
+            
+            document.getElementById('animationSpeed').addEventListener('input', (e) => {
+                config.animationSpeed = parseInt(e.target.value);
+                updateCursorStyles();
+            });
+            
+            document.getElementById('primaryColor').addEventListener('input', (e) => {
+                config.primaryColor = e.target.value;
+                updateCursorStyles();
+            });
+            
+            document.getElementById('secondaryColor').addEventListener('input', (e) => {
+                config.secondaryColor = e.target.value;
+                updateCursorStyles();
+            });
+            
+            document.getElementById('contextModeSelect').addEventListener('change', (e) => {
+                config.contextMode = e.target.value;
+                updateStats();
+            });
+
+            // Action buttons
+            document.getElementById('toggleTrail').addEventListener('click', toggleTrail);
+            document.getElementById('resetSettings').addEventListener('click', resetSettings);
+            document.getElementById('randomizeColors').addEventListener('click', randomizeColors);
+        }
+
+        // Handle mouse movement
+        function handleMouseMove(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            customCursor.style.left = mouseX + 'px';
+            customCursor.style.top = mouseY + 'px';
+            
+            // Create trail
+            if (config.trailEnabled && Math.random() > 0.7) {
+                createTrail(mouseX, mouseY);
+            }
+        }
+
+        // Handle mouse down
+        function handleMouseDown(e) {
+            isMouseDown = true;
+            cursorIcon.classList.add('clicking');
+        }
+
+        // Handle mouse up
+        function handleMouseUp(e) {
+            isMouseDown = false;
+            cursorIcon.classList.remove('clicking');
+        }
+
+        // Handle mouse over for context detection
+        function handleMouseOver(e) {
+            if (config.contextMode === 'manual') return;
+            
+            const element = e.target;
+            let newContext = 'default';
+            
+            // Check for data-cursor attribute
+            if (element.dataset.cursor) {
+                newContext = element.dataset.cursor;
+            }
+            // Check for element types
+            else if (element.tagName === 'BUTTON' || element.tagName === 'A') {
+                newContext = 'pointer';
+            } else if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                newContext = 'text';
+            } else if (element.classList.contains('interactive-card')) {
+                newContext = element.dataset.cursor || 'pointer';
+            }
+            
+            if (newContext !== currentContext) {
+                currentContext = newContext;
+                updateContextCursor();
+            }
+        }
+
+        // Update cursor based on context
+        function updateContextCursor() {
+            if (config.contextMode === 'manual') return;
+            
+            const matchingCursor = cursors.find(cursor => 
+                cursor.contexts.includes(currentContext)
+            );
+            
+            if (matchingCursor && matchingCursor.id !== config.currentCursor) {
+                selectCursor(matchingCursor.id, false);
+            }
+        }
+
+        // Select cursor
+        function selectCursor(cursorId, updateGrid = true) {
+            config.currentCursor = cursorId;
+            const cursor = cursors.find(c => c.id === cursorId);
+            
+            if (cursor) {
+                cursorIcon.innerHTML = cursor.svg;
+                
+                // Update active state in grid
+                if (updateGrid) {
+                    document.querySelectorAll('.cursor-option').forEach(option => {
+                        option.classList.toggle('active', option.dataset.cursorId === cursorId);
+                    });
+                }
+                
+                updateStats();
+            }
+        }
+
+        // Create trail effect
+        function createTrail(x, y) {
+            const trail = document.createElement('div');
+            trail.className = 'cursor-trail';
+            trail.innerHTML = `
+                <svg width="${config.cursorSize}" height="${config.cursorSize}" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                    ${cursors.find(c => c.id === config.currentCursor).svg}
+                </svg>
+            `;
+            trail.style.left = (x - config.cursorSize / 2) + 'px';
+            trail.style.top = (y - config.cursorSize / 2) + 'px';
+            trail.style.opacity = (config.trailOpacity / 100) * 0.3;
+            
+            document.body.appendChild(trail);
+            
+            setTimeout(() => trail.remove(), 500);
+        }
+
+        // Update cursor styles
+        function updateCursorStyles() {
+            cursorIcon.style.width = config.cursorSize + 'px';
+            cursorIcon.style.height = config.cursorSize + 'px';
+            cursorIcon.style.transition = `all ${config.animationSpeed}ms ease`;
+            
+            // Update CSS variables
+            document.documentElement.style.setProperty('--jazer-cyan', config.primaryColor);
+            document.documentElement.style.setProperty('--jazer-purple', config.secondaryColor);
+        }
+
+        // Update stats display
+        function updateStats() {
+            const cursor = cursors.find(c => c.id === config.currentCursor);
+            currentCursorEl.textContent = cursor ? cursor.name : 'Unknown';
+            cursorSizeEl.textContent = config.cursorSize + 'px';
+            trailEnabledEl.textContent = config.trailEnabled ? 'On' : 'Off';
+            contextModeEl.textContent = config.contextMode.charAt(0).toUpperCase() + config.contextMode.slice(1);
+        }
+
+        // Toggle trail
+        function toggleTrail() {
+            config.trailEnabled = !config.trailEnabled;
+            updateStats();
+        }
+
+        // Reset settings
+        function resetSettings() {
+            config = {
+                currentCursor: 'arrow',
+                cursorSize: 32,
+                trailOpacity: 30,
+                animationSpeed: 200,
+                primaryColor: '#00ffff',
+                secondaryColor: '#ff00ff',
+                contextMode: 'auto',
+                trailEnabled: true
+            };
+            
+            // Update UI controls
+            document.getElementById('cursorSizeSlider').value = config.cursorSize;
+            document.getElementById('trailOpacity').value = config.trailOpacity;
+            document.getElementById('animationSpeed').value = config.animationSpeed;
+            document.getElementById('primaryColor').value = config.primaryColor;
+            document.getElementById('secondaryColor').value = config.secondaryColor;
+            document.getElementById('contextModeSelect').value = config.contextMode;
+            
+            selectCursor(config.currentCursor);
+            updateCursorStyles();
+            updateStats();
+        }
+
+        // Randomize colors
+        function randomizeColors() {
+            const randomColor = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            config.primaryColor = randomColor();
+            config.secondaryColor = randomColor();
+            
+            document.getElementById('primaryColor').value = config.primaryColor;
+            document.getElementById('secondaryColor').value = config.secondaryColor;
+            
+            updateCursorStyles();
+        }
+
+        // Hide default cursor on leave
+        document.addEventListener('mouseleave', () => {
+            customCursor.style.display = 'none';
+        });
+
+        document.addEventListener('mouseenter', () => {
+            customCursor.style.display = 'block';
+        });
+    </script>
+</body>
+</html>

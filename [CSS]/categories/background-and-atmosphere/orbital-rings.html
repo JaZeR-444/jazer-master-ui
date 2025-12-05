@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orbital Rings - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="cyan"] { background: var(--jazer-cyan); }
+    .color-btn[data-color="purple"] { background: var(--jazer-purple); }
+    .color-btn[data-color="pink"] { background: var(--jazer-pink); }
+    .color-btn[data-color="rainbow"] { background: conic-gradient(#0ff, #f0f, #ff0, #0ff); }
+    .color-btn[data-color="mono"] { background: #888; }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .orbital-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(ellipse at center, #0a0020 0%, #050510 70%, #000005 100%);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .orbital-system {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    .orbital-core {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--jazer-cyan), var(--jazer-purple));
+      box-shadow: 0 0 60px var(--jazer-cyan), 0 0 100px var(--jazer-purple);
+      animation: pulse-core 3s ease-in-out infinite;
+    }
+    .orbital-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      border-radius: 50%;
+      border: 2px solid;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .orbital-particle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    @keyframes pulse-core {
+      0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+        box-shadow: 0 0 60px var(--jazer-cyan), 0 0 100px var(--jazer-purple);
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.15);
+        box-shadow: 0 0 80px var(--jazer-cyan), 0 0 140px var(--jazer-purple);
+      }
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { left: 1rem; right: 1rem; transform: none; padding: 0.75rem 1rem; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero-keys { gap: 0.5rem; }
+      .controls { top: auto; bottom: 4rem; right: 1rem; left: 1rem; min-width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Orbital Rings</h1>
+    <p>Rotating rings with orbiting particles and glowing core</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Reset</span>
+      <span class="key-hint"><kbd>B</kbd> Burst</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="cyan" title="Cyan"></button>
+      <button class="color-btn" data-color="purple" title="Purple"></button>
+      <button class="color-btn" data-color="pink" title="Pink"></button>
+      <button class="color-btn" data-color="rainbow" title="Rainbow"></button>
+      <button class="color-btn" data-color="mono" title="Monochrome"></button>
+    </div>
+    <div class="slider-group">
+      <label>Ring Count: <span class="slider-value" id="ringValue">5</span></label>
+      <input type="range" id="ringSlider" min="2" max="8" value="5">
+    </div>
+    <div class="slider-group">
+      <label>Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.2" max="3" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Particles: <span class="slider-value" id="particleValue">3</span></label>
+      <input type="range" id="particleSlider" min="1" max="6" value="3">
+    </div>
+  </div>
+
+  <div class="orbital-container">
+    <div class="orbital-system" id="orbitalSystem">
+      <div class="orbital-core" id="orbitalCore"></div>
+    </div>
+  </div>
+
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const system = document.getElementById('orbitalSystem');
+    const core = document.getElementById('orbitalCore');
+    const status = document.getElementById('status');
+
+    let config = {
+      ringCount: 5,
+      speed: 1,
+      particlesPerRing: 3,
+      colorScheme: 'cyan',
+      paused: false
+    };
+
+    const colorSchemes = {
+      cyan: {
+        rings: ['rgba(0, 242, 234, 0.5)', 'rgba(0, 200, 220, 0.4)', 'rgba(0, 180, 200, 0.35)', 'rgba(0, 160, 180, 0.3)', 'rgba(0, 140, 160, 0.25)'],
+        particles: '#00f2ea',
+        core: ['var(--jazer-cyan)', 'var(--jazer-purple)'],
+        glow: 'var(--jazer-cyan)'
+      },
+      purple: {
+        rings: ['rgba(147, 51, 234, 0.5)', 'rgba(130, 50, 200, 0.4)', 'rgba(115, 45, 180, 0.35)', 'rgba(100, 40, 160, 0.3)', 'rgba(85, 35, 140, 0.25)'],
+        particles: '#9333ea',
+        core: ['var(--jazer-purple)', 'var(--jazer-pink)'],
+        glow: 'var(--jazer-purple)'
+      },
+      pink: {
+        rings: ['rgba(255, 0, 110, 0.5)', 'rgba(230, 0, 100, 0.4)', 'rgba(210, 0, 90, 0.35)', 'rgba(190, 0, 80, 0.3)', 'rgba(170, 0, 70, 0.25)'],
+        particles: '#ff006e',
+        core: ['var(--jazer-pink)', 'var(--jazer-cyan)'],
+        glow: 'var(--jazer-pink)'
+      },
+      rainbow: {
+        rings: ['rgba(0, 242, 234, 0.5)', 'rgba(147, 51, 234, 0.45)', 'rgba(255, 0, 110, 0.4)', 'rgba(255, 200, 0, 0.35)', 'rgba(0, 255, 150, 0.3)'],
+        particles: ['#00f2ea', '#9333ea', '#ff006e', '#ffcc00', '#00ff96'],
+        core: ['var(--jazer-cyan)', 'var(--jazer-pink)'],
+        glow: 'var(--jazer-purple)'
+      },
+      mono: {
+        rings: ['rgba(255, 255, 255, 0.4)', 'rgba(220, 220, 220, 0.35)', 'rgba(190, 190, 190, 0.3)', 'rgba(160, 160, 160, 0.25)', 'rgba(130, 130, 130, 0.2)'],
+        particles: '#ffffff',
+        core: ['#ffffff', '#888888'],
+        glow: '#ffffff'
+      }
+    };
+
+    let rings = [];
+    let particles = [];
+    let animationId;
+    let time = 0;
+
+    function createRings() {
+      // Remove old rings and particles
+      document.querySelectorAll('.orbital-ring, .orbital-particle').forEach(el => el.remove());
+      rings = [];
+      particles = [];
+
+      const scheme = colorSchemes[config.colorScheme];
+      const baseSize = Math.min(window.innerWidth, window.innerHeight) * 0.15;
+
+      for (let i = 0; i < config.ringCount; i++) {
+        const ring = document.createElement('div');
+        ring.className = 'orbital-ring';
+        const size = baseSize + (i + 1) * (baseSize * 0.6);
+        const colorIdx = i % scheme.rings.length;
+
+        ring.style.cssText = `
+          width: ${size}px;
+          height: ${size}px;
+          border-color: ${scheme.rings[colorIdx]};
+          box-shadow: 0 0 20px ${scheme.rings[colorIdx]}, inset 0 0 20px ${scheme.rings[colorIdx]};
+        `;
+
+        system.appendChild(ring);
+        rings.push({
+          element: ring,
+          size: size,
+          speed: (0.3 + Math.random() * 0.4) * (i % 2 === 0 ? 1 : -1),
+          angle: Math.random() * 360
+        });
+
+        // Add particles to this ring
+        const particleColor = Array.isArray(scheme.particles) ? scheme.particles[colorIdx % scheme.particles.length] : scheme.particles;
+        for (let j = 0; j < config.particlesPerRing; j++) {
+          const particle = document.createElement('div');
+          particle.className = 'orbital-particle';
+          const particleSize = 8 + Math.random() * 6;
+
+          particle.style.cssText = `
+            width: ${particleSize}px;
+            height: ${particleSize}px;
+            background: ${particleColor};
+            box-shadow: 0 0 ${particleSize * 2}px ${particleColor}, 0 0 ${particleSize * 4}px ${particleColor};
+          `;
+
+          system.appendChild(particle);
+          particles.push({
+            element: particle,
+            ringIndex: i,
+            orbitRadius: size / 2,
+            angle: (360 / config.particlesPerRing) * j + Math.random() * 30,
+            speed: rings[i].speed * (0.8 + Math.random() * 0.4)
+          });
+        }
+      }
+
+      updateCore();
+    }
+
+    function updateCore() {
+      const scheme = colorSchemes[config.colorScheme];
+      core.style.background = `radial-gradient(circle, ${scheme.core[0]}, ${scheme.core[1]})`;
+      core.style.boxShadow = `0 0 60px ${scheme.glow}, 0 0 100px ${scheme.glow}`;
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.016 * config.speed;
+
+        rings.forEach((ring, i) => {
+          ring.angle += ring.speed * config.speed;
+          ring.element.style.transform = `translate(-50%, -50%) rotate(${ring.angle}deg)`;
+        });
+
+        particles.forEach(particle => {
+          particle.angle += particle.speed * config.speed;
+          const rad = particle.angle * Math.PI / 180;
+          const x = Math.cos(rad) * particle.orbitRadius;
+          const y = Math.sin(rad) * particle.orbitRadius;
+          particle.element.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+        });
+      }
+
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function burstEffect() {
+      // Temporarily increase all speeds
+      const originalSpeeds = rings.map(r => r.speed);
+      rings.forEach(r => r.speed *= 5);
+      particles.forEach(p => p.speed *= 5);
+
+      // Flash the core
+      core.style.transform = 'translate(-50%, -50%) scale(1.5)';
+      setTimeout(() => {
+        core.style.transform = 'translate(-50%, -50%) scale(1)';
+        rings.forEach((r, i) => r.speed = originalSpeeds[i]);
+        particles.forEach((p, i) => p.speed = rings[p.ringIndex].speed * (0.8 + Math.random() * 0.4));
+      }, 500);
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+        createRings();
+      });
+    });
+
+    // Sliders
+    document.getElementById('ringSlider').addEventListener('input', e => {
+      config.ringCount = parseInt(e.target.value);
+      document.getElementById('ringValue').textContent = config.ringCount;
+      createRings();
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('particleSlider').addEventListener('input', e => {
+      config.particlesPerRing = parseInt(e.target.value);
+      document.getElementById('particleValue').textContent = config.particlesPerRing;
+      createRings();
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        time = 0;
+        createRings();
+      }
+      if (e.code === 'KeyB') {
+        burstEffect();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['cyan', 'purple', 'pink', 'rainbow', 'mono'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+        createRings();
+      }
+    });
+
+    // Handle resize
+    window.addEventListener('resize', () => {
+      createRings();
+    });
+
+    // Initialize
+    createRings();
+    animate();
+  </script>
+</body>
+</html>

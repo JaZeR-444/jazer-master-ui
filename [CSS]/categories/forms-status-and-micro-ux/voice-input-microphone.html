@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Input Microphone - JaZeR Component Library</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            color: #ffffff;
+        }
+        
+        :root {
+            --jazer-cyan: #00d9ff;
+            --jazer-purple: #b100ff;
+            --danger: #ff3366;
+        }
+        
+        .back-button {
+            align-self: flex-start;
+            padding: 0.75rem 1.5rem;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px var(--jazer-cyan);
+        }
+        
+        .container { max-width: 700px; width: 100%; }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+        
+        .description {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+        
+        .demo-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 217, 255, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .voice-input-wrapper {
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .input-container {
+            position: relative;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            padding-right: 4rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 150px;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+        }
+        
+        textarea.listening {
+            border-color: var(--danger);
+            box-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
+        }
+        
+        .mic-button {
+            position: absolute;
+            right: 1rem;
+            bottom: 1rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 217, 255, 0.5);
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.5rem;
+        }
+        
+        .mic-button:hover {
+            background: rgba(0, 217, 255, 0.2);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.5);
+        }
+        
+        .mic-button.listening {
+            background: var(--danger);
+            border-color: var(--danger);
+            animation: pulse 1.5s ease infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(255, 51, 102, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 20px rgba(255, 51, 102, 0);
+            }
+        }
+        
+        .status-indicator {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.875rem;
+            display: none;
+        }
+        
+        .status-indicator.show {
+            display: block;
+        }
+        
+        .status-indicator.listening {
+            background: rgba(255, 51, 102, 0.2);
+            border: 2px solid var(--danger);
+            color: var(--danger);
+        }
+        
+        .status-indicator.processing {
+            background: rgba(0, 217, 255, 0.2);
+            border: 2px solid var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+        
+        .browser-info {
+            background: rgba(0, 217, 255, 0.1);
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .info-title {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-text {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            h1 { font-size: 2rem; }
+            .demo-card { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+    
+    <div class="container">
+        <h1>Voice Input Microphone</h1>
+        <p class="description">Convert speech to text using Web Speech API</p>
+        
+        <div class="demo-card">
+            <div class="voice-input-wrapper">
+                <label for="voiceInput">Voice-Enabled Text Input</label>
+                <div class="input-container">
+                    <textarea id="voiceInput" placeholder="Click the microphone to start speaking..."></textarea>
+                    <button class="mic-button" id="micButton" title="Click to start voice input">🎤</button>
+                </div>
+                <div class="status-indicator" id="statusIndicator"></div>
+            </div>
+        </div>
+        
+        <div class="demo-card">
+            <div class="voice-input-wrapper">
+                <label for="voiceInput2">Notes</label>
+                <div class="input-container">
+                    <textarea id="voiceInput2" placeholder="Try voice input here too..."></textarea>
+                    <button class="mic-button" id="micButton2" title="Click to start voice input">🎤</button>
+                </div>
+                <div class="status-indicator" id="statusIndicator2"></div>
+            </div>
+        </div>
+        
+        <div class="browser-info">
+            <div class="info-title">ℹ️ Browser Compatibility</div>
+            <div class="info-text">
+                Voice input uses the Web Speech API, which works best in Chrome, Edge, and Safari. 
+                Make sure to allow microphone access when prompted. 
+                <strong id="supportStatus"></strong>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check for Speech Recognition support
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const supportStatus = document.getElementById('supportStatus');
+
+        if (SpeechRecognition) {
+            supportStatus.textContent = '✓ Your browser supports voice input!';
+            supportStatus.style.color = 'var(--success)';
+            
+            // Setup voice input for both textareas
+            setupVoiceInput('voiceInput', 'micButton', 'statusIndicator');
+            setupVoiceInput('voiceInput2', 'micButton2', 'statusIndicator2');
+        } else {
+            supportStatus.textContent = '✗ Voice input is not supported in your browser.';
+            supportStatus.style.color = 'var(--danger)';
+            document.querySelectorAll('.mic-button').forEach(btn => {
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            });
+        }
+
+        function setupVoiceInput(inputId, buttonId, statusId) {
+            if (!SpeechRecognition) return;
+
+            const textarea = document.getElementById(inputId);
+            const micButton = document.getElementById(buttonId);
+            const statusIndicator = document.getElementById(statusId);
+            const recognition = new SpeechRecognition();
+
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            let isListening = false;
+            let finalTranscript = '';
+
+            micButton.addEventListener('click', () => {
+                if (isListening) {
+                    recognition.stop();
+                    isListening = false;
+                    micButton.classList.remove('listening');
+                    textarea.classList.remove('listening');
+                    statusIndicator.classList.remove('show', 'listening');
+                } else {
+                    recognition.start();
+                    isListening = true;
+                    micButton.classList.add('listening');
+                    textarea.classList.add('listening');
+                    statusIndicator.textContent = '🎤 Listening... Click mic to stop';
+                    statusIndicator.className = 'status-indicator show listening';
+                    finalTranscript = textarea.value;
+                }
+            });
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                textarea.value = finalTranscript + interimTranscript;
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                isListening = false;
+                micButton.classList.remove('listening');
+                textarea.classList.remove('listening');
+                
+                let errorMessage = 'Error: ';
+                switch(event.error) {
+                    case 'no-speech':
+                        errorMessage += 'No speech detected';
+                        break;
+                    case 'audio-capture':
+                        errorMessage += 'Microphone not found';
+                        break;
+                    case 'not-allowed':
+                        errorMessage += 'Microphone access denied';
+                        break;
+                    default:
+                        errorMessage += event.error;
+                }
+                
+                statusIndicator.textContent = errorMessage;
+                statusIndicator.className = 'status-indicator show processing';
+                setTimeout(() => {
+                    statusIndicator.classList.remove('show');
+                }, 3000);
+            };
+
+            recognition.onend = () => {
+                if (isListening) {
+                    recognition.start();
+                }
+            };
+        }
+    </script>
+</body>
+</html>

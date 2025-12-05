@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Editor - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 2rem;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid rgba(6, 182, 212, 0.3);
+            background: rgba(6, 182, 212, 0.05);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-family: var(--font-secondary);
+        }
+
+        .back-button:hover {
+            border-color: var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.15);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(147, 51, 234, 0.08) 50%, rgba(236, 72, 153, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr 340px;
+            }
+        }
+
+        .editor-container {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: border-color 0.3s ease;
+        }
+
+        .editor-container:hover {
+            border-color: var(--jazer-cyan);
+        }
+
+        .editor-header {
+            background: rgba(6, 182, 212, 0.1);
+            border-bottom: 2px solid var(--border-default);
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .editor-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .editor-tab {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 8px 8px 0 0;
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .editor-tab::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-gray);
+        }
+
+        .editor-tab.active {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+        }
+
+        .editor-tab.active::before {
+            background: var(--jazer-cyan);
+            box-shadow: 0 0 8px var(--jazer-cyan);
+        }
+
+        .editor-tab:hover:not(.active) {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .editor-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .control-btn {
+            background: rgba(6, 182, 212, 0.1);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-gray);
+            transition: all 0.2s ease;
+            font-size: 1rem;
+        }
+
+        .control-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.2);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+            transform: scale(1.05);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .editor-content {
+            padding: 1.5rem;
+            min-height: 450px;
+            display: flex;
+            gap: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .line-numbers {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-family: 'Courier New', monospace;
+            user-select: none;
+            pointer-events: none;
+            text-align: right;
+            padding-right: 1rem;
+            border-right: 1px solid var(--border-default);
+            line-height: 1.6;
+        }
+
+        .line-numbers span {
+            display: block;
+        }
+
+        .code-textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-light);
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            tab-size: 2;
+        }
+
+        .code-textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .editor-footer {
+            background: rgba(6, 182, 212, 0.1);
+            border-top: 2px solid var(--border-default);
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .editor-status {
+            color: var(--text-gray);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--jazer-cyan);
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--jazer-cyan); }
+            50% { opacity: 0.5; box-shadow: 0 0 8px var(--jazer-cyan); }
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-family: var(--font-secondary);
+        }
+
+        .action-btn.primary {
+            background: var(--gradient-primary);
+            color: var(--text-light);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+        }
+
+        .action-btn.primary:hover {
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .action-btn.secondary {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--jazer-cyan);
+            border: 2px solid var(--border-default);
+        }
+
+        .action-btn.secondary:hover {
+            border-color: var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.2);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+        }
+
+        .control-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        details {
+            margin-bottom: 1rem;
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+        }
+
+        details:hover {
+            border-color: var(--jazer-purple);
+        }
+
+        details[open] {
+            border-color: var(--jazer-cyan);
+        }
+
+        summary {
+            padding: 0.875rem 1rem;
+            cursor: pointer;
+            background: rgba(6, 182, 212, 0.05);
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            transition: all 0.2s ease;
+            user-select: none;
+            font-family: var(--font-secondary);
+        }
+
+        summary:hover {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--jazer-cyan);
+        }
+
+        .details-content {
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .control-group {
+            margin-bottom: 1rem;
+        }
+
+        .control-label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: var(--font-secondary);
+        }
+
+        select, input[type="range"] {
+            width: 100%;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-size: 0.8rem;
+            transition: border-color 0.2s ease;
+            font-family: var(--font-body);
+        }
+
+        select:hover, input[type="range"]:hover {
+            border-color: var(--jazer-cyan);
+        }
+
+        select:focus, input[type="range"]:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.3);
+        }
+
+        input[type="range"] {
+            cursor: pointer;
+        }
+
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .theme-btn {
+            padding: 0.6rem;
+            border: 2px solid var(--border-default);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+        }
+
+        .theme-btn.cyan {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--jazer-cyan);
+        }
+
+        .theme-btn.cyan:hover, .theme-btn.cyan.active {
+            background: rgba(6, 182, 212, 0.2);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+        }
+
+        .theme-btn.purple {
+            background: rgba(147, 51, 234, 0.1);
+            color: var(--jazer-purple);
+        }
+
+        .theme-btn.purple:hover, .theme-btn.purple.active {
+            background: rgba(147, 51, 234, 0.2);
+            border-color: var(--jazer-purple);
+            box-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
+        }
+
+        .theme-btn.pink {
+            background: rgba(236, 72, 153, 0.1);
+            color: var(--jazer-pink);
+        }
+
+        .theme-btn.pink:hover, .theme-btn.pink.active {
+            background: rgba(236, 72, 153, 0.2);
+            border-color: var(--jazer-pink);
+            box-shadow: 0 0 12px rgba(236, 72, 153, 0.3);
+        }
+
+        .theme-btn.yellow {
+            background: rgba(255, 190, 11, 0.1);
+            color: var(--jazer-yellow);
+        }
+
+        .theme-btn.yellow:hover, .theme-btn.yellow.active {
+            background: rgba(255, 190, 11, 0.2);
+            border-color: var(--jazer-yellow);
+            box-shadow: 0 0 12px rgba(255, 190, 11, 0.3);
+        }
+
+        .keyboard-shortcuts {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .shortcut-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--jazer-purple);
+            margin-bottom: 1rem;
+            font-family: var(--font-secondary);
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-default);
+            font-size: 0.75rem;
+        }
+
+        .shortcut-item:last-child {
+            border-bottom: none;
+        }
+
+        .shortcut-key {
+            background: rgba(6, 182, 212, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+
+        .language-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .example-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .example-card:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 8px 24px rgba(6, 182, 212, 0.2);
+            transform: translateY(-4px);
+        }
+
+        .example-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--jazer-purple);
+            margin-bottom: 1rem;
+            font-family: var(--font-secondary);
+        }
+
+        .example-code {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            line-height: 1.6;
+            color: var(--text-gray);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .status-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 2rem;
+        }
+
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        .status-indicator-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        /* Theme variations */
+        .editor-container.theme-purple .editor-header {
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .editor-container.theme-purple .editor-tab.active {
+            color: var(--jazer-purple);
+            border-color: var(--jazer-purple);
+            box-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
+        }
+
+        .editor-container.theme-purple .editor-tab.active::before {
+            background: var(--jazer-purple);
+            box-shadow: 0 0 8px var(--jazer-purple);
+        }
+
+        .editor-container.theme-purple .status-dot {
+            background: var(--jazer-purple);
+            animation: statusPulsePurple 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulsePurple {
+            0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--jazer-purple); }
+            50% { opacity: 0.5; box-shadow: 0 0 8px var(--jazer-purple); }
+        }
+
+        .editor-container.theme-pink .editor-header {
+            background: rgba(236, 72, 153, 0.1);
+        }
+
+        .editor-container.theme-pink .editor-tab.active {
+            color: var(--jazer-pink);
+            border-color: var(--jazer-pink);
+            box-shadow: 0 0 12px rgba(236, 72, 153, 0.3);
+        }
+
+        .editor-container.theme-pink .editor-tab.active::before {
+            background: var(--jazer-pink);
+            box-shadow: 0 0 8px var(--jazer-pink);
+        }
+
+        .editor-container.theme-pink .status-dot {
+            background: var(--jazer-pink);
+            animation: statusPulsePink 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulsePink {
+            0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--jazer-pink); }
+            50% { opacity: 0.5; box-shadow: 0 0 8px var(--jazer-pink); }
+        }
+
+        .editor-container.theme-yellow .editor-header {
+            background: rgba(255, 190, 11, 0.1);
+        }
+
+        .editor-container.theme-yellow .editor-tab.active {
+            color: var(--jazer-yellow);
+            border-color: var(--jazer-yellow);
+            box-shadow: 0 0 12px rgba(255, 190, 11, 0.3);
+        }
+
+        .editor-container.theme-yellow .editor-tab.active::before {
+            background: var(--jazer-yellow);
+            box-shadow: 0 0 8px var(--jazer-yellow);
+        }
+
+        .editor-container.theme-yellow .status-dot {
+            background: var(--jazer-yellow);
+            animation: statusPulseYellow 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulseYellow {
+            0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--jazer-yellow); }
+            50% { opacity: 0.5; box-shadow: 0 0 8px var(--jazer-yellow); }
+        }
+
+        /* Fullscreen mode */
+        .editor-container.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 9999;
+            border-radius: 0;
+            margin: 0;
+        }
+
+        .editor-container.fullscreen .editor-content {
+            min-height: calc(100vh - 160px);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+
+            .editor-tabs {
+                width: 100%;
+            }
+
+            .editor-controls {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .theme-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to DevTools</a>
+
+    <header class="hero">
+        <h1>Code Editor</h1>
+        <p class="hero-description">Professional code editing interface with syntax highlighting, multi-language support, and customizable themes for your development environment</p>
+    </header>
+
+    <div class="main-grid">
+        <div class="editor-container" id="mainEditor">
+            <div class="editor-header">
+                <div class="editor-tabs">
+                    <div class="editor-tab active" data-file="jsx" data-lang="javascript">component.jsx</div>
+                    <div class="editor-tab" data-file="css" data-lang="css">styles.css</div>
+                    <div class="editor-tab" data-file="html" data-lang="html">index.html</div>
+                    <div class="editor-tab" data-file="py" data-lang="python">script.py</div>
+                    <div class="editor-tab" data-file="json" data-lang="json">config.json</div>
+                </div>
+                <div class="editor-controls">
+                    <button class="control-btn" id="formatBtn" title="Format Code">⚡</button>
+                    <button class="control-btn" id="settingsBtn" title="Settings">⚙️</button>
+                    <button class="control-btn" id="fullscreenBtn" title="Fullscreen">⛶</button>
+                </div>
+            </div>
+
+            <div class="editor-content">
+                <div class="line-numbers" id="lineNumbers">
+                    <span>1</span>
+                    <span>2</span>
+                    <span>3</span>
+                    <span>4</span>
+                    <span>5</span>
+                    <span>6</span>
+                    <span>7</span>
+                    <span>8</span>
+                    <span>9</span>
+                    <span>10</span>
+                    <span>11</span>
+                    <span>12</span>
+                    <span>13</span>
+                    <span>14</span>
+                    <span>15</span>
+                    <span>16</span>
+                    <span>17</span>
+                    <span>18</span>
+                    <span>19</span>
+                    <span>20</span>
+                </div>
+                <textarea class="code-textarea" id="codeTextarea" placeholder="// Enter your code here..." spellcheck="false">// React Button Component with Loading State
+import React, { useState } from 'react';
+import './Button.css';
+
+function Button({ children, onClick, variant = 'primary' }) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleClick = async () => {
+    setIsLoading(true);
+    try {
+      await onClick();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <button 
+      className={`btn btn-${variant}`}
+      onClick={handleClick} 
+      disabled={isLoading}
+    >
+      {isLoading ? 'Loading...' : children}
+    </button>
+  );
+}
+
+export default Button;</textarea>
+            </div>
+
+            <div class="editor-footer">
+                <div class="editor-status">
+                    <div class="status-item">
+                        <span class="status-indicator"></span>
+                    </div>
+                    <div class="status-item">
+                        <span>Language:</span>
+                        <span id="languageStatus">JavaScript</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Encoding:</span>
+                        <span>UTF-8</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Lines:</span>
+                        <span id="lineCount">25</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Chars:</span>
+                        <span id="charCount">567</span>
+                    </div>
+                </div>
+                <div class="editor-actions">
+                    <button class="action-btn secondary" id="copyBtn">Copy</button>
+                    <button class="action-btn secondary" id="downloadBtn">Download</button>
+                    <button class="action-btn primary" id="saveBtn">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <aside class="control-panel">
+            <h3 class="panel-title">Editor Settings</h3>
+
+            <details open>
+                <summary>Theme</summary>
+                <div class="details-content">
+                    <div class="theme-grid">
+                        <button class="theme-btn cyan active" data-theme="cyan">Cyan</button>
+                        <button class="theme-btn purple" data-theme="purple">Purple</button>
+                        <button class="theme-btn pink" data-theme="pink">Pink</button>
+                        <button class="theme-btn yellow" data-theme="yellow">Yellow</button>
+                    </div>
+                </div>
+            </details>
+
+            <details open>
+                <summary>Editor Options</summary>
+                <div class="details-content">
+                    <div class="control-group">
+                        <label class="control-label">Font Size</label>
+                        <input type="range" id="fontSizeSlider" min="10" max="24" value="14" step="1">
+                        <small style="color: var(--text-muted); font-size: 0.7rem;">Current: <span id="fontSizeValue">14px</span></small>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Tab Size</label>
+                        <select id="tabSizeSelect">
+                            <option value="2" selected>2 spaces</option>
+                            <option value="4">4 spaces</option>
+                            <option value="8">8 spaces</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Line Height</label>
+                        <input type="range" id="lineHeightSlider" min="1.2" max="2.4" value="1.6" step="0.1">
+                        <small style="color: var(--text-muted); font-size: 0.7rem;">Current: <span id="lineHeightValue">1.6</span></small>
+                    </div>
+                </div>
+            </details>
+
+            <details>
+                <summary>View Options</summary>
+                <div class="details-content">
+                    <div class="control-group">
+                        <label class="control-label">Editor Mode</label>
+                        <select id="editorModeSelect">
+                            <option value="normal" selected>Normal</option>
+                            <option value="vim">Vim Mode</option>
+                            <option value="emacs">Emacs Mode</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Minimap</label>
+                        <select id="minimapSelect">
+                            <option value="show">Show</option>
+                            <option value="hide" selected>Hide</option>
+                        </select>
+                    </div>
+                </div>
+            </details>
+
+            <div class="keyboard-shortcuts">
+                <h4 class="shortcut-title">Keyboard Shortcuts</h4>
+                <div class="shortcut-item">
+                    <span>Format Code</span>
+                    <span class="shortcut-key">Ctrl+Shift+F</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>Save File</span>
+                    <span class="shortcut-key">Ctrl+S</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>Copy All</span>
+                    <span class="shortcut-key">Ctrl+Shift+C</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>Fullscreen</span>
+                    <span class="shortcut-key">F11</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>Settings</span>
+                    <span class="shortcut-key">Ctrl+,</span>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <div class="language-examples">
+        <div class="example-card">
+            <h4 class="example-title">JavaScript/React</h4>
+            <div class="example-code">// React Hook Example
+import { useState, useEffect } from 'react';
+
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+
+  return debouncedValue;
+}</div>
+        </div>
+
+        <div class="example-card">
+            <h4 class="example-title">Python</h4>
+            <div class="example-code"># Data processing function
+def process_data(data):
+    """Process and transform data"""
+    result = []
+    for item in data:
+        if item['active']:
+            processed = {
+                'id': item['id'],
+                'value': item['value'] * 2,
+                'status': 'processed'
+            }
+            result.append(processed)
+    return result</div>
+        </div>
+
+        <div class="example-card">
+            <h4 class="example-title">CSS</h4>
+            <div class="example-code">/* Modern button styling */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: 2px solid var(--primary);
+  background: var(--bg-gradient);
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}</div>
+        </div>
+
+        <div class="example-card">
+            <h4 class="example-title">HTML</h4>
+            <div class="example-code">&lt;!-- Semantic HTML5 structure --&gt;
+&lt;article class="card"&gt;
+  &lt;header class="card-header"&gt;
+    &lt;h2&gt;Article Title&lt;/h2&gt;
+    &lt;time datetime="2024-01-15"&gt;Jan 15, 2024&lt;/time&gt;
+  &lt;/header&gt;
+  &lt;section class="card-content"&gt;
+    &lt;p&gt;Article content goes here...&lt;/p&gt;
+  &lt;/section&gt;
+  &lt;footer class="card-footer"&gt;
+    &lt;button&gt;Read More&lt;/button&gt;
+  &lt;/footer&gt;
+&lt;/article&gt;</div>
+        </div>
+
+        <div class="example-card">
+            <h4 class="example-title">TypeScript</h4>
+            <div class="example-code">// Generic type definition
+interface ApiResponse&lt;T&gt; {
+  data: T;
+  status: number;
+  message: string;
+}
+
+async function fetchData&lt;T&gt;(
+  url: string
+): Promise&lt;ApiResponse&lt;T&gt;&gt; {
+  const response = await fetch(url);
+  const data = await response.json();
+  return {
+    data,
+    status: response.status,
+    message: 'Success'
+  };
+}</div>
+        </div>
+
+        <div class="example-card">
+            <h4 class="example-title">JSON</h4>
+            <div class="example-code">{
+  "name": "my-project",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "vite": "^4.0.0"
+  }
+}</div>
+        </div>
+    </div>
+
+    <footer class="status-bar">
+        <div class="status-info">
+            <div class="status-item">
+                <span>Active File:</span>
+                <span id="activeFileStatus">component.jsx</span>
+            </div>
+            <div class="status-item">
+                <span>Theme:</span>
+                <span id="themeStatus">Cyan</span>
+            </div>
+            <div class="status-item">
+                <span>Font Size:</span>
+                <span id="fontSizeStatus">14px</span>
+            </div>
+            <div class="status-item">
+                <span>Tab Size:</span>
+                <span id="tabSizeStatus">2</span>
+            </div>
+        </div>
+        <div class="status-indicator-group">
+            <span class="status-dot"></span>
+            <span style="font-size: 0.75rem; color: var(--text-gray);">Editor Ready</span>
+        </div>
+    </footer>
+
+    <script>
+        // State management
+        const state = {
+            currentFile: 'jsx',
+            currentTheme: 'cyan',
+            fontSize: 14,
+            tabSize: 2,
+            lineHeight: 1.6,
+            isFullscreen: false
+        };
+
+        // DOM references
+        const editor = document.getElementById('mainEditor');
+        const textarea = document.getElementById('codeTextarea');
+        const lineNumbers = document.getElementById('lineNumbers');
+        const tabs = document.querySelectorAll('.editor-tab');
+        const themeButtons = document.querySelectorAll('.theme-btn');
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const tabSizeSelect = document.getElementById('tabSizeSelect');
+        const lineHeightSlider = document.getElementById('lineHeightSlider');
+        const copyBtn = document.getElementById('copyBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const formatBtn = document.getElementById('formatBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+        // Code examples for different file types
+        const codeExamples = {
+            jsx: `// React Button Component with Loading State
+import React, { useState } from 'react';
+import './Button.css';
+
+function Button({ children, onClick, variant = 'primary' }) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleClick = async () => {
+    setIsLoading(true);
+    try {
+      await onClick();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <button 
+      className={\`btn btn-\${variant}\`}
+      onClick={handleClick} 
+      disabled={isLoading}
+    >
+      {isLoading ? 'Loading...' : children}
+    </button>
+  );
+}
+
+export default Button;`,
+            css: `/* Modern Button Styles */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: var(--font-secondary);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #06b6d4, #9333ea);
+  color: white;
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 6px 20px rgba(6, 182, 212, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}`,
+            html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Web App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="navbar">
+            <div class="logo">MyApp</div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <section class="hero">
+            <h1>Welcome to MyApp</h1>
+            <p>Build amazing things with modern web technologies</p>
+            <button class="cta-button">Get Started</button>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>`,
+            py: `# Flask API Endpoint Example
+from flask import Flask, jsonify, request
+from datetime import datetime
+
+app = Flask(__name__)
+
+# In-memory data store
+tasks = []
+
+@app.route('/api/tasks', methods=['GET'])
+def get_tasks():
+    """Retrieve all tasks"""
+    return jsonify({
+        'tasks': tasks,
+        'count': len(tasks),
+        'timestamp': datetime.now().isoformat()
+    })
+
+@app.route('/api/tasks', methods=['POST'])
+def create_task():
+    """Create a new task"""
+    data = request.get_json()
+    
+    task = {
+        'id': len(tasks) + 1,
+        'title': data.get('title'),
+        'completed': False,
+        'created_at': datetime.now().isoformat()
+    }
+    
+    tasks.append(task)
+    return jsonify(task), 201
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)`,
+            json: `{
+  "name": "modern-web-app",
+  "version": "2.1.0",
+  "description": "A modern web application with React and TypeScript",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.0",
+    "axios": "^1.6.0",
+    "zustand": "^4.4.7"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8",
+    "vitest": "^1.0.4",
+    "eslint": "^8.55.0"
+  }
+}`
+        };
+
+        const languageNames = {
+            jsx: 'JavaScript',
+            css: 'CSS',
+            html: 'HTML',
+            py: 'Python',
+            json: 'JSON'
+        };
+
+        // Tab switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const fileType = tab.dataset.file;
+                state.currentFile = fileType;
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                textarea.value = codeExamples[fileType] || '';
+                updateLineNumbers();
+                updateStatus();
+                
+                document.getElementById('activeFileStatus').textContent = tab.textContent;
+                document.getElementById('languageStatus').textContent = languageNames[fileType];
+            });
+        });
+
+        // Theme switching
+        themeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const theme = btn.dataset.theme;
+                state.currentTheme = theme;
+                
+                themeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                editor.className = 'editor-container theme-' + theme;
+                document.getElementById('themeStatus').textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+            });
+        });
+
+        // Font size control
+        fontSizeSlider.addEventListener('input', (e) => {
+            state.fontSize = parseInt(e.target.value);
+            textarea.style.fontSize = state.fontSize + 'px';
+            lineNumbers.style.fontSize = state.fontSize + 'px';
+            document.getElementById('fontSizeValue').textContent = state.fontSize + 'px';
+            document.getElementById('fontSizeStatus').textContent = state.fontSize + 'px';
+        });
+
+        // Tab size control
+        tabSizeSelect.addEventListener('change', (e) => {
+            state.tabSize = parseInt(e.target.value);
+            textarea.style.tabSize = state.tabSize;
+            document.getElementById('tabSizeStatus').textContent = state.tabSize;
+        });
+
+        // Line height control
+        lineHeightSlider.addEventListener('input', (e) => {
+            state.lineHeight = parseFloat(e.target.value);
+            textarea.style.lineHeight = state.lineHeight;
+            lineNumbers.style.lineHeight = state.lineHeight;
+            document.getElementById('lineHeightValue').textContent = state.lineHeight;
+        });
+
+        // Line numbers update
+        function updateLineNumbers() {
+            const lines = textarea.value.split('\n').length;
+            const numbers = [];
+            for (let i = 1; i <= lines; i++) {
+                numbers.push(`<span>${i}</span>`);
+            }
+            lineNumbers.innerHTML = numbers.join('');
+        }
+
+        // Status update
+        function updateStatus() {
+            const lines = textarea.value.split('\n').length;
+            const chars = textarea.value.length;
+            document.getElementById('lineCount').textContent = lines;
+            document.getElementById('charCount').textContent = chars;
+        }
+
+        textarea.addEventListener('input', () => {
+            updateLineNumbers();
+            updateStatus();
+        });
+
+        // Copy functionality
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(textarea.value);
+                copyBtn.textContent = 'Copied!';
+                copyBtn.style.background = 'rgba(34, 197, 94, 0.2)';
+                copyBtn.style.borderColor = '#22c55e';
+                copyBtn.style.color = '#22c55e';
+                
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy';
+                    copyBtn.style.background = '';
+                    copyBtn.style.borderColor = '';
+                    copyBtn.style.color = '';
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy:', err);
+            }
+        });
+
+        // Download functionality
+        downloadBtn.addEventListener('click', () => {
+            const content = textarea.value;
+            const fileExtensions = {
+                jsx: '.jsx',
+                css: '.css',
+                html: '.html',
+                py: '.py',
+                json: '.json'
+            };
+            
+            const filename = 'code' + fileExtensions[state.currentFile];
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            downloadBtn.textContent = 'Downloaded!';
+            setTimeout(() => {
+                downloadBtn.textContent = 'Download';
+            }, 2000);
+        });
+
+        // Save functionality (simulation)
+        saveBtn.addEventListener('click', () => {
+            saveBtn.textContent = 'Saved!';
+            saveBtn.style.opacity = '0.8';
+            
+            setTimeout(() => {
+                saveBtn.textContent = 'Save';
+                saveBtn.style.opacity = '1';
+            }, 1500);
+        });
+
+        // Format code (simulation)
+        formatBtn.addEventListener('click', () => {
+            const tooltip = document.createElement('div');
+            tooltip.textContent = 'Code formatted!';
+            tooltip.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(6, 182, 212, 0.9);
+                color: white;
+                padding: 1rem 2rem;
+                border-radius: 8px;
+                font-weight: 600;
+                z-index: 10000;
+                animation: fadeInOut 2s ease;
+            `;
+            document.body.appendChild(tooltip);
+            
+            setTimeout(() => {
+                document.body.removeChild(tooltip);
+            }, 2000);
+        });
+
+        // Fullscreen toggle
+        fullscreenBtn.addEventListener('click', () => {
+            state.isFullscreen = !state.isFullscreen;
+            editor.classList.toggle('fullscreen');
+            fullscreenBtn.textContent = state.isFullscreen ? '✕' : '⛶';
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+S - Save
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveBtn.click();
+            }
+            
+            // Ctrl+Shift+F - Format
+            if (e.ctrlKey && e.shiftKey && e.key === 'F') {
+                e.preventDefault();
+                formatBtn.click();
+            }
+            
+            // Ctrl+Shift+C - Copy
+            if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                e.preventDefault();
+                copyBtn.click();
+            }
+            
+            // F11 - Fullscreen
+            if (e.key === 'F11') {
+                e.preventDefault();
+                fullscreenBtn.click();
+            }
+        });
+
+        // Initialize
+        updateLineNumbers();
+        updateStatus();
+    </script>
+</body>
+</html>

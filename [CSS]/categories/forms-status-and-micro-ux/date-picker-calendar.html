@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Date Picker Calendar - Forms, Status & Micro UX - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%); min-height: 100vh; padding: 2rem; color: #ffffff; }
+        .back-button { display: inline-block; margin-bottom: 2rem; padding: 0.75rem 1.5rem; background: transparent; color: var(--jazer-cyan); text-decoration: none; border: 2px solid var(--jazer-cyan); border-radius: 8px; font-weight: 600; transition: all 0.3s ease; }
+        .back-button:hover { background: var(--jazer-cyan); color: #0a0a0a; transform: translateX(-5px); box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); }
+        .container { max-width: 500px; margin: 0 auto; }
+        h1 { font-family: var(--font-primary); font-size: 2.5rem; margin-bottom: 1rem; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .description { color: #a0a0a0; margin-bottom: 2rem; line-height: 1.6; }
+        .demo-card { background: rgba(10, 10, 10, 0.8); border: 2px solid var(--jazer-cyan); border-radius: 20px; padding: 2rem; backdrop-filter: blur(10px); }
+        .date-input-wrapper { margin-bottom: 1.5rem; }
+        .date-label { display: block; font-weight: 600; color: var(--jazer-cyan); margin-bottom: 0.5rem; }
+        .date-input { width: 100%; padding: 1rem; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(0, 255, 255, 0.3); border-radius: 12px; color: #ffffff; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; }
+        .date-input:focus { outline: none; border-color: var(--jazer-cyan); box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); }
+        .calendar { background: rgba(10, 10, 10, 0.95); border: 2px solid var(--jazer-cyan); border-radius: 12px; padding: 1rem; margin-top: 0.5rem; }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .calendar-title { font-size: 1.1rem; font-weight: 600; color: var(--jazer-cyan); }
+        .nav-button { background: rgba(0, 255, 255, 0.1); border: 1px solid var(--jazer-cyan); color: var(--jazer-cyan); width: 36px; height: 36px; border-radius: 8px; cursor: pointer; font-size: 1.2rem; transition: all 0.3s ease; }
+        .nav-button:hover { background: var(--jazer-cyan); color: #0a0a0a; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; }
+        .weekday { text-align: center; font-size: 0.75rem; color: #808080; padding: 0.5rem; font-weight: 600; }
+        .calendar-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s ease; border: 1px solid transparent; }
+        .calendar-day:hover { background: rgba(0, 255, 255, 0.1); border-color: rgba(0, 255, 255, 0.3); }
+        .calendar-day.other-month { color: #555; }
+        .calendar-day.today { border-color: var(--jazer-purple); background: rgba(138, 43, 226, 0.1); }
+        .calendar-day.selected { background: var(--jazer-cyan); color: #0a0a0a; font-weight: bold; box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
+        .calendar-day.disabled { opacity: 0.3; cursor: not-allowed; }
+        @media (max-width: 768px) { h1 { font-size: 2rem; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-button">← Back</a>
+        <h1>Date Picker Calendar</h1>
+        <p class="description">Interactive calendar for date selection with month/year navigation and today highlighting.</p>
+        <div class="demo-card">
+            <div class="date-input-wrapper">
+                <label class="date-label">Select Date</label>
+                <input type="text" class="date-input" id="dateInput" placeholder="Click to select date" readonly>
+            </div>
+            <div class="calendar">
+                <div class="calendar-header">
+                    <button class="nav-button" id="prevMonth">‹</button>
+                    <div class="calendar-title" id="calendarTitle"></div>
+                    <button class="nav-button" id="nextMonth">›</button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const dateInput = document.getElementById('dateInput');
+        const calendarTitle = document.getElementById('calendarTitle');
+        const calendarGrid = document.getElementById('calendarGrid');
+        const prevMonth = document.getElementById('prevMonth');
+        const nextMonth = document.getElementById('nextMonth');
+        
+        let currentDate = new Date();
+        let selectedDate = null;
+        const today = new Date();
+        
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            calendarTitle.textContent = `${monthNames[month]} ${year}`;
+            calendarGrid.innerHTML = '';
+            
+            weekdays.forEach(day => {
+                const weekdayEl = document.createElement('div');
+                weekdayEl.className = 'weekday';
+                weekdayEl.textContent = day;
+                calendarGrid.appendChild(weekdayEl);
+            });
+            
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+            
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const day = daysInPrevMonth - i;
+                createDay(day, 'other-month');
+            }
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const isToday = date.toDateString() === today.toDateString();
+                const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
+                createDay(day, isToday ? 'today' : '', isSelected, date);
+            }
+            
+            const totalCells = firstDay + daysInMonth;
+            const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+            for (let day = 1; day <= remainingCells; day++) {
+                createDay(day, 'other-month');
+            }
+        }
+        
+        function createDay(day, className = '', isSelected = false, date = null) {
+            const dayEl = document.createElement('div');
+            dayEl.className = `calendar-day ${className} ${isSelected ? 'selected' : ''}`;
+            dayEl.textContent = day;
+            if (date) {
+                dayEl.addEventListener('click', () => selectDate(date));
+            }
+            calendarGrid.appendChild(dayEl);
+        }
+        
+        function selectDate(date) {
+            selectedDate = date;
+            dateInput.value = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            renderCalendar();
+        }
+        
+        prevMonth.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+        
+        nextMonth.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+        
+        renderCalendar();
+    </script>
+</body>
+</html>

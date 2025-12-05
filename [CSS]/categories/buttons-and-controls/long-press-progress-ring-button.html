@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Long-Press Progress Ring Button - JaZeR</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a0b2e 100%);
+      color: var(--jazer-cyan);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .back-button {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      color: var(--jazer-cyan);
+      text-decoration: none;
+      font-size: 1.2rem;
+      z-index: 1000;
+      padding: 10px 20px;
+      border: 2px solid var(--jazer-cyan);
+      border-radius: 8px;
+      background: rgba(0, 242, 234, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .back-button:hover {
+      background: rgba(0, 242, 234, 0.2);
+      transform: translateX(-5px);
+    }
+
+    .info {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .info h1 {
+      font-family: var(--font-primary);
+      font-size: 2.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    .info p {
+      color: var(--jazer-purple);
+      font-size: 1.1rem;
+    }
+
+    .demo-container {
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .press-button {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(0, 242, 234, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+
+    .press-button:hover {
+      transform: scale(1.05);
+    }
+
+    .press-button:active {
+      transform: scale(0.95);
+    }
+
+    .press-button.pressing {
+      transform: scale(0.92);
+    }
+
+    .press-button.success {
+      animation: successFlash 0.6s ease-out;
+    }
+
+    @keyframes successFlash {
+      0%, 100% {
+        background: linear-gradient(135deg, rgba(0, 242, 234, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
+      }
+      50% {
+        background: linear-gradient(135deg, rgba(0, 255, 136, 0.3) 0%, rgba(0, 242, 234, 0.3) 100%);
+      }
+    }
+
+    .button-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+    }
+
+    .button-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .button-text {
+      font-family: var(--font-secondary);
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--jazer-cyan);
+    }
+
+    .progress-ring {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .progress-ring-circle {
+      stroke: var(--jazer-cyan);
+      stroke-width: 4;
+      fill: transparent;
+      stroke-dasharray: 534;
+      stroke-dashoffset: 534;
+      transition: stroke-dashoffset 0.1s linear;
+      filter: drop-shadow(0 0 8px var(--jazer-cyan));
+    }
+
+    .press-button.pressing .progress-ring-circle {
+      stroke: var(--jazer-purple);
+      filter: drop-shadow(0 0 12px var(--jazer-purple));
+    }
+
+    .press-button.success .progress-ring-circle {
+      stroke: #00ff88;
+      stroke-dashoffset: 0;
+      filter: drop-shadow(0 0 15px #00ff88);
+    }
+
+    /* Variations */
+    .press-button.variant-small {
+      width: 120px;
+      height: 120px;
+    }
+
+    .press-button.variant-small .button-icon {
+      font-size: 1.5rem;
+    }
+
+    .press-button.variant-small .button-text {
+      font-size: 0.7rem;
+    }
+
+    .press-button.variant-large {
+      width: 220px;
+      height: 220px;
+    }
+
+    .press-button.variant-large .button-icon {
+      font-size: 2.5rem;
+    }
+
+    .press-button.variant-large .button-text {
+      font-size: 1rem;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .status-message {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 15px 30px;
+      background: rgba(0, 255, 136, 0.2);
+      border: 2px solid #00ff88;
+      border-radius: 8px;
+      color: #00ff88;
+      font-family: var(--font-secondary);
+      font-weight: 700;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .status-message.show {
+      opacity: 1;
+    }
+
+    @media (max-width: 768px) {
+      .info h1 {
+        font-size: 1.8rem;
+      }
+
+      .info p {
+        font-size: 0.9rem;
+      }
+
+      .press-button {
+        width: 160px;
+        height: 160px;
+      }
+
+      .button-group {
+        flex-direction: column;
+        gap: 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to Gallery</a>
+  
+  <div class="info">
+    <h1>Long-Press Progress Ring Button</h1>
+    <p>Hold the button to fill the progress ring and confirm action</p>
+  </div>
+
+  <div class="demo-container">
+    <div class="button-group">
+      <button class="press-button" data-duration="2000">
+        <svg class="progress-ring" width="180" height="180">
+          <circle class="progress-ring-circle" cx="90" cy="90" r="85"></circle>
+        </svg>
+        <div class="button-content">
+          <span class="button-icon">🚀</span>
+          <span class="button-text">Hold to Launch</span>
+        </div>
+      </button>
+
+      <button class="press-button variant-small" data-duration="1500">
+        <svg class="progress-ring" width="120" height="120">
+          <circle class="progress-ring-circle" cx="60" cy="60" r="55"></circle>
+        </svg>
+        <div class="button-content">
+          <span class="button-icon">✓</span>
+          <span class="button-text">Confirm</span>
+        </div>
+      </button>
+
+      <button class="press-button variant-large" data-duration="3000">
+        <svg class="progress-ring" width="220" height="220">
+          <circle class="progress-ring-circle" cx="110" cy="110" r="105"></circle>
+        </svg>
+        <div class="button-content">
+          <span class="button-icon">💥</span>
+          <span class="button-text">Delete</span>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <div class="status-message" id="statusMessage">Action Confirmed!</div>
+
+  <script>
+    class LongPressButton {
+      constructor(button) {
+        this.button = button;
+        this.circle = button.querySelector('.progress-ring-circle');
+        this.duration = parseInt(button.dataset.duration) || 2000;
+        this.pressing = false;
+        this.startTime = 0;
+        this.animationFrame = null;
+        
+        // Calculate circle circumference
+        const radius = parseFloat(this.circle.getAttribute('r'));
+        this.circumference = 2 * Math.PI * radius;
+        
+        this.circle.style.strokeDasharray = `${this.circumference} ${this.circumference}`;
+        this.circle.style.strokeDashoffset = this.circumference;
+        
+        this.setupEventListeners();
+      }
+
+      setupEventListeners() {
+        // Mouse events
+        this.button.addEventListener('mousedown', () => this.startPress());
+        this.button.addEventListener('mouseup', () => this.endPress());
+        this.button.addEventListener('mouseleave', () => this.endPress());
+        
+        // Touch events
+        this.button.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          this.startPress();
+        });
+        this.button.addEventListener('touchend', (e) => {
+          e.preventDefault();
+          this.endPress();
+        });
+        this.button.addEventListener('touchcancel', () => this.endPress());
+      }
+
+      startPress() {
+        this.pressing = true;
+        this.startTime = Date.now();
+        this.button.classList.add('pressing');
+        this.animate();
+      }
+
+      endPress() {
+        if (!this.pressing) return;
+        
+        this.pressing = false;
+        this.button.classList.remove('pressing');
+        
+        if (this.animationFrame) {
+          cancelAnimationFrame(this.animationFrame);
+        }
+        
+        // Reset progress
+        this.circle.style.strokeDashoffset = this.circumference;
+      }
+
+      animate() {
+        if (!this.pressing) return;
+        
+        const elapsed = Date.now() - this.startTime;
+        const progress = Math.min(elapsed / this.duration, 1);
+        
+        const offset = this.circumference - (progress * this.circumference);
+        this.circle.style.strokeDashoffset = offset;
+        
+        if (progress >= 1) {
+          this.onComplete();
+        } else {
+          this.animationFrame = requestAnimationFrame(() => this.animate());
+        }
+      }
+
+      onComplete() {
+        this.pressing = false;
+        this.button.classList.remove('pressing');
+        this.button.classList.add('success');
+        
+        // Show status message
+        const message = document.getElementById('statusMessage');
+        message.classList.add('show');
+        
+        setTimeout(() => {
+          this.button.classList.remove('success');
+          this.circle.style.strokeDashoffset = this.circumference;
+          message.classList.remove('show');
+        }, 1500);
+      }
+    }
+
+    // Initialize all buttons
+    document.querySelectorAll('.press-button').forEach(button => {
+      new LongPressButton(button);
+    });
+  </script>
+</body>
+</html>

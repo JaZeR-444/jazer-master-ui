@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rank Tier Change Morph</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 0.5rem;
+            font-family: var(--font-primary);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .back-button {
+            display: inline-block;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 2px solid var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.1);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--bg-dark);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(6, 182, 212, 0.1));
+            border: 2px solid var(--jazer-purple);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-group label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 2px solid var(--jazer-purple);
+            background: rgba(0, 0, 0, 0.4);
+            color: var(--text-light);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-group select:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+
+        .control-group select:focus {
+            outline: none;
+            border-color: var(--jazer-pink);
+        }
+
+        /* Demo Area */
+        .demo-area {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(147, 51, 234, 0.1));
+            border: 2px solid var(--jazer-pink);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Morph Container */
+        .morph-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            perspective: 1000px;
+        }
+
+        /* Rank Emblem */
+        .rank-emblem {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .emblem-shape {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Rank Shapes */
+        .emblem-shape[data-shape="circle"] {
+            border-radius: 50%;
+        }
+
+        .emblem-shape[data-shape="hexagon"] {
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+
+        .emblem-shape[data-shape="shield"] {
+            clip-path: polygon(50% 0%, 100% 10%, 100% 60%, 50% 100%, 0% 60%, 0% 10%);
+        }
+
+        .emblem-shape[data-shape="diamond"] {
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            transform: scale(1.2);
+        }
+
+        .emblem-shape[data-shape="star"] {
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            transform: scale(1.3);
+        }
+
+        .emblem-shape[data-shape="octagon"] {
+            clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+        }
+
+        /* Tier Styles */
+        .rank-emblem[data-tier="iron"] .emblem-shape {
+            background: linear-gradient(135deg, #5a5a5a, #2d2d2d);
+            box-shadow: 0 0 30px rgba(90, 90, 90, 0.5),
+                        inset 0 0 40px rgba(0, 0, 0, 0.5);
+            --tier-color: #5a5a5a;
+            --tier-glow: rgba(90, 90, 90, 0.6);
+        }
+
+        .rank-emblem[data-tier="bronze"] .emblem-shape {
+            background: linear-gradient(135deg, #cd7f32, #8b4513);
+            box-shadow: 0 0 30px rgba(205, 127, 50, 0.5),
+                        inset 0 0 40px rgba(0, 0, 0, 0.4);
+            --tier-color: #cd7f32;
+            --tier-glow: rgba(205, 127, 50, 0.6);
+        }
+
+        .rank-emblem[data-tier="silver"] .emblem-shape {
+            background: linear-gradient(135deg, #e0e0e0, #a0a0a0);
+            box-shadow: 0 0 30px rgba(192, 192, 192, 0.5),
+                        inset 0 0 40px rgba(0, 0, 0, 0.3);
+            --tier-color: #c0c0c0;
+            --tier-glow: rgba(192, 192, 192, 0.6);
+        }
+
+        .rank-emblem[data-tier="gold"] .emblem-shape {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5),
+                        inset 0 0 40px rgba(0, 0, 0, 0.3);
+            --tier-color: #ffd700;
+            --tier-glow: rgba(255, 215, 0, 0.6);
+        }
+
+        .rank-emblem[data-tier="platinum"] .emblem-shape {
+            background: linear-gradient(135deg, #a0d2db, #6ba3b0);
+            box-shadow: 0 0 30px rgba(160, 210, 219, 0.5),
+                        inset 0 0 40px rgba(0, 0, 0, 0.3);
+            --tier-color: #a0d2db;
+            --tier-glow: rgba(160, 210, 219, 0.6);
+        }
+
+        .rank-emblem[data-tier="diamond"] .emblem-shape {
+            background: linear-gradient(135deg, #b9f2ff, #00f2ea);
+            box-shadow: 0 0 40px rgba(0, 242, 234, 0.6),
+                        inset 0 0 40px rgba(255, 255, 255, 0.2);
+            --tier-color: #00f2ea;
+            --tier-glow: rgba(0, 242, 234, 0.7);
+        }
+
+        .rank-emblem[data-tier="master"] .emblem-shape {
+            background: linear-gradient(135deg, #9333ea, #6b21a8);
+            box-shadow: 0 0 40px rgba(147, 51, 234, 0.6),
+                        inset 0 0 40px rgba(255, 255, 255, 0.1);
+            --tier-color: #9333ea;
+            --tier-glow: rgba(147, 51, 234, 0.7);
+        }
+
+        .rank-emblem[data-tier="grandmaster"] .emblem-shape {
+            background: linear-gradient(135deg, #ff006e, #be185d);
+            box-shadow: 0 0 50px rgba(255, 0, 110, 0.7),
+                        inset 0 0 40px rgba(255, 255, 255, 0.15);
+            --tier-color: #ff006e;
+            --tier-glow: rgba(255, 0, 110, 0.8);
+        }
+
+        /* Emblem Content */
+        .emblem-icon {
+            font-size: 4rem;
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
+            transition: all 0.5s ease;
+        }
+
+        .emblem-name {
+            font-family: var(--font-primary);
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 0.5rem;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            color: white;
+        }
+
+        .emblem-division {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            letter-spacing: 4px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Outer Ring */
+        .outer-ring {
+            position: absolute;
+            width: 240px;
+            height: 240px;
+            border: 4px solid var(--tier-color, #00f2ea);
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: ringPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes ringPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        /* Particles */
+        .morph-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .morph-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--tier-color, #00f2ea);
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        /* Trigger Button */
+        .trigger-btn {
+            margin-top: 2rem;
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 25px rgba(6, 182, 212, 0.4);
+        }
+
+        .trigger-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(6, 182, 212, 0.6);
+        }
+
+        .trigger-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Info Panel */
+        .info-panel {
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.1), rgba(147, 51, 234, 0.1));
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--jazer-pink);
+        }
+
+        /* Transition Indicator */
+        .transition-indicator {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding: 1rem 2rem;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tier-preview {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .tier-preview.from {
+            background: linear-gradient(135deg, var(--from-color, #ffd700), var(--from-color-dark, #ff8c00));
+        }
+
+        .tier-preview.to {
+            background: linear-gradient(135deg, var(--to-color, #a0d2db), var(--to-color-dark, #6ba3b0));
+        }
+
+        .transition-arrow {
+            font-size: 1.5rem;
+            color: var(--jazer-cyan);
+            animation: arrowPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes arrowPulse {
+            0%, 100% { transform: translateX(0); opacity: 0.5; }
+            50% { transform: translateX(5px); opacity: 1; }
+        }
+
+        /* Morph Animations */
+        .rank-emblem.morphing {
+            animation: emblemMorph 1s ease-in-out;
+        }
+
+        @keyframes emblemMorph {
+            0% { transform: scale(1) rotateY(0); }
+            25% { transform: scale(0.8) rotateY(90deg); }
+            50% { transform: scale(0.6) rotateY(180deg); }
+            75% { transform: scale(0.8) rotateY(270deg); }
+            100% { transform: scale(1) rotateY(360deg); }
+        }
+
+        .rank-emblem.dissolve {
+            animation: emblemDissolve 1.2s ease-in-out;
+        }
+
+        @keyframes emblemDissolve {
+            0% { filter: blur(0); opacity: 1; transform: scale(1); }
+            40% { filter: blur(20px); opacity: 0.3; transform: scale(0.7); }
+            60% { filter: blur(20px); opacity: 0.3; transform: scale(0.7); }
+            100% { filter: blur(0); opacity: 1; transform: scale(1); }
+        }
+
+        .rank-emblem.shatter {
+            animation: emblemShatter 1s ease-in-out;
+        }
+
+        @keyframes emblemShatter {
+            0% { transform: scale(1); filter: brightness(1); }
+            20% { transform: scale(1.2); filter: brightness(2); }
+            40% { transform: scale(0); filter: brightness(3); }
+            60% { transform: scale(0); filter: brightness(3); }
+            80% { transform: scale(1.1); filter: brightness(1.5); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+
+        .rank-emblem.flip {
+            animation: emblemFlip 1s ease-in-out;
+        }
+
+        @keyframes emblemFlip {
+            0% { transform: rotateX(0) scale(1); }
+            50% { transform: rotateX(90deg) scale(0.8); }
+            100% { transform: rotateX(0) scale(1); }
+        }
+
+        /* Showcase */
+        .showcase {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .showcase h3 {
+            text-align: center;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .tier-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 1rem;
+        }
+
+        .tier-card {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .tier-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--jazer-cyan);
+        }
+
+        .tier-card.active {
+            border-color: var(--jazer-pink);
+            box-shadow: 0 0 20px rgba(255, 0, 110, 0.3);
+        }
+
+        .tier-card-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 0.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .tier-card[data-tier="iron"] .tier-card-icon {
+            background: linear-gradient(135deg, #5a5a5a, #2d2d2d);
+        }
+        .tier-card[data-tier="bronze"] .tier-card-icon {
+            background: linear-gradient(135deg, #cd7f32, #8b4513);
+        }
+        .tier-card[data-tier="silver"] .tier-card-icon {
+            background: linear-gradient(135deg, #e0e0e0, #a0a0a0);
+        }
+        .tier-card[data-tier="gold"] .tier-card-icon {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+        }
+        .tier-card[data-tier="platinum"] .tier-card-icon {
+            background: linear-gradient(135deg, #a0d2db, #6ba3b0);
+        }
+        .tier-card[data-tier="diamond"] .tier-card-icon {
+            background: linear-gradient(135deg, #b9f2ff, #00f2ea);
+        }
+        .tier-card[data-tier="master"] .tier-card-icon {
+            background: linear-gradient(135deg, #9333ea, #6b21a8);
+        }
+        .tier-card[data-tier="grandmaster"] .tier-card-icon {
+            background: linear-gradient(135deg, #ff006e, #be185d);
+        }
+
+        .tier-card-name {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .control-panel { grid-template-columns: 1fr; }
+            .morph-container { width: 220px; height: 220px; }
+            .emblem-shape { width: 160px; height: 160px; }
+            .outer-ring { width: 190px; height: 190px; }
+            .emblem-icon { font-size: 3rem; }
+            .emblem-name { font-size: 1rem; }
+            .transition-indicator { flex-wrap: wrap; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+
+    <div class="header">
+        <h1>Rank Tier Change Morph</h1>
+        <p class="subtitle">Smooth morphing transitions between competitive rank tiers</p>
+    </div>
+
+    <div class="control-panel">
+        <div class="control-group">
+            <label>From Tier</label>
+            <select id="fromTier">
+                <option value="iron">Iron</option>
+                <option value="bronze">Bronze</option>
+                <option value="silver">Silver</option>
+                <option value="gold" selected>Gold</option>
+                <option value="platinum">Platinum</option>
+                <option value="diamond">Diamond</option>
+                <option value="master">Master</option>
+                <option value="grandmaster">Grandmaster</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>To Tier</label>
+            <select id="toTier">
+                <option value="iron">Iron</option>
+                <option value="bronze">Bronze</option>
+                <option value="silver">Silver</option>
+                <option value="gold">Gold</option>
+                <option value="platinum" selected>Platinum</option>
+                <option value="diamond">Diamond</option>
+                <option value="master">Master</option>
+                <option value="grandmaster">Grandmaster</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Morph Style</label>
+            <select id="morphStyle">
+                <option value="morph" selected>3D Morph</option>
+                <option value="dissolve">Dissolve</option>
+                <option value="shatter">Shatter</option>
+                <option value="flip">Flip</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Shape Style</label>
+            <select id="shapeStyle">
+                <option value="circle">Circle</option>
+                <option value="hexagon" selected>Hexagon</option>
+                <option value="shield">Shield</option>
+                <option value="diamond">Diamond</option>
+                <option value="star">Star</option>
+                <option value="octagon">Octagon</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <div class="info-item">
+            <div class="info-label">Current Tier</div>
+            <div class="info-value" id="currentTierDisplay">Gold</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Target Tier</div>
+            <div class="info-value" id="targetTierDisplay">Platinum</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Transitions</div>
+            <div class="info-value" id="transitionCount">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Direction</div>
+            <div class="info-value" id="directionDisplay">Promote</div>
+        </div>
+    </div>
+
+    <div class="demo-area">
+        <div class="morph-container">
+            <div class="morph-particles" id="morphParticles"></div>
+            <div class="outer-ring"></div>
+            <div class="rank-emblem" id="rankEmblem" data-tier="gold">
+                <div class="emblem-shape" data-shape="hexagon">
+                    <div class="emblem-icon">&#9733;</div>
+                    <div class="emblem-name" id="emblemName">Gold</div>
+                    <div class="emblem-division" id="emblemDivision">Division I</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="transition-indicator">
+            <div class="tier-preview from" id="fromPreview">&#9733;</div>
+            <div class="transition-arrow">&#10140;</div>
+            <div class="tier-preview to" id="toPreview">&#9733;</div>
+        </div>
+
+        <button class="trigger-btn" id="triggerBtn">Morph Rank</button>
+    </div>
+
+    <div class="showcase">
+        <h3>All Rank Tiers</h3>
+        <div class="tier-grid">
+            <div class="tier-card" data-tier="iron" onclick="selectTier('iron')">
+                <div class="tier-card-icon">&#9733;</div>
+                <div class="tier-card-name">Iron</div>
+            </div>
+            <div class="tier-card" data-tier="bronze" onclick="selectTier('bronze')">
+                <div class="tier-card-icon">&#9733;</div>
+                <div class="tier-card-name">Bronze</div>
+            </div>
+            <div class="tier-card" data-tier="silver" onclick="selectTier('silver')">
+                <div class="tier-card-icon">&#9733;</div>
+                <div class="tier-card-name">Silver</div>
+            </div>
+            <div class="tier-card active" data-tier="gold" onclick="selectTier('gold')">
+                <div class="tier-card-icon">&#9733;</div>
+                <div class="tier-card-name">Gold</div>
+            </div>
+            <div class="tier-card" data-tier="platinum" onclick="selectTier('platinum')">
+                <div class="tier-card-icon">&#9733;</div>
+                <div class="tier-card-name">Platinum</div>
+            </div>
+            <div class="tier-card" data-tier="diamond" onclick="selectTier('diamond')">
+                <div class="tier-card-icon">&#9733;</div>
+                <div class="tier-card-name">Diamond</div>
+            </div>
+            <div class="tier-card" data-tier="master" onclick="selectTier('master')">
+                <div class="tier-card-icon">&#9733;</div>
+                <div class="tier-card-name">Master</div>
+            </div>
+            <div class="tier-card" data-tier="grandmaster" onclick="selectTier('grandmaster')">
+                <div class="tier-card-icon">&#9733;</div>
+                <div class="tier-card-name">Grandmaster</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tier configurations
+        const tiers = {
+            iron: { 
+                name: 'Iron', 
+                icon: '&#9733;', 
+                color: '#5a5a5a', 
+                colorDark: '#2d2d2d',
+                order: 0 
+            },
+            bronze: { 
+                name: 'Bronze', 
+                icon: '&#9733;', 
+                color: '#cd7f32', 
+                colorDark: '#8b4513',
+                order: 1 
+            },
+            silver: { 
+                name: 'Silver', 
+                icon: '&#9733;', 
+                color: '#e0e0e0', 
+                colorDark: '#a0a0a0',
+                order: 2 
+            },
+            gold: { 
+                name: 'Gold', 
+                icon: '&#9733;', 
+                color: '#ffd700', 
+                colorDark: '#ff8c00',
+                order: 3 
+            },
+            platinum: { 
+                name: 'Platinum', 
+                icon: '&#9733;', 
+                color: '#a0d2db', 
+                colorDark: '#6ba3b0',
+                order: 4 
+            },
+            diamond: { 
+                name: 'Diamond', 
+                icon: '&#9733;', 
+                color: '#00f2ea', 
+                colorDark: '#00bfb8',
+                order: 5 
+            },
+            master: { 
+                name: 'Master', 
+                icon: '&#9733;', 
+                color: '#9333ea', 
+                colorDark: '#6b21a8',
+                order: 6 
+            },
+            grandmaster: { 
+                name: 'Grandmaster', 
+                icon: '&#9733;', 
+                color: '#ff006e', 
+                colorDark: '#be185d',
+                order: 7 
+            }
+        };
+
+        let currentTier = 'gold';
+        let transitionCount = 0;
+        let isAnimating = false;
+
+        // DOM Elements
+        const fromTierSelect = document.getElementById('fromTier');
+        const toTierSelect = document.getElementById('toTier');
+        const morphStyleSelect = document.getElementById('morphStyle');
+        const shapeStyleSelect = document.getElementById('shapeStyle');
+        const rankEmblem = document.getElementById('rankEmblem');
+        const emblemShape = rankEmblem.querySelector('.emblem-shape');
+        const emblemName = document.getElementById('emblemName');
+        const emblemDivision = document.getElementById('emblemDivision');
+        const triggerBtn = document.getElementById('triggerBtn');
+        const morphParticles = document.getElementById('morphParticles');
+
+        // Update display
+        function updateDisplay() {
+            const fromTier = tiers[fromTierSelect.value];
+            const toTier = tiers[toTierSelect.value];
+
+            document.getElementById('currentTierDisplay').textContent = fromTier.name;
+            document.getElementById('targetTierDisplay').textContent = toTier.name;
+            document.getElementById('transitionCount').textContent = transitionCount;
+
+            // Direction
+            const direction = toTier.order > fromTier.order ? 'Promote' : 
+                             toTier.order < fromTier.order ? 'Demote' : 'Same';
+            document.getElementById('directionDisplay').textContent = direction;
+
+            // Update previews
+            const fromPreview = document.getElementById('fromPreview');
+            const toPreview = document.getElementById('toPreview');
+
+            fromPreview.style.setProperty('--from-color', fromTier.color);
+            fromPreview.style.setProperty('--from-color-dark', fromTier.colorDark);
+            toPreview.style.setProperty('--to-color', toTier.color);
+            toPreview.style.setProperty('--to-color-dark', toTier.colorDark);
+
+            // Update tier cards
+            document.querySelectorAll('.tier-card').forEach(card => {
+                card.classList.toggle('active', card.dataset.tier === fromTierSelect.value);
+            });
+        }
+
+        // Set emblem to tier
+        function setEmblemToTier(tierId) {
+            const tier = tiers[tierId];
+            rankEmblem.dataset.tier = tierId;
+            emblemName.textContent = tier.name;
+            emblemShape.dataset.shape = shapeStyleSelect.value;
+            currentTier = tierId;
+        }
+
+        // Create morph particles
+        function createMorphParticles(color) {
+            morphParticles.innerHTML = '';
+            const count = 30;
+
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'morph-particle';
+                particle.style.background = color;
+                particle.style.boxShadow = `0 0 10px ${color}`;
+
+                const angle = (Math.PI * 2 / count) * i;
+                const radius = 80 + Math.random() * 40;
+                const startX = 140;
+                const startY = 140;
+
+                particle.style.left = startX + 'px';
+                particle.style.top = startY + 'px';
+
+                morphParticles.appendChild(particle);
+
+                // Animate outward then inward
+                particle.animate([
+                    { 
+                        transform: 'translate(-50%, -50%) scale(1)',
+                        opacity: 1
+                    },
+                    { 
+                        transform: `translate(calc(-50% + ${Math.cos(angle) * radius}px), calc(-50% + ${Math.sin(angle) * radius}px)) scale(1.5)`,
+                        opacity: 0.8
+                    },
+                    { 
+                        transform: 'translate(-50%, -50%) scale(0)',
+                        opacity: 0
+                    }
+                ], {
+                    duration: 1000,
+                    delay: i * 20,
+                    easing: 'ease-in-out'
+                }).onfinish = () => particle.remove();
+            }
+        }
+
+        // Trigger morph animation
+        function triggerMorph() {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            const fromTierId = fromTierSelect.value;
+            const toTierId = toTierSelect.value;
+            const morphStyle = morphStyleSelect.value;
+            const toTier = tiers[toTierId];
+
+            // Set starting tier
+            setEmblemToTier(fromTierId);
+
+            // Create particles
+            createMorphParticles(toTier.color);
+
+            // Apply animation class
+            rankEmblem.classList.remove('morph', 'dissolve', 'shatter', 'flip', 'morphing');
+            
+            // Force reflow
+            void rankEmblem.offsetWidth;
+
+            // Add animation class based on style
+            const animClass = morphStyle === 'morph' ? 'morphing' : morphStyle;
+            rankEmblem.classList.add(animClass);
+
+            // Mid-animation tier switch
+            const animDuration = morphStyle === 'dissolve' ? 1200 : 1000;
+            setTimeout(() => {
+                setEmblemToTier(toTierId);
+            }, animDuration / 2);
+
+            // Animation complete
+            setTimeout(() => {
+                rankEmblem.classList.remove(animClass);
+                transitionCount++;
+                updateDisplay();
+
+                // Swap tiers for next animation
+                fromTierSelect.value = toTierId;
+                const tierKeys = Object.keys(tiers);
+                const nextIndex = (tierKeys.indexOf(toTierId) + 1) % tierKeys.length;
+                toTierSelect.value = tierKeys[nextIndex];
+                updateDisplay();
+
+                isAnimating = false;
+            }, animDuration);
+        }
+
+        // Select tier from showcase
+        function selectTier(tierId) {
+            fromTierSelect.value = tierId;
+            setEmblemToTier(tierId);
+            
+            // Set next tier
+            const tierKeys = Object.keys(tiers);
+            const nextIndex = (tierKeys.indexOf(tierId) + 1) % tierKeys.length;
+            toTierSelect.value = tierKeys[nextIndex];
+            
+            updateDisplay();
+        }
+
+        // Event listeners
+        triggerBtn.addEventListener('click', triggerMorph);
+
+        fromTierSelect.addEventListener('change', () => {
+            setEmblemToTier(fromTierSelect.value);
+            updateDisplay();
+        });
+
+        toTierSelect.addEventListener('change', updateDisplay);
+
+        shapeStyleSelect.addEventListener('change', () => {
+            emblemShape.dataset.shape = shapeStyleSelect.value;
+        });
+
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                triggerMorph();
+            }
+        });
+
+        // Click emblem to morph
+        rankEmblem.addEventListener('click', triggerMorph);
+
+        // Initialize
+        setEmblemToTier('gold');
+        updateDisplay();
+    </script>
+</body>
+</html>

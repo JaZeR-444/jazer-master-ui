@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            background: rgba(0, 217, 255, 0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateX(-5px);
+        }
+        h1 {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        .input-group {
+            margin-bottom: 2rem;
+        }
+        label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            resize: vertical;
+        }
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        button {
+            width: 100%;
+            padding: 0.75rem 1.5rem;
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 217, 255, 0.5);
+        }
+        .qr-display {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+        }
+        #qrcode {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    
+    <div class="container">
+        <h1>📱 QR Code Generator</h1>
+        
+        <div class="input-group">
+            <label>Text or URL to Encode</label>
+            <textarea id="text" placeholder="Enter text or URL...">https://example.com</textarea>
+        </div>
+        
+        <div class="controls">
+            <div>
+                <label>Size</label>
+                <select id="size">
+                    <option value="128">Small (128px)</option>
+                    <option value="256" selected>Medium (256px)</option>
+                    <option value="384">Large (384px)</option>
+                    <option value="512">X-Large (512px)</option>
+                </select>
+            </div>
+            <div>
+                <label>Error Correction</label>
+                <select id="error">
+                    <option value="L">Low (7%)</option>
+                    <option value="M" selected>Medium (15%)</option>
+                    <option value="Q">Quartile (25%)</option>
+                    <option value="H">High (30%)</option>
+                </select>
+            </div>
+        </div>
+        
+        <button onclick="generate()" style="margin-bottom: 2rem;">Generate QR Code</button>
+        
+        <div class="qr-display" id="qrDisplay">
+            <div id="qrcode"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Simple QR Code generation using canvas
+        function generate() {
+            const text = document.getElementById('text').value;
+            const size = parseInt(document.getElementById('size').value);
+            const qrDiv = document.getElementById('qrcode');
+            
+            // Clear previous QR code
+            qrDiv.innerHTML = '';
+            
+            // Create canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Simple pattern generation (demo - real QR needs proper encoding)
+            const moduleSize = size / 25;
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, size, size);
+            ctx.fillStyle = 'black';
+            
+            // Generate pseudo-random pattern based on text
+            let hash = 0;
+            for (let i = 0; i < text.length; i++) {
+                hash = ((hash << 5) - hash) + text.charCodeAt(i);
+                hash = hash & hash;
+            }
+            
+            // Draw pattern
+            for (let row = 0; row < 25; row++) {
+                for (let col = 0; col < 25; col++) {
+                    const seed = (hash + row * 25 + col) & 0xFFFF;
+                    if ((seed % 3) !== 0) { // Simple pattern logic
+                        ctx.fillRect(
+                            col * moduleSize,
+                            row * moduleSize,
+                            moduleSize,
+                            moduleSize
+                        );
+                    }
+                }
+            }
+            
+            // Add finder patterns (corner squares)
+            function drawFinderPattern(x, y) {
+                ctx.fillStyle = 'white';
+                ctx.fillRect(x * moduleSize, y * moduleSize, moduleSize * 7, moduleSize * 7);
+                ctx.fillStyle = 'black';
+                ctx.fillRect(x * moduleSize, y * moduleSize, moduleSize * 7, moduleSize * 7);
+                ctx.fillStyle = 'white';
+                ctx.fillRect((x + 1) * moduleSize, (y + 1) * moduleSize, moduleSize * 5, moduleSize * 5);
+                ctx.fillStyle = 'black';
+                ctx.fillRect((x + 2) * moduleSize, (y + 2) * moduleSize, moduleSize * 3, moduleSize * 3);
+            }
+            
+            drawFinderPattern(0, 0);
+            drawFinderPattern(18, 0);
+            drawFinderPattern(0, 18);
+            
+            qrDiv.appendChild(canvas);
+            
+            // Add download button
+            const downloadBtn = document.createElement('button');
+            downloadBtn.textContent = 'Download QR Code';
+            downloadBtn.style.marginTop = '1rem';
+            downloadBtn.onclick = () => {
+                const link = document.createElement('a');
+                link.download = 'qrcode.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            };
+            
+            const displayDiv = document.getElementById('qrDisplay');
+            displayDiv.innerHTML = '';
+            displayDiv.appendChild(canvas);
+            displayDiv.appendChild(downloadBtn);
+        }
+        
+        // Generate initial QR code
+        generate();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personalized Recommendations - JaZeR E-commerce Patterns</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-gray);
+            text-decoration: none;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 2px solid var(--border-default);
+            background: var(--bg-card);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 2rem;
+        }
+
+        .back-button:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            transform: translateX(-5px);
+            box-shadow: var(--shadow-cyan);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero p {
+            font-size: 1.125rem;
+            color: var(--text-gray);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .style-btn {
+            padding: 0.625rem 1.25rem;
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .style-btn:hover {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+        }
+
+        .style-btn.active {
+            background: var(--gradient-primary);
+            border-color: transparent;
+            color: white;
+            box-shadow: var(--shadow-cyan);
+        }
+
+        .keyboard-hint {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            opacity: 0.7;
+        }
+
+        .keyboard-hint kbd {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: 4px;
+            padding: 0.2rem 0.5rem;
+            font-family: var(--font-mono);
+            margin: 0 0.25rem;
+        }
+
+        .demo-section {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .demo-container {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 20px;
+            padding: 3rem;
+            min-height: 500px;
+            transition: border-color 0.3s ease;
+        }
+
+        .demo-container:hover {
+            border-color: var(--jazer-cyan);
+        }
+
+        .recs-showcase {
+            width: 100%;
+        }
+
+        /* Shared Product Card Base */
+        .product-item {
+            background: var(--bg-dark);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .product-item:hover {
+            border-color: var(--jazer-cyan);
+            transform: translateY(-5px);
+        }
+
+        .product-item__image {
+            height: 140px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .product-item__content {
+            padding: 1rem;
+        }
+
+        .product-item__title {
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-light);
+            margin-bottom: 0.375rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-item__price {
+            font-family: var(--font-primary);
+            font-weight: 700;
+            font-size: 1.125rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ==================== STYLE 1: Horizontal Carousel ==================== */
+        .style-carousel .recs {
+            background: var(--bg-dark);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .style-carousel .recs__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .style-carousel .recs__title {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text-light);
+        }
+
+        .style-carousel .recs__badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            background: rgba(147, 51, 234, 0.2);
+            border-radius: 50px;
+            color: var(--jazer-purple);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.6875rem;
+            text-transform: uppercase;
+        }
+
+        .style-carousel .recs__grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .style-carousel .recs__nav {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .style-carousel .recs__dot {
+            width: 8px;
+            height: 8px;
+            background: var(--border-default);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .style-carousel .recs__dot--active {
+            width: 24px;
+            border-radius: 4px;
+            background: var(--gradient-primary);
+        }
+
+        /* ==================== STYLE 2: AI Powered ==================== */
+        .style-ai .recs {
+            background: var(--bg-dark);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .style-ai .recs__header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .style-ai .recs__icon {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            animation: ai-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes ai-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.4); }
+            50% { box-shadow: 0 0 20px 5px rgba(147, 51, 234, 0.2); }
+        }
+
+        .style-ai .recs__info {
+            flex: 1;
+        }
+
+        .style-ai .recs__title {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .style-ai .recs__subtitle {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        .style-ai .recs__match {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            background: rgba(0, 255, 136, 0.15);
+            border-radius: 50px;
+            color: #00ff88;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .style-ai .recs__grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .style-ai .product-item__match {
+            font-size: 0.6875rem;
+            color: #00ff88;
+            margin-top: 0.25rem;
+        }
+
+        /* ==================== STYLE 3: Category Based ==================== */
+        .style-category .recs {
+            background: var(--bg-dark);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .style-category .recs__tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .style-category .recs__tab {
+            padding: 0.625rem 1.25rem;
+            background: transparent;
+            border: 2px solid var(--border-default);
+            border-radius: 50px;
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        .style-category .recs__tab:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        .style-category .recs__tab--active {
+            background: var(--gradient-primary);
+            border-color: transparent;
+            color: white;
+        }
+
+        .style-category .recs__grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        /* ==================== STYLE 4: Recently Viewed ==================== */
+        .style-history .recs {
+            background: var(--bg-dark);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .style-history .recs__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .style-history .recs__title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .style-history .recs__clear {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            text-decoration: underline;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .style-history .recs__clear:hover {
+            color: var(--jazer-pink);
+        }
+
+        .style-history .recs__timeline {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .style-history .product-item {
+            min-width: 180px;
+            position: relative;
+        }
+
+        .style-history .product-item__time {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 4px;
+            font-size: 0.625rem;
+            color: var(--text-gray);
+        }
+
+        /* ==================== STYLE 5: Trending Now ==================== */
+        .style-trending .recs {
+            background: var(--bg-dark);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .style-trending .recs__header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .style-trending .recs__title {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .style-trending .recs__fire {
+            animation: fire-bounce 1s ease-in-out infinite;
+        }
+
+        @keyframes fire-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .style-trending .recs__live {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            background: rgba(255, 0, 110, 0.15);
+            border-radius: 50px;
+            color: #ff006e;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.6875rem;
+        }
+
+        .style-trending .recs__live-dot {
+            width: 6px;
+            height: 6px;
+            background: #ff006e;
+            border-radius: 50%;
+            animation: live-blink 1s ease-in-out infinite;
+        }
+
+        @keyframes live-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .style-trending .recs__grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .style-trending .product-item {
+            position: relative;
+        }
+
+        .style-trending .product-item__rank {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            width: 28px;
+            height: 28px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: white;
+            z-index: 1;
+        }
+
+        .style-trending .product-item__views {
+            font-size: 0.6875rem;
+            color: var(--text-gray);
+            margin-top: 0.25rem;
+        }
+
+        /* ==================== STYLE 6: Complete The Look ==================== */
+        .style-outfit .recs {
+            background: var(--bg-dark);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .style-outfit .recs__header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .style-outfit .recs__title {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .style-outfit .recs__subtitle {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+        }
+
+        .style-outfit .recs__layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .style-outfit .recs__main {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .style-outfit .recs__main-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .style-outfit .recs__main-title {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .style-outfit .recs__main-price {
+            font-family: var(--font-primary);
+            font-weight: 700;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .style-outfit .recs__grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .style-outfit .product-item__match-tag {
+            display: inline-block;
+            padding: 0.125rem 0.5rem;
+            background: rgba(0, 242, 234, 0.15);
+            border-radius: 4px;
+            font-size: 0.625rem;
+            color: var(--jazer-cyan);
+            margin-top: 0.25rem;
+        }
+
+        /* ==================== STYLE 7: Glass Cards ==================== */
+        .style-glass .recs {
+            padding: 1.5rem;
+        }
+
+        .style-glass .recs__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .style-glass .recs__title {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text-light);
+        }
+
+        .style-glass .recs__see-all {
+            font-size: 0.875rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .style-glass .recs__grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .style-glass .product-item {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+        }
+
+        .style-glass .product-item:hover {
+            border-color: rgba(0, 242, 234, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .style-glass .product-item__image {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* ==================== STYLE 8: Cyberpunk Grid ==================== */
+        .style-cyberpunk .recs {
+            background: #050508;
+            border: 2px solid #00f2ea;
+            padding: 1.5rem;
+            font-family: var(--font-mono, monospace);
+        }
+
+        .style-cyberpunk .recs::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 242, 234, 0.02) 2px,
+                rgba(0, 242, 234, 0.02) 4px
+            );
+            pointer-events: none;
+        }
+
+        .style-cyberpunk .recs__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(0, 242, 234, 0.3);
+            margin-bottom: 1rem;
+        }
+
+        .style-cyberpunk .recs__title {
+            color: #00f2ea;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .style-cyberpunk .recs__status {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.6875rem;
+            color: #00ff88;
+        }
+
+        .style-cyberpunk .recs__status-dot {
+            width: 6px;
+            height: 6px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: status-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes status-pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.5); }
+            50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(0, 255, 136, 0); }
+        }
+
+        .style-cyberpunk .recs__grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+
+        .style-cyberpunk .product-item {
+            background: #0a0a0f;
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            border-radius: 4px;
+        }
+
+        .style-cyberpunk .product-item:hover {
+            border-color: #00f2ea;
+            box-shadow: 0 0 15px rgba(0, 242, 234, 0.3);
+        }
+
+        .style-cyberpunk .product-item__image {
+            height: 120px;
+            background: #050508;
+            position: relative;
+        }
+
+        .style-cyberpunk .product-item__image::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00f2ea, transparent);
+        }
+
+        .style-cyberpunk .product-item__content {
+            padding: 0.75rem;
+        }
+
+        .style-cyberpunk .product-item__title {
+            color: var(--text-light);
+            font-size: 0.75rem;
+            font-family: inherit;
+        }
+
+        .style-cyberpunk .product-item__price {
+            color: #00f2ea;
+            font-size: 1rem;
+            font-family: inherit;
+            background: none;
+            -webkit-text-fill-color: #00f2ea;
+        }
+
+        .style-cyberpunk .product-item__id {
+            font-size: 0.625rem;
+            color: var(--text-gray);
+            margin-top: 0.25rem;
+        }
+
+        /* Hide all styles by default */
+        .recs-showcase > div { display: none; }
+        .recs-showcase > div.active { display: block; }
+
+        @media (max-width: 900px) {
+            .style-carousel .recs__grid,
+            .style-ai .recs__grid,
+            .style-category .recs__grid,
+            .style-trending .recs__grid,
+            .style-glass .recs__grid,
+            .style-cyberpunk .recs__grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .style-outfit .recs__layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .hero { padding: 2rem 0; }
+            .hero h1 { font-size: 2rem; }
+            .demo-container { padding: 1.5rem; }
+            .controls { gap: 0.5rem; }
+            .style-btn { padding: 0.5rem 1rem; font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to E-commerce Patterns</a>
+
+    <section class="hero">
+        <h1>Personalized Recommendations</h1>
+        <p>AI-powered product suggestions tailored to user behavior, increasing engagement and conversions.</p>
+        
+        <div class="controls">
+            <button class="style-btn active" data-style="carousel">Carousel</button>
+            <button class="style-btn" data-style="ai">AI Powered</button>
+            <button class="style-btn" data-style="category">Category</button>
+            <button class="style-btn" data-style="history">History</button>
+            <button class="style-btn" data-style="trending">Trending</button>
+            <button class="style-btn" data-style="outfit">Outfit</button>
+            <button class="style-btn" data-style="glass">Glass</button>
+            <button class="style-btn" data-style="cyberpunk">Cyberpunk</button>
+        </div>
+        <p class="keyboard-hint">Press <kbd>Space</kbd> to cycle styles | <kbd>R</kbd> to reset</p>
+    </section>
+
+    <section class="demo-section">
+        <div class="demo-container">
+            <div class="recs-showcase">
+                <!-- Style 1: Horizontal Carousel -->
+                <div class="style-carousel active">
+                    <div class="recs">
+                        <div class="recs__header">
+                            <h3 class="recs__title">Recommended For You</h3>
+                            <span class="recs__badge">✨ Personalized</span>
+                        </div>
+                        <div class="recs__grid">
+                            <div class="product-item">
+                                <div class="product-item__image">🎧</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Premium Headphones</div>
+                                    <div class="product-item__price">$299.99</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <div class="product-item__image">⌚</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Smart Watch Pro</div>
+                                    <div class="product-item__price">$399.99</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <div class="product-item__image">📱</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Smartphone X</div>
+                                    <div class="product-item__price">$999.99</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <div class="product-item__image">💻</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Laptop Ultra</div>
+                                    <div class="product-item__price">$1,499.99</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="recs__nav">
+                            <span class="recs__dot recs__dot--active"></span>
+                            <span class="recs__dot"></span>
+                            <span class="recs__dot"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 2: AI Powered -->
+                <div class="style-ai">
+                    <div class="recs">
+                        <div class="recs__header">
+                            <div class="recs__icon">🤖</div>
+                            <div class="recs__info">
+                                <div class="recs__title">AI Picks For You</div>
+                                <div class="recs__subtitle">Based on your browsing history</div>
+                            </div>
+                            <span class="recs__match">98% Match</span>
+                        </div>
+                        <div class="recs__grid">
+                            <div class="product-item">
+                                <div class="product-item__image">🎧</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Premium Headphones</div>
+                                    <div class="product-item__price">$299.99</div>
+                                    <div class="product-item__match">98% match</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <div class="product-item__image">⌚</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Smart Watch Pro</div>
+                                    <div class="product-item__price">$399.99</div>
+                                    <div class="product-item__match">95% match</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <div class="product-item__image">📱</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Smartphone X</div>
+                                    <div class="product-item__price">$999.99</div>
+                                    <div class="product-item__match">92% match</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <div class="product-item__image">💻</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Laptop Ultra</div>
+                                    <div class="product-item__price">$1,499.99</div>
+                                    <div class="product-item__match">89% match</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 3: Category Based -->
+                <div class="style-category">
+                    <div class="recs">
+                        <div class="recs__tabs">
+                            <button class="recs__tab recs__tab--active">All</button>
+                            <button class="recs__tab">Audio</button>
+                            <button class="recs__tab">Wearables</button>
+                            <button class="recs__tab">Phones</button>
+                            <button class="recs__tab">Computers</button>
+                        </div>
+                        <div class="recs__grid">
+                            <div class="product-item">
+                                <div class="product-item__image">🎧</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Premium Headphones</div>
+                                    <div class="product-item__price">$299.99</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <div class="product-item__image">⌚</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Smart Watch Pro</div>
+                                    <div class="product-item__price">$399.99</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <div class="product-item__image">📱</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Smartphone X</div>
+                                    <div class="product-item__price">$999.99</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <div class="product-item__image">💻</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Laptop Ultra</div>
+                                    <div class="product-item__price">$1,499.99</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 4: Recently Viewed -->
+                <div class="style-history">
+                    <div class="recs">
+                        <div class="recs__header">
+                            <h3 class="recs__title">🕐 Recently Viewed</h3>
+                            <span class="recs__clear">Clear History</span>
+                        </div>
+                        <div class="recs__timeline">
+                            <div class="product-item">
+                                <span class="product-item__time">2 min ago</span>
+                                <div class="product-item__image">🎧</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Premium Headphones</div>
+                                    <div class="product-item__price">$299.99</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <span class="product-item__time">15 min ago</span>
+                                <div class="product-item__image">⌚</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Smart Watch Pro</div>
+                                    <div class="product-item__price">$399.99</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <span class="product-item__time">1 hour ago</span>
+                                <div class="product-item__image">📱</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Smartphone X</div>
+                                    <div class="product-item__price">$999.99</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <span class="product-item__time">Yesterday</span>
+                                <div class="product-item__image">💻</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Laptop Ultra</div>
+                                    <div class="product-item__price">$1,499.99</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 5: Trending Now -->
+                <div class="style-trending">
+                    <div class="recs">
+                        <div class="recs__header">
+                            <h3 class="recs__title"><span class="recs__fire">🔥</span> Trending Now</h3>
+                            <span class="recs__live"><span class="recs__live-dot"></span>LIVE</span>
+                        </div>
+                        <div class="recs__grid">
+                            <div class="product-item">
+                                <span class="product-item__rank">1</span>
+                                <div class="product-item__image">🎧</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Premium Headphones</div>
+                                    <div class="product-item__price">$299.99</div>
+                                    <div class="product-item__views">👁 2.4k views</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <span class="product-item__rank">2</span>
+                                <div class="product-item__image">⌚</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Smart Watch Pro</div>
+                                    <div class="product-item__price">$399.99</div>
+                                    <div class="product-item__views">👁 1.8k views</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <span class="product-item__rank">3</span>
+                                <div class="product-item__image">📱</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Smartphone X</div>
+                                    <div class="product-item__price">$999.99</div>
+                                    <div class="product-item__views">👁 1.2k views</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <span class="product-item__rank">4</span>
+                                <div class="product-item__image">💻</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Laptop Ultra</div>
+                                    <div class="product-item__price">$1,499.99</div>
+                                    <div class="product-item__views">👁 980 views</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 6: Complete The Look -->
+                <div class="style-outfit">
+                    <div class="recs">
+                        <div class="recs__header">
+                            <h3 class="recs__title">Complete The Look</h3>
+                            <p class="recs__subtitle">Pair these items with your selection</p>
+                        </div>
+                        <div class="recs__layout">
+                            <div class="recs__main">
+                                <div class="recs__main-icon">👟</div>
+                                <div class="recs__main-title">Running Shoes</div>
+                                <div class="recs__main-price">$149.99</div>
+                            </div>
+                            <div class="recs__grid">
+                                <div class="product-item">
+                                    <div class="product-item__image">👕</div>
+                                    <div class="product-item__content">
+                                        <div class="product-item__title">Sport T-Shirt</div>
+                                        <div class="product-item__price">$49.99</div>
+                                        <span class="product-item__match-tag">Perfect match</span>
+                                    </div>
+                                </div>
+                                <div class="product-item">
+                                    <div class="product-item__image">🩳</div>
+                                    <div class="product-item__content">
+                                        <div class="product-item__title">Running Shorts</div>
+                                        <div class="product-item__price">$39.99</div>
+                                        <span class="product-item__match-tag">Recommended</span>
+                                    </div>
+                                </div>
+                                <div class="product-item">
+                                    <div class="product-item__image">🧢</div>
+                                    <div class="product-item__content">
+                                        <div class="product-item__title">Sport Cap</div>
+                                        <div class="product-item__price">$24.99</div>
+                                        <span class="product-item__match-tag">Goes well</span>
+                                    </div>
+                                </div>
+                                <div class="product-item">
+                                    <div class="product-item__image">🎒</div>
+                                    <div class="product-item__content">
+                                        <div class="product-item__title">Gym Bag</div>
+                                        <div class="product-item__price">$79.99</div>
+                                        <span class="product-item__match-tag">Customers also bought</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 7: Glass Cards -->
+                <div class="style-glass">
+                    <div class="recs">
+                        <div class="recs__header">
+                            <h3 class="recs__title">You May Also Like</h3>
+                            <span class="recs__see-all">See All →</span>
+                        </div>
+                        <div class="recs__grid">
+                            <div class="product-item">
+                                <div class="product-item__image">🎧</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Premium Headphones</div>
+                                    <div class="product-item__price">$299.99</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <div class="product-item__image">⌚</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Smart Watch Pro</div>
+                                    <div class="product-item__price">$399.99</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <div class="product-item__image">📱</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Smartphone X</div>
+                                    <div class="product-item__price">$999.99</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <div class="product-item__image">💻</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">Laptop Ultra</div>
+                                    <div class="product-item__price">$1,499.99</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 8: Cyberpunk Grid -->
+                <div class="style-cyberpunk">
+                    <div class="recs">
+                        <div class="recs__header">
+                            <span class="recs__title">// RECOMMENDATION_ENGINE</span>
+                            <span class="recs__status"><span class="recs__status-dot"></span>ONLINE</span>
+                        </div>
+                        <div class="recs__grid">
+                            <div class="product-item">
+                                <div class="product-item__image">🎧</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">AUDIO_DEVICE_PRO</div>
+                                    <div class="product-item__price">$299.99</div>
+                                    <div class="product-item__id">SKU: AUD-7749</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <div class="product-item__image">⌚</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">CHRONO_SYNC_X</div>
+                                    <div class="product-item__price">$399.99</div>
+                                    <div class="product-item__id">SKU: WCH-2048</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <div class="product-item__image">📱</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">COMM_DEVICE_V12</div>
+                                    <div class="product-item__price">$999.99</div>
+                                    <div class="product-item__id">SKU: PHN-1024</div>
+                                </div>
+                            </div>
+                            <div class="product-item">
+                                <div class="product-item__image">💻</div>
+                                <div class="product-item__content">
+                                    <div class="product-item__title">COMPUTE_NODE_U</div>
+                                    <div class="product-item__price">$1,499.99</div>
+                                    <div class="product-item__id">SKU: LAP-4096</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const styles = ['carousel', 'ai', 'category', 'history', 'trending', 'outfit', 'glass', 'cyberpunk'];
+        let currentIndex = 0;
+
+        const buttons = document.querySelectorAll('.style-btn');
+        const styleContainers = document.querySelectorAll('.recs-showcase > div');
+
+        function setStyle(styleName) {
+            currentIndex = styles.indexOf(styleName);
+            
+            buttons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.style === styleName);
+            });
+
+            styleContainers.forEach(container => {
+                container.classList.toggle('active', container.classList.contains(`style-${styleName}`));
+            });
+        }
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => setStyle(btn.dataset.style));
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                currentIndex = (currentIndex + 1) % styles.length;
+                setStyle(styles[currentIndex]);
+            } else if (e.code === 'KeyR') {
+                e.preventDefault();
+                currentIndex = 0;
+                setStyle(styles[0]);
+            }
+        });
+    </script>
+</body>
+</html>

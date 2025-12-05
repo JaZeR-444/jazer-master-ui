@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vs Screen Diagonal Clash</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 3rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(0, 242, 234, 0.05));
+            border-bottom: 1px solid rgba(147, 51, 234, 0.3);
+        }
+        .back-button { 
+            display: inline-block; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(6, 182, 212, 0.1); 
+            margin-bottom: 1.5rem; 
+            transition: all 0.3s ease; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5); 
+        }
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            font-size: clamp(2rem, 5vw, 3rem); 
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+        }
+        .keyboard-hint {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            font-size: 0.9rem;
+        }
+        .keyboard-hint kbd {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin: 0 0.25rem;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+        .control-group label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .control-group select,
+        .control-group input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(147, 51, 234, 0.5);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+        .control-group select:focus,
+        .control-group input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+
+        /* VS Screen Container */
+        .vs-container {
+            position: relative;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(20, 20, 30, 0.9) 100%);
+            border: 2px solid rgba(147, 51, 234, 0.3);
+            border-radius: 20px;
+            min-height: 450px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        /* VS Screen */
+        .vs-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .vs-screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Diagonal Split */
+        .diagonal-split {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Player Sides */
+        .player-side {
+            position: absolute;
+            top: 0;
+            width: 55%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            clip-path: polygon(0 0, 100% 0, 70% 100%, 0 100%);
+            transform: translateX(-100%);
+            transition: transform 0.8s cubic-bezier(0.68, -0.2, 0.265, 1.2);
+        }
+        .player-side.left {
+            left: 0;
+            background: linear-gradient(135deg, rgba(255, 0, 110, 0.3) 0%, rgba(255, 0, 110, 0.1) 100%);
+        }
+        .player-side.right {
+            right: 0;
+            left: auto;
+            clip-path: polygon(30% 0, 100% 0, 100% 100%, 0 100%);
+            transform: translateX(100%);
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.1) 0%, rgba(0, 242, 234, 0.3) 100%);
+        }
+        .vs-screen.active .player-side {
+            transform: translateX(0);
+        }
+
+        /* Player Avatar */
+        .player-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.5s ease 0.5s;
+        }
+        .player-side.left .player-avatar {
+            border-color: #ff006e;
+            box-shadow: 0 0 30px rgba(255, 0, 110, 0.5);
+        }
+        .player-side.right .player-avatar {
+            border-color: #00f2ea;
+            box-shadow: 0 0 30px rgba(0, 242, 234, 0.5);
+        }
+        .vs-screen.active .player-avatar {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Avatar Glow Ring */
+        .avatar-ring {
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            animation: ringRotate 3s linear infinite;
+        }
+        .player-side.left .avatar-ring {
+            border-top-color: #ff006e;
+            border-right-color: #ff69b4;
+        }
+        .player-side.right .avatar-ring {
+            border-top-color: #00f2ea;
+            border-right-color: #9333ea;
+        }
+        @keyframes ringRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Player Name */
+        .player-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease 0.7s;
+        }
+        .player-side.left .player-name {
+            color: #ff006e;
+            text-shadow: 0 0 20px rgba(255, 0, 110, 0.5);
+        }
+        .player-side.right .player-name {
+            color: #00f2ea;
+            text-shadow: 0 0 20px rgba(0, 242, 234, 0.5);
+        }
+        .vs-screen.active .player-name {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Player Stats */
+        .player-stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease 0.9s;
+        }
+        .vs-screen.active .player-stats {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .stat-badge {
+            padding: 0.3rem 0.8rem;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .player-side.left .stat-badge {
+            border: 1px solid rgba(255, 0, 110, 0.5);
+            color: #ff69b4;
+        }
+        .player-side.right .stat-badge {
+            border: 1px solid rgba(0, 242, 234, 0.5);
+            color: #00f2ea;
+        }
+
+        /* VS Symbol */
+        .vs-symbol {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 10;
+            font-size: 5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ff006e, #ffd700, #00f2ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+            filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.6s;
+        }
+        .vs-screen.active .vs-symbol {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* VS Symbol Glow */
+        .vs-symbol::before {
+            content: 'VS';
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: linear-gradient(135deg, #ff006e, #ffd700, #00f2ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: blur(20px);
+            opacity: 0.8;
+        }
+
+        /* Clash Line */
+        .clash-line {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 150%;
+            height: 6px;
+            background: linear-gradient(90deg, #ff006e, #ffd700, #00f2ea);
+            transform: translate(-50%, -50%) rotate(15deg) scaleX(0);
+            transform-origin: center;
+            transition: transform 0.4s ease 0.4s;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+        }
+        .vs-screen.active .clash-line {
+            transform: translate(-50%, -50%) rotate(15deg) scaleX(1);
+        }
+
+        /* Sparks */
+        .sparks-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        .spark {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ffd700;
+            border-radius: 50%;
+            opacity: 0;
+        }
+        .spark.burst {
+            animation: sparkBurst 0.8s ease-out forwards;
+        }
+        @keyframes sparkBurst {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        /* Lightning Effects */
+        .lightning {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, transparent, #ffd700, transparent);
+            transform: translateX(-50%);
+            opacity: 0;
+        }
+        .vs-screen.active .lightning {
+            animation: lightningFlash 0.1s ease-out 0.5s 3;
+        }
+        @keyframes lightningFlash {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        /* Screen Shake */
+        .vs-container.shake {
+            animation: screenShake 0.5s ease-out;
+        }
+        @keyframes screenShake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        /* Preview Area */
+        .preview-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+        }
+        .preview-area.hidden {
+            display: none;
+        }
+        .ready-text {
+            font-size: 2rem;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            animation: readyPulse 2s ease-in-out infinite;
+        }
+        @keyframes readyPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Animation Styles */
+        .style-slide .player-side {
+            transition: transform 0.6s ease-out;
+        }
+        .style-slide .player-side.left {
+            transform: translateX(-100%);
+        }
+        .style-slide .player-side.right {
+            transform: translateX(100%);
+        }
+        .style-slide .vs-screen.active .player-side {
+            transform: translateX(0);
+        }
+
+        .style-zoom .player-side {
+            transform: scale(0);
+            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .style-zoom .vs-screen.active .player-side {
+            transform: scale(1);
+        }
+
+        .style-rotate .player-side.left {
+            transform: translateX(-100%) rotate(-30deg);
+        }
+        .style-rotate .player-side.right {
+            transform: translateX(100%) rotate(30deg);
+        }
+        .style-rotate .vs-screen.active .player-side {
+            transform: translateX(0) rotate(0deg);
+        }
+
+        .style-fade .player-side {
+            transform: none;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+        .style-fade .vs-screen.active .player-side {
+            opacity: 1;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .action-btn.primary {
+            background: linear-gradient(135deg, #ff006e, #ffd700);
+            color: white;
+            box-shadow: 0 5px 25px rgba(255, 0, 110, 0.4);
+        }
+        .action-btn.primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 35px rgba(255, 0, 110, 0.5);
+        }
+        .action-btn.secondary {
+            background: rgba(147, 51, 234, 0.2);
+            color: var(--jazer-cyan);
+            border: 2px solid var(--jazer-purple);
+        }
+        .action-btn.secondary:hover {
+            background: rgba(147, 51, 234, 0.3);
+        }
+
+        /* Match History */
+        .match-history {
+            margin-top: 2rem;
+        }
+        .section-title {
+            color: var(--jazer-cyan);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section-title::before {
+            content: '';
+            width: 30px;
+            height: 3px;
+            background: var(--gradient-primary);
+            border-radius: 2px;
+        }
+
+        .match-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .match-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .match-item:hover {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 242, 234, 0.05);
+        }
+        .match-players {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .match-avatar {
+            font-size: 1.5rem;
+        }
+        .match-vs {
+            color: #ffd700;
+            font-weight: 700;
+        }
+        .match-result {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .match-result.win {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+        .match-result.loss {
+            background: rgba(255, 0, 110, 0.2);
+            color: #ff006e;
+            border: 1px solid rgba(255, 0, 110, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .player-side {
+                padding: 1rem;
+            }
+            .player-avatar {
+                width: 80px;
+                height: 80px;
+                font-size: 2.5rem;
+            }
+            .player-name {
+                font-size: 1.1rem;
+            }
+            .vs-symbol {
+                font-size: 3rem;
+            }
+            .player-stats {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="hero">
+        <a href="index.html" class="back-button">← Back</a>
+        <h1>Vs Screen Diagonal Clash</h1>
+        <p class="subtitle">Epic versus screen with diagonal split and clash effects</p>
+        <div class="keyboard-hint">
+            Press <kbd>Space</kbd> to trigger | <kbd>R</kbd> to reset | <kbd>1-4</kbd> for styles
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <div class="control-group">
+                <label>Animation Style</label>
+                <select id="animStyle">
+                    <option value="default">Default Slide</option>
+                    <option value="slide">Smooth Slide</option>
+                    <option value="zoom">Zoom In</option>
+                    <option value="rotate">Rotate In</option>
+                    <option value="fade">Fade In</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Player 1 Name</label>
+                <input type="text" id="player1Name" value="PLAYER 1" maxlength="15">
+            </div>
+            <div class="control-group">
+                <label>Player 2 Name</label>
+                <input type="text" id="player2Name" value="PLAYER 2" maxlength="15">
+            </div>
+            <div class="control-group">
+                <label>Spark Intensity</label>
+                <select id="sparkCount">
+                    <option value="0">None</option>
+                    <option value="10">Low (10)</option>
+                    <option value="20" selected>Medium (20)</option>
+                    <option value="40">High (40)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- VS Screen Container -->
+        <div class="vs-container" id="vsContainer">
+            <!-- Preview Area -->
+            <div class="preview-area" id="previewArea">
+                <div class="ready-text">Ready to Battle?</div>
+            </div>
+
+            <!-- VS Screen -->
+            <div class="vs-screen" id="vsScreen">
+                <!-- Diagonal Split -->
+                <div class="diagonal-split">
+                    <!-- Player 1 Side (Left) -->
+                    <div class="player-side left">
+                        <div class="player-avatar" id="player1Avatar">
+                            <div class="avatar-ring"></div>
+                            🦊
+                        </div>
+                        <div class="player-name" id="player1NameDisplay">PLAYER 1</div>
+                        <div class="player-stats">
+                            <span class="stat-badge">Rank #42</span>
+                            <span class="stat-badge">Win 78%</span>
+                        </div>
+                    </div>
+
+                    <!-- Player 2 Side (Right) -->
+                    <div class="player-side right">
+                        <div class="player-avatar" id="player2Avatar">
+                            <div class="avatar-ring"></div>
+                            🐺
+                        </div>
+                        <div class="player-name" id="player2NameDisplay">PLAYER 2</div>
+                        <div class="player-stats">
+                            <span class="stat-badge">Rank #15</span>
+                            <span class="stat-badge">Win 85%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Clash Line -->
+                <div class="clash-line"></div>
+
+                <!-- VS Symbol -->
+                <div class="vs-symbol">VS</div>
+
+                <!-- Lightning -->
+                <div class="lightning"></div>
+
+                <!-- Sparks Container -->
+                <div class="sparks-container" id="sparksContainer"></div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="action-btn primary" onclick="triggerVS()">⚔️ Start Battle</button>
+            <button class="action-btn secondary" onclick="resetVS()">Reset</button>
+            <button class="action-btn secondary" onclick="randomPlayers()">Random Players</button>
+        </div>
+
+        <!-- Match History -->
+        <section class="match-history">
+            <h2 class="section-title">Recent Matches</h2>
+            <div class="match-list" id="matchList">
+                <div class="match-item" onclick="replayMatch(this, '🦊', 'NightFox', '🐺', 'SilverWolf')">
+                    <div class="match-players">
+                        <span class="match-avatar">🦊</span>
+                        <span>NightFox</span>
+                        <span class="match-vs">VS</span>
+                        <span>SilverWolf</span>
+                        <span class="match-avatar">🐺</span>
+                    </div>
+                    <span class="match-result win">WIN</span>
+                </div>
+                <div class="match-item" onclick="replayMatch(this, '🐉', 'DragonMaster', '🦁', 'LionKing')">
+                    <div class="match-players">
+                        <span class="match-avatar">🐉</span>
+                        <span>DragonMaster</span>
+                        <span class="match-vs">VS</span>
+                        <span>LionKing</span>
+                        <span class="match-avatar">🦁</span>
+                    </div>
+                    <span class="match-result loss">LOSS</span>
+                </div>
+                <div class="match-item" onclick="replayMatch(this, '🦅', 'SkyEagle', '🐍', 'VenomStrike')">
+                    <div class="match-players">
+                        <span class="match-avatar">🦅</span>
+                        <span>SkyEagle</span>
+                        <span class="match-vs">VS</span>
+                        <span>VenomStrike</span>
+                        <span class="match-avatar">🐍</span>
+                    </div>
+                    <span class="match-result win">WIN</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Configuration
+        const config = {
+            animStyle: 'default',
+            sparkCount: 20
+        };
+
+        // Player avatars
+        const avatars = ['🦊', '🐺', '🐉', '🦁', '🦅', '🐍', '🐻', '🦈', '🦂', '🐙', '🦎', '🦇', '🐯', '🐲', '🦖'];
+        const names = ['NightFox', 'SilverWolf', 'DragonMaster', 'LionKing', 'SkyEagle', 'VenomStrike', 'IronBear', 'DeepShark', 'DarkScorpion', 'OctoKing', 'SwiftLizard', 'ShadowBat', 'TigerClaw', 'AncientDragon', 'DinoRex'];
+
+        // DOM Elements
+        const vsContainer = document.getElementById('vsContainer');
+        const vsScreen = document.getElementById('vsScreen');
+        const previewArea = document.getElementById('previewArea');
+        const sparksContainer = document.getElementById('sparksContainer');
+
+        // Initialize
+        function init() {
+            setupControls();
+        }
+
+        // Setup controls
+        function setupControls() {
+            document.getElementById('animStyle').addEventListener('change', (e) => {
+                config.animStyle = e.target.value;
+                updateAnimStyle();
+            });
+
+            document.getElementById('player1Name').addEventListener('input', (e) => {
+                document.getElementById('player1NameDisplay').textContent = e.target.value.toUpperCase() || 'PLAYER 1';
+            });
+
+            document.getElementById('player2Name').addEventListener('input', (e) => {
+                document.getElementById('player2NameDisplay').textContent = e.target.value.toUpperCase() || 'PLAYER 2';
+            });
+
+            document.getElementById('sparkCount').addEventListener('change', (e) => {
+                config.sparkCount = parseInt(e.target.value);
+            });
+        }
+
+        // Update animation style
+        function updateAnimStyle() {
+            vsContainer.className = 'vs-container';
+            if (config.animStyle !== 'default') {
+                vsContainer.classList.add(`style-${config.animStyle}`);
+            }
+        }
+
+        // Trigger VS screen
+        function triggerVS() {
+            // Reset first
+            vsScreen.classList.remove('active');
+            sparksContainer.innerHTML = '';
+
+            // Hide preview, show VS screen
+            previewArea.classList.add('hidden');
+            
+            setTimeout(() => {
+                vsScreen.classList.add('active');
+
+                // Add shake effect
+                setTimeout(() => {
+                    vsContainer.classList.add('shake');
+                    spawnSparks();
+                    playClashSound();
+                    
+                    setTimeout(() => {
+                        vsContainer.classList.remove('shake');
+                    }, 500);
+                }, 600);
+            }, 100);
+        }
+
+        // Reset VS screen
+        function resetVS() {
+            vsScreen.classList.remove('active');
+            previewArea.classList.remove('hidden');
+            sparksContainer.innerHTML = '';
+        }
+
+        // Spawn sparks
+        function spawnSparks() {
+            const colors = ['#ffd700', '#ff006e', '#00f2ea', '#ffffff'];
+
+            for (let i = 0; i < config.sparkCount; i++) {
+                const spark = document.createElement('div');
+                spark.className = 'spark';
+
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 100 + Math.random() * 150;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+
+                spark.style.cssText = `
+                    --tx: ${tx}px;
+                    --ty: ${ty}px;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                    animation-delay: ${Math.random() * 0.3}s;
+                `;
+
+                sparksContainer.appendChild(spark);
+
+                requestAnimationFrame(() => {
+                    spark.classList.add('burst');
+                });
+
+                setTimeout(() => spark.remove(), 1000);
+            }
+        }
+
+        // Play clash sound
+        function playClashSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Impact sound
+                const osc1 = audioContext.createOscillator();
+                const gain1 = audioContext.createGain();
+                osc1.connect(gain1);
+                gain1.connect(audioContext.destination);
+                
+                osc1.type = 'sawtooth';
+                osc1.frequency.setValueAtTime(200, audioContext.currentTime);
+                osc1.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.3);
+                
+                gain1.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                
+                osc1.start(audioContext.currentTime);
+                osc1.stop(audioContext.currentTime + 0.3);
+
+                // High ping
+                const osc2 = audioContext.createOscillator();
+                const gain2 = audioContext.createGain();
+                osc2.connect(gain2);
+                gain2.connect(audioContext.destination);
+                
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(1200, audioContext.currentTime);
+                osc2.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.2);
+                
+                gain2.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                
+                osc2.start(audioContext.currentTime);
+                osc2.stop(audioContext.currentTime + 0.2);
+            } catch (e) {
+                // Audio not supported
+            }
+        }
+
+        // Random players
+        function randomPlayers() {
+            const idx1 = Math.floor(Math.random() * avatars.length);
+            let idx2 = Math.floor(Math.random() * avatars.length);
+            while (idx2 === idx1) {
+                idx2 = Math.floor(Math.random() * avatars.length);
+            }
+
+            // Update avatars
+            document.getElementById('player1Avatar').innerHTML = `<div class="avatar-ring"></div>${avatars[idx1]}`;
+            document.getElementById('player2Avatar').innerHTML = `<div class="avatar-ring"></div>${avatars[idx2]}`;
+
+            // Update names
+            document.getElementById('player1Name').value = names[idx1];
+            document.getElementById('player2Name').value = names[idx2];
+            document.getElementById('player1NameDisplay').textContent = names[idx1].toUpperCase();
+            document.getElementById('player2NameDisplay').textContent = names[idx2].toUpperCase();
+        }
+
+        // Replay match from history
+        function replayMatch(element, avatar1, name1, avatar2, name2) {
+            // Set players
+            document.getElementById('player1Avatar').innerHTML = `<div class="avatar-ring"></div>${avatar1}`;
+            document.getElementById('player2Avatar').innerHTML = `<div class="avatar-ring"></div>${avatar2}`;
+            document.getElementById('player1Name').value = name1;
+            document.getElementById('player2Name').value = name2;
+            document.getElementById('player1NameDisplay').textContent = name1.toUpperCase();
+            document.getElementById('player2NameDisplay').textContent = name2.toUpperCase();
+
+            // Trigger VS
+            triggerVS();
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                triggerVS();
+            } else if (e.key === 'r' || e.key === 'R') {
+                resetVS();
+            } else if (e.key === '1') {
+                document.getElementById('animStyle').value = 'default';
+                config.animStyle = 'default';
+                updateAnimStyle();
+            } else if (e.key === '2') {
+                document.getElementById('animStyle').value = 'slide';
+                config.animStyle = 'slide';
+                updateAnimStyle();
+            } else if (e.key === '3') {
+                document.getElementById('animStyle').value = 'zoom';
+                config.animStyle = 'zoom';
+                updateAnimStyle();
+            } else if (e.key === '4') {
+                document.getElementById('animStyle').value = 'rotate';
+                config.animStyle = 'rotate';
+                updateAnimStyle();
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

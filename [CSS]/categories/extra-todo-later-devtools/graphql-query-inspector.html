@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GraphQL Query Inspector - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: #0a0a0a;
+            min-height: 100vh; 
+            color: #e0e0e0;
+        }
+        .devtools-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .devtools-header {
+            background: #1a1a1a;
+            border-bottom: 2px solid #e535ab;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #e535ab;
+            text-decoration: none;
+            padding: 0.4rem 0.8rem;
+            border: 1px solid #e535ab;
+            border-radius: 4px;
+            background: rgba(229, 53, 171, 0.1);
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+        .back-button:hover {
+            background: #e535ab;
+            color: #0a0a0a;
+        }
+        .header-title {
+            font-size: 1rem;
+            color: #e535ab;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .header-title::before {
+            content: '◈';
+            font-size: 1.2rem;
+        }
+        .header-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-left: auto;
+            font-size: 0.75rem;
+        }
+        .header-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .header-stat-label { color: #666; }
+        .header-stat-value { color: #e535ab; font-weight: 600; }
+
+        /* Main Layout */
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Query List Sidebar */
+        .query-sidebar {
+            width: 300px;
+            background: #141414;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .sidebar-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .sidebar-title {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .sidebar-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .sidebar-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0.3rem;
+        }
+        .sidebar-btn:hover { color: #e535ab; }
+        .query-filter {
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .filter-input {
+            width: 100%;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: inherit;
+        }
+        .filter-input:focus {
+            outline: none;
+            border-color: #e535ab;
+        }
+        .query-tabs {
+            display: flex;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .query-tab {
+            flex: 1;
+            padding: 0.6rem;
+            font-size: 0.7rem;
+            background: transparent;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .query-tab:hover { color: #aaa; }
+        .query-tab.active {
+            color: #e535ab;
+            border-bottom-color: #e535ab;
+        }
+        .query-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .query-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #1a1a1a;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .query-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .query-item.selected {
+            background: rgba(229, 53, 171, 0.1);
+            border-left: 3px solid #e535ab;
+        }
+        .query-item-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.4rem;
+        }
+        .query-type {
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .query-type.query { background: rgba(57, 255, 20, 0.2); color: #39ff14; }
+        .query-type.mutation { background: rgba(255, 190, 11, 0.2); color: #ffbe0b; }
+        .query-type.subscription { background: rgba(147, 51, 234, 0.2); color: #a78bfa; }
+        .query-name {
+            font-size: 0.8rem;
+            color: #fff;
+            font-weight: 500;
+        }
+        .query-item-meta {
+            display: flex;
+            gap: 0.75rem;
+            font-size: 0.65rem;
+            color: #555;
+        }
+        .query-status {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+        .status-dot.success { background: #39ff14; }
+        .status-dot.error { background: #ff4757; }
+        .status-dot.loading { background: #ffbe0b; animation: pulse 1s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Editor Panel */
+        .editor-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .editor-toolbar {
+            padding: 0.5rem 1rem;
+            background: #141414;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .editor-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: transparent;
+            color: #aaa;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+        .editor-btn:hover {
+            border-color: #e535ab;
+            color: #e535ab;
+        }
+        .editor-btn.primary {
+            background: #e535ab;
+            border-color: #e535ab;
+            color: #fff;
+            font-weight: 600;
+        }
+        .editor-btn.primary:hover {
+            background: #d42d9e;
+        }
+        .endpoint-input {
+            flex: 1;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: inherit;
+        }
+        .endpoint-input:focus {
+            outline: none;
+            border-color: #e535ab;
+        }
+
+        /* Split Editor */
+        .editor-split {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        .editor-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .editor-pane:first-child {
+            border-right: 1px solid #333;
+        }
+        .pane-header {
+            padding: 0.5rem 1rem;
+            background: #141414;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .pane-title {
+            font-size: 0.7rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .pane-tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .pane-tab {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.65rem;
+            border-radius: 3px;
+            border: none;
+            background: transparent;
+            color: #666;
+            cursor: pointer;
+        }
+        .pane-tab:hover { color: #aaa; }
+        .pane-tab.active {
+            background: rgba(229, 53, 171, 0.2);
+            color: #e535ab;
+        }
+        .pane-content {
+            flex: 1;
+            overflow: auto;
+            padding: 0;
+        }
+        .code-editor {
+            width: 100%;
+            height: 100%;
+            padding: 1rem;
+            font-size: 0.8rem;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            border: none;
+            font-family: 'Courier New', monospace;
+            resize: none;
+            line-height: 1.6;
+        }
+        .code-editor:focus {
+            outline: none;
+        }
+
+        /* Syntax Highlighting (simplified) */
+        .syntax-keyword { color: #ff79c6; }
+        .syntax-type { color: #8be9fd; }
+        .syntax-field { color: #50fa7b; }
+        .syntax-string { color: #f1fa8c; }
+        .syntax-number { color: #bd93f9; }
+        .syntax-comment { color: #6272a4; }
+        .syntax-variable { color: #ffb86c; }
+
+        /* Response Viewer */
+        .response-viewer {
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+        .json-key { color: #e535ab; }
+        .json-string { color: #f1fa8c; }
+        .json-number { color: #bd93f9; }
+        .json-boolean { color: #ff79c6; }
+        .json-null { color: #6272a4; }
+        .json-line {
+            padding: 0.1rem 0;
+        }
+        .json-line:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .response-error {
+            padding: 1rem;
+            background: rgba(255, 71, 87, 0.1);
+            border-left: 3px solid #ff4757;
+            color: #ff4757;
+        }
+        .error-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .error-message {
+            font-size: 0.8rem;
+            color: #ffaaaa;
+        }
+        .error-path {
+            font-size: 0.7rem;
+            color: #888;
+            margin-top: 0.5rem;
+        }
+
+        /* Schema Panel */
+        .schema-panel {
+            width: 320px;
+            background: #141414;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .schema-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #333;
+        }
+        .schema-title {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        .schema-search {
+            width: 100%;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: inherit;
+        }
+        .schema-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+        .schema-type {
+            margin-bottom: 0.5rem;
+        }
+        .schema-type-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: #1a1a1a;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .schema-type-header:hover {
+            background: #222;
+        }
+        .schema-type-icon {
+            color: #e535ab;
+        }
+        .schema-type-name {
+            color: #8be9fd;
+            font-weight: 600;
+        }
+        .schema-type-kind {
+            color: #666;
+            font-size: 0.65rem;
+            margin-left: auto;
+        }
+        .schema-fields {
+            padding-left: 1.5rem;
+            border-left: 1px solid #2a2a2a;
+            margin-left: 0.75rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        .schema-fields.expanded {
+            display: block;
+        }
+        .schema-field {
+            padding: 0.4rem 0.5rem;
+            font-size: 0.7rem;
+            display: flex;
+            gap: 0.5rem;
+            border-radius: 3px;
+        }
+        .schema-field:hover {
+            background: rgba(229, 53, 171, 0.1);
+        }
+        .field-name {
+            color: #50fa7b;
+        }
+        .field-type {
+            color: #8be9fd;
+            margin-left: auto;
+        }
+        .field-type.required::after {
+            content: '!';
+            color: #ff4757;
+        }
+
+        /* Performance Panel */
+        .perf-section {
+            padding: 1rem;
+        }
+        .perf-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #2a2a2a;
+            font-size: 0.75rem;
+        }
+        .perf-label { color: #888; }
+        .perf-value { color: #e535ab; font-weight: 600; }
+        .perf-bar {
+            height: 8px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            margin-top: 0.75rem;
+            overflow: hidden;
+        }
+        .perf-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #39ff14, #ffbe0b, #ff4757);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .perf-breakdown {
+            margin-top: 1rem;
+        }
+        .breakdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0;
+            font-size: 0.7rem;
+        }
+        .breakdown-color {
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+        }
+        .breakdown-label { color: #aaa; flex: 1; }
+        .breakdown-value { color: #fff; font-weight: 500; }
+
+        /* Status Bar */
+        .status-bar {
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.7rem;
+        }
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #666;
+        }
+        .status-item span:last-child {
+            color: #e535ab;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .schema-panel { display: none; }
+        }
+        @media (max-width: 900px) {
+            .query-sidebar { width: 250px; }
+        }
+        @media (max-width: 700px) {
+            .query-sidebar { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="devtools-container">
+        <header class="devtools-header">
+            <a href="index.html" class="back-button">← Back</a>
+            <div class="header-title">GraphQL Query Inspector</div>
+            <div class="header-stats">
+                <div class="header-stat">
+                    <span class="header-stat-label">Queries:</span>
+                    <span class="header-stat-value" id="queryCount">24</span>
+                </div>
+                <div class="header-stat">
+                    <span class="header-stat-label">Avg time:</span>
+                    <span class="header-stat-value" id="avgTime">127ms</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <aside class="query-sidebar">
+                <div class="sidebar-header">
+                    <span class="sidebar-title">History</span>
+                    <div class="sidebar-actions">
+                        <button class="sidebar-btn" onclick="clearHistory()" title="Clear">🗑</button>
+                    </div>
+                </div>
+                <div class="query-filter">
+                    <input type="text" class="filter-input" placeholder="Filter queries..." id="queryFilter" oninput="filterQueries()">
+                </div>
+                <div class="query-tabs">
+                    <button class="query-tab active" data-filter="all" onclick="setQueryTab('all')">All</button>
+                    <button class="query-tab" data-filter="query" onclick="setQueryTab('query')">Queries</button>
+                    <button class="query-tab" data-filter="mutation" onclick="setQueryTab('mutation')">Mutations</button>
+                </div>
+                <div class="query-list" id="queryList">
+                    <!-- Queries rendered here -->
+                </div>
+            </aside>
+
+            <div class="editor-panel">
+                <div class="editor-toolbar">
+                    <input type="text" class="endpoint-input" id="endpoint" value="https://api.example.com/graphql" placeholder="GraphQL endpoint">
+                    <button class="editor-btn" onclick="formatQuery()">Format</button>
+                    <button class="editor-btn" onclick="showDocs()">Docs</button>
+                    <button class="editor-btn primary" onclick="executeQuery()">▶ Execute</button>
+                </div>
+
+                <div class="editor-split">
+                    <!-- Query Editor -->
+                    <div class="editor-pane">
+                        <div class="pane-header">
+                            <span class="pane-title">Query</span>
+                            <div class="pane-tabs">
+                                <button class="pane-tab active" onclick="switchEditorTab('query')">Query</button>
+                                <button class="pane-tab" onclick="switchEditorTab('variables')">Variables</button>
+                                <button class="pane-tab" onclick="switchEditorTab('headers')">Headers</button>
+                            </div>
+                        </div>
+                        <div class="pane-content">
+                            <textarea class="code-editor" id="queryEditor" spellcheck="false">query GetUser($id: ID!) {
+  user(id: $id) {
+    id
+    name
+    email
+    avatar
+    role
+    posts(first: 5) {
+      edges {
+        node {
+          id
+          title
+          publishedAt
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+    followers {
+      totalCount
+    }
+  }
+}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Response Viewer -->
+                    <div class="editor-pane">
+                        <div class="pane-header">
+                            <span class="pane-title">Response</span>
+                            <div class="pane-tabs">
+                                <button class="pane-tab active" onclick="switchResponseTab('response')">Response</button>
+                                <button class="pane-tab" onclick="switchResponseTab('headers')">Headers</button>
+                                <button class="pane-tab" onclick="switchResponseTab('tracing')">Tracing</button>
+                            </div>
+                        </div>
+                        <div class="pane-content">
+                            <div class="response-viewer" id="responseViewer">
+                                <!-- Response rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="schema-panel">
+                <div class="schema-header">
+                    <div class="schema-title">Schema Explorer</div>
+                    <input type="text" class="schema-search" placeholder="Search types..." oninput="filterSchema()">
+                </div>
+                <div class="schema-content" id="schemaContent">
+                    <!-- Schema types rendered here -->
+                </div>
+            </aside>
+        </div>
+
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Last query:</span>
+                    <span id="lastQuery">--</span>
+                </div>
+                <div class="status-item">
+                    <span>Response time:</span>
+                    <span id="responseTime">--</span>
+                </div>
+                <div class="status-item">
+                    <span>Size:</span>
+                    <span id="responseSize">--</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Query History
+        const queries = [
+            { id: 1, type: 'query', name: 'GetUser', status: 'success', time: 145, timestamp: Date.now() - 60000 },
+            { id: 2, type: 'query', name: 'GetPosts', status: 'success', time: 89, timestamp: Date.now() - 120000 },
+            { id: 3, type: 'mutation', name: 'CreatePost', status: 'success', time: 234, timestamp: Date.now() - 180000 },
+            { id: 4, type: 'query', name: 'GetComments', status: 'error', time: 0, timestamp: Date.now() - 240000 },
+            { id: 5, type: 'mutation', name: 'UpdateUser', status: 'success', time: 167, timestamp: Date.now() - 300000 },
+            { id: 6, type: 'query', name: 'SearchUsers', status: 'success', time: 312, timestamp: Date.now() - 360000 },
+            { id: 7, type: 'subscription', name: 'OnMessage', status: 'success', time: 45, timestamp: Date.now() - 420000 },
+            { id: 8, type: 'query', name: 'GetNotifications', status: 'success', time: 78, timestamp: Date.now() - 480000 }
+        ];
+
+        // Schema Types
+        const schemaTypes = [
+            {
+                name: 'Query',
+                kind: 'ROOT',
+                fields: [
+                    { name: 'user', type: 'User', args: 'id: ID!' },
+                    { name: 'users', type: '[User!]!', args: 'first: Int' },
+                    { name: 'posts', type: 'PostConnection!' },
+                    { name: 'search', type: '[SearchResult!]!', args: 'query: String!' }
+                ]
+            },
+            {
+                name: 'Mutation',
+                kind: 'ROOT',
+                fields: [
+                    { name: 'createUser', type: 'User!', args: 'input: CreateUserInput!' },
+                    { name: 'updateUser', type: 'User!', args: 'id: ID!, input: UpdateUserInput!' },
+                    { name: 'deleteUser', type: 'Boolean!', args: 'id: ID!' },
+                    { name: 'createPost', type: 'Post!', args: 'input: CreatePostInput!' }
+                ]
+            },
+            {
+                name: 'User',
+                kind: 'OBJECT',
+                fields: [
+                    { name: 'id', type: 'ID', required: true },
+                    { name: 'name', type: 'String', required: true },
+                    { name: 'email', type: 'String', required: true },
+                    { name: 'avatar', type: 'String' },
+                    { name: 'role', type: 'Role', required: true },
+                    { name: 'posts', type: 'PostConnection' },
+                    { name: 'followers', type: 'FollowerConnection' },
+                    { name: 'createdAt', type: 'DateTime', required: true }
+                ]
+            },
+            {
+                name: 'Post',
+                kind: 'OBJECT',
+                fields: [
+                    { name: 'id', type: 'ID', required: true },
+                    { name: 'title', type: 'String', required: true },
+                    { name: 'content', type: 'String', required: true },
+                    { name: 'author', type: 'User', required: true },
+                    { name: 'publishedAt', type: 'DateTime' },
+                    { name: 'comments', type: 'CommentConnection' }
+                ]
+            },
+            {
+                name: 'Role',
+                kind: 'ENUM',
+                fields: [
+                    { name: 'ADMIN', type: '' },
+                    { name: 'USER', type: '' },
+                    { name: 'MODERATOR', type: '' }
+                ]
+            }
+        ];
+
+        let currentQueryTab = 'all';
+        let selectedQuery = null;
+        let expandedTypes = new Set(['Query', 'User']);
+
+        // Render query history
+        function renderQueries() {
+            const filter = document.getElementById('queryFilter').value.toLowerCase();
+            let filtered = queries.filter(q => 
+                q.name.toLowerCase().includes(filter) &&
+                (currentQueryTab === 'all' || q.type === currentQueryTab)
+            );
+
+            const list = document.getElementById('queryList');
+            list.innerHTML = filtered.map(q => `
+                <div class="query-item ${selectedQuery?.id === q.id ? 'selected' : ''}" onclick="selectQuery(${q.id})">
+                    <div class="query-item-header">
+                        <span class="query-type ${q.type}">${q.type}</span>
+                        <span class="query-name">${q.name}</span>
+                    </div>
+                    <div class="query-item-meta">
+                        <span class="query-status">
+                            <span class="status-dot ${q.status}"></span>
+                            ${q.status === 'success' ? q.time + 'ms' : 'Error'}
+                        </span>
+                        <span>${formatTime(q.timestamp)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatTime(timestamp) {
+            const diff = Date.now() - timestamp;
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+            return Math.floor(diff / 3600000) + 'h ago';
+        }
+
+        function setQueryTab(tab) {
+            currentQueryTab = tab;
+            document.querySelectorAll('.query-tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.filter === tab);
+            });
+            renderQueries();
+        }
+
+        function filterQueries() {
+            renderQueries();
+        }
+
+        function selectQuery(id) {
+            selectedQuery = queries.find(q => q.id === id);
+            renderQueries();
+            // Load query into editor
+        }
+
+        // Render schema
+        function renderSchema() {
+            const content = document.getElementById('schemaContent');
+            content.innerHTML = schemaTypes.map(type => `
+                <div class="schema-type">
+                    <div class="schema-type-header" onclick="toggleType('${type.name}')">
+                        <span class="schema-type-icon">${expandedTypes.has(type.name) ? '▼' : '▶'}</span>
+                        <span class="schema-type-name">${type.name}</span>
+                        <span class="schema-type-kind">${type.kind}</span>
+                    </div>
+                    <div class="schema-fields ${expandedTypes.has(type.name) ? 'expanded' : ''}">
+                        ${type.fields.map(f => `
+                            <div class="schema-field">
+                                <span class="field-name">${f.name}${f.args ? `(${f.args})` : ''}</span>
+                                <span class="field-type ${f.required ? 'required' : ''}">${f.type}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleType(name) {
+            if (expandedTypes.has(name)) {
+                expandedTypes.delete(name);
+            } else {
+                expandedTypes.add(name);
+            }
+            renderSchema();
+        }
+
+        // Execute query (simulated)
+        function executeQuery() {
+            const query = document.getElementById('queryEditor').value;
+            const startTime = performance.now();
+
+            // Simulate response
+            setTimeout(() => {
+                const endTime = performance.now();
+                const duration = Math.round(endTime - startTime);
+
+                const response = {
+                    data: {
+                        user: {
+                            id: "usr_123abc",
+                            name: "John Doe",
+                            email: "john.doe@example.com",
+                            avatar: "https://avatar.example.com/johndoe",
+                            role: "ADMIN",
+                            posts: {
+                                edges: [
+                                    {
+                                        node: {
+                                            id: "post_001",
+                                            title: "Getting Started with GraphQL",
+                                            publishedAt: "2024-01-15T10:30:00Z"
+                                        }
+                                    },
+                                    {
+                                        node: {
+                                            id: "post_002",
+                                            title: "Advanced Query Patterns",
+                                            publishedAt: "2024-01-20T14:45:00Z"
+                                        }
+                                    }
+                                ],
+                                pageInfo: {
+                                    hasNextPage: true,
+                                    endCursor: "cursor_abc123"
+                                }
+                            },
+                            followers: {
+                                totalCount: 1247
+                            }
+                        }
+                    }
+                };
+
+                displayResponse(response, duration);
+
+                // Add to history
+                queries.unshift({
+                    id: Date.now(),
+                    type: 'query',
+                    name: 'GetUser',
+                    status: 'success',
+                    time: duration,
+                    timestamp: Date.now()
+                });
+                renderQueries();
+
+                document.getElementById('lastQuery').textContent = 'Just now';
+                document.getElementById('responseTime').textContent = duration + 'ms';
+                document.getElementById('responseSize').textContent = formatBytes(JSON.stringify(response).length);
+            }, Math.random() * 300 + 100);
+        }
+
+        function displayResponse(response, duration) {
+            const viewer = document.getElementById('responseViewer');
+            viewer.innerHTML = formatJSON(response);
+        }
+
+        function formatJSON(obj, indent = 0) {
+            if (obj === null) return '<span class="json-null">null</span>';
+            if (typeof obj !== 'object') {
+                if (typeof obj === 'string') return `<span class="json-string">"${escapeHtml(obj)}"</span>`;
+                if (typeof obj === 'number') return `<span class="json-number">${obj}</span>`;
+                if (typeof obj === 'boolean') return `<span class="json-boolean">${obj}</span>`;
+            }
+
+            const isArray = Array.isArray(obj);
+            const entries = Object.entries(obj);
+            const spaces = '  '.repeat(indent);
+            const innerSpaces = '  '.repeat(indent + 1);
+
+            if (entries.length === 0) {
+                return isArray ? '[]' : '{}';
+            }
+
+            let html = `${isArray ? '[' : '{'}\n`;
+            entries.forEach(([key, value], i) => {
+                const comma = i < entries.length - 1 ? ',' : '';
+                const keyStr = isArray ? '' : `<span class="json-key">"${escapeHtml(key)}"</span>: `;
+                html += `<div class="json-line">${innerSpaces}${keyStr}${formatJSON(value, indent + 1)}${comma}</div>`;
+            });
+            html += `${spaces}${isArray ? ']' : '}'}`;
+            return html;
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            return (bytes / 1024).toFixed(1) + ' KB';
+        }
+
+        // Editor actions
+        function formatQuery() {
+            // Basic formatting simulation
+            const editor = document.getElementById('queryEditor');
+            editor.value = editor.value.trim();
+        }
+
+        function showDocs() {
+            alert('Schema documentation would open in a modal/panel showing:\n- All types and their fields\n- Input types and arguments\n- Descriptions and deprecations\n- Example queries');
+        }
+
+        function switchEditorTab(tab) {
+            document.querySelectorAll('.editor-pane:first-child .pane-tab').forEach(t => {
+                t.classList.toggle('active', t.textContent.toLowerCase() === tab);
+            });
+            // Would switch content between Query, Variables, Headers
+        }
+
+        function switchResponseTab(tab) {
+            document.querySelectorAll('.editor-pane:last-child .pane-tab').forEach(t => {
+                t.classList.toggle('active', t.textContent.toLowerCase() === tab);
+            });
+            // Would switch content between Response, Headers, Tracing
+        }
+
+        function clearHistory() {
+            queries.length = 0;
+            renderQueries();
+        }
+
+        function filterSchema() {
+            // Would filter visible schema types
+        }
+
+        // Initialize
+        renderQueries();
+        renderSchema();
+
+        // Show initial response
+        executeQuery();
+    </script>
+</body>
+</html>

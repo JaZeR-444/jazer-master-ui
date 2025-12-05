@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Address Autocomplete - JaZeR Maps Patterns</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      margin: 0;
+      padding: 1.5rem;
+      min-height: 100vh;
+    }
+    .back-button { display:inline-flex; align-items:center; gap:0.5rem; color:var(--text-gray); text-decoration:none; font-family:var(--font-secondary); font-weight:600; padding:0.5rem 1rem; border-radius:8px; border:1px solid var(--border-default); background:var(--bg-card); }
+    .back-button:hover { border-color:var(--jazer-cyan); color:var(--jazer-cyan); transform:translateX(-4px); }
+
+    .hero { text-align:center; margin: 1.25rem 0 2rem; }
+    .hero h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); margin:0.5rem 0; background:var(--gradient-text); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .hero p { color:var(--text-gray); max-width:760px; margin:0.5rem auto 1rem; }
+    .hero-badge { display:inline-flex; align-items:center; gap:0.5rem; padding:0.5rem 0.75rem; border-radius:999px; background:rgba(0,0,0,0.25); border:1px solid var(--border-default); font-family:var(--font-secondary); color:var(--text-light); }
+
+    .styles-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1.5rem; max-width:1400px; margin:0 auto 2rem; }
+    .style-card { background:var(--bg-card); border-radius:12px; padding:1rem; border:2px solid var(--border-default); box-shadow:var(--shadow-card); }
+    .style-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+    .style-number{ width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; background:var(--gradient-primary); border-radius:8px; font-weight:800; }
+    .style-title{ font-family:var(--font-secondary); font-weight:700; color:var(--text-light); }
+    .style-demo{ padding:1rem; background:rgba(0,0,0,0.3); border-radius:10px; min-height:156px; display:flex; flex-direction:column; gap:0.75rem; justify-content:center; }
+
+    .field { display:flex; align-items:center; gap:0.5rem; }
+    .input { width:100%; position:relative; }
+    input[type='search'] { width:100%; padding:0.65rem 0.75rem; border-radius:10px; background:var(--bg-card); color:var(--text-light); border:1px solid var(--border-default); outline:none; font-size:0.95rem; }
+    input[type='search']:focus { border-color:var(--jazer-cyan); box-shadow:var(--shadow-cyan); }
+    .icon { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.03); }
+
+    .suggestions { position:relative; }
+    .listbox { position:absolute; top:0.65rem; left:0; right:0; margin-top:calc(0.65rem + 0.5rem); background:var(--bg-dark); border:1px solid var(--border-default); border-radius:8px; max-height:220px; overflow:auto; z-index:40; box-shadow:0 6px 30px rgba(0,0,0,0.6); }
+    .option { padding:0.6rem 0.75rem; display:flex; gap:0.5rem; align-items:flex-start; cursor:pointer; border-bottom:1px dashed rgba(255,255,255,0.03); }
+    .option:last-child{ border-bottom:none; }
+    .option:hover, .option[aria-selected='true']{ background:rgba(0,242,234,0.06); }
+    .opt-main{ font-weight:700; color:var(--text-light); font-size:0.95rem; }
+    .opt-sub{ font-size:0.9rem; color:var(--text-gray); margin-top:2px; }
+
+    .chip { display:inline-flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; background:rgba(255,255,255,0.03); border-radius:999px; border:1px solid var(--border-default); color:var(--text-light); cursor:pointer; }
+    .chips { display:flex; gap:0.5rem; flex-wrap:wrap; }
+    .recent { padding-top:0.5rem; color:var(--text-gray); font-size:0.85rem; }
+
+    .map-mock { height:120px; border-radius:8px; background:linear-gradient(90deg, rgba(0,0,0,0.35), rgba(0,0,0,0.45)); border:1px solid var(--border-default); display:flex; align-items:center; justify-content:center; color:var(--text-gray); }
+    .coords { font-family:var(--font-secondary); color:var(--jazer-cyan); font-size:0.95rem; }
+
+    .kbd { font-family:var(--font-secondary); padding:0.2rem 0.35rem; border-radius:4px; background:var(--bg-card); border:1px solid var(--border-default); color:var(--text-light); }
+    .hint { text-align:center; font-size:0.85rem; color:var(--text-gray); }
+
+    .loading-spinner{ width:18px; height:18px; border-radius:50%; border:2px solid rgba(255,255,255,0.08); border-left-color:var(--jazer-cyan); animation:spin 1s linear infinite; display:inline-block; }
+    @keyframes spin { 0%{ transform:rotate(0deg);} 100%{ transform:rotate(360deg);} }
+
+    @media (max-width:600px){ .styles-grid{ grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to Maps & Geolocation</a>
+  <header class="hero">
+    <h1>Address Autocomplete</h1>
+    <p>Progressive autocomplete inputs with accessible ARIA interactions, loading states, keyboard navigation, and example integrations like recent searches and a mock map.</p>
+    <div class="hero-badge">+ 6 Styles Included</div>
+  </header>
+
+  <main class="styles-grid">
+
+    <!-- Style 1: Basic Autocomplete -->
+    <section class="style-card">
+      <div class="style-header">
+        <span class="style-number">01</span>
+        <span class="style-title">Basic Autocomplete</span>
+      </div>
+      <div class="style-demo">
+        <div class="field">
+          <label class="icon" aria-hidden="true">🔎</label>
+          <div class="input">
+            <input id="a-basic" type="search" placeholder="Search address or place (type 'Park')" aria-autocomplete="list" aria-controls="a-basic-listbox" aria-expanded="false" autocomplete="off">
+            <div id="a-basic-suggestions" role="listbox" class="listbox" hidden></div>
+          </div>
+        </div>
+        <div class="hint">Use <span class="kbd">↑</span>/<span class="kbd">↓</span> to navigate, <span class="kbd">Enter</span> to select</div>
+      </div>
+    </section>
+
+    <!-- Style 2: With icons and details -->
+    <section class="style-card">
+      <div class="style-header">
+        <span class="style-number">02</span>
+        <span class="style-title">Icons & Details</span>
+      </div>
+      <div class="style-demo">
+        <div class="field">
+          <label class="icon" aria-hidden="true">🏢</label>
+          <div class="input">
+            <input id="a-rich" type="search" placeholder="Search businesses or addresses" aria-autocomplete="list" aria-controls="a-rich-listbox" aria-expanded="false" autocomplete="off">
+            <div id="a-rich-suggestions" role="listbox" class="listbox" hidden></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Style 3: Compact / Inline -->
+    <section class="style-card">
+      <div class="style-header">
+        <span class="style-number">03</span>
+        <span class="style-title">Compact / Inline</span>
+      </div>
+      <div class="style-demo">
+        <div class="field">
+          <div class="input">
+            <input id="a-compact" type="search" placeholder="Compact search" aria-autocomplete="list" aria-controls="a-compact-listbox" aria-expanded="false" autocomplete="off">
+            <div id="a-compact-suggestions" role="listbox" class="listbox" hidden></div>
+          </div>
+          <button id="clear-compact" class="icon" title="Clear" aria-label="Clear search">✖</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Style 4: Recent Searches + Chips -->
+    <section class="style-card">
+      <div class="style-header">
+        <span class="style-number">04</span>
+        <span class="style-title">Recent Searches</span>
+      </div>
+      <div class="style-demo">
+        <div class="recent">Recent:</div>
+        <div class="chips" id="recent-chips"></div>
+        <div class="field" style="margin-top:0.5rem;">
+          <label class="icon" aria-hidden="true">🕘</label>
+          <div class="input">
+            <input id="a-recent" type="search" placeholder="Search locations" aria-autocomplete="list" aria-controls="a-recent-listbox" aria-expanded="false" autocomplete="off">
+            <div id="a-recent-suggestions" role="listbox" class="listbox" hidden></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Style 5: Map integration -->
+    <section class="style-card">
+      <div class="style-header">
+        <span class="style-number">05</span>
+        <span class="style-title">Map Integration</span>
+      </div>
+      <div class="style-demo">
+        <div class="field">
+          <label class="icon" aria-hidden="true">📍</label>
+          <div class="input">
+            <input id="a-map" type="search" placeholder="Search and show location on mock map" aria-autocomplete="list" aria-controls="a-map-listbox" aria-expanded="false" autocomplete="off">
+            <div id="a-map-suggestions" role="listbox" class="listbox" hidden></div>
+          </div>
+        </div>
+        <div class="map-mock" id="map-mock">No location selected</div>
+      </div>
+    </section>
+
+    <!-- Style 6: Address parser -->
+    <section class="style-card">
+      <div class="style-header">
+        <span class="style-number">06</span>
+        <span class="style-title">Multi-field Address Parse</span>
+      </div>
+      <div class="style-demo">
+        <div class="field">
+          <label class="icon" aria-hidden="true">🧾</label>
+          <div class="input">
+            <input id="a-parse" type="search" placeholder="Select and parse address" aria-autocomplete="list" aria-controls="a-parse-listbox" aria-expanded="false" autocomplete="off">
+            <div id="a-parse-suggestions" role="listbox" class="listbox" hidden></div>
+          </div>
+        </div>
+        <div style="display:flex; gap:0.5rem; margin-top:0.5rem; flex-wrap:wrap;">
+          <div class="chip" id="street">Street</div>
+          <div class="chip" id="city">City</div>
+          <div class="chip" id="state">State</div>
+          <div class="chip" id="zip">ZIP</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const SAMPLES = [
+      { id:1, name:'Central Park', address:'59th St - 110th St', city:'New York', state:'NY', zip:'10022', lat:40.785091, lon:-73.968285, type:'park' },
+      { id:2, name:'Golden Gate Park', address:'501 Stanyan St', city:'San Francisco', state:'CA', zip:'94117', lat:37.76904, lon:-122.483519, type:'park' },
+      { id:3, name:'Union Square', address:'333 Post St', city:'San Francisco', state:'CA', zip:'94108', lat:37.787994, lon:-122.407437, type:'square' },
+      { id:4, name:'Millennium Park', address:'201 E Randolph St', city:'Chicago', state:'IL', zip:'60602', lat:41.882702, lon:-87.619392, type:'park' },
+      { id:5, name:'Hyde Park', address:'Hyde Park', city:'London', state:'London', zip:'W2', lat:51.507268, lon:-0.16573, type:'park' },
+      { id:6, name:'Sydney Opera House', address:'Bennelong Point', city:'Sydney', state:'NSW', zip:'2000', lat:-33.856784, lon:151.215296, type:'landmark' },
+      { id:7, name:'Tokyo Tower', address:'4 Chome-2-8 Shibakoen', city:'Tokyo', state:'Tōkyō', zip:'105-0011', lat:35.658581, lon:139.745433, type:'landmark' },
+      { id:8, name:'Eiffel Tower', address:'Champ de Mars, 5 Avenue Anatole', city:'Paris', state:'Île-de-France', zip:'75007', lat:48.85837, lon:2.294481, type:'landmark' },
+      { id:9, name:'The White House', address:'1600 Pennsylvania Avenue NW', city:'Washington', state:'DC', zip:'20500', lat:38.897676, lon:-77.03653, type:'official' },
+      { id:10, name:'Pike Place Market', address:'85 Pike St', city:'Seattle', state:'WA', zip:'98101', lat:47.609722, lon:-122.342222, type:'market' }
+    ];
+
+    function createOptionNode(item){
+      const opt = document.createElement('div');
+      opt.className = 'option';
+      opt.tabIndex = -1;
+      opt.setAttribute('role','option');
+      opt.dataset.id = item.id;
+      opt.innerHTML = `<div style="min-width:40px; font-size:1.1rem;">${iconFor(item.type)}</div><div style="flex:1"><div class='opt-main'>${escapeHtml(item.name)}</div><div class='opt-sub'>${escapeHtml(item.address)}, ${escapeHtml(item.city)} ${escapeHtml(item.state)}</div></div>`;
+      return opt;
+    }
+
+    function iconFor(type){
+      switch(type){
+        case 'park': return '🌳';
+        case 'landmark': return '🗼';
+        case 'market': return '🛒';
+        case 'official': return '🏛️';
+        case 'square': return '◼️';
+        default: return '📍';
+      }
+    }
+
+    function escapeHtml(s){ return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+    function debounce(fn, wait=300){
+      let timer;
+      return (...args)=>{ clearTimeout(timer); timer = setTimeout(()=>fn(...args), wait); }
+    }
+
+    function simulateFetch(query){
+      return new Promise(resolve => {
+        setTimeout(()=>{
+          const q = query.trim().toLowerCase();
+          if(!q) return resolve([]);
+          const results = SAMPLES.filter(s => (`${s.name} ${s.address} ${s.city} ${s.state}`).toLowerCase().includes(q));
+          resolve(results);
+        }, 350 + Math.random()*200);
+      });
+    }
+
+    // Generic autocomplete handler factory
+    function createAutocomplete({ inputId, suggestionsId, onSelect, recentKey }){
+      const input = document.getElementById(inputId);
+      const suggestions = document.getElementById(suggestionsId);
+      let activeIndex = -1;
+      let current = [];
+      let open = false;
+
+      const setAria = (expanded)=>{ input.setAttribute('aria-expanded', String(expanded)); }
+
+      function openList(){ suggestions.hidden = false; open = true; setAria(true); }
+      function closeList(){ suggestions.hidden = true; open = false; activeIndex = -1; setAria(false); }
+
+      function renderList(items){
+        suggestions.innerHTML = '';
+        if(!items.length){
+          suggestions.innerHTML = `<div class='option' role='option' aria-selected='false' style='cursor:default'>No results</div>`;
+          openList(); return;
+        }
+        items.forEach(item => suggestions.appendChild(createOptionNode(item)));
+        current = Array.from(suggestions.querySelectorAll('.option'));
+        openList();
+      }
+
+      async function handleQuery(q){
+        suggestions.innerHTML = `<div class='option' style='cursor:default; display:flex; gap:0.5rem; align-items:center;'><span class='loading-spinner' aria-hidden='true'></span> Searching...</div>`;
+        openList();
+        const results = await simulateFetch(q);
+        renderList(results);
+      }
+
+      const doSearch = debounce((e)=> handleQuery(e.target.value));
+
+      input.addEventListener('input', (e)=>{
+        if(!e.target.value.trim()) return closeList();
+        doSearch(e);
+      });
+
+      input.addEventListener('keydown', (e)=>{
+        if(!open) return;
+        if(e.key === 'ArrowDown'){ e.preventDefault(); activeIndex = Math.min(activeIndex+1, current.length-1); updateActive(); }
+        if(e.key === 'ArrowUp'){ e.preventDefault(); activeIndex = Math.max(activeIndex-1, 0); updateActive(); }
+        if(e.key === 'Enter'){ e.preventDefault(); if(activeIndex>=0 && current[activeIndex]) select(current[activeIndex]); }
+        if(e.key === 'Escape'){ closeList(); }
+      });
+
+      function updateActive(){
+        current.forEach((el,i)=> el.setAttribute('aria-selected', i===activeIndex ? 'true' : 'false'));
+        if(activeIndex>=0 && current[activeIndex]) current[activeIndex].scrollIntoView({ block:'nearest' });
+      }
+
+      function select(node){
+        const id = Number(node.dataset.id);
+        const item = SAMPLES.find(s => s.id === id);
+        if(!item) return;
+        input.value = `${item.name}, ${item.city}`;
+        closeList();
+        if(onSelect) onSelect(item);
+        if(recentKey){
+          addRecent(recentKey, `${item.name}, ${item.city}`);
+        }
+      }
+
+      suggestions.addEventListener('click', (e)=>{ const target = e.target.closest('.option'); if(!target) return; if(target.getAttribute('role')!=='option' || target.innerText==='No results') return; select(target); });
+
+      document.addEventListener('click', (e)=>{ if(!input.contains(e.target) && !suggestions.contains(e.target)) closeList(); });
+
+      return { open, closeList };
+    }
+
+    function addRecent(key, value){
+      const existing = JSON.parse(localStorage.getItem(key) || '[]');
+      const dedupe = [value, ...existing.filter(v=>v!==value)].slice(0,6);
+      localStorage.setItem(key, JSON.stringify(dedupe));
+      renderRecent(key, dedupe);
+    }
+
+    function renderRecent(key, list){
+      const container = document.getElementById('recent-chips');
+      if(!container) return;
+      container.innerHTML = '';
+      list.forEach(v=>{ const el = document.createElement('button'); el.className='chip'; el.textContent=v; el.addEventListener('click', ()=>{ document.getElementById('a-recent').value=v; }); container.appendChild(el); });
+    }
+
+    // Wire up each component
+
+    // Basic
+    createAutocomplete({ inputId:'a-basic', suggestionsId:'a-basic-suggestions', onSelect:(it)=>{ /* no-op */ } });
+
+    // Rich
+    createAutocomplete({ inputId:'a-rich', suggestionsId:'a-rich-suggestions', onSelect:(it)=>{ /* can show details */ } });
+
+    // Compact with clear
+    const compact = createAutocomplete({ inputId:'a-compact', suggestionsId:'a-compact-suggestions', onSelect:(it)=>{ /* noop */ } });
+    document.getElementById('clear-compact').addEventListener('click', ()=>{ document.getElementById('a-compact').value=''; compact.closeList(); });
+
+    // Recent
+    const recentKey = 'jazer.recent.addresses';
+    const stored = JSON.parse(localStorage.getItem(recentKey) || '[]');
+    renderRecent(recentKey, stored);
+    createAutocomplete({ inputId:'a-recent', suggestionsId:'a-recent-suggestions', onSelect:(it)=>{ addRecent(recentKey, `${it.name}, ${it.city}`); } , recentKey });
+
+    // Map integration set coords
+    const mapMock = document.getElementById('map-mock');
+    createAutocomplete({ inputId:'a-map', suggestionsId:'a-map-suggestions', onSelect:(it)=>{ mapMock.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div class='coords'>${it.lat.toFixed(6)}, ${it.lon.toFixed(6)}</div><div style='font-size:0.9rem; color:var(--text-gray)'>${it.name} — ${it.city}</div></div>`; } });
+
+    // Address parse
+    createAutocomplete({ inputId:'a-parse', suggestionsId:'a-parse-suggestions', onSelect:(it)=>{ document.getElementById('street').textContent = it.address; document.getElementById('city').textContent = it.city; document.getElementById('state').textContent = it.state; document.getElementById('zip').textContent = it.zip; } });
+
+  </script>
+</body>
+</html>

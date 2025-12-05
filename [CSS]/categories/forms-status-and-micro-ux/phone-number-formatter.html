@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phone Number Formatter - Forms, Status & Micro UX - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%); min-height: 100vh; padding: 2rem; color: #ffffff; }
+        .back-button { display: inline-block; margin-bottom: 2rem; padding: 0.75rem 1.5rem; background: transparent; color: var(--jazer-cyan); text-decoration: none; border: 2px solid var(--jazer-cyan); border-radius: 8px; font-weight: 600; transition: all 0.3s ease; }
+        .back-button:hover { background: var(--jazer-cyan); color: #0a0a0a; transform: translateX(-5px); box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); }
+        .container { max-width: 700px; margin: 0 auto; }
+        h1 { font-family: var(--font-primary); font-size: 2.5rem; margin-bottom: 1rem; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .description { color: #a0a0a0; margin-bottom: 2rem; line-height: 1.6; }
+        .demo-card { background: rgba(10, 10, 10, 0.8); border: 2px solid var(--jazer-cyan); border-radius: 20px; padding: 2rem; backdrop-filter: blur(10px); }
+        .phone-group { margin-bottom: 2rem; }
+        .phone-label { display: block; font-weight: 600; color: var(--jazer-cyan); margin-bottom: 0.5rem; }
+        .phone-input-wrapper { position: relative; }
+        .phone-input { width: 100%; padding: 1rem; padding-left: 3.5rem; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(0, 255, 255, 0.3); border-radius: 12px; color: #ffffff; font-size: 1.1rem; font-family: monospace; transition: all 0.3s ease; }
+        .phone-input:focus { outline: none; border-color: var(--jazer-cyan); box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); }
+        .phone-input.valid { border-color: #39ff14; }
+        .country-code { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #808080; font-size: 1.1rem; font-family: monospace; }
+        .format-hint { font-size: 0.875rem; color: #666; margin-top: 0.5rem; }
+        .phone-preview { margin-top: 2rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.02); border-radius: 12px; border: 1px solid rgba(0, 255, 255, 0.1); }
+        .preview-title { font-weight: 600; color: var(--jazer-cyan); margin-bottom: 1rem; }
+        .preview-item { display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid rgba(0, 255, 255, 0.05); }
+        .preview-item:last-child { border-bottom: none; }
+        .preview-label { color: #808080; }
+        .preview-value { color: #ffffff; font-weight: 600; font-family: monospace; }
+        .validation-icon { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem; }
+        @media (max-width: 768px) { h1 { font-size: 2rem; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-button">← Back</a>
+        <h1>Phone Number Formatter</h1>
+        <p class="description">
+            Auto-formatting phone number inputs with real-time validation. Supports US, international formats, 
+            and provides clean output for API submissions.
+        </p>
+        <div class="demo-card">
+            <div class="phone-group">
+                <label class="phone-label">US Phone Number</label>
+                <div class="phone-input-wrapper">
+                    <span class="country-code">+1</span>
+                    <input type="tel" class="phone-input" id="usPhone" placeholder="(555) 123-4567" maxlength="14">
+                    <span class="validation-icon" id="usIcon"></span>
+                </div>
+                <p class="format-hint">Format: (XXX) XXX-XXXX</p>
+            </div>
+
+            <div class="phone-group">
+                <label class="phone-label">International Phone Number</label>
+                <div class="phone-input-wrapper">
+                    <input type="tel" class="phone-input" id="intlPhone" placeholder="+44 20 7946 0958" maxlength="20" style="padding-left: 1rem;">
+                    <span class="validation-icon" id="intlIcon"></span>
+                </div>
+                <p class="format-hint">Include country code (e.g., +44, +86, +49)</p>
+            </div>
+
+            <div class="phone-preview">
+                <div class="preview-title">Formatted Output:</div>
+                <div class="preview-item">
+                    <span class="preview-label">US Display:</span>
+                    <span class="preview-value" id="usDisplay">-</span>
+                </div>
+                <div class="preview-item">
+                    <span class="preview-label">US E.164:</span>
+                    <span class="preview-value" id="usE164">-</span>
+                </div>
+                <div class="preview-item">
+                    <span class="preview-label">International:</span>
+                    <span class="preview-value" id="intlDisplay">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const usPhone = document.getElementById('usPhone');
+        const intlPhone = document.getElementById('intlPhone');
+        const usIcon = document.getElementById('usIcon');
+        const intlIcon = document.getElementById('intlIcon');
+        const usDisplay = document.getElementById('usDisplay');
+        const usE164 = document.getElementById('usE164');
+        const intlDisplay = document.getElementById('intlDisplay');
+
+        function formatUSPhone(value) {
+            const cleaned = value.replace(/\D/g, '');
+            const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
+            if (!match) return value;
+            
+            const parts = [match[1], match[2], match[3]].filter(Boolean);
+            if (parts.length === 0) return '';
+            if (parts.length === 1) return `(${parts[0]}`;
+            if (parts.length === 2) return `(${parts[0]}) ${parts[1]}`;
+            return `(${parts[0]}) ${parts[1]}-${parts[2]}`;
+        }
+
+        function validateUSPhone(value) {
+            const cleaned = value.replace(/\D/g, '');
+            return cleaned.length === 10;
+        }
+
+        usPhone.addEventListener('input', (e) => {
+            const cursorPos = e.target.selectionStart;
+            const oldLength = e.target.value.length;
+            const cleaned = e.target.value.replace(/\D/g, '');
+            e.target.value = formatUSPhone(cleaned);
+            
+            const newLength = e.target.value.length;
+            const newCursorPos = cursorPos + (newLength - oldLength);
+            e.target.setSelectionRange(newCursorPos, newCursorPos);
+
+            const isValid = validateUSPhone(e.target.value);
+            if (isValid) {
+                usPhone.classList.add('valid');
+                usIcon.textContent = '✓';
+                usIcon.style.color = '#39ff14';
+                usDisplay.textContent = e.target.value;
+                usE164.textContent = '+1' + cleaned;
+            } else {
+                usPhone.classList.remove('valid');
+                usIcon.textContent = cleaned.length > 0 ? '...' : '';
+                usIcon.style.color = '#ffaa00';
+                usDisplay.textContent = '-';
+                usE164.textContent = '-';
+            }
+        });
+
+        intlPhone.addEventListener('input', (e) => {
+            const value = e.target.value;
+            const cleaned = value.replace(/[^\d+\s]/g, '');
+            
+            if (cleaned !== value) {
+                e.target.value = cleaned;
+            }
+
+            const digitsOnly = cleaned.replace(/\D/g, '');
+            const isValid = digitsOnly.length >= 10 && digitsOnly.length <= 15 && cleaned.startsWith('+');
+            
+            if (isValid) {
+                intlPhone.classList.add('valid');
+                intlIcon.textContent = '✓';
+                intlIcon.style.color = '#39ff14';
+                intlDisplay.textContent = cleaned;
+            } else {
+                intlPhone.classList.remove('valid');
+                intlIcon.textContent = digitsOnly.length > 0 ? '...' : '';
+                intlIcon.style.color = '#ffaa00';
+                intlDisplay.textContent = '-';
+            }
+        });
+    </script>
+</body>
+</html>

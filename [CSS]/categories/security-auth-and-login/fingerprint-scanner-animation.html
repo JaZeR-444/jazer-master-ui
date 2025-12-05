@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fingerprint Scanner Animation - JaZeR Security</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(255, 0, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-size: 1rem;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: rgba(0, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .scanner-container {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.2);
+            animation: fadeIn 0.5s ease;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--jazer-cyan);
+            font-family: var(--font-primary);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .fingerprint-wrapper {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 2rem auto;
+        }
+
+        .fingerprint-svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.5));
+        }
+
+        .fingerprint-svg path {
+            fill: none;
+            stroke: var(--jazer-cyan);
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                var(--jazer-cyan) 50%, 
+                transparent 100%);
+            box-shadow: 0 0 10px var(--jazer-cyan);
+            animation: scan 2s ease-in-out infinite;
+            opacity: 0;
+        }
+
+        .scan-line.active {
+            opacity: 1;
+        }
+
+        .pulse-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 50%;
+            opacity: 0;
+            animation: pulse-ring 2s ease-out infinite;
+        }
+
+        .status-text {
+            color: var(--jazer-cyan);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 1.5rem 0;
+            min-height: 1.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status-text.success {
+            color: #39ff14;
+            animation: none;
+        }
+
+        .status-text.error {
+            color: #ff3366;
+            animation: shake 0.5s ease;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.875rem;
+            border: 2px solid;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+            font-family: var(--font-body);
+        }
+
+        .btn-primary {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .btn-secondary {
+            border-color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            border-color: rgba(255, 255, 255, 0.5);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+            display: none;
+        }
+
+        .success-checkmark.show {
+            display: block;
+            animation: scaleIn 0.5s ease;
+        }
+
+        .checkmark-circle {
+            stroke: #39ff14;
+            stroke-width: 3;
+            fill: none;
+            stroke-dasharray: 250;
+            stroke-dashoffset: 250;
+            animation: drawCircle 0.6s ease forwards;
+        }
+
+        .checkmark-check {
+            stroke: #39ff14;
+            stroke-width: 3;
+            fill: none;
+            stroke-dasharray: 70;
+            stroke-dashoffset: 70;
+            animation: drawCheck 0.6s 0.3s ease forwards;
+        }
+
+        @keyframes scan {
+            0%, 100% {
+                top: 0;
+            }
+            50% {
+                top: 100%;
+            }
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: translate(-50%, -50%) scale(0.8);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.3);
+                opacity: 0;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes drawCircle {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        @keyframes drawCheck {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .back-button {
+                top: 1rem;
+                left: 1rem;
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .scanner-container {
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .subtitle {
+                font-size: 0.875rem;
+            }
+
+            .fingerprint-wrapper {
+                width: 150px;
+                height: 150px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <div class="scanner-container">
+        <h1>Biometric Authentication</h1>
+        <p class="subtitle">Place your finger on the sensor</p>
+
+        <div class="fingerprint-wrapper">
+            <svg class="fingerprint-svg" viewBox="0 0 100 100">
+                <!-- Fingerprint pattern -->
+                <path d="M50,20 Q65,20 65,35 Q65,50 50,50 Q35,50 35,35 Q35,20 50,20" />
+                <path d="M50,25 Q60,25 60,37 Q60,48 50,48 Q40,48 40,37 Q40,25 50,25" />
+                <path d="M50,30 Q55,30 55,40 Q55,46 50,46 Q45,46 45,40 Q45,30 50,30" />
+                
+                <path d="M30,40 Q30,60 50,70" />
+                <path d="M70,40 Q70,60 50,70" />
+                
+                <path d="M35,50 Q40,65 50,68" />
+                <path d="M65,50 Q60,65 50,68" />
+                
+                <path d="M28,35 Q25,50 30,65" />
+                <path d="M72,35 Q75,50 70,65" />
+                
+                <path d="M45,72 Q50,78 55,72" />
+                <path d="M40,75 Q50,82 60,75" />
+            </svg>
+            
+            <div class="scan-line"></div>
+            <div class="pulse-ring"></div>
+        </div>
+
+        <svg class="success-checkmark" viewBox="0 0 100 100">
+            <circle class="checkmark-circle" cx="50" cy="50" r="45"/>
+            <path class="checkmark-check" d="M30,50 L45,65 L70,35"/>
+        </svg>
+
+        <div class="status-text">Ready to scan</div>
+
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="scanBtn">Start Scan</button>
+            <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        const scanBtn = document.getElementById('scanBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const statusText = document.querySelector('.status-text');
+        const progressFill = document.querySelector('.progress-fill');
+        const scanLine = document.querySelector('.scan-line');
+        const fingerprintWrapper = document.querySelector('.fingerprint-wrapper');
+        const successCheckmark = document.querySelector('.success-checkmark');
+        
+        let scanning = false;
+        let scanInterval;
+
+        scanBtn.addEventListener('click', startScan);
+        cancelBtn.addEventListener('click', cancelScan);
+
+        function startScan() {
+            if (scanning) return;
+            
+            scanning = true;
+            scanBtn.disabled = true;
+            statusText.textContent = 'Scanning fingerprint...';
+            statusText.classList.remove('success', 'error');
+            scanLine.classList.add('active');
+            progressFill.style.width = '0%';
+            fingerprintWrapper.style.display = 'block';
+            successCheckmark.classList.remove('show');
+
+            // Simulate scan progress
+            let progress = 0;
+            scanInterval = setInterval(() => {
+                progress += 2;
+                progressFill.style.width = progress + '%';
+
+                if (progress >= 100) {
+                    completeScan();
+                }
+            }, 40);
+        }
+
+        function completeScan() {
+            clearInterval(scanInterval);
+            scanLine.classList.remove('active');
+            
+            // Simulate random success/failure (80% success rate)
+            const success = Math.random() > 0.2;
+
+            setTimeout(() => {
+                if (success) {
+                    statusText.textContent = 'Authentication successful!';
+                    statusText.classList.add('success');
+                    fingerprintWrapper.style.display = 'none';
+                    successCheckmark.classList.add('show');
+                    
+                    setTimeout(() => {
+                        resetScanner();
+                    }, 3000);
+                } else {
+                    statusText.textContent = 'Authentication failed. Try again.';
+                    statusText.classList.add('error');
+                    progressFill.style.width = '0%';
+                    
+                    setTimeout(() => {
+                        resetScanner();
+                    }, 2000);
+                }
+            }, 500);
+        }
+
+        function cancelScan() {
+            if (!scanning) return;
+            
+            clearInterval(scanInterval);
+            scanLine.classList.remove('active');
+            resetScanner();
+            statusText.textContent = 'Scan cancelled';
+            setTimeout(() => {
+                statusText.textContent = 'Ready to scan';
+            }, 1500);
+        }
+
+        function resetScanner() {
+            scanning = false;
+            scanBtn.disabled = false;
+            progressFill.style.width = '0%';
+            statusText.classList.remove('success', 'error');
+            fingerprintWrapper.style.display = 'block';
+            successCheckmark.classList.remove('show');
+            
+            if (!statusText.textContent.includes('cancelled')) {
+                statusText.textContent = 'Ready to scan';
+            }
+        }
+    </script>
+</body>
+</html>

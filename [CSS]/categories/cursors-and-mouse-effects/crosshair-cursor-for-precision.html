@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crosshair Cursor for Precision - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a, #1a0a2a, #0a1a2a);
+            font-family: var(--font-body);
+            color: #fff;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        /* Custom crosshair cursor */
+        .crosshair-cursor {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+        }
+
+        .crosshair-lines {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .crosshair-line {
+            position: absolute;
+            background: var(--jazer-cyan);
+            box-shadow: 0 0 10px var(--jazer-cyan);
+        }
+
+        .crosshair-horizontal {
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            transform: translateY(-50%);
+        }
+
+        .crosshair-vertical {
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            transform: translateX(-50%);
+        }
+
+        .crosshair-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-pink);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px var(--jazer-pink);
+        }
+
+        /* Coordinate display */
+        .coordinate-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 10px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--jazer-cyan);
+            z-index: 9999;
+            backdrop-filter: blur(10px);
+        }
+
+        .coord-item {
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .coord-label {
+            color: #888;
+        }
+
+        .coord-value {
+            color: var(--jazer-pink);
+            font-weight: bold;
+        }
+
+        /* Measurement tools */
+        .measurement-display {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--jazer-purple);
+            border-radius: 10px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--jazer-purple);
+            z-index: 9999;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Grid overlay */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .grid-overlay.visible {
+            opacity: 1;
+        }
+
+        .grid-line {
+            position: absolute;
+            background: rgba(0, 255, 255, 0.1);
+        }
+
+        .grid-line.horizontal {
+            left: 0;
+            right: 0;
+            height: 1px;
+        }
+
+        .grid-line.vertical {
+            top: 0;
+            bottom: 0;
+            width: 1px;
+        }
+
+        /* Measurement line */
+        .measurement-line {
+            position: fixed;
+            background: var(--jazer-pink);
+            z-index: 9998;
+            pointer-events: none;
+        }
+
+        .measurement-line.horizontal {
+            height: 2px;
+            box-shadow: 0 0 10px var(--jazer-pink);
+        }
+
+        .measurement-line.vertical {
+            width: 2px;
+            box-shadow: 0 0 10px var(--jazer-pink);
+        }
+
+        .measurement-label {
+            position: fixed;
+            background: var(--jazer-pink);
+            color: #fff;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        /* Content area */
+        .content {
+            position: relative;
+            z-index: 2;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+
+        /* Demo area */
+        .demo-area {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-title {
+            font-size: 1.5rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        /* Target practice area */
+        .target-area {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .target {
+            position: absolute;
+            border-radius: 50%;
+            cursor: none;
+            transition: all 0.3s ease;
+        }
+
+        .target:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px var(--jazer-cyan);
+        }
+
+        .target.hit {
+            animation: targetHit 0.5s ease-out;
+        }
+
+        @keyframes targetHit {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); background: var(--jazer-pink); }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .target-large {
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, var(--jazer-purple), var(--jazer-cyan));
+            border: 3px solid var(--jazer-cyan);
+        }
+
+        .target-medium {
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, var(--jazer-cyan), var(--jazer-pink));
+            border: 2px solid var(--jazer-pink);
+        }
+
+        .target-small {
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, var(--jazer-pink), var(--jazer-purple));
+            border: 1px solid var(--jazer-purple);
+        }
+
+        /* Precision test area */
+        .precision-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .precision-test {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .precision-point {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+        }
+
+        .precision-label {
+            color: #ccc;
+            margin-bottom: 1rem;
+        }
+
+        .precision-distance {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--jazer-pink);
+        }
+
+        /* Controls */
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .controls-title {
+            font-size: 1.3rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-input {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .control-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+        }
+
+        .control-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+            border: none;
+        }
+
+        .color-picker {
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: none;
+        }
+
+        /* Stats display */
+        .stats {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            display: block;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            background: linear-gradient(45deg, var(--jazer-purple), var(--jazer-pink));
+            border: none;
+            border-radius: 25px;
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 0, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--jazer-cyan);
+        }
+
+        .btn-secondary:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+        }
+
+        /* Back navigation */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 25px;
+            border: 1px solid var(--jazer-cyan);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .precision-area {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .coordinate-display,
+            .measurement-display {
+                font-size: 0.8rem;
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Grid overlay -->
+    <div class="grid-overlay" id="gridOverlay"></div>
+
+    <!-- Coordinate display -->
+    <div class="coordinate-display" id="coordinateDisplay">
+        <div class="coord-item">
+            <span class="coord-label">X:</span>
+            <span class="coord-value" id="xCoord">0</span>
+        </div>
+        <div class="coord-item">
+            <span class="coord-label">Y:</span>
+            <span class="coord-value" id="yCoord">0</span>
+        </div>
+        <div class="coord-item">
+            <span class="coord-label">Angle:</span>
+            <span class="coord-value" id="angleCoord">0°</span>
+        </div>
+    </div>
+
+    <!-- Measurement display -->
+    <div class="measurement-display" id="measurementDisplay">
+        <div class="coord-item">
+            <span class="coord-label">Distance:</span>
+            <span class="coord-value" id="distanceValue">0px</span>
+        </div>
+        <div class="coord-item">
+            <span class="coord-label">ΔX:</span>
+            <span class="coord-value" id="deltaX">0px</span>
+        </div>
+        <div class="coord-item">
+            <span class="coord-label">ΔY:</span>
+            <span class="coord-value" id="deltaY">0px</span>
+        </div>
+    </div>
+
+    <!-- Custom crosshair cursor -->
+    <div class="crosshair-cursor" id="crosshairCursor">
+        <div class="crosshair-lines">
+            <div class="crosshair-line crosshair-horizontal"></div>
+            <div class="crosshair-line crosshair-vertical"></div>
+            <div class="crosshair-center"></div>
+        </div>
+    </div>
+
+    <!-- Back navigation -->
+    <a href="index.html" class="back-button">← Back to Cursors</a>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">🎯 Crosshair Cursor for Precision</h1>
+            <p class="subtitle">Precision targeting cursor with coordinate display, measurement tools, and grid overlay functionality</p>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value" id="targetHits">0</span>
+                    <span class="stat-label">Target Hits</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="accuracy">0%</span>
+                    <span class="stat-label">Accuracy</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="gridStatus">Off</span>
+                    <span class="stat-label">Grid Status</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="measureMode">Off</span>
+                    <span class="stat-label">Measure Mode</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <h2 class="controls-title">🎛️ Precision Controls</h2>
+            <div class="control-group">
+                <div class="control-item">
+                    <label class="control-label">Crosshair Size</label>
+                    <input type="range" class="control-slider" id="crosshairSize" min="20" max="80" value="40">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Line Thickness</label>
+                    <input type="range" class="control-slider" id="lineThickness" min="1" max="5" value="2">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Grid Spacing</label>
+                    <input type="range" class="control-slider" id="gridSpacing" min="20" max="100" value="50">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Center Dot Size</label>
+                    <input type="range" class="control-slider" id="centerDotSize" min="4" max="16" value="8">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Primary Color</label>
+                    <input type="color" class="color-picker" id="primaryColor" value="#00ffff">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Secondary Color</label>
+                    <input type="color" class="color-picker" id="secondaryColor" value="#ff00ff">
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Area -->
+        <div class="demo-area">
+            <h2 class="demo-title">🎮 Precision Test Zone</h2>
+            
+            <!-- Target practice -->
+            <div class="target-area" id="targetArea">
+                <!-- Targets will be generated by JavaScript -->
+            </div>
+
+            <!-- Precision tests -->
+            <div class="precision-area">
+                <div class="precision-test">
+                    <div class="precision-label">Click the center point</div>
+                    <div class="precision-point" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+                    <div class="precision-distance" id="precision1">--</div>
+                </div>
+                <div class="precision-test">
+                    <div class="precision-label">Top-left corner</div>
+                    <div class="precision-point" style="top: 10px; left: 10px;"></div>
+                    <div class="precision-distance" id="precision2">--</div>
+                </div>
+                <div class="precision-test">
+                    <div class="precision-label">Bottom-right corner</div>
+                    <div class="precision-point" style="bottom: 10px; right: 10px;"></div>
+                    <div class="precision-distance" id="precision3">--</div>
+                </div>
+                <div class="precision-test">
+                    <div class="precision-label">Random position</div>
+                    <div class="precision-point" id="randomPoint"></div>
+                    <div class="precision-distance" id="precision4">--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+            <button class="btn" id="toggleGrid">Toggle Grid</button>
+            <button class="btn" id="toggleMeasure">Toggle Measure</button>
+            <button class="btn btn-secondary" id="resetTargets">Reset Targets</button>
+            <button class="btn btn-secondary" id="randomizeTargets">Randomize Targets</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        let config = {
+            crosshairSize: 40,
+            lineThickness: 2,
+            gridSpacing: 50,
+            centerDotSize: 8,
+            primaryColor: '#00ffff',
+            secondaryColor: '#ff00ff',
+            gridEnabled: false,
+            measureMode: false
+        };
+
+        // State
+        let mouseX = 0, mouseY = 0;
+        let measureStartX = 0, measureStartY = 0;
+        let isMeasuring = false;
+        let targetHits = 0;
+        let totalClicks = 0;
+        let measureLine = null;
+        let measureLabel = null;
+
+        // Elements
+        const crosshairCursor = document.getElementById('crosshairCursor');
+        const gridOverlay = document.getElementById('gridOverlay');
+        const targetArea = document.getElementById('targetArea');
+        const xCoordEl = document.getElementById('xCoord');
+        const yCoordEl = document.getElementById('yCoord');
+        const angleCoordEl = document.getElementById('angleCoord');
+        const distanceValueEl = document.getElementById('distanceValue');
+        const deltaXEl = document.getElementById('deltaX');
+        const deltaYEl = document.getElementById('deltaY');
+        const targetHitsEl = document.getElementById('targetHits');
+        const accuracyEl = document.getElementById('accuracy');
+        const gridStatusEl = document.getElementById('gridStatus');
+        const measureModeEl = document.getElementById('measureMode');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            createTargets();
+            createGrid();
+            updateCrosshairStyles();
+            updateStats();
+            placeRandomPoint();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Mouse events
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('click', handleClick);
+            document.addEventListener('contextmenu', handleRightClick);
+            
+            // Control inputs
+            document.getElementById('crosshairSize').addEventListener('input', (e) => {
+                config.crosshairSize = parseInt(e.target.value);
+                updateCrosshairStyles();
+            });
+            
+            document.getElementById('lineThickness').addEventListener('input', (e) => {
+                config.lineThickness = parseInt(e.target.value);
+                updateCrosshairStyles();
+            });
+            
+            document.getElementById('gridSpacing').addEventListener('input', (e) => {
+                config.gridSpacing = parseInt(e.target.value);
+                createGrid();
+            });
+            
+            document.getElementById('centerDotSize').addEventListener('input', (e) => {
+                config.centerDotSize = parseInt(e.target.value);
+                updateCrosshairStyles();
+            });
+            
+            document.getElementById('primaryColor').addEventListener('input', (e) => {
+                config.primaryColor = e.target.value;
+                updateCrosshairStyles();
+            });
+            
+            document.getElementById('secondaryColor').addEventListener('input', (e) => {
+                config.secondaryColor = e.target.value;
+                updateCrosshairStyles();
+            });
+
+            // Action buttons
+            document.getElementById('toggleGrid').addEventListener('click', toggleGrid);
+            document.getElementById('toggleMeasure').addEventListener('click', toggleMeasure);
+            document.getElementById('resetTargets').addEventListener('click', resetTargets);
+            document.getElementById('randomizeTargets').addEventListener('click', randomizeTargets);
+        }
+
+        // Handle mouse movement
+        function handleMouseMove(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Update crosshair position
+            crosshairCursor.style.left = mouseX + 'px';
+            crosshairCursor.style.top = mouseY + 'px';
+            
+            // Update coordinates
+            xCoordEl.textContent = mouseX;
+            yCoordEl.textContent = mouseY;
+            
+            // Calculate angle from center
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            const angle = Math.atan2(mouseY - centerY, mouseX - centerX) * (180 / Math.PI);
+            angleCoordEl.textContent = Math.round(angle) + '°';
+            
+            // Update measurement
+            if (isMeasuring) {
+                updateMeasurement();
+            }
+        }
+
+        // Handle click
+        function handleClick(e) {
+            totalClicks++;
+            
+            if (config.measureMode) {
+                if (!isMeasuring) {
+                    startMeasurement(e.clientX, e.clientY);
+                } else {
+                    endMeasurement(e.clientX, e.clientY);
+                }
+            } else {
+                checkTargetHit(e.target);
+                checkPrecisionTest(e);
+            }
+            
+            updateStats();
+        }
+
+        // Handle right click
+        function handleRightClick(e) {
+            e.preventDefault();
+            if (isMeasuring) {
+                cancelMeasurement();
+            }
+        }
+
+        // Create targets
+        function createTargets() {
+            targetArea.innerHTML = '';
+            
+            const targets = [
+                { size: 'large', count: 3 },
+                { size: 'medium', count: 5 },
+                { size: 'small', count: 8 }
+            ];
+            
+            targets.forEach(type => {
+                for (let i = 0; i < type.count; i++) {
+                    const target = document.createElement('div');
+                    target.className = `target target-${type.size}`;
+                    target.dataset.points = type.size === 'large' ? 10 : type.size === 'medium' ? 25 : 50;
+                    
+                    // Random position
+                    const maxX = targetArea.offsetWidth - 60;
+                    const maxY = targetArea.offsetHeight - 60;
+                    target.style.left = Math.random() * maxX + 'px';
+                    target.style.top = Math.random() * maxY + 'px';
+                    
+                    target.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        hitTarget(target);
+                    });
+                    
+                    targetArea.appendChild(target);
+                }
+            });
+        }
+
+        // Hit target
+        function hitTarget(target) {
+            targetHits += parseInt(target.dataset.points);
+            target.classList.add('hit');
+            
+            setTimeout(() => {
+                target.remove();
+            }, 500);
+            
+            updateStats();
+        }
+
+        // Check target hit
+        function checkTargetHit(element) {
+            if (element.classList.contains('target')) {
+                hitTarget(element);
+            }
+        }
+
+        // Check precision test
+        function checkPrecisionTest(e) {
+            const precisionPoints = document.querySelectorAll('.precision-point');
+            precisionPoints.forEach((point, index) => {
+                const rect = point.getBoundingClientRect();
+                const distance = Math.sqrt(
+                    Math.pow(e.clientX - (rect.left + rect.width / 2), 2) +
+                    Math.pow(e.clientY - (rect.top + rect.height / 2), 2)
+                );
+                
+                const precisionEl = document.getElementById(`precision${index + 1}`);
+                if (precisionEl) {
+                    precisionEl.textContent = Math.round(distance) + 'px';
+                }
+            });
+        }
+
+        // Place random point
+        function placeRandomPoint() {
+            const randomPoint = document.getElementById('randomPoint');
+            const container = randomPoint.parentElement;
+            const maxX = container.offsetWidth - 20;
+            const maxY = container.offsetHeight - 20;
+            
+            randomPoint.style.left = Math.random() * maxX + 10 + 'px';
+            randomPoint.style.top = Math.random() * maxY + 10 + 'px';
+        }
+
+        // Create grid
+        function createGrid() {
+            gridOverlay.innerHTML = '';
+            
+            const spacing = config.gridSpacing;
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
+            // Vertical lines
+            for (let x = 0; x < width; x += spacing) {
+                const line = document.createElement('div');
+                line.className = 'grid-line vertical';
+                line.style.left = x + 'px';
+                gridOverlay.appendChild(line);
+            }
+            
+            // Horizontal lines
+            for (let y = 0; y < height; y += spacing) {
+                const line = document.createElement('div');
+                line.className = 'grid-line horizontal';
+                line.style.top = y + 'px';
+                gridOverlay.appendChild(line);
+            }
+        }
+
+        // Start measurement
+        function startMeasurement(x, y) {
+            isMeasuring = true;
+            measureStartX = x;
+            measureStartY = y;
+            
+            // Create measurement line
+            measureLine = document.createElement('div');
+            measureLine.className = 'measurement-line';
+            measureLine.style.left = x + 'px';
+            measureLine.style.top = y + 'px';
+            document.body.appendChild(measureLine);
+        }
+
+        // Update measurement
+        function updateMeasurement() {
+            if (!measureLine) return;
+            
+            const deltaX = mouseX - measureStartX;
+            const deltaY = mouseY - measureStartY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+            
+            // Update line
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                measureLine.className = 'measurement-line horizontal';
+                measureLine.style.width = Math.abs(deltaX) + 'px';
+                measureLine.style.left = Math.min(measureStartX, mouseX) + 'px';
+                measureLine.style.top = measureStartY + 'px';
+            } else {
+                measureLine.className = 'measurement-line vertical';
+                measureLine.style.height = Math.abs(deltaY) + 'px';
+                measureLine.style.left = measureStartX + 'px';
+                measureLine.style.top = Math.min(measureStartY, mouseY) + 'px';
+            }
+            
+            // Update display
+            deltaXEl.textContent = Math.round(deltaX) + 'px';
+            deltaYEl.textContent = Math.round(deltaY) + 'px';
+            distanceValueEl.textContent = Math.round(distance) + 'px';
+        }
+
+        // End measurement
+        function endMeasurement(x, y) {
+            isMeasuring = false;
+            
+            // Create label
+            if (measureLabel) measureLabel.remove();
+            
+            measureLabel = document.createElement('div');
+            measureLabel.className = 'measurement-label';
+            measureLabel.textContent = Math.round(
+                Math.sqrt(Math.pow(x - measureStartX, 2) + Math.pow(y - measureStartY, 2))
+            ) + 'px';
+            measureLabel.style.left = x + 'px';
+            measureLabel.style.top = (y - 30) + 'px';
+            document.body.appendChild(measureLabel);
+            
+            // Remove line after delay
+            setTimeout(() => {
+                if (measureLine) measureLine.remove();
+                if (measureLabel) measureLabel.remove();
+                measureLine = null;
+                measureLabel = null;
+            }, 3000);
+        }
+
+        // Cancel measurement
+        function cancelMeasurement() {
+            isMeasuring = false;
+            if (measureLine) measureLine.remove();
+            if (measureLabel) measureLabel.remove();
+            measureLine = null;
+            measureLabel = null;
+        }
+
+        // Update crosshair styles
+        function updateCrosshairStyles() {
+            crosshairCursor.style.width = config.crosshairSize + 'px';
+            crosshairCursor.style.height = config.crosshairSize + 'px';
+            
+            const horizontalLine = crosshairCursor.querySelector('.crosshair-horizontal');
+            const verticalLine = crosshairCursor.querySelector('.crosshair-vertical');
+            const centerDot = crosshairCursor.querySelector('.crosshair-center');
+            
+            horizontalLine.style.height = config.lineThickness + 'px';
+            horizontalLine.style.background = config.primaryColor;
+            horizontalLine.style.boxShadow = `0 0 10px ${config.primaryColor}`;
+            
+            verticalLine.style.width = config.lineThickness + 'px';
+            verticalLine.style.background = config.primaryColor;
+            verticalLine.style.boxShadow = `0 0 10px ${config.primaryColor}`;
+            
+            centerDot.style.width = config.centerDotSize + 'px';
+            centerDot.style.height = config.centerDotSize + 'px';
+            centerDot.style.background = config.secondaryColor;
+            centerDot.style.borderColor = config.primaryColor;
+            centerDot.style.boxShadow = `0 0 15px ${config.secondaryColor}`;
+        }
+
+        // Toggle grid
+        function toggleGrid() {
+            config.gridEnabled = !config.gridEnabled;
+            gridOverlay.classList.toggle('visible', config.gridEnabled);
+            updateStats();
+        }
+
+        // Toggle measure mode
+        function toggleMeasure() {
+            config.measureMode = !config.measureMode;
+            if (!config.measureMode) {
+                cancelMeasurement();
+            }
+            updateStats();
+        }
+
+        // Reset targets
+        function resetTargets() {
+            targetHits = 0;
+            totalClicks = 0;
+            createTargets();
+            updateStats();
+        }
+
+        // Randomize targets
+        function randomizeTargets() {
+            createTargets();
+            placeRandomPoint();
+        }
+
+        // Update stats display
+        function updateStats() {
+            targetHitsEl.textContent = targetHits;
+            const accuracy = totalClicks > 0 ? Math.round((targetHits / (totalClicks * 10)) * 100) : 0;
+            accuracyEl.textContent = accuracy + '%';
+            gridStatusEl.textContent = config.gridEnabled ? 'On' : 'Off';
+            measureModeEl.textContent = config.measureMode ? 'On' : 'Off';
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            createGrid();
+        });
+    </script>
+</body>
+</html>

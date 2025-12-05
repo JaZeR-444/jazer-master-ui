@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color-Changing Cursor Based on Background - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a, #1a0a2a, #0a1a2a);
+            font-family: var(--font-body);
+            color: #fff;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        /* Hide default cursor */
+        * {
+            cursor: none !important;
+        }
+
+        /* Custom cursor */
+        .custom-cursor {
+            position: fixed;
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px var(--jazer-cyan);
+            transition: transform 0.1s ease;
+        }
+
+        .custom-cursor.contrast {
+            background: radial-gradient(circle, var(--jazer-pink), var(--jazer-cyan));
+            box-shadow: 0 0 20px var(--jazer-pink);
+        }
+
+        /* Background color detector */
+        .bg-detector {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+        }
+
+        /* Content area */
+        .content {
+            position: relative;
+            z-index: 1;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+
+        /* Demo area */
+        .demo-area {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-title {
+            font-size: 1.5rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        /* Interactive zones */
+        .interactive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .interactive-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .interactive-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .interactive-card:hover::before {
+            left: 100%;
+        }
+
+        .interactive-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            color: var(--jazer-pink);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* Background zones */
+        .bg-zone {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bg-zone.light {
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .bg-zone.medium {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .bg-zone.dark {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        .bg-zone.cyberpunk {
+            background: linear-gradient(45deg, #ff00ff, #00ffff, #00ffff);
+        }
+
+        .zone-title {
+            font-size: 1.1rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 0.5rem;
+        }
+
+        .zone-description {
+            color: #ccc;
+            margin-bottom: 1rem;
+        }
+
+        /* Controls */
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .controls-title {
+            font-size: 1.3rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-input {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .control-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+        }
+
+        .control-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+            border: none;
+        }
+
+        .color-picker {
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: none;
+        }
+
+        /* Stats display */
+        .stats {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            display: block;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            background: linear-gradient(45deg, var(--jazer-purple), var(--jazer-pink));
+            border: none;
+            border-radius: 25px;
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 0, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--jazer-cyan);
+        }
+
+        .btn-secondary:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+        }
+
+        /* Back navigation */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 25px;
+            border: 1px solid var(--jazer-cyan);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .interactive-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back navigation -->
+    <a href="index.html" class="back-button">← Back to Cursors</a>
+
+    <!-- Custom cursor -->
+    <div class="custom-cursor" id="customCursor"></div>
+
+    <!-- Background detector -->
+    <div class="bg-detector" id="bgDetector"></div>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">🎨 Color-Changing Cursor Based on Background</h1>
+            <p class="subtitle">Dynamic cursor that adapts its color based on the background it's hovering over for perfect contrast and visibility</p>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value" id="bgColor">#1a0a0a</span>
+                    <span class="stat-label">Background Color</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="cursorColor">#00ffff</span>
+                    <span class="stat-label">Cursor Color</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="contrastMode">Normal</span>
+                    <span class="stat-label">Contrast Mode</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="sensitivity">Medium</span>
+                    <span class="stat-label">Sensitivity</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <h2 class="controls-title">🎨 Color Detection Controls</h2>
+            <div class="control-group">
+                <div class="control-item">
+                    <label class="control-label">Detection Mode</label>
+                    <select class="control-input" id="detectionMode">
+                        <option value="luminosity">Luminosity</option>
+                        <option value="contrast">Contrast</option>
+                        <option value="inverted">Inverted</option>
+                        <option value="adaptive">Adaptive</option>
+                    </select>
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Contrast Threshold</label>
+                    <input type="range" class="control-slider" id="contrastThreshold" min="0" max="100" value="50">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Color Transition Speed</label>
+                    <input type="range" class="control-slider" id="colorTransitionSpeed" min="100" max="2000" value="500">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Primary Color</label>
+                    <input type="color" class="color-picker" id="primaryColor" value="#00ffff">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Secondary Color</label>
+                    <input type="color" class="color-picker" id="secondaryColor" value="#ff00ff">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Sensitivity</label>
+                    <input type="range" class="control-slider" id="sensitivitySlider" min="1" max="10" value="5">
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Area -->
+        <div class="demo-area">
+            <h2 class="demo-title">🎮 Interactive Demo Zone</h2>
+            
+            <!-- Background zones -->
+            <div class="interactive-grid">
+                <div class="bg-zone light">
+                    <h3 style="color: var(--jazer-cyan); margin-bottom: 1rem;">Light Background</h3>
+                    <p>Cursor adapts to light backgrounds with cyan color</p>
+                </div>
+                <div class="bg-zone medium">
+                    <h3 style="color: var(--jazer-purple); margin-bottom: 1rem;">Medium Background</h3>
+                    <p>Cursor adapts to medium backgrounds with purple color</p>
+                </div>
+                <div class="bg-zone dark">
+                    <h3 style="color: var(--jazer-pink); margin-bottom: 1rem;">Dark Background</h3>
+                    <p>Cursor adapts to dark backgrounds with pink color</p>
+                </div>
+                <div class="bg-zone cyberpunk">
+                    <h3 style="color: var(--jazer-cyan); margin-bottom: 1rem;">Cyberpunk Background</h3>
+                    <p>Cursor adapts to cyberpunk backgrounds with cyan color</p>
+                </div>
+            </div>
+
+            <!-- Interactive cards -->
+            <div class="interactive-grid">
+                <div class="interactive-card">
+                    <span class="card-icon">🎨</span>
+                    <h3 class="card-title">Color Detection</h3>
+                    <p>Move cursor over different backgrounds to see automatic color adaptation</p>
+                </div>
+                <div class="interactive-card">
+                    <span class="card-icon">🎨</span>
+                    <h3 class="card-title">Contrast Mode</h3>
+                    <p>Experience automatic contrast adjustment for optimal visibility</p>
+                </div>
+                <div class="interactive-card">
+                    <span class="card-icon">🔧</span>
+                    <h3 class="card-title">Manual Override</h3>
+                    <p">Manually set cursor colors regardless of background</p>
+                </div>
+                <div class="interactive-card">
+                    <span class="card-icon">🎯</span>
+                    <h3 class="card-title">Adaptive Mode</h3>
+                    <p">Smart adaptation based on background analysis</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+            <button class="btn" id="toggleEffect">Toggle Effect</button>
+            <button class="btn btn-secondary" id="resetSettings">Reset Settings</button>
+            <button class="btn btn-secondary" id="randomizeColors">Randomize Colors</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        let config = {
+            detectionMode: 'luminosity',
+            contrastThreshold: 50,
+            colorTransitionSpeed: 500,
+            primaryColor: '#00ffff',
+            secondaryColor: '#ff00ff',
+            sensitivity: 5,
+            effectEnabled: true
+        };
+
+        // State
+        let mouseX = 0, mouseY = 0;
+        let currentBgColor = '#1a0a0a';
+        let currentCursorColor = '#00ffff';
+        let isTransitioning = false;
+
+        // Elements
+        const customCursor = document.getElementById('customCursor');
+        const bgDetector = document.getElementById('bgDetector');
+        const bgColorEl = document.getElementById('bgColor');
+        const cursorColorEl = document.getElementById('cursorColor');
+        const contrastModeEl = document.getElementById('contrastMode');
+        const contrastThresholdEl = document.getElementById('contrastThreshold');
+        const colorTransitionSpeedEl = document.getElementById('colorTransitionSpeed');
+        const sensitivityEl = document.getElementById('sensitivitySlider');
+        const primaryColorEl = document.getElementById('primaryColor');
+        const secondaryColorEl = document.getElementById('secondaryColor');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            updateStats();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Mouse events
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseenter', handleMouseEnter);
+            document.addEventListener('mouseleave', handleMouseLeave);
+            
+            // Control inputs
+            document.getElementById('detectionMode').addEventListener('change', (e) => {
+                config.detectionMode = e.target.value;
+                updateDetectionMode();
+            });
+            
+            document.getElementById('contrastThreshold').addEventListener('input', (e) => {
+                config.contrastThreshold = parseInt(e.target.value);
+            });
+            
+            document.getElementById('colorTransitionSpeed').addEventListener('input', (e) => {
+                config.colorTransitionSpeed = parseInt(e.target.value);
+            });
+            
+            document.getElementById('primaryColor').addEventListener('input', (e) => {
+                config.primaryColor = e.target.value;
+            });
+            
+            document.getElementById('secondaryColor').addEventListener('input', (e) => {
+                config.secondaryColor = e.target.value;
+            });
+            
+            document.getElementById('sensitivitySlider').addEventListener('input', (e) => {
+                config.sensitivity = parseInt(e.target.value);
+            });
+
+            // Action buttons
+            document.getElementById('toggleEffect').addEventListener('click', toggleEffect);
+            document.getElementById('resetSettings').addEventListener('click', resetSettings);
+            document.getElementById('randomizeColors').addEventListener('click', randomizeColors);
+        }
+
+        // Handle mouse movement
+        function handleMouseMove(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Update custom cursor position
+            customCursor.style.left = mouseX + 'px';
+            customCursor.style.top = mouseY + 'px';
+            
+            // Detect background color
+            if (config.effectEnabled) {
+                detectBackgroundColor();
+            }
+        }
+
+        // Handle mouse enter
+        function handleMouseEnter(e) {
+            if (config.effectEnabled) {
+                detectBackgroundColor();
+            }
+        }
+
+        // Handle mouse leave
+        function handleMouseLeave(e) {
+            if (config.effectEnabled) {
+                // Reset to default when leaving page
+                currentBgColor = '#1a0a0a';
+                updateCursorColor();
+            }
+        }
+
+        // Detect background color
+        function detectBackgroundColor() {
+            const element = document.elementFromPoint(mouseX, mouseY);
+            if (!element) {
+                currentBgColor = '#1a0a0a';
+                updateCursorColor();
+                return;
+            }
+            
+            let bgColor = window.getComputedStyle(element).backgroundColor;
+            
+            // Convert to RGB
+            const rgb = bgColor.match(/\d+/g);
+            if (rgb) {
+                const r = parseInt(rgb[1], 16);
+                const g = parseInt(rgb[2], 16);
+                const b = parseInt(rgb[3], 16);
+                currentBgColor = `rgb(${r}, ${g}, ${b})`;
+            }
+            
+            // Calculate luminance
+            const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            
+            // Update based on detection mode
+            switch (config.detectionMode) {
+                case 'luminosity':
+                    // Use luminance directly
+                    updateCursorColor();
+                    break;
+                    
+                case 'contrast':
+                    // Invert if below threshold
+                    if (luminance < config.contrastThreshold / 100) {
+                        currentCursorColor = '#ffffff';
+                    } else {
+                        currentCursorColor = '#000000';
+                    }
+                    updateCursorColor();
+                    break;
+                    
+                case 'inverted':
+                    // Always invert
+                    currentCursorColor = invertColor(currentBgColor);
+                    updateCursorColor();
+                    break;
+                    
+                case 'adaptive':
+                    // Smart adaptation
+                    if (luminance < 0.2) {
+                        currentCursorColor = '#ffffff';
+                    } else if (luminance > 0.8) {
+                        currentCursorColor = '#000000';
+                    } else {
+                        currentCursorColor = '#00ffff';
+                    }
+                    updateCursorColor();
+                    break;
+            }
+            
+            updateStats();
+        }
+
+        // Update cursor color
+        function updateCursorColor() {
+            if (isTransitioning) return;
+            
+            isTransitioning = true;
+            
+            customCursor.style.background = `radial-gradient(circle, ${currentCursorColor}, ${currentCursorColor})`;
+            customCursor.style.boxShadow = `0 0 20px ${currentCursorColor}`;
+            
+            setTimeout(() => {
+                isTransitioning = false;
+            }, config.colorTransitionSpeed);
+        }
+
+        // Update stats display
+        function updateStats() {
+            bgColorEl.textContent = currentBgColor;
+            cursorColorEl.textContent = currentCursorColor;
+            
+            const modeLabels = {
+                'luminosity': 'Luminosity',
+                'contrast': 'Contrast',
+                'inverted': 'Inverted',
+                'adaptive': 'Adaptive'
+            };
+            
+            contrastModeEl.textContent = modeLabels[config.detectionMode] || 'Custom';
+            sensitivityEl.textContent = config.sensitivity;
+        }
+
+        // Toggle effect
+        function toggleEffect() {
+            config.effectEnabled = !config.effectEnabled;
+            const btn = document.getElementById('toggleEffect');
+            btn.textContent = config.effectEnabled ? 'Disable Effect' : 'Enable Effect';
+            
+            if (!config.effectEnabled) {
+                customCursor.style.background = 'radial-gradient(circle, var(--jazer-cyan), var(--jazer-purple))';
+                customCursor.style.boxShadow = '0 0 20px var(--jazer-cyan)';
+            }
+        }
+
+        // Reset settings
+        function resetSettings() {
+            config = {
+                detectionMode: 'luminosity',
+                contrastThreshold: 50,
+                colorTransitionSpeed: 500,
+                primaryColor: '#00ffff',
+                secondaryColor: '#ff00ff',
+                sensitivity: 5,
+                effectEnabled: true
+            };
+            
+            // Update UI controls
+            document.getElementById('detectionMode').value = config.detectionMode;
+            document.getElementById('contrastThreshold').value = config.contrastThreshold;
+            document.getElementById('colorTransitionSpeed').value = config.colorTransitionSpeed;
+            document.getElementById('primaryColor').value = config.primaryColor;
+            document.getElementById('secondaryColor').value = config.secondaryColor;
+            document.getElementById('sensitivitySlider').value = config.sensitivity;
+            
+            updateCursorColor();
+            updateStats();
+            
+            const btn = document.getElementById('toggleEffect');
+            btn.textContent = 'Disable Effect';
+        }
+
+        // Randomize colors
+        function randomizeColors() {
+            const randomColor = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            config.primaryColor = randomColor();
+            config.secondaryColor = randomColor();
+            
+            document.getElementById('primaryColor').value = config.primaryColor;
+            document.getElementById('secondaryColor').value = config.secondaryColor;
+            
+            updateCursorColor();
+        }
+
+        // Hide default cursor on leave
+        document.addEventListener('mouseleave', () => {
+            customCursor.style.display = 'none';
+        });
+
+        document.addEventListener('mouseenter', () => {
+            customCursor.style.display = 'block';
+        });
+    </script>
+</body>
+</html>

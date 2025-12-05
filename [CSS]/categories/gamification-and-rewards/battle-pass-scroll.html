@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle Pass Horizontal Scroll</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 3rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(0, 242, 234, 0.05));
+            border-bottom: 1px solid rgba(147, 51, 234, 0.3);
+        }
+        .back-button { 
+            display: inline-block; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(6, 182, 212, 0.1); 
+            margin-bottom: 1.5rem; 
+            transition: all 0.3s ease; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5); 
+        }
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            font-size: clamp(2rem, 5vw, 3rem); 
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+        }
+        .keyboard-hint {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            font-size: 0.9rem;
+        }
+        .keyboard-hint kbd {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin: 0 0.25rem;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Season Info */
+        .season-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(0, 242, 234, 0.1));
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .season-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .season-icon {
+            font-size: 2.5rem;
+        }
+        .season-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .season-time {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+        }
+        .season-stats {
+            display: flex;
+            gap: 2rem;
+        }
+        .stat-box {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            text-transform: uppercase;
+        }
+
+        /* Progress Bar */
+        .progress-section {
+            margin-bottom: 2rem;
+        }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .progress-level {
+            font-weight: 600;
+            color: var(--jazer-cyan);
+        }
+        .progress-xp {
+            color: var(--text-gray);
+        }
+        .progress-bar {
+            height: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 6px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Battle Pass Track */
+        .battle-pass-container {
+            position: relative;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(147, 51, 234, 0.1) 100%);
+            border: 2px solid rgba(147, 51, 234, 0.3);
+            border-radius: 20px;
+            padding: 2rem 1rem;
+            overflow: hidden;
+        }
+
+        /* Track Labels */
+        .track-labels {
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 80px;
+            background: rgba(0, 0, 0, 0.5);
+            border-right: 1px solid rgba(147, 51, 234, 0.3);
+            z-index: 10;
+        }
+        .track-label {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            writing-mode: vertical-lr;
+            transform: rotate(180deg);
+        }
+        .track-label.premium {
+            color: #ffd700;
+            background: linear-gradient(180deg, rgba(255, 215, 0, 0.1), transparent);
+        }
+        .track-label.free {
+            color: var(--jazer-cyan);
+        }
+
+        /* Scroll Container */
+        .scroll-container {
+            overflow-x: auto;
+            overflow-y: hidden;
+            margin-left: 80px;
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+            scrollbar-color: var(--jazer-purple) rgba(0, 0, 0, 0.3);
+        }
+        .scroll-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        .scroll-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+        .scroll-container::-webkit-scrollbar-thumb {
+            background: var(--jazer-purple);
+            border-radius: 4px;
+        }
+
+        /* Battle Pass Track */
+        .battle-pass-track {
+            display: flex;
+            gap: 1rem;
+            padding: 0.5rem;
+            min-width: max-content;
+        }
+
+        /* Tier Column */
+        .tier-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 100px;
+        }
+
+        /* Tier Number */
+        .tier-number {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-gray);
+            padding: 0.25rem 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        .tier-column.unlocked .tier-number {
+            color: var(--jazer-cyan);
+            background: rgba(0, 242, 234, 0.2);
+        }
+        .tier-column.current .tier-number {
+            color: #ffd700;
+            background: rgba(255, 215, 0, 0.2);
+            animation: currentPulse 2s ease-in-out infinite;
+        }
+        @keyframes currentPulse {
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
+            50% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
+        }
+
+        /* Reward Item */
+        .reward-item {
+            width: 90px;
+            height: 90px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .reward-item:hover {
+            transform: scale(1.1);
+            z-index: 5;
+        }
+
+        /* Premium Reward */
+        .reward-item.premium {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 140, 0, 0.1));
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+        .reward-item.premium.locked {
+            border-color: rgba(255, 215, 0, 0.2);
+            opacity: 0.6;
+        }
+
+        /* Free Reward */
+        .reward-item.free {
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.2), rgba(147, 51, 234, 0.1));
+            border: 2px solid rgba(0, 242, 234, 0.5);
+        }
+        .reward-item.free.locked {
+            border-color: rgba(0, 242, 234, 0.2);
+            opacity: 0.6;
+        }
+
+        /* Claimed State */
+        .reward-item.claimed {
+            opacity: 0.5;
+        }
+        .reward-item.claimed::after {
+            content: '✓';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            background: #00ff88;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: #1a1a2e;
+            font-weight: 700;
+        }
+
+        /* Reward Icon */
+        .reward-icon {
+            font-size: 2rem;
+            margin-bottom: 0.25rem;
+        }
+        .reward-item.locked .reward-icon {
+            filter: grayscale(1);
+        }
+
+        /* Reward Name */
+        .reward-name {
+            font-size: 0.65rem;
+            text-align: center;
+            color: var(--text-gray);
+            line-height: 1.2;
+        }
+
+        /* Lock Icon */
+        .lock-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            opacity: 0.5;
+            display: none;
+        }
+        .reward-item.locked .lock-icon {
+            display: block;
+        }
+        .reward-item.locked .reward-icon {
+            opacity: 0.3;
+        }
+
+        /* Connector Line */
+        .connector {
+            position: absolute;
+            top: 50%;
+            right: -1rem;
+            width: 1rem;
+            height: 3px;
+            background: rgba(147, 51, 234, 0.3);
+        }
+        .tier-column.unlocked .connector {
+            background: var(--jazer-cyan);
+            box-shadow: 0 0 10px rgba(0, 242, 234, 0.5);
+        }
+
+        /* Claim Button */
+        .claim-btn {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.3rem 0.6rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .reward-item:hover .claim-btn {
+            opacity: 1;
+            bottom: -25px;
+        }
+        .reward-item.claimed .claim-btn,
+        .reward-item.locked .claim-btn {
+            display: none;
+        }
+
+        /* Claim Animation */
+        .reward-item.claiming {
+            animation: claimPop 0.5s ease-out;
+        }
+        @keyframes claimPop {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.2); }
+            60% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+
+        /* Particles */
+        .particle-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            opacity: 0;
+        }
+        .particle.burst {
+            animation: particleBurst 0.8s ease-out forwards;
+        }
+        @keyframes particleBurst {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            box-shadow: 0 5px 20px rgba(0, 242, 234, 0.3);
+        }
+        .action-btn.primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 242, 234, 0.4);
+        }
+        .action-btn.premium {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+        }
+        .action-btn.premium:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+        }
+        .action-btn.secondary {
+            background: rgba(147, 51, 234, 0.2);
+            color: var(--jazer-cyan);
+            border: 2px solid var(--jazer-purple);
+        }
+
+        /* Reward Popup */
+        .reward-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .reward-popup.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .popup-content {
+            background: linear-gradient(135deg, rgba(30, 30, 50, 0.98), rgba(20, 20, 40, 0.98));
+            border: 2px solid var(--jazer-purple);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+        .reward-popup.active .popup-content {
+            transform: scale(1);
+        }
+        .popup-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            animation: popupBounce 0.6s ease-out;
+        }
+        @keyframes popupBounce {
+            0% { transform: scale(0) rotate(-20deg); }
+            60% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        .popup-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .popup-desc {
+            color: var(--text-gray);
+            margin-bottom: 1.5rem;
+        }
+        .popup-close {
+            padding: 0.75rem 2rem;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .popup-close:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .season-info {
+                flex-direction: column;
+                text-align: center;
+            }
+            .track-labels {
+                width: 50px;
+            }
+            .scroll-container {
+                margin-left: 50px;
+            }
+            .tier-column {
+                min-width: 80px;
+            }
+            .reward-item {
+                width: 70px;
+                height: 70px;
+            }
+            .reward-icon {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="hero">
+        <a href="index.html" class="back-button">← Back</a>
+        <h1>Battle Pass Horizontal Scroll</h1>
+        <p class="subtitle">Scrollable battle pass with tier rewards and progression</p>
+        <div class="keyboard-hint">
+            <kbd>←</kbd> <kbd>→</kbd> to scroll | <kbd>Space</kbd> to claim | Click rewards to claim
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Season Info -->
+        <div class="season-info">
+            <div class="season-title">
+                <span class="season-icon">🏆</span>
+                <div>
+                    <div class="season-name">Season 5: Cyber Storm</div>
+                    <div class="season-time">32 days remaining</div>
+                </div>
+            </div>
+            <div class="season-stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="currentTier">5</div>
+                    <div class="stat-label">Current Tier</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="rewardsClaimed">8</div>
+                    <div class="stat-label">Rewards Claimed</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="isPremium">FREE</div>
+                    <div class="stat-label">Pass Type</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-section">
+            <div class="progress-header">
+                <span class="progress-level">Tier <span id="tierLevel">5</span></span>
+                <span class="progress-xp"><span id="currentXP">350</span> / 500 XP</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 70%"></div>
+            </div>
+        </div>
+
+        <!-- Battle Pass Track -->
+        <div class="battle-pass-container">
+            <div class="track-labels">
+                <div class="track-label premium">Premium</div>
+                <div class="track-label free">Free</div>
+            </div>
+            <div class="scroll-container" id="scrollContainer">
+                <div class="battle-pass-track" id="battlePassTrack"></div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="action-btn primary" onclick="claimAllAvailable()">Claim All Available</button>
+            <button class="action-btn premium" onclick="upgradeToPremium()">⭐ Upgrade to Premium</button>
+            <button class="action-btn secondary" onclick="addXP()">+100 XP (Demo)</button>
+        </div>
+    </main>
+
+    <!-- Reward Popup -->
+    <div class="reward-popup" id="rewardPopup">
+        <div class="popup-content">
+            <div class="popup-icon" id="popupIcon">🎁</div>
+            <div class="popup-title" id="popupTitle">Reward Claimed!</div>
+            <div class="popup-desc" id="popupDesc">You received a new item</div>
+            <button class="popup-close" onclick="closePopup()">Awesome!</button>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        const state = {
+            currentTier: 5,
+            currentXP: 350,
+            xpPerTier: 500,
+            isPremium: false,
+            claimedRewards: new Set(['free-1', 'free-2', 'free-3', 'free-4', 'free-5']),
+            totalTiers: 30
+        };
+
+        // Rewards data
+        const rewards = [
+            { tier: 1, free: { icon: '🎁', name: 'Welcome Pack' }, premium: { icon: '💎', name: 'Diamond Crate' } },
+            { tier: 2, free: { icon: '💰', name: '100 Coins' }, premium: { icon: '👤', name: 'Avatar Frame' } },
+            { tier: 3, free: { icon: '🎨', name: 'Basic Skin' }, premium: { icon: '✨', name: 'Rare Skin' } },
+            { tier: 4, free: { icon: '🔧', name: 'Upgrade Kit' }, premium: { icon: '🗡️', name: 'Epic Weapon' } },
+            { tier: 5, free: { icon: '💰', name: '250 Coins' }, premium: { icon: '🦸', name: 'Hero Skin' } },
+            { tier: 6, free: { icon: '📦', name: 'Supply Drop' }, premium: { icon: '🌟', name: 'Star Emote' } },
+            { tier: 7, free: { icon: '🎯', name: 'XP Boost' }, premium: { icon: '🏰', name: 'Castle Banner' } },
+            { tier: 8, free: { icon: '💰', name: '500 Coins' }, premium: { icon: '🐉', name: 'Dragon Pet' } },
+            { tier: 9, free: { icon: '🎪', name: 'Event Ticket' }, premium: { icon: '⚡', name: 'Lightning Trail' } },
+            { tier: 10, free: { icon: '🏅', name: 'Bronze Badge' }, premium: { icon: '👑', name: 'Crown' } },
+            { tier: 11, free: { icon: '🎁', name: 'Mystery Box' }, premium: { icon: '🔮', name: 'Magic Orb' } },
+            { tier: 12, free: { icon: '💰', name: '750 Coins' }, premium: { icon: '🎭', name: 'Mask Skin' } },
+            { tier: 13, free: { icon: '🎨', name: 'Color Pack' }, premium: { icon: '🚀', name: 'Rocket Boost' } },
+            { tier: 14, free: { icon: '📦', name: 'Loot Box' }, premium: { icon: '🌈', name: 'Rainbow Aura' } },
+            { tier: 15, free: { icon: '🥈', name: 'Silver Badge' }, premium: { icon: '🦅', name: 'Phoenix Wings' } },
+            { tier: 16, free: { icon: '💰', name: '1000 Coins' }, premium: { icon: '⭐', name: 'Star Weapon' } },
+            { tier: 17, free: { icon: '🎯', name: 'Double XP' }, premium: { icon: '🌙', name: 'Moon Dance' } },
+            { tier: 18, free: { icon: '🎁', name: 'Gift Pack' }, premium: { icon: '💀', name: 'Skull Mask' } },
+            { tier: 19, free: { icon: '📦', name: 'Mega Box' }, premium: { icon: '🔥', name: 'Fire Trail' } },
+            { tier: 20, free: { icon: '🥇', name: 'Gold Badge' }, premium: { icon: '🏆', name: 'Trophy Skin' } },
+            { tier: 21, free: { icon: '💰', name: '1500 Coins' }, premium: { icon: '💫', name: 'Cosmic Aura' } },
+            { tier: 22, free: { icon: '🎨', name: 'Paint Set' }, premium: { icon: '🗡️', name: 'Legend Sword' } },
+            { tier: 23, free: { icon: '🎪', name: 'VIP Pass' }, premium: { icon: '🐺', name: 'Wolf Mount' } },
+            { tier: 24, free: { icon: '📦', name: 'Ultra Box' }, premium: { icon: '❄️', name: 'Ice Crown' } },
+            { tier: 25, free: { icon: '💎', name: 'Gem Pack' }, premium: { icon: '🌟', name: 'Legend Skin' } },
+            { tier: 26, free: { icon: '💰', name: '2000 Coins' }, premium: { icon: '🎭', name: 'Demon Mask' } },
+            { tier: 27, free: { icon: '🎯', name: 'Triple XP' }, premium: { icon: '⚔️', name: 'Dual Blades' } },
+            { tier: 28, free: { icon: '🎁', name: 'Elite Pack' }, premium: { icon: '🌈', name: 'Prism Wings' } },
+            { tier: 29, free: { icon: '📦', name: 'Legend Box' }, premium: { icon: '👁️', name: 'All-See Eye' } },
+            { tier: 30, free: { icon: '🏆', name: 'Final Trophy' }, premium: { icon: '🦸', name: 'ULTIMATE SKIN' } },
+        ];
+
+        // DOM Elements
+        const battlePassTrack = document.getElementById('battlePassTrack');
+        const scrollContainer = document.getElementById('scrollContainer');
+        const rewardPopup = document.getElementById('rewardPopup');
+
+        // Initialize
+        function init() {
+            renderBattlePass();
+            updateUI();
+            scrollToCurrentTier();
+        }
+
+        // Render battle pass
+        function renderBattlePass() {
+            battlePassTrack.innerHTML = '';
+
+            rewards.forEach((tierData, index) => {
+                const tier = tierData.tier;
+                const isUnlocked = tier <= state.currentTier;
+                const isCurrent = tier === state.currentTier;
+
+                const column = document.createElement('div');
+                column.className = `tier-column ${isUnlocked ? 'unlocked' : ''} ${isCurrent ? 'current' : ''}`;
+
+                // Premium reward
+                const premiumItem = createRewardItem(tierData.premium, tier, 'premium', isUnlocked);
+                
+                // Tier number
+                const tierNum = document.createElement('div');
+                tierNum.className = 'tier-number';
+                tierNum.textContent = tier;
+
+                // Free reward
+                const freeItem = createRewardItem(tierData.free, tier, 'free', isUnlocked);
+
+                column.appendChild(premiumItem);
+                column.appendChild(tierNum);
+                column.appendChild(freeItem);
+
+                battlePassTrack.appendChild(column);
+            });
+        }
+
+        // Create reward item
+        function createRewardItem(reward, tier, type, isUnlocked) {
+            const item = document.createElement('div');
+            const rewardId = `${type}-${tier}`;
+            const isClaimed = state.claimedRewards.has(rewardId);
+            const isLocked = !isUnlocked || (type === 'premium' && !state.isPremium);
+
+            item.className = `reward-item ${type} ${isLocked ? 'locked' : ''} ${isClaimed ? 'claimed' : ''}`;
+            item.dataset.tier = tier;
+            item.dataset.type = type;
+            item.dataset.id = rewardId;
+
+            item.innerHTML = `
+                <span class="reward-icon">${reward.icon}</span>
+                <span class="reward-name">${reward.name}</span>
+                <span class="lock-icon">🔒</span>
+                <button class="claim-btn" onclick="claimReward('${rewardId}', event)">Claim</button>
+                <div class="particle-container"></div>
+            `;
+
+            item.onclick = (e) => {
+                if (!isLocked && !isClaimed && e.target.className !== 'claim-btn') {
+                    claimReward(rewardId, e);
+                }
+            };
+
+            return item;
+        }
+
+        // Claim reward
+        function claimReward(rewardId, e) {
+            if (e) e.stopPropagation();
+            
+            const item = document.querySelector(`[data-id="${rewardId}"]`);
+            if (!item || item.classList.contains('claimed') || item.classList.contains('locked')) return;
+
+            // Get reward data
+            const tier = parseInt(item.dataset.tier);
+            const type = item.dataset.type;
+            const rewardData = rewards[tier - 1][type];
+
+            // Add claiming animation
+            item.classList.add('claiming');
+            spawnParticles(item);
+
+            // Play sound
+            playClaimSound();
+
+            setTimeout(() => {
+                item.classList.remove('claiming');
+                item.classList.add('claimed');
+                state.claimedRewards.add(rewardId);
+                updateUI();
+
+                // Show popup
+                showPopup(rewardData);
+            }, 500);
+        }
+
+        // Spawn particles
+        function spawnParticles(item) {
+            const container = item.querySelector('.particle-container');
+            const rect = item.getBoundingClientRect();
+            const colors = ['#00f2ea', '#9333ea', '#ffd700', '#ff006e'];
+
+            for (let i = 0; i < 12; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+
+                const angle = (i / 12) * Math.PI * 2;
+                const distance = 50 + Math.random() * 30;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+
+                particle.style.cssText = `
+                    --tx: ${tx}px;
+                    --ty: ${ty}px;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                    left: 50%;
+                    top: 50%;
+                `;
+
+                container.appendChild(particle);
+                requestAnimationFrame(() => particle.classList.add('burst'));
+
+                setTimeout(() => particle.remove(), 800);
+            }
+        }
+
+        // Show popup
+        function showPopup(reward) {
+            document.getElementById('popupIcon').textContent = reward.icon;
+            document.getElementById('popupTitle').textContent = 'Reward Claimed!';
+            document.getElementById('popupDesc').textContent = `You received: ${reward.name}`;
+            rewardPopup.classList.add('active');
+        }
+
+        // Close popup
+        function closePopup() {
+            rewardPopup.classList.remove('active');
+        }
+
+        // Claim all available
+        function claimAllAvailable() {
+            const availableRewards = document.querySelectorAll('.reward-item:not(.claimed):not(.locked)');
+            let delay = 0;
+
+            availableRewards.forEach((item) => {
+                setTimeout(() => {
+                    claimReward(item.dataset.id);
+                }, delay);
+                delay += 200;
+            });
+        }
+
+        // Upgrade to premium
+        function upgradeToPremium() {
+            state.isPremium = true;
+            document.getElementById('isPremium').textContent = 'PREMIUM';
+            document.getElementById('isPremium').style.color = '#ffd700';
+            renderBattlePass();
+            scrollToCurrentTier();
+        }
+
+        // Add XP (demo)
+        function addXP() {
+            state.currentXP += 100;
+            
+            while (state.currentXP >= state.xpPerTier && state.currentTier < state.totalTiers) {
+                state.currentXP -= state.xpPerTier;
+                state.currentTier++;
+            }
+
+            updateUI();
+            renderBattlePass();
+            scrollToCurrentTier();
+        }
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('currentTier').textContent = state.currentTier;
+            document.getElementById('tierLevel').textContent = state.currentTier;
+            document.getElementById('currentXP').textContent = state.currentXP;
+            document.getElementById('rewardsClaimed').textContent = state.claimedRewards.size;
+            
+            const progress = (state.currentXP / state.xpPerTier) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+        }
+
+        // Scroll to current tier
+        function scrollToCurrentTier() {
+            const currentColumn = document.querySelector('.tier-column.current');
+            if (currentColumn) {
+                setTimeout(() => {
+                    currentColumn.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+                }, 100);
+            }
+        }
+
+        // Play claim sound
+        function playClaimSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+                oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.2);
+
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            } catch (e) {
+                // Audio not supported
+            }
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'ArrowRight') {
+                scrollContainer.scrollBy({ left: 150, behavior: 'smooth' });
+            } else if (e.code === 'ArrowLeft') {
+                scrollContainer.scrollBy({ left: -150, behavior: 'smooth' });
+            } else if (e.code === 'Space') {
+                e.preventDefault();
+                claimAllAvailable();
+            } else if (e.code === 'Escape') {
+                closePopup();
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

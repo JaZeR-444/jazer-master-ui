@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reward Wheel Spin Animation</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 0.5rem;
+            font-family: var(--font-primary);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .back-button {
+            display: inline-block;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 2px solid var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.1);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--bg-dark);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(6, 182, 212, 0.1));
+            border: 2px solid var(--jazer-purple);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-group label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 2px solid var(--jazer-purple);
+            background: rgba(0, 0, 0, 0.4);
+            color: var(--text-light);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-group select:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+
+        /* Demo Area */
+        .demo-area {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(147, 51, 234, 0.1));
+            border: 2px solid var(--jazer-pink);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            min-height: 550px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Wheel Container */
+        .wheel-container {
+            position: relative;
+            width: 350px;
+            height: 350px;
+        }
+
+        /* Wheel */
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            transition: transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5),
+                        inset 0 0 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .wheel[data-style="neon"] {
+            border: 6px solid var(--jazer-cyan);
+            box-shadow: 0 0 30px rgba(0, 242, 234, 0.5),
+                        inset 0 0 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .wheel[data-style="gold"] {
+            border: 6px solid #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5),
+                        inset 0 0 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .wheel[data-style="cosmic"] {
+            border: 6px solid var(--jazer-purple);
+            box-shadow: 0 0 30px rgba(147, 51, 234, 0.5),
+                        inset 0 0 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Wheel Segments */
+        .wheel-segment {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            top: 0;
+            right: 0;
+            transform-origin: bottom left;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+        .segment-content {
+            position: absolute;
+            left: -100%;
+            width: 200%;
+            height: 200%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: rotate(22.5deg) skewY(-45deg);
+        }
+
+        .segment-inner {
+            transform: skewY(45deg) rotate(-22.5deg);
+            text-align: center;
+            margin-top: -50px;
+        }
+
+        .segment-icon {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .segment-value {
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Segment Colors */
+        .wheel-segment:nth-child(8n+1) { background: linear-gradient(135deg, #ff006e, #d6006e); transform: rotate(0deg) skewY(-45deg); }
+        .wheel-segment:nth-child(8n+2) { background: linear-gradient(135deg, #ffd700, #ffb700); transform: rotate(45deg) skewY(-45deg); }
+        .wheel-segment:nth-child(8n+3) { background: linear-gradient(135deg, #00f2ea, #00d2ca); transform: rotate(90deg) skewY(-45deg); }
+        .wheel-segment:nth-child(8n+4) { background: linear-gradient(135deg, #9333ea, #7333ea); transform: rotate(135deg) skewY(-45deg); }
+        .wheel-segment:nth-child(8n+5) { background: linear-gradient(135deg, #00ff88, #00df78); transform: rotate(180deg) skewY(-45deg); }
+        .wheel-segment:nth-child(8n+6) { background: linear-gradient(135deg, #ff6400, #e55400); transform: rotate(225deg) skewY(-45deg); }
+        .wheel-segment:nth-child(8n+7) { background: linear-gradient(135deg, #64c8ff, #44b8ff); transform: rotate(270deg) skewY(-45deg); }
+        .wheel-segment:nth-child(8n+8) { background: linear-gradient(135deg, #ff69b4, #ff49a4); transform: rotate(315deg) skewY(-45deg); }
+
+        /* Center Circle */
+        .wheel-center {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a1a2e, #0a0a15);
+            border: 4px solid var(--jazer-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 0 30px rgba(0, 242, 234, 0.5);
+            z-index: 10;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .wheel-center:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            box-shadow: 0 0 50px rgba(0, 242, 234, 0.8);
+        }
+
+        /* Pointer */
+        .wheel-pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 50px;
+            z-index: 20;
+        }
+
+        .pointer-arrow {
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid var(--jazer-pink);
+            filter: drop-shadow(0 5px 10px rgba(255, 0, 110, 0.5));
+        }
+
+        /* Outer Lights */
+        .wheel-lights {
+            position: absolute;
+            width: calc(100% + 30px);
+            height: calc(100% + 30px);
+            top: -15px;
+            left: -15px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .light-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ffd700;
+            box-shadow: 0 0 10px #ffd700;
+        }
+
+        .wheel.spinning .light-dot {
+            animation: lightBlink 0.2s ease-in-out infinite alternate;
+        }
+
+        @keyframes lightBlink {
+            0% { opacity: 0.3; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Trigger Button */
+        .trigger-btn {
+            margin-top: 2rem;
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 25px rgba(6, 182, 212, 0.4);
+        }
+
+        .trigger-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(6, 182, 212, 0.6);
+        }
+
+        .trigger-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Result Display */
+        .result-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 16px;
+            border: 2px solid var(--jazer-cyan);
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .result-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-icon {
+            font-size: 2rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .result-value {
+            font-family: var(--font-primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--jazer-pink);
+        }
+
+        /* Info Panel */
+        .info-panel {
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.1), rgba(147, 51, 234, 0.1));
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--jazer-pink);
+        }
+
+        /* Win Overlay */
+        .win-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .win-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .win-content {
+            text-align: center;
+            transform: scale(0.5);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .win-overlay.active .win-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .win-title {
+            font-family: var(--font-primary);
+            font-size: 3rem;
+            color: #ffd700;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            margin-bottom: 1rem;
+        }
+
+        .win-prize {
+            font-size: 6rem;
+            margin-bottom: 1rem;
+        }
+
+        .win-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            margin-bottom: 2rem;
+        }
+
+        .win-close {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--jazer-pink), var(--jazer-purple));
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .win-close:hover {
+            transform: scale(1.05);
+        }
+
+        /* Confetti */
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .control-panel { grid-template-columns: 1fr 1fr; }
+            .wheel-container { width: 280px; height: 280px; }
+            .wheel-center { width: 60px; height: 60px; font-size: 1.5rem; }
+            .segment-icon { font-size: 1.5rem; }
+            .segment-value { font-size: 0.7rem; }
+            .result-display { 
+                position: relative; 
+                top: auto; 
+                right: auto; 
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+
+    <div class="header">
+        <h1>Reward Wheel Spin Animation</h1>
+        <p class="subtitle">Interactive prize wheel with smooth spinning animation</p>
+    </div>
+
+    <div class="control-panel">
+        <div class="control-group">
+            <label>Wheel Style</label>
+            <select id="wheelStyle">
+                <option value="neon" selected>Neon</option>
+                <option value="gold">Golden</option>
+                <option value="cosmic">Cosmic</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Spin Duration</label>
+            <select id="spinDuration">
+                <option value="3">Fast (3s)</option>
+                <option value="5" selected>Normal (5s)</option>
+                <option value="8">Slow (8s)</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Prize Animation</label>
+            <select id="prizeAnim">
+                <option value="popup" selected>Popup</option>
+                <option value="confetti">Confetti</option>
+                <option value="both">Both</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Segments</label>
+            <select id="segmentCount">
+                <option value="6">6 Prizes</option>
+                <option value="8" selected>8 Prizes</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <div class="info-item">
+            <div class="info-label">Spins</div>
+            <div class="info-value" id="spinCount">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Total Coins</div>
+            <div class="info-value" id="totalCoins">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Total Gems</div>
+            <div class="info-value" id="totalGems">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Best Prize</div>
+            <div class="info-value" id="bestPrize">-</div>
+        </div>
+    </div>
+
+    <div class="demo-area">
+        <div class="result-display">
+            <div class="result-label">Last Win</div>
+            <div class="result-icon" id="resultIcon">&#127873;</div>
+            <div class="result-value" id="resultValue">Spin to win!</div>
+        </div>
+
+        <div class="wheel-container">
+            <div class="wheel-lights" id="wheelLights"></div>
+            <div class="wheel-pointer">
+                <div class="pointer-arrow"></div>
+            </div>
+            <div class="wheel" id="wheel" data-style="neon">
+                <!-- Segments will be generated by JS -->
+            </div>
+            <div class="wheel-center" id="wheelCenter" onclick="spinWheel()">&#127922;</div>
+        </div>
+
+        <button class="trigger-btn" id="triggerBtn">Spin the Wheel!</button>
+    </div>
+
+    <!-- Win Overlay -->
+    <div class="win-overlay" id="winOverlay">
+        <div class="win-content">
+            <div class="win-title">YOU WON!</div>
+            <div class="win-prize" id="winPrize">&#128176;</div>
+            <div class="win-value" id="winValue">500 Coins</div>
+            <button class="win-close" onclick="closeWinOverlay()">Claim Reward</button>
+        </div>
+    </div>
+
+    <script>
+        // Prize data
+        const prizes = [
+            { icon: '&#128176;', label: '100 Coins', value: 100, type: 'coins' },
+            { icon: '&#128142;', label: '5 Gems', value: 5, type: 'gems' },
+            { icon: '&#128176;', label: '250 Coins', value: 250, type: 'coins' },
+            { icon: '&#127873;', label: 'Mystery Box', value: 0, type: 'special' },
+            { icon: '&#128176;', label: '500 Coins', value: 500, type: 'coins' },
+            { icon: '&#128142;', label: '20 Gems', value: 20, type: 'gems' },
+            { icon: '&#128176;', label: '1000 Coins', value: 1000, type: 'coins' },
+            { icon: '&#11088;', label: 'JACKPOT!', value: 5000, type: 'coins' }
+        ];
+
+        let spinCount = 0;
+        let totalCoins = 0;
+        let totalGems = 0;
+        let bestPrize = 0;
+        let isSpinning = false;
+        let currentRotation = 0;
+
+        // DOM Elements
+        const wheel = document.getElementById('wheel');
+        const wheelLights = document.getElementById('wheelLights');
+        const triggerBtn = document.getElementById('triggerBtn');
+        const winOverlay = document.getElementById('winOverlay');
+        const wheelStyleSelect = document.getElementById('wheelStyle');
+        const spinDurationSelect = document.getElementById('spinDuration');
+        const prizeAnimSelect = document.getElementById('prizeAnim');
+
+        // Create wheel segments
+        function createWheel() {
+            wheel.innerHTML = '';
+            
+            prizes.forEach((prize, i) => {
+                const segment = document.createElement('div');
+                segment.className = 'wheel-segment';
+                segment.innerHTML = `
+                    <div class="segment-content">
+                        <div class="segment-inner">
+                            <span class="segment-icon">${prize.icon}</span>
+                            <span class="segment-value">${prize.label}</span>
+                        </div>
+                    </div>
+                `;
+                wheel.appendChild(segment);
+            });
+        }
+
+        // Create wheel lights
+        function createLights() {
+            wheelLights.innerHTML = '';
+            const lightCount = 20;
+            const radius = 190;
+
+            for (let i = 0; i < lightCount; i++) {
+                const light = document.createElement('div');
+                light.className = 'light-dot';
+                const angle = (Math.PI * 2 / lightCount) * i - Math.PI / 2;
+                const x = Math.cos(angle) * radius + radius - 6;
+                const y = Math.sin(angle) * radius + radius - 6;
+                light.style.left = x + 'px';
+                light.style.top = y + 'px';
+                light.style.animationDelay = (i * 0.05) + 's';
+                wheelLights.appendChild(light);
+            }
+        }
+
+        // Spin the wheel
+        function spinWheel() {
+            if (isSpinning) return;
+            isSpinning = true;
+
+            const duration = parseInt(spinDurationSelect.value);
+            wheel.style.transition = `transform ${duration}s cubic-bezier(0.17, 0.67, 0.12, 0.99)`;
+            wheel.classList.add('spinning');
+
+            // Calculate spin
+            const spins = 5 + Math.random() * 3; // 5-8 full rotations
+            const prizeIndex = Math.floor(Math.random() * prizes.length);
+            const segmentAngle = 360 / prizes.length;
+            const targetAngle = 360 - (prizeIndex * segmentAngle + segmentAngle / 2);
+            const totalRotation = spins * 360 + targetAngle;
+
+            currentRotation += totalRotation;
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+            triggerBtn.disabled = true;
+            triggerBtn.textContent = 'Spinning...';
+
+            // After spin completes
+            setTimeout(() => {
+                isSpinning = false;
+                wheel.classList.remove('spinning');
+                triggerBtn.disabled = false;
+                triggerBtn.textContent = 'Spin Again!';
+
+                // Award prize
+                const prize = prizes[prizeIndex];
+                awardPrize(prize);
+            }, duration * 1000);
+
+            spinCount++;
+            updateDisplay();
+        }
+
+        // Award prize
+        function awardPrize(prize) {
+            // Update totals
+            if (prize.type === 'coins') {
+                totalCoins += prize.value;
+                if (prize.value > bestPrize) bestPrize = prize.value;
+            } else if (prize.type === 'gems') {
+                totalGems += prize.value;
+            } else if (prize.type === 'special') {
+                // Mystery box - random bonus
+                const bonus = Math.floor(Math.random() * 500) + 100;
+                totalCoins += bonus;
+                prize.value = bonus;
+            }
+
+            // Update result display
+            document.getElementById('resultIcon').innerHTML = prize.icon;
+            document.getElementById('resultValue').textContent = prize.label;
+
+            // Show animation
+            const animType = prizeAnimSelect.value;
+
+            if (animType === 'popup' || animType === 'both') {
+                showWinOverlay(prize);
+            }
+
+            if (animType === 'confetti' || animType === 'both') {
+                createConfetti();
+            }
+
+            updateDisplay();
+        }
+
+        // Show win overlay
+        function showWinOverlay(prize) {
+            document.getElementById('winPrize').innerHTML = prize.icon;
+            document.getElementById('winValue').textContent = prize.label;
+            winOverlay.classList.add('active');
+        }
+
+        // Close win overlay
+        function closeWinOverlay() {
+            winOverlay.classList.remove('active');
+        }
+
+        // Create confetti
+        function createConfetti() {
+            const colors = ['#ff006e', '#ffd700', '#00f2ea', '#9333ea', '#00ff88', '#ff6400'];
+            const demoArea = document.querySelector('.demo-area');
+
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-10px';
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+                demoArea.appendChild(confetti);
+
+                confetti.animate([
+                    { transform: `translateY(0) rotate(0deg)`, opacity: 1 },
+                    { transform: `translateY(${500 + Math.random() * 200}px) rotate(${Math.random() * 720}deg)`, opacity: 0 }
+                ], {
+                    duration: 2000 + Math.random() * 1000,
+                    easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                }).onfinish = () => confetti.remove();
+            }
+        }
+
+        // Update display
+        function updateDisplay() {
+            document.getElementById('spinCount').textContent = spinCount;
+            document.getElementById('totalCoins').textContent = totalCoins.toLocaleString();
+            document.getElementById('totalGems').textContent = totalGems;
+            document.getElementById('bestPrize').textContent = bestPrize > 0 ? bestPrize.toLocaleString() : '-';
+        }
+
+        // Event listeners
+        triggerBtn.addEventListener('click', spinWheel);
+
+        wheelStyleSelect.addEventListener('change', (e) => {
+            wheel.dataset.style = e.target.value;
+        });
+
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !isSpinning) {
+                e.preventDefault();
+                spinWheel();
+            }
+            if (e.code === 'Enter' && winOverlay.classList.contains('active')) {
+                closeWinOverlay();
+            }
+        });
+
+        // Click overlay to close
+        winOverlay.addEventListener('click', (e) => {
+            if (e.target === winOverlay) {
+                closeWinOverlay();
+            }
+        });
+
+        // Initialize
+        createWheel();
+        createLights();
+        updateDisplay();
+    </script>
+</body>
+</html>

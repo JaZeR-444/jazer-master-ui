@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer Countdown Urgency Pulse</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            margin-bottom: 0.5rem; 
+            font-size: 2.5rem; 
+        }
+        
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .back-button { 
+            display: inline-block; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(6, 182, 212, 0.1); 
+            margin-bottom: 2rem; 
+            transition: all 0.3s ease; 
+        }
+        
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5); 
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .control-group label {
+            font-size: 0.85rem;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .control-group select,
+        .control-group input {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--jazer-purple);
+            color: var(--text-light);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+        
+        .control-group select:hover,
+        .control-group input:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+        
+        .trigger-btn {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(6, 182, 212, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .trigger-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.6);
+        }
+        
+        .trigger-btn.stop {
+            background: linear-gradient(135deg, #ff4444, #ff0066);
+            box-shadow: 0 5px 20px rgba(255, 68, 68, 0.4);
+        }
+        
+        .demo-container {
+            border: 2px solid var(--jazer-pink);
+            border-radius: 16px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.9), rgba(30, 20, 50, 0.9));
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .demo-container.urgent {
+            border-color: #ff4444;
+            animation: containerPulse 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes containerPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+            50% { box-shadow: 0 0 30px 10px rgba(255, 68, 68, 0.3); }
+        }
+        
+        /* Timer display */
+        .timer-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .timer-label {
+            font-size: 1rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+        
+        .timer-display {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1.5rem 3rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 3px solid var(--jazer-purple);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .timer-display.warning {
+            border-color: #ffa500;
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.3);
+        }
+        
+        .timer-display.critical {
+            border-color: #ff4444;
+            animation: timerShake 0.3s ease-in-out infinite;
+        }
+        
+        @keyframes timerShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+        
+        .time-segment {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .time-value {
+            font-size: 4rem;
+            font-weight: 900;
+            font-family: var(--font-primary);
+            color: white;
+            line-height: 1;
+            transition: all 0.3s ease;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .time-value.pulse {
+            animation: digitPulse 0.3s ease-out;
+        }
+        
+        @keyframes digitPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); color: var(--jazer-cyan); }
+            100% { transform: scale(1); }
+        }
+        
+        .time-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .time-separator {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--jazer-pink);
+            animation: separatorBlink 1s step-end infinite;
+        }
+        
+        @keyframes separatorBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        /* Urgency indicators */
+        .urgency-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+        }
+        
+        .urgency-indicator.safe {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+        }
+        
+        .urgency-indicator.warning {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+            border: 1px solid #ffa500;
+            animation: warningPulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes warningPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .urgency-indicator.critical {
+            background: rgba(255, 68, 68, 0.3);
+            color: #ff4444;
+            border: 1px solid #ff4444;
+            animation: criticalPulse 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes criticalPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 68, 68, 0.5); }
+            50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(255, 68, 68, 0.8); }
+        }
+        
+        /* Pulse ring */
+        .pulse-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            pointer-events: none;
+            opacity: 0;
+        }
+        
+        .pulse-ring.active {
+            animation: ringPulse 1s ease-out infinite;
+        }
+        
+        .pulse-ring.warning {
+            border-color: #ffa500;
+        }
+        
+        .pulse-ring.critical {
+            border-color: #ff4444;
+            animation-duration: 0.5s;
+        }
+        
+        @keyframes ringPulse {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+        }
+        
+        /* Progress bar */
+        .progress-container {
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 4px;
+            transition: width 0.1s linear, background 0.3s ease;
+        }
+        
+        .progress-fill.warning {
+            background: linear-gradient(90deg, #ffa500, #ff6600);
+        }
+        
+        .progress-fill.critical {
+            background: linear-gradient(90deg, #ff4444, #ff0000);
+            animation: progressFlash 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes progressFlash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        /* Heartbeat effect for critical */
+        .heartbeat-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, transparent 50%, rgba(255, 0, 0, 0.1) 100%);
+            pointer-events: none;
+            opacity: 0;
+            z-index: 100;
+        }
+        
+        .heartbeat-overlay.active {
+            animation: heartbeat 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes heartbeat {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+        
+        /* Timer presets */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .preset-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .preset-card:hover {
+            border-color: var(--jazer-cyan);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);
+        }
+        
+        .preset-card .time {
+            font-size: 1.8rem;
+            font-weight: 900;
+            font-family: var(--font-primary);
+            color: var(--jazer-cyan);
+            margin-bottom: 0.25rem;
+        }
+        
+        .preset-card h3 {
+            color: var(--jazer-pink);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .keyboard-hint {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--jazer-purple);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .keyboard-hint kbd {
+            background: var(--jazer-purple);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-primary);
+            margin: 0 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .control-group select,
+            .control-group input { min-width: 100%; }
+            .time-value { font-size: 2.5rem; min-width: 60px; }
+            .time-separator { font-size: 2rem; }
+            .timer-display { padding: 1rem 1.5rem; }
+            .keyboard-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    <h1>Timer Countdown Urgency Pulse</h1>
+    <p class="subtitle">Dynamic countdown timer with escalating urgency visual feedback</p>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label>Urgency Style</label>
+            <select id="urgencyStyle">
+                <option value="pulse">Pulse</option>
+                <option value="shake">Shake</option>
+                <option value="glow">Glow</option>
+                <option value="heartbeat">Heartbeat</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Warning (sec)</label>
+            <input type="number" id="warningThreshold" value="30" min="5" max="120">
+        </div>
+        <div class="control-group">
+            <label>Critical (sec)</label>
+            <input type="number" id="criticalThreshold" value="10" min="1" max="60">
+        </div>
+        <button class="trigger-btn" id="startBtn" onclick="toggleTimer()">Start Timer</button>
+    </div>
+    
+    <div class="demo-container" id="demoContainer">
+        <div class="timer-container">
+            <div class="timer-label">Time Remaining</div>
+            <div class="timer-display" id="timerDisplay">
+                <div class="pulse-ring" id="pulseRing"></div>
+                
+                <div class="time-segment">
+                    <div class="time-value" id="minutes">01</div>
+                    <div class="time-label">Min</div>
+                </div>
+                
+                <div class="time-separator">:</div>
+                
+                <div class="time-segment">
+                    <div class="time-value" id="seconds">00</div>
+                    <div class="time-label">Sec</div>
+                </div>
+            </div>
+            
+            <div class="urgency-indicator safe" id="urgencyIndicator">
+                <span id="urgencyIcon">✓</span>
+                <span id="urgencyText">Plenty of Time</span>
+            </div>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 100%"></div>
+            </div>
+            <div class="progress-labels">
+                <span>0:00</span>
+                <span id="totalTimeLabel">1:00</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="heartbeat-overlay" id="heartbeatOverlay"></div>
+    
+    <div class="preset-grid">
+        <div class="preset-card" onclick="startWithTime(15)">
+            <div class="time">0:15</div>
+            <h3>Quick</h3>
+        </div>
+        <div class="preset-card" onclick="startWithTime(30)">
+            <div class="time">0:30</div>
+            <h3>Short</h3>
+        </div>
+        <div class="preset-card" onclick="startWithTime(60)">
+            <div class="time">1:00</div>
+            <h3>Standard</h3>
+        </div>
+        <div class="preset-card" onclick="startWithTime(120)">
+            <div class="time">2:00</div>
+            <h3>Extended</h3>
+        </div>
+        <div class="preset-card" onclick="startWithTime(300)">
+            <div class="time">5:00</div>
+            <h3>Long</h3>
+        </div>
+    </div>
+    
+    <div class="keyboard-hint">
+        Press <kbd>Space</kbd> to start/stop timer
+    </div>
+    
+    <script>
+        let timerInterval = null;
+        let totalTime = 60;
+        let currentTime = 60;
+        let isRunning = false;
+        let lastSeconds = -1;
+        
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return {
+                minutes: mins.toString().padStart(2, '0'),
+                seconds: secs.toString().padStart(2, '0')
+            };
+        }
+        
+        function updateDisplay() {
+            const time = formatTime(currentTime);
+            const minutesEl = document.getElementById('minutes');
+            const secondsEl = document.getElementById('seconds');
+            
+            // Pulse animation on second change
+            if (lastSeconds !== currentTime) {
+                secondsEl.classList.remove('pulse');
+                void secondsEl.offsetWidth; // Trigger reflow
+                secondsEl.classList.add('pulse');
+                
+                if (currentTime % 60 === 59 || (lastSeconds >= 0 && Math.floor(lastSeconds / 60) !== Math.floor(currentTime / 60))) {
+                    minutesEl.classList.remove('pulse');
+                    void minutesEl.offsetWidth;
+                    minutesEl.classList.add('pulse');
+                }
+                
+                lastSeconds = currentTime;
+            }
+            
+            minutesEl.textContent = time.minutes;
+            secondsEl.textContent = time.seconds;
+            
+            // Update progress
+            const progress = (currentTime / totalTime) * 100;
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = progress + '%';
+            
+            // Update urgency state
+            updateUrgency();
+        }
+        
+        function updateUrgency() {
+            const warningThreshold = parseInt(document.getElementById('warningThreshold').value);
+            const criticalThreshold = parseInt(document.getElementById('criticalThreshold').value);
+            const style = document.getElementById('urgencyStyle').value;
+            
+            const timerDisplay = document.getElementById('timerDisplay');
+            const urgencyIndicator = document.getElementById('urgencyIndicator');
+            const progressFill = document.getElementById('progressFill');
+            const pulseRing = document.getElementById('pulseRing');
+            const demoContainer = document.getElementById('demoContainer');
+            const heartbeatOverlay = document.getElementById('heartbeatOverlay');
+            
+            // Remove all state classes
+            timerDisplay.classList.remove('warning', 'critical');
+            urgencyIndicator.classList.remove('safe', 'warning', 'critical');
+            progressFill.classList.remove('warning', 'critical');
+            pulseRing.classList.remove('active', 'warning', 'critical');
+            demoContainer.classList.remove('urgent');
+            heartbeatOverlay.classList.remove('active');
+            
+            let urgencyIcon, urgencyText;
+            
+            if (currentTime <= criticalThreshold) {
+                // Critical state
+                timerDisplay.classList.add('critical');
+                urgencyIndicator.classList.add('critical');
+                progressFill.classList.add('critical');
+                urgencyIcon = '⚠️';
+                urgencyText = 'HURRY UP!';
+                
+                if (style === 'pulse' || style === 'glow') {
+                    pulseRing.classList.add('active', 'critical');
+                }
+                if (style === 'heartbeat') {
+                    heartbeatOverlay.classList.add('active');
+                }
+                demoContainer.classList.add('urgent');
+                
+            } else if (currentTime <= warningThreshold) {
+                // Warning state
+                timerDisplay.classList.add('warning');
+                urgencyIndicator.classList.add('warning');
+                progressFill.classList.add('warning');
+                urgencyIcon = '⏰';
+                urgencyText = 'Running Low';
+                
+                if (style === 'pulse' || style === 'glow') {
+                    pulseRing.classList.add('active', 'warning');
+                }
+                
+            } else {
+                // Safe state
+                urgencyIndicator.classList.add('safe');
+                urgencyIcon = '✓';
+                urgencyText = 'Plenty of Time';
+            }
+            
+            document.getElementById('urgencyIcon').textContent = urgencyIcon;
+            document.getElementById('urgencyText').textContent = urgencyText;
+        }
+        
+        function tick() {
+            if (currentTime > 0) {
+                currentTime--;
+                updateDisplay();
+            } else {
+                stopTimer();
+                // Timer complete
+                document.getElementById('urgencyText').textContent = "TIME'S UP!";
+                document.getElementById('urgencyIcon').textContent = '🚨';
+            }
+        }
+        
+        function startTimer() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            document.getElementById('startBtn').textContent = 'Stop Timer';
+            document.getElementById('startBtn').classList.add('stop');
+            
+            timerInterval = setInterval(tick, 1000);
+        }
+        
+        function stopTimer() {
+            isRunning = false;
+            document.getElementById('startBtn').textContent = 'Start Timer';
+            document.getElementById('startBtn').classList.remove('stop');
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            // Clear urgency effects
+            document.getElementById('heartbeatOverlay').classList.remove('active');
+            document.getElementById('demoContainer').classList.remove('urgent');
+        }
+        
+        function resetTimer(seconds) {
+            stopTimer();
+            totalTime = seconds;
+            currentTime = seconds;
+            lastSeconds = -1;
+            
+            // Update total time label
+            const time = formatTime(totalTime);
+            document.getElementById('totalTimeLabel').textContent = `${time.minutes}:${time.seconds}`;
+            
+            updateDisplay();
+        }
+        
+        function toggleTimer() {
+            if (isRunning) {
+                stopTimer();
+            } else {
+                if (currentTime === 0) {
+                    resetTimer(totalTime);
+                }
+                startTimer();
+            }
+        }
+        
+        function startWithTime(seconds) {
+            resetTimer(seconds);
+            startTimer();
+        }
+        
+        // Initialize
+        resetTimer(60);
+        
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !e.repeat) {
+                e.preventDefault();
+                toggleTimer();
+            }
+        });
+    </script>
+</body>
+</html>

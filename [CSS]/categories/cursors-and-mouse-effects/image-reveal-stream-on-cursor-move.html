@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Reveal Stream on Cursor Move</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0b2e 100%);
+            color: var(--jazer-cyan);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            cursor: none;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 50%, rgba(255, 0, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: backgroundPulse 10s ease-in-out infinite;
+        }
+
+        @keyframes backgroundPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        .container, .back-button {
+            position: relative;
+            z-index: 1;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            font-size: 0.9rem;
+            border: 1px solid var(--jazer-cyan);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--gradient-primary);
+            box-shadow: 0 0 20px var(--jazer-cyan);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: var(--font-primary);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .reveal-cursor {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: radial-gradient(circle, transparent 30%, rgba(0, 255, 255, 0.1) 70%);
+            border: 2px solid var(--jazer-cyan);
+            box-shadow: 0 0 30px var(--jazer-cyan);
+        }
+
+        .reveal-cursor::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px var(--jazer-cyan);
+        }
+
+        .image-reveal {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.5);
+        }
+
+        .reveal-content {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: brightness(1.1) contrast(1.1);
+        }
+
+        .demo-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .demo-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-section h2 {
+            font-family: var(--font-primary);
+            margin-bottom: 1rem;
+            color: var(--jazer-purple);
+        }
+
+        .reveal-zone {
+            width: 100%;
+            height: 250px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px dashed var(--jazer-pink);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1rem 0;
+            position: relative;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        .reveal-zone::before {
+            content: 'Move cursor to reveal!';
+            color: var(--jazer-pink);
+            font-family: var(--font-secondary);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .controls {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            min-width: 250px;
+            z-index: 1001;
+        }
+
+        .control-group {
+            margin: 1rem 0;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--jazer-purple);
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 0.25rem;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 0.25rem;
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 0.25rem;
+        }
+
+        .stats {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            font-size: 0.9rem;
+        }
+
+        .stats div {
+            margin: 0.25rem 0;
+        }
+
+        .instructions {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 2rem;
+            border-left: 4px solid var(--jazer-purple);
+        }
+
+        .instructions h3 {
+            font-family: var(--font-primary);
+            color: var(--jazer-purple);
+            margin-top: 0;
+        }
+
+        .instructions ul {
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .instructions li {
+            margin: 0.5rem 0;
+        }
+
+        .trail-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9997;
+            width: 4px;
+            height: 4px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: fadeOut 1s ease-out forwards;
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+        }
+
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .gallery-item {
+            aspect-ratio: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            cursor: none;
+            position: relative;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+
+        .reveal-effect {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9996;
+            border-radius: 50%;
+            border: 2px solid var(--jazer-cyan);
+            animation: expandRing 0.8s ease-out forwards;
+        }
+
+        @keyframes expandRing {
+            0% {
+                width: 20px;
+                height: 20px;
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                width: 100px;
+                height: 100px;
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(2);
+            }
+        }
+
+        .stream-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9997;
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-purple);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--jazer-purple);
+            animation: streamFlow 2s ease-out forwards;
+        }
+
+        @keyframes streamFlow {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(calc(-50% + var(--flow-x)), calc(-50% + var(--flow-y))) scale(0.3);
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+
+    <div class="controls">
+        <h3 style="margin-top: 0; color: var(--jazer-cyan);">Reveal Controls</h3>
+        
+        <div class="control-group">
+            <label for="revealSize">Reveal Size: <span id="sizeValue">80</span>px</label>
+            <input type="range" id="revealSize" min="40" max="200" step="10" value="80">
+        </div>
+        
+        <div class="control-group">
+            <label for="revealIntensity">Intensity: <span id="intensityValue">0.8</span></label>
+            <input type="range" id="revealIntensity" min="0.3" max="1" step="0.1" value="0.8">
+        </div>
+        
+        <div class="control-group">
+            <label for="blurAmount">Blur Amount: <span id="blurValue">0</span>px</label>
+            <input type="range" id="blurAmount" min="0" max="10" step="1" value="0">
+        </div>
+        
+        <div class="control-group">
+            <label for="imageSource">Image Source:</label>
+            <select id="imageSource">
+                <option value="gradient">Gradient</option>
+                <option value="pattern">Pattern</option>
+                <option value="nature">Nature</option>
+                <option value="abstract">Abstract</option>
+                <option value="cyberpunk">Cyberpunk</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="revealShape">Reveal Shape:</label>
+            <select id="revealShape">
+                <option value="circle">Circle</option>
+                <option value="square">Square</option>
+                <option value="star">Star</option>
+                <option value="hexagon">Hexagon</option>
+                <option value="heart">Heart</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="trailEffect">Trail Effect:</label>
+            <select id="trailEffect">
+                <option value="none">None</option>
+                <option value="particles">Particles</option>
+                <option value="stream">Stream</option>
+                <option value="rings">Rings</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div>Position: <span id="cursorPos">0, 0</span></div>
+        <div>Revealing: <span id="revealingStatus">No</span></div>
+        <div>Speed: <span id="cursorSpeed">0</span>px/s</div>
+        <div>Active Reveals: <span id="activeReveals">0</span></div>
+    </div>
+
+    <div class="container">
+        <h1>Image Reveal Stream</h1>
+        <p class="description">
+            Interactive cursor that reveals hidden images as you move. 
+            Different reveal shapes, sizes, and effects for creating visual streams.
+        </p>
+
+        <div class="demo-area">
+            <div class="demo-section">
+                <h2>Gradient Reveal</h2>
+                <div class="reveal-zone" id="gradientZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Reveal gradient!
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Pattern Reveal</h2>
+                <div class="reveal-zone" id="patternZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Reveal pattern!
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Image Gallery</h2>
+                <div class="image-gallery" id="imageGallery">
+                    <div class="gallery-item">
+                        <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><defs><linearGradient id='grad1' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:rgb(0,255,255);stop-opacity:1' /><stop offset='100%' style='stop-color:rgb(255,0,255);stop-opacity:1' /></linearGradient></defs><rect width='200' height='200' fill='url(%23grad1)' /><circle cx='100' cy='100' r='50' fill='rgba(255,255,255,0.3)' /></svg>" alt="Gallery 1">
+                    </div>
+                    <div class="gallery-item">
+                        <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><defs><linearGradient id='grad2' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:rgb(255,0,255);stop-opacity:1' /><stop offset='100%' style='stop-color:rgb(255,255,0);stop-opacity:1' /></linearGradient></defs><rect width='200' height='200' fill='url(%23grad2)' /><polygon points='100,50 150,150 50,150' fill='rgba(255,255,255,0.2)' /></svg>" alt="Gallery 2">
+                    </div>
+                    <div class="gallery-item">
+                        <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><defs><linearGradient id='grad3' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:rgb(255,255,0);stop-opacity:1' /><stop offset='100%' style='stop-color:rgb(0,255,255);stop-opacity:1' /></linearGradient></defs><rect width='200' height='200' fill='url(%23grad3)' /><rect x='50' y='50' width='100' height='100' fill='rgba(0,0,0,0.3)' /></svg>" alt="Gallery 3">
+                    </div>
+                    <div class="gallery-item">
+                        <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><defs><radialGradient id='grad4'><stop offset='0%' style='stop-color:rgb(0,255,255);stop-opacity:1' /><stop offset='100%' style='stop-color:rgb(255,0,255);stop-opacity:1' /></radialGradient></defs><rect width='200' height='200' fill='url(%23grad4)' /><circle cx='60' cy='60' r='30' fill='rgba(255,255,255,0.4)' /><circle cx='140' cy='140' r='40' fill='rgba(255,255,255,0.3)' /></svg>" alt="Gallery 4">
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Text Reveal</h2>
+                <div class="reveal-zone" id="textZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Reveal hidden text!
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Speed Reveal</h2>
+                <div class="reveal-zone" id="speedZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Move quickly!
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Multi-layer Reveal</h2>
+                <div class="reveal-zone" id="multiZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary); pointer-events: none;">
+                        Multiple layers!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>How It Works:</h3>
+            <ul>
+                <li>Move cursor over zones to reveal hidden content</li>
+                <li>Different reveal shapes: circle, square, star, hexagon, heart</li>
+                <li>Adjust reveal size, intensity, and blur effects</li>
+                <li>Various image sources: gradients, patterns, nature, abstract</li>
+                <li>Trail effects: particles, stream, rings</li>
+                <li>Speed-based reveal intensity</li>
+                <li>Multi-layer reveals for complex effects</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="reveal-cursor" id="revealCursor"></div>
+
+    <script>
+        class ImageRevealStream {
+            constructor() {
+                this.cursor = document.getElementById('revealCursor');
+                this.sizeInput = document.getElementById('revealSize');
+                this.intensityInput = document.getElementById('revealIntensity');
+                this.blurInput = document.getElementById('blurAmount');
+                this.sourceSelect = document.getElementById('imageSource');
+                this.shapeSelect = document.getElementById('revealShape');
+                this.trailSelect = document.getElementById('trailEffect');
+                
+                this.sizeValueDisplay = document.getElementById('sizeValue');
+                this.intensityValueDisplay = document.getElementById('intensityValue');
+                this.blurValueDisplay = document.getElementById('blurValue');
+                this.cursorPosDisplay = document.getElementById('cursorPos');
+                this.revealingStatusDisplay = document.getElementById('revealingStatus');
+                this.speedDisplay = document.getElementById('cursorSpeed');
+                this.activeRevealsDisplay = document.getElementById('activeReveals');
+                
+                this.revealSize = 80;
+                this.revealIntensity = 0.8;
+                this.blurAmount = 0;
+                this.imageSource = 'gradient';
+                this.revealShape = 'circle';
+                this.trailEffect = 'none';
+                
+                this.currentX = 0;
+                this.currentY = 0;
+                this.previousX = 0;
+                this.previousY = 0;
+                this.speed = 0;
+                this.isRevealing = false;
+                this.activeReveals = [];
+                this.lastTrailTime = 0;
+                
+                this.init();
+            }
+
+            init() {
+                // Set up event listeners
+                document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                document.addEventListener('mouseenter', () => this.showCursor());
+                document.addEventListener('mouseleave', () => this.hideCursor());
+                
+                // Control listeners
+                this.sizeInput.addEventListener('input', (e) => this.updateSize(e.target.value));
+                this.intensityInput.addEventListener('input', (e) => this.updateIntensity(e.target.value));
+                this.blurInput.addEventListener('input', (e) => this.updateBlur(e.target.value));
+                this.sourceSelect.addEventListener('change', (e) => this.updateImageSource(e.target.value));
+                this.shapeSelect.addEventListener('change', (e) => this.updateShape(e.target.value));
+                this.trailSelect.addEventListener('change', (e) => this.updateTrailEffect(e.target.value));
+                
+                // Set up reveal zones
+                this.setupRevealZones();
+                
+                // Hide default cursor
+                document.body.style.cursor = 'none';
+                
+                // Start animation loop
+                this.animate();
+            }
+
+            setupRevealZones() {
+                const zones = document.querySelectorAll('.reveal-zone, .gallery-item');
+                zones.forEach(zone => {
+                    zone.addEventListener('mouseenter', () => {
+                        this.isRevealing = true;
+                        this.startReveal(zone);
+                    });
+                    
+                    zone.addEventListener('mouseleave', () => {
+                        this.isRevealing = false;
+                        this.stopReveal(zone);
+                    });
+                });
+            }
+
+            handleMouseMove(e) {
+                this.previousX = this.currentX;
+                this.previousY = this.currentY;
+                this.currentX = e.clientX;
+                this.currentY = e.clientY;
+                
+                // Calculate speed
+                const dx = this.currentX - this.previousX;
+                const dy = this.currentY - this.previousY;
+                this.speed = Math.sqrt(dx * dx + dy * dy);
+                
+                // Update cursor position
+                this.cursor.style.left = this.currentX + 'px';
+                this.cursor.style.top = this.currentY + 'px';
+                
+                // Update displays
+                this.cursorPosDisplay.textContent = `${Math.round(this.currentX)}, ${Math.round(this.currentY)}`;
+                this.speedDisplay.textContent = Math.round(this.speed * 10);
+                this.revealingStatusDisplay.textContent = this.isRevealing ? 'Yes' : 'No';
+                
+                // Create trail effects
+                if (this.isRevealing) {
+                    this.createTrailEffect();
+                }
+                
+                // Update active reveals
+                this.activeRevealsDisplay.textContent = this.activeReveals.length;
+            }
+
+            startReveal(zone) {
+                const reveal = document.createElement('div');
+                reveal.className = 'image-reveal';
+                reveal.dataset.zoneId = zone.id || 'unknown';
+                
+                // Apply shape
+                this.applyRevealShape(reveal);
+                
+                // Set size
+                const size = this.revealSize + (this.speed * 2);
+                reveal.style.width = size + 'px';
+                reveal.style.height = size + 'px';
+                
+                // Position
+                reveal.style.left = this.currentX + 'px';
+                reveal.style.top = this.currentY + 'px';
+                
+                // Create content
+                const content = document.createElement('div');
+                content.className = 'reveal-content';
+                content.style.backgroundImage = this.getImageSource(zone);
+                content.style.filter = `blur(${this.blurAmount}px) brightness(${1 + this.revealIntensity * 0.2})`;
+                reveal.appendChild(content);
+                
+                document.body.appendChild(reveal);
+                this.activeReveals.push(reveal);
+            }
+
+            stopReveal(zone) {
+                // Remove reveals for this zone
+                const zoneId = zone.id || 'unknown';
+                this.activeReveals = this.activeReveals.filter(reveal => {
+                    if (reveal.dataset.zoneId === zoneId) {
+                        reveal.remove();
+                        return false;
+                    }
+                    return true;
+                });
+            }
+
+            applyRevealShape(reveal) {
+                switch (this.revealShape) {
+                    case 'circle':
+                        reveal.style.borderRadius = '50%';
+                        break;
+                    case 'square':
+                        reveal.style.borderRadius = '10%';
+                        break;
+                    case 'star':
+                        reveal.style.clipPath = 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)';
+                        break;
+                    case 'hexagon':
+                        reveal.style.clipPath = 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)';
+                        break;
+                    case 'heart':
+                        reveal.style.clipPath = 'polygon(50% 0%, 100% 35%, 82% 75%, 50% 100%, 18% 75%, 0% 35%)';
+                        break;
+                    default:
+                        reveal.style.borderRadius = '50%';
+                }
+            }
+
+            getImageSource(zone) {
+                const zoneId = zone.id || 'unknown';
+                
+                switch (this.imageSource) {
+                    case 'gradient':
+                        return this.getGradientImage(zoneId);
+                    case 'pattern':
+                        return this.getPatternImage(zoneId);
+                    case 'nature':
+                        return this.getNatureImage(zoneId);
+                    case 'abstract':
+                        return this.getAbstractImage(zoneId);
+                    case 'cyberpunk':
+                        return this.getCyberpunkImage(zoneId);
+                    default:
+                        return this.getGradientImage(zoneId);
+                }
+            }
+
+            getGradientImage(zoneId) {
+                const gradients = {
+                    gradientZone: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    patternZone: 'linear-gradient(45deg, #f093fb 0%, #f5576c 100%)',
+                    textZone: 'linear-gradient(90deg, #4facfe 0%, #00f2fe 100%)',
+                    speedZone: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                    multiZone: 'linear-gradient(45deg, #a8edea 0%, #fed6e3 100%)'
+                };
+                
+                return gradients[zoneId] || gradients.gradientZone;
+            }
+
+            getPatternImage(zoneId) {
+                const patterns = {
+                    gradientZone: 'repeating-linear-gradient(45deg, #606dbc, #606dbc 10px, #465298 10px, #465298 20px)',
+                    patternZone: 'repeating-radial-gradient(circle at 50% 50%, #ff6b6b 0%, #ff6b6b 10px, #4ecdc4 10px, #4ecdc4 20px)',
+                    textZone: 'repeating-conic-gradient(from 0deg at 50% 50%, #f7b731 0deg, #f7b731 60deg, #5f27cd 60deg, #5f27cd 120deg)',
+                    speedZone: 'repeating-linear-gradient(90deg, #ee9ca7 0%, #ee9ca7 20px, #ffdde1 20px, #ffdde1 40px)',
+                    multiZone: 'repeating-linear-gradient(135deg, #667eea 0%, #667eea 15px, #764ba2 15px, #764ba2 30px)'
+                };
+                
+                return patterns[zoneId] || patterns.gradientZone;
+            }
+
+            getNatureImage(zoneId) {
+                // Simulated nature patterns
+                return `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><pattern id="nature${zoneId}" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="15" fill="%234CAF50" opacity="0.3"/><circle cx="10" cy="10" r="8" fill="%238BC34A" opacity="0.5"/><circle cx="30" cy="30" r="12" fill="%23CDDC39" opacity="0.4"/></pattern></defs><rect width="200" height="200" fill="url(%23nature${zoneId})"/></svg>')`;
+            }
+
+            getAbstractImage(zoneId) {
+                // Simulated abstract patterns
+                return `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><pattern id="abstract${zoneId}" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse"><polygon points="25,5 45,25 25,45 5,25" fill="%23FF6B6B" opacity="0.3"/><polygon points="25,15 35,25 25,35 15,25" fill="%234ECDC4" opacity="0.5"/><circle cx="25" cy="25" r="8" fill="%23FFE66D" opacity="0.4"/></pattern></defs><rect width="200" height="200" fill="url(%23abstract${zoneId})"/></svg>')`;
+            }
+
+            getCyberpunkImage(zoneId) {
+                // Simulated cyberpunk patterns
+                return `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><pattern id="cyber${zoneId}" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse"><rect width="30" height="30" fill="%23000"/><rect x="2" y="2" width="26" height="26" fill="none" stroke="%2300ffff" stroke-width="1" opacity="0.5"/><rect x="5" y="5" width="20" height="20" fill="none" stroke="%23ff00ff" stroke-width="0.5" opacity="0.3"/><circle cx="15" cy="15" r="3" fill="%2300ffff" opacity="0.8"/></pattern></defs><rect width="200" height="200" fill="url(%23cyber${zoneId})"/></svg>')`;
+            }
+
+            createTrailEffect() {
+                const currentTime = Date.now();
+                if (currentTime - this.lastTrailTime < 50) return;
+                
+                this.lastTrailTime = currentTime;
+                
+                switch (this.trailEffect) {
+                    case 'particles':
+                        this.createTrailParticle();
+                        break;
+                    case 'stream':
+                        this.createStreamParticle();
+                        break;
+                    case 'rings':
+                        this.createRingEffect();
+                        break;
+                }
+            }
+
+            createTrailParticle() {
+                const particle = document.createElement('div');
+                particle.className = 'trail-particle';
+                particle.style.left = this.currentX + 'px';
+                particle.style.top = this.currentY + 'px';
+                
+                document.body.appendChild(particle);
+                setTimeout(() => particle.remove(), 1000);
+            }
+
+            createStreamParticle() {
+                const particle = document.createElement('div');
+                particle.className = 'stream-particle';
+                particle.style.left = this.currentX + 'px';
+                particle.style.top = this.currentY + 'px';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 50 + Math.random() * 50;
+                particle.style.setProperty('--flow-x', Math.cos(angle) * distance + 'px');
+                particle.style.setProperty('--flow-y', Math.sin(angle) * distance + 'px');
+                
+                document.body.appendChild(particle);
+                setTimeout(() => particle.remove(), 2000);
+            }
+
+            createRingEffect() {
+                const ring = document.createElement('div');
+                ring.className = 'reveal-effect';
+                ring.style.left = this.currentX + 'px';
+                ring.style.top = this.currentY + 'px';
+                
+                document.body.appendChild(ring);
+                setTimeout(() => ring.remove(), 800);
+            }
+
+            updateSize(value) {
+                this.revealSize = parseInt(value);
+                this.sizeValueDisplay.textContent = value;
+            }
+
+            updateIntensity(value) {
+                this.revealIntensity = parseFloat(value);
+                this.intensityValueDisplay.textContent = value;
+            }
+
+            updateBlur(value) {
+                this.blurAmount = parseInt(value);
+                this.blurValueDisplay.textContent = value;
+            }
+
+            updateImageSource(value) {
+                this.imageSource = value;
+            }
+
+            updateShape(value) {
+                this.revealShape = value;
+            }
+
+            updateTrailEffect(value) {
+                this.trailEffect = value;
+            }
+
+            showCursor() {
+                this.cursor.style.display = 'block';
+            }
+
+            hideCursor() {
+                this.cursor.style.display = 'none';
+            }
+
+            animate() {
+                // Update active reveals position
+                this.activeReveals.forEach(reveal => {
+                    const size = this.revealSize + (this.speed * 2);
+                    reveal.style.width = size + 'px';
+                    reveal.style.height = size + 'px';
+                    reveal.style.left = this.currentX + 'px';
+                    reveal.style.top = this.currentY + 'px';
+                });
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // Initialize image reveal stream
+        const imageReveal = new ImageRevealStream();
+    </script>
+</body>
+</html>

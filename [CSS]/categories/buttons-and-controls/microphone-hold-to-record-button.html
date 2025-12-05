@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microphone Hold-to-Record Button - JaZeR CSS Components</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0b2e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-size: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        .component-title {
+            font-family: var(--font-primary);
+            font-size: 3rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .component-description {
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            color: var(--text-gray);
+            text-align: center;
+            max-width: 600px;
+            margin-bottom: 3rem;
+            line-height: 1.6;
+        }
+
+        /* Microphone Button Container */
+        .mic-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        /* Microphone Button */
+        .mic-btn {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #ffffff;
+            box-shadow: 0 4px 20px rgba(0, 242, 234, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            user-select: none;
+        }
+
+        .mic-btn:hover:not(.recording) {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(0, 242, 234, 0.5);
+        }
+
+        .mic-btn:active:not(.recording) {
+            transform: scale(0.95);
+        }
+
+        /* Recording State */
+        .mic-btn.recording {
+            background: linear-gradient(135deg, #ff006e, #ff1744);
+            box-shadow: 0 6px 30px rgba(255, 0, 110, 0.6);
+            animation: recordPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes recordPulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 6px 30px rgba(255, 0, 110, 0.6);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 8px 40px rgba(255, 0, 110, 0.8);
+            }
+        }
+
+        /* Pulse Rings */
+        .pulse-ring {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border: 3px solid var(--jazer-pink);
+            border-radius: 50%;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .mic-btn.recording .pulse-ring {
+            animation: pulseOut 2s ease-out infinite;
+        }
+
+        .pulse-ring:nth-child(2) {
+            animation-delay: 0.5s !important;
+        }
+
+        .pulse-ring:nth-child(3) {
+            animation-delay: 1s !important;
+        }
+
+        @keyframes pulseOut {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        /* Recording Status */
+        .status-text {
+            font-size: 1.5rem;
+            font-family: var(--font-primary);
+            font-weight: bold;
+            color: var(--jazer-cyan);
+            text-align: center;
+            min-height: 2rem;
+        }
+
+        .status-text.recording {
+            color: var(--jazer-pink);
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Timer */
+        .timer {
+            font-size: 2rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: var(--jazer-cyan);
+            text-align: center;
+            min-height: 3rem;
+        }
+
+        .timer.recording {
+            color: var(--jazer-pink);
+        }
+
+        /* Waveform Visualization */
+        .waveform {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            height: 60px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .waveform.show {
+            opacity: 1;
+        }
+
+        .wave-bar {
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(180deg, var(--jazer-cyan), var(--jazer-pink));
+            border-radius: 2px;
+            animation: wave 0.5s ease-in-out infinite alternate;
+        }
+
+        .wave-bar:nth-child(1) { animation-delay: 0s; }
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+        .wave-bar:nth-child(6) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(7) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(8) { animation-delay: 0.1s; }
+
+        @keyframes wave {
+            from {
+                height: 20px;
+            }
+            to {
+                height: 50px;
+            }
+        }
+
+        /* Instructions */
+        .instructions {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .component-title {
+                font-size: 2rem;
+            }
+
+            .mic-btn {
+                width: 100px;
+                height: 100px;
+                font-size: 2.5rem;
+            }
+
+            .pulse-ring {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to Gallery</a>
+
+    <h1 class="component-title">Microphone Hold-to-Record</h1>
+    <p class="component-description">
+        Hold down the microphone button to start recording. Watch the pulsing animation and waveform visualization while recording is active.
+    </p>
+
+    <div class="mic-container">
+        <button class="mic-btn">
+            <span class="icon">🎤</span>
+            <div class="pulse-ring"></div>
+            <div class="pulse-ring"></div>
+            <div class="pulse-ring"></div>
+        </button>
+
+        <div class="status-text">Hold to Record</div>
+        
+        <div class="timer">00:00</div>
+
+        <div class="waveform">
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+        </div>
+
+        <p class="instructions">Press and hold to record • Release to stop</p>
+    </div>
+
+    <script>
+        const micBtn = document.querySelector('.mic-btn');
+        const statusText = document.querySelector('.status-text');
+        const timer = document.querySelector('.timer');
+        const waveform = document.querySelector('.waveform');
+        
+        let isRecording = false;
+        let startTime = 0;
+        let timerInterval = null;
+
+        // Mouse events
+        micBtn.addEventListener('mousedown', startRecording);
+        micBtn.addEventListener('mouseup', stopRecording);
+        micBtn.addEventListener('mouseleave', stopRecording);
+
+        // Touch events
+        micBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            startRecording();
+        });
+
+        micBtn.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            stopRecording();
+        });
+
+        function startRecording() {
+            if (isRecording) return;
+            
+            isRecording = true;
+            startTime = Date.now();
+
+            micBtn.classList.add('recording');
+            statusText.classList.add('recording');
+            statusText.textContent = '● Recording...';
+            timer.classList.add('recording');
+            waveform.classList.add('show');
+
+            // Start timer
+            timerInterval = setInterval(updateTimer, 100);
+        }
+
+        function stopRecording() {
+            if (!isRecording) return;
+
+            isRecording = false;
+            clearInterval(timerInterval);
+
+            micBtn.classList.remove('recording');
+            statusText.classList.remove('recording');
+            statusText.textContent = 'Recording Saved!';
+            timer.classList.remove('recording');
+            waveform.classList.remove('show');
+
+            // Reset after delay
+            setTimeout(() => {
+                statusText.textContent = 'Hold to Record';
+                timer.textContent = '00:00';
+            }, 2000);
+        }
+
+        function updateTimer() {
+            const elapsed = Date.now() - startTime;
+            const seconds = Math.floor(elapsed / 1000);
+            const milliseconds = Math.floor((elapsed % 1000) / 100);
+            
+            const formattedSeconds = String(seconds).padStart(2, '0');
+            timer.textContent = `00:${formattedSeconds}`;
+        }
+    </script>
+</body>
+</html>

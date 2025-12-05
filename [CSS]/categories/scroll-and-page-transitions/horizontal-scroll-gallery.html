@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizontal Scroll Gallery - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+            background: #0a0a0a;
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            background: linear-gradient(180deg, rgba(10, 10, 10, 0.95) 0%, transparent 100%);
+        }
+
+        .header h1 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 1rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Horizontal Scroll Section */
+        .horizontal-section {
+            position: relative;
+            height: 400vh;
+        }
+
+        .horizontal-container {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+        }
+
+        .horizontal-track {
+            display: flex;
+            gap: 3rem;
+            padding: 0 calc(50vw - 200px);
+            will-change: transform;
+        }
+
+        /* Gallery Items */
+        .gallery-item {
+            flex-shrink: 0;
+            width: 400px;
+            height: 500px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .gallery-item:hover {
+            border-color: var(--jazer-cyan, #00f2ea);
+            transform: scale(1.05);
+            box-shadow: 0 30px 60px rgba(0, 242, 234, 0.3);
+        }
+
+        .item-image {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, var(--jazer-cyan, #00f2ea) 0%, var(--jazer-purple, #9333ea) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .item-image::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .gallery-item:hover .item-image::before {
+            transform: translateX(100%);
+        }
+
+        .item-content {
+            padding: 1.5rem;
+        }
+
+        .item-number {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 0.75rem;
+            color: var(--jazer-cyan, #00f2ea);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+        }
+
+        .item-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .item-description {
+            font-size: 0.9375rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+        }
+
+        /* Progress Bar */
+        .gallery-progress {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 100;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--gradient-primary, linear-gradient(90deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            transition: width 0.1s linear;
+        }
+
+        /* Item Indicators */
+        .item-indicators {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 30px;
+            backdrop-filter: blur(20px);
+            z-index: 100;
+        }
+
+        .indicator-dot {
+            width: 10px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .indicator-dot:hover {
+            background: rgba(0, 242, 234, 0.5);
+            transform: scale(1.2);
+        }
+
+        .indicator-dot.active {
+            background: var(--jazer-cyan, #00f2ea);
+            box-shadow: 0 0 15px var(--jazer-cyan, #00f2ea);
+        }
+
+        /* Info Panel */
+        .info-panel {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+        }
+
+        .info-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 0.75rem;
+            color: var(--jazer-cyan, #00f2ea);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-label {
+            font-size: 0.6875rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 1rem;
+            color: #fff;
+        }
+
+        /* Scroll Hint */
+        .scroll-hint {
+            position: fixed;
+            bottom: 6rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.875rem;
+            animation: fadeInOut 2s infinite;
+        }
+
+        .scroll-hint svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* Content Section */
+        .content-section {
+            padding: 6rem 2rem;
+            background: #0a0a0a;
+        }
+
+        .content-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .content-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            margin-bottom: 2rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .content-text {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 242, 234, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            border-color: var(--jazer-cyan, #00f2ea);
+            transform: translateY(-5px);
+        }
+
+        .feature-card h4 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 1rem;
+            color: var(--jazer-cyan, #00f2ea);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            font-size: 0.9375rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .back-button {
+                top: 1rem;
+                left: 1rem;
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .header {
+                padding: 6rem 1rem 3rem;
+            }
+
+            .gallery-item {
+                width: 300px;
+                height: 400px;
+            }
+
+            .item-image {
+                height: 200px;
+                font-size: 3rem;
+            }
+
+            .info-panel {
+                top: auto;
+                bottom: 8rem;
+                right: 1rem;
+                left: 1rem;
+            }
+
+            .info-row {
+                gap: 1rem;
+            }
+
+            .scroll-hint {
+                display: none;
+            }
+
+            .content-section {
+                padding: 4rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Horizontal Scroll Gallery</h1>
+        <p>Vertical scrolling transforms into horizontal movement, creating an engaging gallery experience for showcasing projects and images</p>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="info-panel">
+        <div class="info-title">Gallery</div>
+        <div class="info-row">
+            <div>
+                <div class="info-label">Item</div>
+                <div class="info-value" id="currentItem">1/8</div>
+            </div>
+            <div>
+                <div class="info-label">Progress</div>
+                <div class="info-value" id="progressPercent">0%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Horizontal Scroll Section -->
+    <div class="horizontal-section" id="horizontalSection">
+        <div class="horizontal-container">
+            <div class="horizontal-track" id="horizontalTrack">
+                <!-- Gallery Items -->
+                <div class="gallery-item">
+                    <div class="item-image" style="background: linear-gradient(135deg, #00f2ea 0%, #0088cc 100%);">🚀</div>
+                    <div class="item-content">
+                        <div class="item-number">Project 01</div>
+                        <h3 class="item-title">Space Launch</h3>
+                        <p class="item-description">Exploring the cosmos with cutting-edge technology and innovative design.</p>
+                    </div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="item-image" style="background: linear-gradient(135deg, #9333ea 0%, #6b21a8 100%);">💎</div>
+                    <div class="item-content">
+                        <div class="item-number">Project 02</div>
+                        <h3 class="item-title">Crystal Vision</h3>
+                        <p class="item-description">Premium visual experiences crafted with precision and attention to detail.</p>
+                    </div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="item-image" style="background: linear-gradient(135deg, #ff006e 0%, #c9184a 100%);">🎨</div>
+                    <div class="item-content">
+                        <div class="item-number">Project 03</div>
+                        <h3 class="item-title">Color Theory</h3>
+                        <p class="item-description">Exploring the psychology and impact of color in digital design.</p>
+                    </div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="item-image" style="background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);">⚡</div>
+                    <div class="item-content">
+                        <div class="item-number">Project 04</div>
+                        <h3 class="item-title">Power Grid</h3>
+                        <p class="item-description">High-performance systems designed for speed and reliability.</p>
+                    </div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="item-image" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">🔥</div>
+                    <div class="item-content">
+                        <div class="item-number">Project 05</div>
+                        <h3 class="item-title">Fire Starter</h3>
+                        <p class="item-description">Igniting creativity and innovation through bold design choices.</p>
+                    </div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="item-image" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">🌊</div>
+                    <div class="item-content">
+                        <div class="item-number">Project 06</div>
+                        <h3 class="item-title">Ocean Flow</h3>
+                        <p class="item-description">Fluid animations and seamless transitions inspired by water.</p>
+                    </div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="item-image" style="background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);">✨</div>
+                    <div class="item-content">
+                        <div class="item-number">Project 07</div>
+                        <h3 class="item-title">Star Dust</h3>
+                        <p class="item-description">Magical particle effects that bring interfaces to life.</p>
+                    </div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="item-image" style="background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);">🎯</div>
+                    <div class="item-content">
+                        <div class="item-number">Project 08</div>
+                        <h3 class="item-title">Target Zero</h3>
+                        <p class="item-description">Precision-focused design with measurable outcomes and impact.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="gallery-progress">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <!-- Item Indicators -->
+    <div class="item-indicators" id="itemIndicators">
+        <div class="indicator-dot active" data-index="0"></div>
+        <div class="indicator-dot" data-index="1"></div>
+        <div class="indicator-dot" data-index="2"></div>
+        <div class="indicator-dot" data-index="3"></div>
+        <div class="indicator-dot" data-index="4"></div>
+        <div class="indicator-dot" data-index="5"></div>
+        <div class="indicator-dot" data-index="6"></div>
+        <div class="indicator-dot" data-index="7"></div>
+    </div>
+
+    <!-- Scroll Hint -->
+    <div class="scroll-hint" id="scrollHint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12l7 7 7-7"/>
+        </svg>
+        <span>Scroll to navigate gallery</span>
+    </div>
+
+    <!-- Content Section -->
+    <div class="content-section">
+        <div class="content-wrapper">
+            <h2 class="content-title">How It Works</h2>
+            <p class="content-text">
+                The horizontal scroll gallery transforms vertical scrolling into horizontal movement within a sticky container. As you scroll down, the gallery items move horizontally, creating an engaging showcase experience.
+            </p>
+            <p class="content-text">
+                This technique is perfect for portfolios, product showcases, and any content where you want to present items in a gallery format while maintaining natural scroll behavior.
+            </p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>Scroll Transformation</h4>
+                    <p>Converts vertical scroll into smooth horizontal movement</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Progress Tracking</h4>
+                    <p>Visual indicators show position within the gallery</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Touch Optimized</h4>
+                    <p>Works seamlessly on mobile with swipe gestures</p>
+                </div>
+                <div class="feature-card">
+                    <h4>60fps Performance</h4>
+                    <p>Hardware-accelerated transforms for smooth scrolling</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Elements
+        const horizontalSection = document.getElementById('horizontalSection');
+        const horizontalTrack = document.getElementById('horizontalTrack');
+        const progressFill = document.getElementById('progressFill');
+        const currentItemEl = document.getElementById('currentItem');
+        const progressPercentEl = document.getElementById('progressPercent');
+        const indicatorDots = document.querySelectorAll('.indicator-dot');
+        const scrollHint = document.getElementById('scrollHint');
+        const galleryItems = document.querySelectorAll('.gallery-item');
+
+        const totalItems = galleryItems.length;
+
+        // Calculate scroll progress and update horizontal position
+        function updateHorizontalScroll() {
+            const rect = horizontalSection.getBoundingClientRect();
+            const sectionHeight = horizontalSection.offsetHeight - window.innerHeight;
+            const scrolled = Math.max(0, -rect.top);
+            const progress = Math.min(1, Math.max(0, scrolled / sectionHeight));
+
+            // Calculate track movement
+            const trackWidth = horizontalTrack.scrollWidth - window.innerWidth;
+            const translateX = -progress * trackWidth;
+
+            horizontalTrack.style.transform = `translateX(${translateX}px)`;
+
+            // Update progress bar
+            progressFill.style.width = `${progress * 100}%`;
+            progressPercentEl.textContent = `${Math.round(progress * 100)}%`;
+
+            // Update current item
+            const currentIndex = Math.min(
+                Math.floor(progress * totalItems),
+                totalItems - 1
+            );
+            currentItemEl.textContent = `${currentIndex + 1}/${totalItems}`;
+
+            // Update indicator dots
+            indicatorDots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentIndex);
+            });
+
+            // Hide scroll hint after scrolling starts
+            if (progress > 0.05) {
+                scrollHint.style.opacity = '0';
+            } else {
+                scrollHint.style.opacity = '1';
+            }
+        }
+
+        // Indicator dot click handlers
+        indicatorDots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                const index = parseInt(dot.dataset.index);
+                const targetProgress = index / (totalItems - 1);
+                const sectionTop = horizontalSection.offsetTop;
+                const sectionHeight = horizontalSection.offsetHeight - window.innerHeight;
+                const targetScroll = sectionTop + (targetProgress * sectionHeight);
+
+                window.scrollTo({
+                    top: targetScroll,
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Optimized scroll handler
+        let ticking = false;
+
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                requestAnimationFrame(() => {
+                    updateHorizontalScroll();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }, { passive: true });
+
+        // Initialize
+        updateHorizontalScroll();
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            const rect = horizontalSection.getBoundingClientRect();
+            const isInSection = rect.top <= 0 && rect.bottom >= window.innerHeight;
+
+            if (isInSection) {
+                const sectionHeight = horizontalSection.offsetHeight - window.innerHeight;
+                const scrollStep = sectionHeight / totalItems;
+
+                if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    window.scrollBy({ top: scrollStep, behavior: 'smooth' });
+                } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    window.scrollBy({ top: -scrollStep, behavior: 'smooth' });
+                }
+            }
+        });
+    </script>
+</body>
+</html>

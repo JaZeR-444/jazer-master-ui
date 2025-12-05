@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookmark Added Confirmation - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            margin-bottom: 0.5rem; 
+            font-size: 2.5rem; 
+        }
+        
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .back-button { 
+            display: inline-block; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(6, 182, 212, 0.1); 
+            margin-bottom: 2rem; 
+            transition: all 0.3s ease; 
+        }
+        
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5); 
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .control-group label {
+            font-size: 0.85rem;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .control-group select {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--jazer-purple);
+            color: var(--text-light);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 160px;
+        }
+        
+        .control-group select:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+        
+        .demo-container {
+            border: 2px solid var(--jazer-pink);
+            border-radius: 16px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.9), rgba(30, 20, 50, 0.9));
+            padding: 2rem;
+        }
+        
+        /* Mock content card */
+        .content-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 12px;
+            padding: 1.5rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .card-thumbnail {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .card-info h3 {
+            color: var(--jazer-cyan);
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .card-info p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        
+        /* Bookmark button */
+        .bookmark-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            border: 2px solid var(--jazer-purple);
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text-light);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .bookmark-btn:hover {
+            border-color: var(--jazer-cyan);
+            transform: translateY(-2px);
+        }
+        
+        .bookmark-btn.bookmarked {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+        
+        .bookmark-icon {
+            font-size: 1.25rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .bookmark-btn.bookmarked .bookmark-icon {
+            animation: bookmarkPop 0.4s ease-out;
+        }
+        
+        @keyframes bookmarkPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.4); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Confirmation styles */
+        .confirmation {
+            position: fixed;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        
+        /* Toast style */
+        .confirmation.toast {
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            opacity: 0;
+            background: rgba(0, 255, 136, 0.95);
+            color: #0a0a0a;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 600;
+            box-shadow: 0 10px 40px rgba(0, 255, 136, 0.4);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .confirmation.toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        .confirmation.toast .conf-icon {
+            width: 30px;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        
+        /* Popup style */
+        .confirmation.popup {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            opacity: 0;
+            background: linear-gradient(135deg, rgba(30, 30, 60, 0.98), rgba(20, 20, 40, 0.98));
+            border: 2px solid #00ff88;
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 255, 136, 0.3);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .confirmation.popup.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+        
+        .confirmation.popup .conf-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1rem;
+            animation: iconBounce 0.5s ease-out 0.2s;
+        }
+        
+        @keyframes iconBounce {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .confirmation.popup h3 {
+            color: #00ff88;
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+        }
+        
+        .confirmation.popup p {
+            color: var(--text-gray);
+        }
+        
+        /* Inline style */
+        .confirmation.inline {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            transform: scale(0);
+            opacity: 0;
+            background: #00ff88;
+            color: #0a0a0a;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.5);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .confirmation.inline.show {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
+        /* Slide style */
+        .confirmation.slide {
+            top: 1rem;
+            right: -300px;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.95), rgba(0, 200, 100, 0.95));
+            color: #0a0a0a;
+            padding: 1rem 1.5rem;
+            border-radius: 12px 0 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 600;
+            box-shadow: -10px 0 30px rgba(0, 255, 136, 0.3);
+            transition: right 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .confirmation.slide.show {
+            right: 0;
+        }
+        
+        /* Particles */
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        @keyframes particleFly {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+        
+        /* Bookmarks list */
+        .bookmarks-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .bookmarks-section h3 {
+            color: var(--jazer-cyan);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        
+        .bookmarks-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        
+        .bookmark-tag {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #00ff88;
+            animation: tagSlide 0.3s ease-out;
+        }
+        
+        @keyframes tagSlide {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .bookmark-tag .remove-btn {
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        
+        .bookmark-tag .remove-btn:hover {
+            opacity: 1;
+        }
+        
+        .keyboard-hint {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--jazer-purple);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .keyboard-hint kbd {
+            background: var(--jazer-purple);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-primary);
+            margin: 0 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .control-group select { min-width: 100%; }
+            .confirmation.slide { display: none; }
+            .keyboard-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    <h1>Bookmark Added Confirmation</h1>
+    <p class="subtitle">Visual feedback confirmations when users add items to their bookmarks</p>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label>Confirmation Style</label>
+            <select id="confirmStyle">
+                <option value="toast">Toast Notification</option>
+                <option value="popup">Center Popup</option>
+                <option value="inline">Inline Badge</option>
+                <option value="slide">Slide In</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Show Particles</label>
+            <select id="showParticles">
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Duration</label>
+            <select id="duration">
+                <option value="1500">Short (1.5s)</option>
+                <option value="2500" selected>Normal (2.5s)</option>
+                <option value="4000">Long (4s)</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="demo-container">
+        <div class="content-card" id="contentCard">
+            <div class="card-header">
+                <div class="card-thumbnail">📄</div>
+                <div class="card-info">
+                    <h3>Amazing Article Title</h3>
+                    <p>by Author Name • 5 min read</p>
+                </div>
+            </div>
+            <div class="card-actions">
+                <button class="bookmark-btn" id="bookmarkBtn" onclick="toggleBookmark()">
+                    <span class="bookmark-icon" id="bookmarkIcon">☆</span>
+                    <span id="bookmarkText">Bookmark</span>
+                </button>
+            </div>
+            <div class="confirmation inline" id="inlineConf">✓</div>
+        </div>
+        
+        <div class="bookmarks-section">
+            <h3>Your Bookmarks</h3>
+            <div class="bookmarks-list" id="bookmarksList"></div>
+        </div>
+    </div>
+    
+    <div class="confirmation toast" id="toastConf">
+        <div class="conf-icon">✓</div>
+        <span>Added to Bookmarks</span>
+    </div>
+    
+    <div class="confirmation popup" id="popupConf">
+        <div class="conf-icon">✓</div>
+        <h3>Bookmarked!</h3>
+        <p>Article saved to your bookmarks</p>
+    </div>
+    
+    <div class="confirmation slide" id="slideConf">
+        <span>✓</span>
+        <span>Bookmark Added</span>
+    </div>
+    
+    <div class="keyboard-hint">
+        Press <kbd>Space</kbd> to toggle bookmark
+    </div>
+    
+    <script>
+        let isBookmarked = false;
+        let bookmarks = [];
+        let bookmarkId = 0;
+        
+        const articles = [
+            'Amazing Article Title',
+            'How to Build Great UIs',
+            'CSS Animation Tips',
+            'JavaScript Best Practices',
+            'Design System Guide'
+        ];
+        
+        function toggleBookmark() {
+            const btn = document.getElementById('bookmarkBtn');
+            const icon = document.getElementById('bookmarkIcon');
+            const text = document.getElementById('bookmarkText');
+            
+            isBookmarked = !isBookmarked;
+            
+            if (isBookmarked) {
+                btn.classList.add('bookmarked');
+                icon.textContent = '★';
+                text.textContent = 'Bookmarked';
+                showConfirmation();
+                addToBookmarks();
+            } else {
+                btn.classList.remove('bookmarked');
+                icon.textContent = '☆';
+                text.textContent = 'Bookmark';
+            }
+        }
+        
+        function showConfirmation() {
+            const style = document.getElementById('confirmStyle').value;
+            const duration = parseInt(document.getElementById('duration').value);
+            const showParticles = document.getElementById('showParticles').value === 'true';
+            
+            // Hide all confirmations first
+            document.querySelectorAll('.confirmation').forEach(el => el.classList.remove('show'));
+            
+            // Show selected style
+            const conf = document.getElementById(style + 'Conf');
+            setTimeout(() => conf.classList.add('show'), 50);
+            
+            // Show particles
+            if (showParticles) {
+                createParticles();
+            }
+            
+            // Auto hide
+            setTimeout(() => {
+                conf.classList.remove('show');
+            }, duration);
+        }
+        
+        function createParticles() {
+            const btn = document.getElementById('bookmarkBtn');
+            const rect = btn.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            const colors = ['#00ff88', '#00cc66', 'var(--jazer-cyan)', '#ffff00', '#ff88ff'];
+            
+            for (let i = 0; i < 12; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = centerX + 'px';
+                particle.style.top = centerY + 'px';
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                
+                const angle = (i / 12) * Math.PI * 2;
+                const distance = 50 + Math.random() * 50;
+                particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+                particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+                particle.style.animation = 'particleFly 0.6s ease-out forwards';
+                
+                document.body.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 600);
+            }
+        }
+        
+        function addToBookmarks() {
+            const name = articles[bookmarkId % articles.length];
+            bookmarks.push({ id: bookmarkId++, name });
+            renderBookmarks();
+        }
+        
+        function removeBookmark(id) {
+            bookmarks = bookmarks.filter(b => b.id !== id);
+            renderBookmarks();
+        }
+        
+        function renderBookmarks() {
+            const list = document.getElementById('bookmarksList');
+            list.innerHTML = bookmarks.map(b => `
+                <div class="bookmark-tag">
+                    <span>★</span>
+                    <span>${b.name}</span>
+                    <span class="remove-btn" onclick="removeBookmark(${b.id})">×</span>
+                </div>
+            `).join('');
+        }
+        
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !e.repeat) {
+                e.preventDefault();
+                toggleBookmark();
+            }
+        });
+        
+        // Initialize
+        renderBookmarks();
+    </script>
+</body>
+</html>

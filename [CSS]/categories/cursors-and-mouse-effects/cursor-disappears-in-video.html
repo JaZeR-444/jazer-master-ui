@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor Disappears in Video - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a, #1a0a2a, #0a1a2a);
+            font-family: var(--font-body);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Custom cursor */
+        .custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 0 15px var(--jazer-cyan);
+        }
+
+        .custom-cursor.hidden {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.5);
+        }
+
+        .custom-cursor.over-video {
+            background: radial-gradient(circle, var(--jazer-pink), var(--jazer-cyan));
+            box-shadow: 0 0 20px var(--jazer-pink);
+        }
+
+        /* Content area */
+        .content {
+            position: relative;
+            z-index: 1;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+
+        /* Demo area */
+        .demo-area {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-title {
+            font-size: 1.5rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        /* Video containers */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .video-container {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .video-container:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+        }
+
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+        }
+
+        .video-element {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.2rem;
+        }
+
+        /* Video overlay */
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .video-overlay.visible {
+            opacity: 1;
+        }
+
+        .overlay-text {
+            color: var(--jazer-cyan);
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        /* Video controls */
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .video-container:hover .video-controls {
+            opacity: 1;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            cursor: none;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+        }
+
+        /* Interactive elements */
+        .interactive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .interactive-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .interactive-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .interactive-card:hover::before {
+            left: 100%;
+        }
+
+        .interactive-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            color: var(--jazer-pink);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* Controls */
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .controls-title {
+            font-size: 1.3rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-input {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .control-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+        }
+
+        .control-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+            border: none;
+        }
+
+        /* Stats display */
+        .stats {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            display: block;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            background: linear-gradient(45deg, var(--jazer-purple), var(--jazer-pink));
+            border: none;
+            border-radius: 25px;
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 0, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--jazer-cyan);
+        }
+
+        .btn-secondary:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+        }
+
+        /* Back navigation */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 25px;
+            border: 1px solid var(--jazer-cyan);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .interactive-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back navigation -->
+    <a href="index.html" class="back-button">← Back to Cursors</a>
+
+    <!-- Custom cursor -->
+    <div class="custom-cursor" id="customCursor"></div>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">📹 Cursor Disappears in Video</h1>
+            <p class="subtitle">Context-aware cursor that automatically hides when hovering over video content with smooth transitions</p>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value" id="cursorStatus">Visible</span>
+                    <span class="stat-label">Cursor Status</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="hideDelay">2s</span>
+                    <span class="stat-label">Hide Delay</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="fadeSpeed">0.3s</span>
+                    <span class="stat-label">Fade Speed</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="videoCount">4</span>
+                    <span class="stat-label">Video Elements</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <h2 class="controls-title">🎛️ Cursor Hiding Controls</h2>
+            <div class="control-group">
+                <div class="control-item">
+                    <label class="control-label">Hide Delay</label>
+                    <input type="range" class="control-slider" id="hideDelaySlider" min="0" max="5" step="0.1" value="2">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Fade Speed</label>
+                    <input type="range" class="control-slider" id="fadeSpeedSlider" min="100" max="1000" value="300">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Auto Hide</label>
+                    <select class="control-input" id="autoHideSelect">
+                        <option value="video">Video Only</option>
+                        <option value="media">All Media</option>
+                        <option value="interactive">Interactive Elements</option>
+                        <option value="custom">Custom Elements</option>
+                    </select>
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Show on Move</label>
+                    <select class="control-input" id="showOnMoveSelect">
+                        <option value="immediate">Immediate</option>
+                        <option value="delayed">Delayed</option>
+                        <option value="manual">Manual Only</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Area -->
+        <div class="demo-area">
+            <h2 class="demo-title">🎮 Interactive Video Demo</h2>
+            
+            <!-- Video grid -->
+            <div class="video-grid">
+                <div class="video-container" data-video="true">
+                    <div class="video-wrapper">
+                        <div class="video-element">
+                            🎬 Video Player 1
+                            <div class="video-overlay" id="overlay1">
+                                <div class="overlay-text">Cursor hidden - Move outside to show</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="video-controls">
+                        <button class="control-btn">▶️ Play</button>
+                        <button class="control-btn">⏸️ Pause</button>
+                        <button class="control-btn">🔊 Mute</button>
+                    </div>
+                </div>
+
+                <div class="video-container" data-video="true">
+                    <div class="video-wrapper">
+                        <div class="video-element">
+                            🎥 Video Player 2
+                            <div class="video-overlay" id="overlay2">
+                                <div class="overlay-text">Immersive viewing experience</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="video-controls">
+                        <button class="control-btn">⏮️ Prev</button>
+                        <button class="control-btn">⏭️ Next</button>
+                        <button class="control-btn">📺 Fullscreen</button>
+                    </div>
+                </div>
+
+                <div class="video-container" data-video="true">
+                    <div class="video-wrapper">
+                        <div class="video-element">
+                            📹 Live Stream
+                            <div class="video-overlay" id="overlay3">
+                                <div class="overlay-text">Live content - No distractions</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="video-controls">
+                        <button class="control-btn">🔴 Live</button>
+                        <button class="control-btn">💬 Chat</button>
+                        <button class="control-btn">👥 Share</button>
+                    </div>
+                </div>
+
+                <div class="video-container" data-video="true">
+                    <div class="video-wrapper">
+                        <div class="video-element">
+                            🎮 Game Stream
+                            <div class="video-overlay" id="overlay4">
+                                <div class="overlay-text">Game mode - Focus on content</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="video-controls">
+                        <button class="control-btn">🎮 Play</button>
+                        <button class="control-btn">⚙️ Settings</button>
+                        <button class="control-btn">📊 Stats</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive elements -->
+            <h3 style="color: var(--jazer-pink); text-align: center; margin: 2rem 0;">Interactive Elements</h3>
+            <div class="interactive-grid">
+                <div class="interactive-card" data-interactive="true">
+                    <span class="card-icon">🖼️</span>
+                    <h3 class="card-title">Image Gallery</h3>
+                    <p class="card-description">Cursor hides over images for distraction-free viewing</p>
+                </div>
+                <div class="interactive-card" data-interactive="true">
+                    <span class="card-icon">📊</span>
+                    <h3 class="card-title">Data Visualization</h3>
+                    <p class="card-description">Charts and graphs with auto-hide cursor functionality</p>
+                </div>
+                <div class="interactive-card" data-interactive="true">
+                    <span class="card-icon">🎨</span>
+                    <h3 class="card-title">Canvas Drawing</h3>
+                    <p class="card-description">Drawing area where cursor gets out of the way</p>
+                </div>
+                <div class="interactive-card">
+                    <span class="card-icon">📝</span>
+                    <h3 class="card-title">Regular Content</h3>
+                    <p class="card-description">Normal cursor behavior over text and controls</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+            <button class="btn" id="toggleAutoHide">Toggle Auto Hide</button>
+            <button class="btn btn-secondary" id="testAllVideos">Test All Videos</button>
+            <button class="btn btn-secondary" id="resetSettings">Reset Settings</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        let config = {
+            hideDelay: 2,
+            fadeSpeed: 300,
+            autoHideMode: 'video',
+            showOnMove: 'immediate',
+            autoHideEnabled: true
+        };
+
+        // State
+        let mouseX = 0, mouseY = 0;
+        let isCursorHidden = false;
+        let hideTimeout = null;
+        let currentVideoElement = null;
+        let videoElements = [];
+
+        // Elements
+        const customCursor = document.getElementById('customCursor');
+        const cursorStatusEl = document.getElementById('cursorStatus');
+        const hideDelayEl = document.getElementById('hideDelay');
+        const fadeSpeedEl = document.getElementById('fadeSpeed');
+        const videoCountEl = document.getElementById('videoCount');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            findVideoElements();
+            updateStats();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Mouse events
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseenter', handleMouseEnter);
+            document.addEventListener('mouseleave', handleMouseLeave);
+            
+            // Control inputs
+            document.getElementById('hideDelaySlider').addEventListener('input', (e) => {
+                config.hideDelay = parseFloat(e.target.value);
+                updateStats();
+            });
+            
+            document.getElementById('fadeSpeedSlider').addEventListener('input', (e) => {
+                config.fadeSpeed = parseInt(e.target.value);
+                updateCursorStyles();
+                updateStats();
+            });
+            
+            document.getElementById('autoHideSelect').addEventListener('change', (e) => {
+                config.autoHideMode = e.target.value;
+                findVideoElements();
+            });
+            
+            document.getElementById('showOnMoveSelect').addEventListener('change', (e) => {
+                config.showOnMove = e.target.value;
+            });
+
+            // Action buttons
+            document.getElementById('toggleAutoHide').addEventListener('click', toggleAutoHide);
+            document.getElementById('testAllVideos').addEventListener('click', testAllVideos);
+            document.getElementById('resetSettings').addEventListener('click', resetSettings);
+        }
+
+        // Find video elements
+        function findVideoElements() {
+            videoElements = [];
+            
+            let selector = '[data-video="true"]';
+            switch (config.autoHideMode) {
+                case 'media':
+                    selector = '[data-video="true"], [data-media="true"]';
+                    break;
+                case 'interactive':
+                    selector = '[data-interactive="true"]';
+                    break;
+                case 'custom':
+                    selector = '[data-custom-hide="true"]';
+                    break;
+            }
+            
+            document.querySelectorAll(selector).forEach(element => {
+                videoElements.push(element);
+                
+                // Add hover listeners
+                element.addEventListener('mouseenter', () => handleVideoHover(element, true));
+                element.addEventListener('mouseleave', () => handleVideoHover(element, false));
+            });
+            
+            videoCountEl.textContent = videoElements.length;
+        }
+
+        // Handle mouse movement
+        function handleMouseMove(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Update cursor position
+            customCursor.style.left = mouseX + 'px';
+            customCursor.style.top = mouseY + 'px';
+            
+            // Show cursor on move if configured
+            if (config.showOnMove === 'immediate' && !isOverVideoElement()) {
+                showCursor();
+            }
+        }
+
+        // Handle mouse enter
+        function handleMouseEnter(e) {
+            if (config.showOnMove === 'delayed' && !isOverVideoElement()) {
+                showCursor();
+            }
+        }
+
+        // Handle mouse leave
+        function handleMouseLeave(e) {
+            // Only hide if leaving the entire document
+            if (e.relatedTarget === null) {
+                hideCursor();
+            }
+        }
+
+        // Handle video hover
+        function handleVideoHover(element, isEntering) {
+            if (isEntering) {
+                currentVideoElement = element;
+                
+                // Show overlay
+                const overlay = element.querySelector('.video-overlay');
+                if (overlay) {
+                    overlay.classList.add('visible');
+                }
+                
+                // Hide cursor after delay
+                if (config.autoHideEnabled) {
+                    hideTimeout = setTimeout(() => {
+                        hideCursor();
+                    }, config.hideDelay * 1000);
+                }
+            } else {
+                currentVideoElement = null;
+                
+                // Hide overlay
+                const overlay = element.querySelector('.video-overlay');
+                if (overlay) {
+                    overlay.classList.remove('visible');
+                }
+                
+                // Clear timeout and show cursor
+                if (hideTimeout) {
+                    clearTimeout(hideTimeout);
+                    hideTimeout = null;
+                }
+                
+                if (config.autoHideEnabled) {
+                    showCursor();
+                }
+            }
+        }
+
+        // Check if over video element
+        function isOverVideoElement() {
+            return currentVideoElement !== null;
+        }
+
+        // Hide cursor
+        function hideCursor() {
+            if (!isCursorHidden) {
+                isCursorHidden = true;
+                customCursor.classList.add('hidden');
+                updateCursorStatus();
+            }
+        }
+
+        // Show cursor
+        function showCursor() {
+            if (isCursorHidden) {
+                isCursorHidden = false;
+                customCursor.classList.remove('hidden');
+                updateCursorStatus();
+            }
+        }
+
+        // Update cursor styles
+        function updateCursorStyles() {
+            customCursor.style.transition = `opacity ${config.fadeSpeed}ms ease, transform 0.1s ease`;
+        }
+
+        // Update cursor status
+        function updateCursorStatus() {
+            cursorStatusEl.textContent = isCursorHidden ? 'Hidden' : 'Visible';
+            
+            // Update cursor appearance over video
+            if (isOverVideoElement()) {
+                customCursor.classList.add('over-video');
+            } else {
+                customCursor.classList.remove('over-video');
+            }
+        }
+
+        // Toggle auto hide
+        function toggleAutoHide() {
+            config.autoHideEnabled = !config.autoHideEnabled;
+            const btn = document.getElementById('toggleAutoHide');
+            btn.textContent = config.autoHideEnabled ? 'Disable Auto Hide' : 'Enable Auto Hide';
+            
+            if (!config.autoHideEnabled) {
+                showCursor();
+            }
+        }
+
+        // Test all videos
+        function testAllVideos() {
+            let index = 0;
+            
+            function testNextVideo() {
+                if (index >= videoElements.length) {
+                    index = 0; // Loop back to start
+                }
+                
+                const element = videoElements[index];
+                
+                // Scroll to element
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Simulate hover
+                setTimeout(() => {
+                    handleVideoHover(element, true);
+                    
+                    // Show overlay message
+                    const overlay = element.querySelector('.overlay-text');
+                    if (overlay) {
+                        overlay.textContent = `Testing video ${index + 1} of ${videoElements.length}`;
+                    }
+                    
+                    // Unhover after delay
+                    setTimeout(() => {
+                        handleVideoHover(element, false);
+                        index++;
+                        setTimeout(testNextVideo, 500);
+                    }, 2000);
+                }, 1000);
+            }
+            
+            testNextVideo();
+        }
+
+        // Reset settings
+        function resetSettings() {
+            config = {
+                hideDelay: 2,
+                fadeSpeed: 300,
+                autoHideMode: 'video',
+                showOnMove: 'immediate',
+                autoHideEnabled: true
+            };
+            
+            // Update UI controls
+            document.getElementById('hideDelaySlider').value = config.hideDelay;
+            document.getElementById('fadeSpeedSlider').value = config.fadeSpeed;
+            document.getElementById('autoHideSelect').value = config.autoHideMode;
+            document.getElementById('showOnMoveSelect').value = config.showOnMove;
+            
+            // Reset overlays
+            document.querySelectorAll('.video-overlay').forEach(overlay => {
+                overlay.classList.remove('visible');
+                const text = overlay.querySelector('.overlay-text');
+                if (text) {
+                    text.textContent = 'Cursor hidden - Move outside to show';
+                }
+            });
+            
+            updateCursorStyles();
+            updateStats();
+            findVideoElements();
+            
+            const btn = document.getElementById('toggleAutoHide');
+            btn.textContent = 'Disable Auto Hide';
+        }
+
+        // Update stats display
+        function updateStats() {
+            hideDelayEl.textContent = config.hideDelay + 's';
+            fadeSpeedEl.textContent = (config.fadeSpeed / 1000).toFixed(1) + 's';
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            // Re-find video elements in case DOM changed
+            findVideoElements();
+        });
+    </script>
+</body>
+</html>

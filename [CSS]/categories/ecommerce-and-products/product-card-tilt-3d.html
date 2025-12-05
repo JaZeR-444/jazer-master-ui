@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Card 3D Tilt - JaZeR E-commerce Patterns</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: var(--bg-card);
+      transition: all 0.3s ease;
+      margin-bottom: 2rem;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      transform: translateX(-5px);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero { text-align: center; margin-bottom: 3rem; }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: clamp(2rem, 5vw, 3rem);
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 1.1rem; max-width: 600px; margin: 0 auto 1.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem; }
+    .key-hint { display: flex; align-items: center; gap: 0.5rem; color: var(--text-gray); font-size: 0.9rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      padding: 0.25rem 0.5rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+    }
+    .style-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-bottom: 3rem;
+    }
+    .style-btn {
+      padding: 0.75rem 1.5rem;
+      border: 2px solid var(--border-default);
+      border-radius: 10px;
+      background: var(--bg-card);
+      color: var(--text-gray);
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .style-btn:hover, .style-btn.active {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .demo-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      justify-content: center;
+      perspective: 1000px;
+    }
+
+    /* Base 3D Card */
+    .tilt-card {
+      width: 280px;
+      height: 380px;
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease-out;
+      cursor: pointer;
+    }
+    .card-inner {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      transform-style: preserve-3d;
+      position: relative;
+    }
+    .card-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      transform: translateZ(20px);
+      transition: transform 0.3s ease;
+    }
+    .card-content {
+      padding: 1.25rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transform: translateZ(30px);
+    }
+    .card-title {
+      font-family: var(--font-secondary);
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .card-price {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    .card-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      transform: translateZ(40px);
+      z-index: 10;
+    }
+    .card-action {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.3s ease;
+      transform: translateZ(40px);
+    }
+    .card-gloss {
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s ease;
+      pointer-events: none;
+      z-index: 5;
+    }
+    .tilt-card:hover .card-gloss { left: 100%; }
+    .glow-spot {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 4;
+    }
+    .tilt-card:hover .glow-spot { opacity: 1; }
+
+    /* Style 1: Neon */
+    .neon .tilt-card {
+      background: var(--bg-card);
+      border: 2px solid var(--jazer-cyan);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.05);
+    }
+    .neon .card-title { color: var(--text-light); }
+    .neon .card-price { color: var(--jazer-cyan); text-shadow: 0 0 10px var(--jazer-cyan); }
+    .neon .card-badge { background: var(--jazer-cyan); color: var(--bg-dark); }
+    .neon .card-action {
+      background: transparent;
+      border: 2px solid var(--jazer-cyan);
+      color: var(--jazer-cyan);
+    }
+    .neon .card-action:hover {
+      background: var(--jazer-cyan);
+      color: var(--bg-dark);
+      box-shadow: 0 0 20px var(--jazer-cyan);
+    }
+    .neon .glow-spot { background: radial-gradient(circle, rgba(0, 255, 255, 0.3), transparent 70%); }
+
+    /* Style 2: Gradient */
+    .gradient .tilt-card {
+      background: linear-gradient(135deg, var(--jazer-purple), var(--jazer-pink), var(--jazer-cyan));
+      border: none;
+      box-shadow: 0 10px 40px rgba(139, 92, 246, 0.4);
+    }
+    .gradient .card-title { color: #fff; }
+    .gradient .card-price { color: #fff; }
+    .gradient .card-badge { background: rgba(255,255,255,0.25); color: #fff; backdrop-filter: blur(10px); }
+    .gradient .card-action {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      backdrop-filter: blur(10px);
+    }
+    .gradient .card-action:hover { background: rgba(255,255,255,0.35); }
+    .gradient .glow-spot { background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent 70%); }
+
+    /* Style 3: Minimal */
+    .minimal .tilt-card {
+      background: #1a1a2e;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .minimal .card-title { color: var(--text-light); }
+    .minimal .card-price { color: var(--text-gray); }
+    .minimal .card-badge { background: var(--text-light); color: var(--bg-dark); }
+    .minimal .card-action {
+      background: var(--text-light);
+      color: var(--bg-dark);
+    }
+    .minimal .card-action:hover { background: var(--text-gray); }
+    .minimal .glow-spot { background: radial-gradient(circle, rgba(255, 255, 255, 0.15), transparent 70%); }
+
+    /* Style 4: Neumorphic */
+    .neumorphic .tilt-card {
+      background: #2a2a3e;
+      border: none;
+      box-shadow: 8px 8px 20px #1a1a28, -8px -8px 20px #3a3a54;
+    }
+    .neumorphic .card-title { color: var(--text-light); }
+    .neumorphic .card-price { color: var(--jazer-purple); }
+    .neumorphic .card-badge {
+      background: #2a2a3e;
+      color: var(--jazer-purple);
+      box-shadow: 3px 3px 8px #1a1a28, -3px -3px 8px #3a3a54;
+    }
+    .neumorphic .card-action {
+      background: #2a2a3e;
+      color: var(--jazer-purple);
+      box-shadow: 4px 4px 10px #1a1a28, -4px -4px 10px #3a3a54;
+    }
+    .neumorphic .card-action:hover {
+      box-shadow: inset 4px 4px 10px #1a1a28, inset -4px -4px 10px #3a3a54;
+    }
+    .neumorphic .glow-spot { background: radial-gradient(circle, rgba(139, 92, 246, 0.2), transparent 70%); }
+
+    /* Style 5: Outline */
+    .outline .tilt-card {
+      background: transparent;
+      border: 3px solid var(--jazer-pink);
+      box-shadow: 0 0 0 1px var(--jazer-pink);
+    }
+    .outline .card-title { color: var(--jazer-pink); }
+    .outline .card-price { color: var(--text-light); }
+    .outline .card-badge {
+      background: transparent;
+      border: 2px solid var(--jazer-pink);
+      color: var(--jazer-pink);
+    }
+    .outline .card-action {
+      background: transparent;
+      border: 2px solid var(--jazer-pink);
+      color: var(--jazer-pink);
+    }
+    .outline .card-action:hover {
+      background: var(--jazer-pink);
+      color: var(--bg-dark);
+    }
+    .outline .glow-spot { background: radial-gradient(circle, rgba(236, 72, 153, 0.3), transparent 70%); }
+
+    /* Style 6: Retro */
+    .retro .tilt-card {
+      background: linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 100%);
+      border: 4px solid #ff6b35;
+      box-shadow: 6px 6px 0 #ff6b35;
+    }
+    .retro .card-image { border-bottom: 4px solid #ff6b35; }
+    .retro .card-title { color: #ffde59; font-family: var(--font-primary); }
+    .retro .card-price { color: #ff6b35; }
+    .retro .card-badge { background: #ffde59; color: #1a0a2e; }
+    .retro .card-action {
+      background: #ff6b35;
+      color: #1a0a2e;
+      font-weight: 700;
+    }
+    .retro .card-action:hover { background: #ffde59; }
+    .retro .glow-spot { background: radial-gradient(circle, rgba(255, 107, 53, 0.3), transparent 70%); }
+
+    /* Style 7: Glass */
+    .glass .tilt-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .glass .card-title { color: var(--text-light); }
+    .glass .card-price { color: var(--jazer-cyan); }
+    .glass .card-badge {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      color: var(--text-light);
+    }
+    .glass .card-action {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      color: var(--text-light);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .glass .card-action:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .glass .glow-spot { background: radial-gradient(circle, rgba(255, 255, 255, 0.2), transparent 70%); }
+
+    /* Style 8: Cyberpunk */
+    .cyberpunk .tilt-card {
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a0a2e 100%);
+      border: 2px solid #ff00ff;
+      clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+      box-shadow: 0 0 30px rgba(255, 0, 255, 0.4), inset 0 0 30px rgba(255, 0, 255, 0.1);
+    }
+    .cyberpunk .card-title { color: #00ffff; text-shadow: 0 0 10px #00ffff; }
+    .cyberpunk .card-price { color: #ff00ff; text-shadow: 0 0 10px #ff00ff; }
+    .cyberpunk .card-badge {
+      background: #ff00ff;
+      color: #000;
+      clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    }
+    .cyberpunk .card-action {
+      background: transparent;
+      border: 2px solid #00ffff;
+      color: #00ffff;
+      clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    }
+    .cyberpunk .card-action:hover {
+      background: #00ffff;
+      color: #000;
+      box-shadow: 0 0 20px #00ffff;
+    }
+    .cyberpunk .glow-spot { background: radial-gradient(circle, rgba(255, 0, 255, 0.4), transparent 70%); }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to E-commerce Patterns</a>
+
+  <section class="hero">
+    <h1>Product Card 3D Tilt</h1>
+    <p>Interactive product cards with realistic 3D tilt effect that follows mouse movement. Includes gloss highlight and glow spot effects.</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Toggle tilt effect</span>
+      <span class="key-hint"><kbd>R</kbd> Reset cards</span>
+    </div>
+  </section>
+
+  <div class="style-selector">
+    <button class="style-btn active" data-style="neon">Neon</button>
+    <button class="style-btn" data-style="gradient">Gradient</button>
+    <button class="style-btn" data-style="minimal">Minimal</button>
+    <button class="style-btn" data-style="neumorphic">Neumorphic</button>
+    <button class="style-btn" data-style="outline">Outline</button>
+    <button class="style-btn" data-style="retro">Retro</button>
+    <button class="style-btn" data-style="glass">Glass</button>
+    <button class="style-btn" data-style="cyberpunk">Cyberpunk</button>
+  </div>
+
+  <div class="demo-container neon" id="demo">
+    <!-- Cards rendered by JS -->
+  </div>
+
+  <script>
+    const products = [
+      { id: 1, name: 'Premium Headphones', price: '$299.99', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80', badge: null },
+      { id: 2, name: 'Running Shoes', price: '$129.99', image: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&q=80', badge: 'SALE' },
+      { id: 3, name: 'Smart Watch', price: '$399.99', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80', badge: 'NEW' }
+    ];
+
+    let tiltEnabled = true;
+
+    function renderCards() {
+      const demo = document.getElementById('demo');
+      demo.innerHTML = products.map(p => `
+        <div class="tilt-card" data-id="${p.id}">
+          <div class="card-inner">
+            ${p.badge ? `<span class="card-badge">${p.badge}</span>` : ''}
+            <img src="${p.image}" alt="${p.name}" class="card-image">
+            <div class="card-content">
+              <div>
+                <h3 class="card-title">${p.name}</h3>
+                <p class="card-price">${p.price}</p>
+              </div>
+              <button class="card-action">Add to Cart</button>
+            </div>
+            <div class="card-gloss"></div>
+            <div class="glow-spot"></div>
+          </div>
+        </div>
+      `).join('');
+      initTiltEffects();
+    }
+
+    function initTiltEffects() {
+      document.querySelectorAll('.tilt-card').forEach(card => {
+        const inner = card.querySelector('.card-inner');
+        const glowSpot = card.querySelector('.glow-spot');
+
+        card.addEventListener('mousemove', e => {
+          if (!tiltEnabled) return;
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          const rotateX = ((y - centerY) / centerY) * -15;
+          const rotateY = ((x - centerX) / centerX) * 15;
+
+          inner.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+          if (glowSpot) {
+            glowSpot.style.left = (x - 100) + 'px';
+            glowSpot.style.top = (y - 100) + 'px';
+          }
+        });
+
+        card.addEventListener('mouseleave', () => {
+          inner.style.transform = 'rotateX(0) rotateY(0)';
+        });
+      });
+    }
+
+    // Style switcher
+    document.querySelectorAll('.style-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const demo = document.getElementById('demo');
+        demo.className = 'demo-container ' + btn.dataset.style;
+      });
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        tiltEnabled = !tiltEnabled;
+        if (!tiltEnabled) {
+          document.querySelectorAll('.card-inner').forEach(inner => {
+            inner.style.transform = 'rotateX(0) rotateY(0)';
+          });
+        }
+      }
+      if (e.code === 'KeyR') {
+        tiltEnabled = true;
+        document.querySelectorAll('.card-inner').forEach(inner => {
+          inner.style.transform = 'rotateX(0) rotateY(0)';
+        });
+      }
+    });
+
+    // Initialize
+    renderCards();
+  </script>
+</body>
+</html>

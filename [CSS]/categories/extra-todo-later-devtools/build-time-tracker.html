@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build Time Tracker - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Back Button */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-pink);
+            text-decoration: none;
+            padding: 0.6rem 1.2rem;
+            border: 2px solid rgba(236, 72, 153, 0.3);
+            border-radius: 8px;
+            background: rgba(236, 72, 153, 0.1);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-pink);
+            color: white;
+            box-shadow: var(--shadow-pink);
+            transform: translateX(-3px);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.08) 0%, rgba(147, 51, 234, 0.08) 50%, rgba(6, 182, 212, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(236, 72, 153, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-accent);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr 350px;
+            }
+        }
+
+        /* Build Panel */
+        .build-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-default);
+        }
+
+        .panel-title {
+            font-family: var(--font-primary);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .build-status {
+            padding: 0.5rem 1rem;
+            background: rgba(34, 197, 94, 0.1);
+            border: 2px solid rgba(34, 197, 94, 0.3);
+            border-radius: 8px;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #22c55e;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .build-status.building {
+            background: rgba(255, 190, 11, 0.1);
+            border-color: rgba(255, 190, 11, 0.3);
+            color: var(--jazer-yellow);
+        }
+
+        .build-status.failed {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .status-pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+
+        /* Current Build Stats */
+        .current-build {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.05), rgba(147, 51, 234, 0.05));
+            border: 2px solid rgba(236, 72, 153, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .current-build-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .current-build-title {
+            font-family: var(--font-secondary);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .current-build-time {
+            font-family: var(--font-primary);
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--jazer-pink);
+        }
+
+        .current-build-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: rgba(236, 72, 153, 0.05);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--jazer-pink);
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-family: var(--font-primary);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--jazer-pink);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: var(--font-secondary);
+        }
+
+        /* Build Timeline */
+        .timeline-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-family: var(--font-secondary);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--jazer-pink), var(--jazer-purple));
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 1.5rem;
+            padding-left: 1rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 0.5rem;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--jazer-pink);
+            border: 3px solid var(--bg-dark);
+            box-shadow: 0 0 12px rgba(236, 72, 153, 0.5);
+        }
+
+        .timeline-item.success::before {
+            background: #22c55e;
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
+        }
+
+        .timeline-item.in-progress::before {
+            background: var(--jazer-yellow);
+            box-shadow: 0 0 12px rgba(255, 190, 11, 0.5);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .timeline-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-phase {
+            font-family: var(--font-secondary);
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .timeline-duration {
+            padding: 0.25rem 0.6rem;
+            background: rgba(236, 72, 153, 0.2);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--jazer-pink);
+        }
+
+        .timeline-description {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            margin-bottom: 0.75rem;
+        }
+
+        .timeline-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .timeline-bar-fill {
+            height: 100%;
+            background: var(--gradient-accent);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .timeline-bar-fill.animating {
+            animation: fillBar 2s ease-in-out;
+        }
+
+        @keyframes fillBar {
+            from { width: 0%; }
+        }
+
+        /* Build History */
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .history-item:hover {
+            border-color: var(--jazer-pink);
+            background: rgba(236, 72, 153, 0.05);
+            transform: translateX(3px);
+        }
+
+        .history-item.success {
+            border-left: 4px solid #22c55e;
+        }
+
+        .history-item.failed {
+            border-left: 4px solid #ef4444;
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .history-timestamp {
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .history-duration {
+            padding: 0.25rem 0.6rem;
+            background: rgba(236, 72, 153, 0.2);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--jazer-pink);
+        }
+
+        .history-details {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .history-detail {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .controls-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .controls-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            border: 2px solid var(--border-default);
+            background: var(--bg-card);
+            color: var(--text-light);
+            cursor: pointer;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .btn:hover {
+            border-color: var(--jazer-pink);
+            color: var(--jazer-pink);
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.2);
+        }
+
+        .btn.btn-primary {
+            background: var(--gradient-accent);
+            border: none;
+            color: white;
+        }
+
+        .btn.btn-primary:hover {
+            box-shadow: var(--shadow-pink);
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn:disabled:hover {
+            border-color: var(--border-default);
+            color: var(--text-light);
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Build Config */
+        .build-config {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .config-item:last-child {
+            border-bottom: none;
+        }
+
+        .config-label {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+        }
+
+        .config-value {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--jazer-pink);
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Comparison Chart */
+        .comparison-chart {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .chart-label {
+            width: 60px;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+        }
+
+        .chart-track {
+            flex: 1;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-fill {
+            height: 100%;
+            background: var(--gradient-accent);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 0.5rem;
+            transition: width 0.5s ease;
+        }
+
+        .chart-value {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        /* Status Bar Footer */
+        .status-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 2rem;
+        }
+
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-pink);
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-pink);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { 
+                opacity: 1; 
+                box-shadow: 0 0 8px var(--jazer-pink);
+            }
+            50% { 
+                opacity: 0.6; 
+                box-shadow: 0 0 16px var(--jazer-pink);
+            }
+        }
+
+        /* Scrollbar Styling */
+        .history-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .history-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .history-list::-webkit-scrollbar-thumb {
+            background: var(--jazer-pink);
+            border-radius: 4px;
+        }
+
+        .history-list::-webkit-scrollbar-thumb:hover {
+            background: var(--jazer-purple);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .hero h1 {
+                font-size: 1.75rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .status-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .status-info {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back to DevTools</a>
+
+        <!-- Hero Section -->
+        <header class="hero">
+            <h1>⏱️ Build Time Tracker</h1>
+            <p class="hero-description">Monitor build times, track compilation phases, and optimize your development workflow with detailed performance metrics</p>
+        </header>
+
+        <!-- Main Content Grid -->
+        <div class="main-grid">
+            <!-- Left Column: Build Timeline & History -->
+            <div>
+                <!-- Build Panel -->
+                <div class="build-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Current Build</h2>
+                        <div class="build-status success" id="buildStatus">
+                            <span class="status-pulse"></span>
+                            <span>Success</span>
+                        </div>
+                    </div>
+
+                    <!-- Current Build Stats -->
+                    <div class="current-build">
+                        <div class="current-build-header">
+                            <span class="current-build-title">Total Build Time</span>
+                        </div>
+                        <div class="current-build-time" id="currentBuildTime">12.4s</div>
+                        <div class="current-build-label">Last successful build</div>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-value" id="avgBuildTime">14.2s</span>
+                            <span class="stat-label">Avg Build</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-value" id="fastestBuild">8.1s</span>
+                            <span class="stat-label">Fastest</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-value" id="slowestBuild">24.7s</span>
+                            <span class="stat-label">Slowest</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-value" id="totalBuilds">142</span>
+                            <span class="stat-label">Total Builds</span>
+                        </div>
+                    </div>
+
+                    <!-- Build Timeline -->
+                    <div class="timeline-section">
+                        <h3 class="section-title">🔄 Build Timeline</h3>
+                        <div class="timeline" id="buildTimeline">
+                            <div class="timeline-item success">
+                                <div class="timeline-header">
+                                    <span class="timeline-phase">Initialization</span>
+                                    <span class="timeline-duration">1.2s</span>
+                                </div>
+                                <div class="timeline-description">Loading configuration and dependencies</div>
+                                <div class="timeline-bar">
+                                    <div class="timeline-bar-fill" style="width: 10%"></div>
+                                </div>
+                            </div>
+
+                            <div class="timeline-item success">
+                                <div class="timeline-header">
+                                    <span class="timeline-phase">Compilation</span>
+                                    <span class="timeline-duration">5.8s</span>
+                                </div>
+                                <div class="timeline-description">TypeScript compilation and bundling</div>
+                                <div class="timeline-bar">
+                                    <div class="timeline-bar-fill" style="width: 47%"></div>
+                                </div>
+                            </div>
+
+                            <div class="timeline-item success">
+                                <div class="timeline-header">
+                                    <span class="timeline-phase">Optimization</span>
+                                    <span class="timeline-duration">3.1s</span>
+                                </div>
+                                <div class="timeline-description">Minification and tree-shaking</div>
+                                <div class="timeline-bar">
+                                    <div class="timeline-bar-fill" style="width: 25%"></div>
+                                </div>
+                            </div>
+
+                            <div class="timeline-item success">
+                                <div class="timeline-header">
+                                    <span class="timeline-phase">Asset Processing</span>
+                                    <span class="timeline-duration">1.8s</span>
+                                </div>
+                                <div class="timeline-description">Image optimization and copying</div>
+                                <div class="timeline-bar">
+                                    <div class="timeline-bar-fill" style="width: 15%"></div>
+                                </div>
+                            </div>
+
+                            <div class="timeline-item success">
+                                <div class="timeline-header">
+                                    <span class="timeline-phase">Finalization</span>
+                                    <span class="timeline-duration">0.5s</span>
+                                </div>
+                                <div class="timeline-description">Generating source maps and cleanup</div>
+                                <div class="timeline-bar">
+                                    <div class="timeline-bar-fill" style="width: 4%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Build History -->
+                    <div class="timeline-section">
+                        <h3 class="section-title">📊 Recent Builds</h3>
+                        <div class="history-list" id="historyList">
+                            <div class="history-item success">
+                                <div class="history-header">
+                                    <span class="history-timestamp">2:45 PM - Success</span>
+                                    <span class="history-duration">12.4s</span>
+                                </div>
+                                <div class="history-details">
+                                    <div class="history-detail">
+                                        <span>📦</span>
+                                        <span>245 modules</span>
+                                    </div>
+                                    <div class="history-detail">
+                                        <span>📄</span>
+                                        <span>3.2 MB</span>
+                                    </div>
+                                    <div class="history-detail">
+                                        <span>✓</span>
+                                        <span>0 errors</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="history-item success">
+                                <div class="history-header">
+                                    <span class="history-timestamp">2:30 PM - Success</span>
+                                    <span class="history-duration">13.8s</span>
+                                </div>
+                                <div class="history-details">
+                                    <div class="history-detail">
+                                        <span>📦</span>
+                                        <span>243 modules</span>
+                                    </div>
+                                    <div class="history-detail">
+                                        <span>📄</span>
+                                        <span>3.1 MB</span>
+                                    </div>
+                                    <div class="history-detail">
+                                        <span>✓</span>
+                                        <span>0 errors</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="history-item failed">
+                                <div class="history-header">
+                                    <span class="history-timestamp">2:15 PM - Failed</span>
+                                    <span class="history-duration">8.2s</span>
+                                </div>
+                                <div class="history-details">
+                                    <div class="history-detail">
+                                        <span>📦</span>
+                                        <span>242 modules</span>
+                                    </div>
+                                    <div class="history-detail">
+                                        <span>❌</span>
+                                        <span>3 errors</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="history-item success">
+                                <div class="history-header">
+                                    <span class="history-timestamp">1:58 PM - Success</span>
+                                    <span class="history-duration">15.2s</span>
+                                </div>
+                                <div class="history-details">
+                                    <div class="history-detail">
+                                        <span>📦</span>
+                                        <span>240 modules</span>
+                                    </div>
+                                    <div class="history-detail">
+                                        <span>📄</span>
+                                        <span>3.0 MB</span>
+                                    </div>
+                                    <div class="history-detail">
+                                        <span>✓</span>
+                                        <span>0 errors</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Controls & Stats -->
+            <div>
+                <!-- Controls Panel -->
+                <div class="controls-panel">
+                    <div class="controls-section">
+                        <h3 class="section-title">Build Controls</h3>
+                        <button class="btn btn-primary" onclick="startBuild()" id="buildBtn">
+                            🚀 Start Build
+                        </button>
+                        <button class="btn" onclick="analyzeBuild()">
+                            📊 Analyze Performance
+                        </button>
+                        <button class="btn" onclick="clearHistory()">
+                            🗑️ Clear History
+                        </button>
+                    </div>
+
+                    <div class="controls-section">
+                        <h3 class="section-title">Build Configuration</h3>
+                        <div class="build-config">
+                            <div class="config-item">
+                                <span class="config-label">Mode:</span>
+                                <span class="config-value">production</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Source Maps:</span>
+                                <span class="config-value">true</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Minification:</span>
+                                <span class="config-value">enabled</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Target:</span>
+                                <span class="config-value">ES2020</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Cache:</span>
+                                <span class="config-value">enabled</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="controls-section">
+                        <h3 class="section-title">Phase Comparison</h3>
+                        <div class="comparison-chart">
+                            <div class="chart-bar">
+                                <div class="chart-label">Init</div>
+                                <div class="chart-track">
+                                    <div class="chart-fill" style="width: 10%">
+                                        <span class="chart-value">1.2s</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-bar">
+                                <div class="chart-label">Compile</div>
+                                <div class="chart-track">
+                                    <div class="chart-fill" style="width: 47%">
+                                        <span class="chart-value">5.8s</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-bar">
+                                <div class="chart-label">Optimize</div>
+                                <div class="chart-track">
+                                    <div class="chart-fill" style="width: 25%">
+                                        <span class="chart-value">3.1s</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-bar">
+                                <div class="chart-label">Assets</div>
+                                <div class="chart-track">
+                                    <div class="chart-fill" style="width: 15%">
+                                        <span class="chart-value">1.8s</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-bar">
+                                <div class="chart-label">Final</div>
+                                <div class="chart-track">
+                                    <div class="chart-fill" style="width: 4%">
+                                        <span class="chart-value">0.5s</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar Footer -->
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Project:</span>
+                    <span>my-app</span>
+                </div>
+                <div class="status-item">
+                    <span>Bundler:</span>
+                    <span>Webpack 5.89</span>
+                </div>
+                <div class="status-item">
+                    <span>Last Build:</span>
+                    <span id="lastBuild">2:45 PM</span>
+                </div>
+                <div class="status-item">
+                    <span>Success Rate:</span>
+                    <span id="successRate">97.2%</span>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Tracker Active</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // State management
+        const state = {
+            isBuilding: false,
+            currentBuildTime: 12.4,
+            builds: [],
+            stats: {
+                avg: 14.2,
+                fastest: 8.1,
+                slowest: 24.7,
+                total: 142
+            }
+        };
+
+        // Build phases
+        const phases = [
+            { name: 'Initialization', duration: 1.2, percent: 10 },
+            { name: 'Compilation', duration: 5.8, percent: 47 },
+            { name: 'Optimization', duration: 3.1, percent: 25 },
+            { name: 'Asset Processing', duration: 1.8, percent: 15 },
+            { name: 'Finalization', duration: 0.5, percent: 4 }
+        ];
+
+        // Start build
+        function startBuild() {
+            if (state.isBuilding) return;
+
+            state.isBuilding = true;
+            const buildBtn = document.getElementById('buildBtn');
+            const buildStatus = document.getElementById('buildStatus');
+            
+            buildBtn.innerHTML = '⏳ Building...';
+            buildBtn.disabled = true;
+            
+            buildStatus.className = 'build-status building';
+            buildStatus.innerHTML = '<span class="status-pulse"></span><span>Building</span>';
+
+            // Simulate build phases
+            let totalTime = 0;
+            phases.forEach((phase, index) => {
+                setTimeout(() => {
+                    animatePhase(index);
+                    if (index === phases.length - 1) {
+                        completeBuild();
+                    }
+                }, totalTime * 1000);
+                totalTime += phase.duration;
+            });
+        }
+
+        // Animate build phase
+        function animatePhase(index) {
+            const timeline = document.getElementById('buildTimeline');
+            const items = timeline.querySelectorAll('.timeline-item');
+            
+            if (items[index]) {
+                items[index].classList.remove('success');
+                items[index].classList.add('in-progress');
+            }
+            
+            if (index > 0 && items[index - 1]) {
+                items[index - 1].classList.remove('in-progress');
+                items[index - 1].classList.add('success');
+            }
+        }
+
+        // Complete build
+        function completeBuild() {
+            state.isBuilding = false;
+            
+            const buildBtn = document.getElementById('buildBtn');
+            const buildStatus = document.getElementById('buildStatus');
+            const timeline = document.getElementById('buildTimeline');
+            const lastItem = timeline.querySelector('.timeline-item:last-child');
+            
+            if (lastItem) {
+                lastItem.classList.remove('in-progress');
+                lastItem.classList.add('success');
+            }
+            
+            buildStatus.className = 'build-status success';
+            buildStatus.innerHTML = '<span class="status-pulse"></span><span>Success</span>';
+            
+            buildBtn.innerHTML = '🚀 Start Build';
+            buildBtn.disabled = false;
+            
+            // Update stats
+            const newTime = (Math.random() * 8 + 10).toFixed(1);
+            document.getElementById('currentBuildTime').textContent = newTime + 's';
+            document.getElementById('lastBuild').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            state.stats.total++;
+            document.getElementById('totalBuilds').textContent = state.stats.total;
+
+            // Add to history
+            addToHistory(newTime);
+        }
+
+        // Add to history
+        function addToHistory(buildTime) {
+            const historyList = document.getElementById('historyList');
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item success';
+            historyItem.innerHTML = `
+                <div class="history-header">
+                    <span class="history-timestamp">${timeStr} - Success</span>
+                    <span class="history-duration">${buildTime}s</span>
+                </div>
+                <div class="history-details">
+                    <div class="history-detail">
+                        <span>📦</span>
+                        <span>${Math.floor(Math.random() * 10) + 240} modules</span>
+                    </div>
+                    <div class="history-detail">
+                        <span>📄</span>
+                        <span>${(Math.random() * 0.5 + 2.8).toFixed(1)} MB</span>
+                    </div>
+                    <div class="history-detail">
+                        <span>✓</span>
+                        <span>0 errors</span>
+                    </div>
+                </div>
+            `;
+            
+            historyList.insertBefore(historyItem, historyList.firstChild);
+            
+            // Keep only last 10
+            while (historyList.children.length > 10) {
+                historyList.removeChild(historyList.lastChild);
+            }
+        }
+
+        // Analyze build
+        function analyzeBuild() {
+            console.log('Build Analysis:', {
+                currentTime: state.currentBuildTime,
+                stats: state.stats,
+                phases: phases
+            });
+            alert('Build analysis exported to console');
+        }
+
+        // Clear history
+        function clearHistory() {
+            if (confirm('Clear all build history?')) {
+                const historyList = document.getElementById('historyList');
+                historyList.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                        No build history
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

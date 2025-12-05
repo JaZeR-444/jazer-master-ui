@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Transition Zoom - Scroll & Page Transitions</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            background: rgba(0, 217, 255, 0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateX(-5px);
+        }
+        h1 {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 2.5rem;
+        }
+        .page-intro {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+        .component-section {
+            max-width: 1000px;
+            margin: 0 auto 3rem;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        .section-title {
+            color: var(--jazer-cyan);
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section-description {
+            color: #888;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+        .style-number {
+            background: var(--gradient-primary);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        /* Demo Container */
+        .demo-container {
+            position: relative;
+            height: 300px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #0a0a0a;
+        }
+        .demo-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        .demo-page--a {
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.2), rgba(139, 92, 246, 0.2));
+        }
+        .demo-page--b {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2));
+        }
+        .demo-page__title {
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        .demo-page__subtitle {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .demo-page__icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .trigger-btn {
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        .trigger-btn:hover {
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 217, 255, 0.4);
+        }
+
+        /* ========================================
+           STYLE 1: Zoom In
+        ======================================== */
+        .zoom-in .demo-page {
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
+        }
+        .zoom-in .demo-page--a {
+            z-index: 2;
+        }
+        .zoom-in .demo-page--b {
+            opacity: 0;
+            transform: scale(0.8);
+            z-index: 1;
+        }
+        .zoom-in.active .demo-page--a {
+            transform: scale(1.5);
+            opacity: 0;
+        }
+        .zoom-in.active .demo-page--b {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* ========================================
+           STYLE 2: Zoom Out
+        ======================================== */
+        .zoom-out .demo-page {
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
+        }
+        .zoom-out .demo-page--a {
+            z-index: 2;
+        }
+        .zoom-out .demo-page--b {
+            opacity: 0;
+            transform: scale(1.3);
+            z-index: 1;
+        }
+        .zoom-out.active .demo-page--a {
+            transform: scale(0.5);
+            opacity: 0;
+        }
+        .zoom-out.active .demo-page--b {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* ========================================
+           STYLE 3: Zoom Center (Focus Point)
+        ======================================== */
+        .zoom-center .demo-page {
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+            transform-origin: center center;
+        }
+        .zoom-center .demo-page--b {
+            opacity: 0;
+            transform: scale(0);
+        }
+        .zoom-center.active .demo-page--a {
+            transform: scale(2);
+            opacity: 0;
+        }
+        .zoom-center.active .demo-page--b {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* ========================================
+           STYLE 4: Zoom Corner (Origin Point)
+        ======================================== */
+        .zoom-corner .demo-page {
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+            transform-origin: top left;
+        }
+        .zoom-corner .demo-page--a {
+            z-index: 2;
+        }
+        .zoom-corner .demo-page--b {
+            opacity: 0;
+            transform: scale(0);
+            transform-origin: bottom right;
+            z-index: 1;
+        }
+        .zoom-corner.active .demo-page--a {
+            transform: scale(3);
+            opacity: 0;
+        }
+        .zoom-corner.active .demo-page--b {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* ========================================
+           STYLE 5: Zoom with Blur
+        ======================================== */
+        .zoom-blur .demo-page {
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease, filter 0.6s ease;
+        }
+        .zoom-blur .demo-page--a {
+            z-index: 2;
+        }
+        .zoom-blur .demo-page--b {
+            opacity: 0;
+            transform: scale(0.9);
+            filter: blur(10px);
+            z-index: 1;
+        }
+        .zoom-blur.active .demo-page--a {
+            transform: scale(1.2);
+            opacity: 0;
+            filter: blur(15px);
+        }
+        .zoom-blur.active .demo-page--b {
+            opacity: 1;
+            transform: scale(1);
+            filter: blur(0);
+        }
+
+        /* ========================================
+           STYLE 6: Zoom with Rotate
+        ======================================== */
+        .zoom-rotate .demo-page {
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
+        }
+        .zoom-rotate .demo-page--a {
+            z-index: 2;
+        }
+        .zoom-rotate .demo-page--b {
+            opacity: 0;
+            transform: scale(0.8) rotate(-10deg);
+            z-index: 1;
+        }
+        .zoom-rotate.active .demo-page--a {
+            transform: scale(1.3) rotate(10deg);
+            opacity: 0;
+        }
+        .zoom-rotate.active .demo-page--b {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+
+        /* ========================================
+           STYLE 7: Zoom Split (Dual Direction)
+        ======================================== */
+        .zoom-split {
+            perspective: 1000px;
+        }
+        .zoom-split .demo-page {
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+        }
+        .zoom-split .demo-page--a {
+            z-index: 2;
+        }
+        .zoom-split .demo-page--b {
+            opacity: 0;
+            transform: scale(0.5) translateZ(-200px);
+            z-index: 1;
+        }
+        .zoom-split.active .demo-page--a {
+            transform: scale(1.5) translateZ(200px);
+            opacity: 0;
+        }
+        .zoom-split.active .demo-page--b {
+            opacity: 1;
+            transform: scale(1) translateZ(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            h1 { font-size: 1.8rem; }
+            .component-section { padding: 1.5rem; }
+            .demo-container { height: 250px; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    
+    <h1>Page Transition Zoom</h1>
+    <p class="page-intro">Scale-based zoom transitions for immersive page changes</p>
+
+    <!-- Style 1: Zoom In -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">1</span> Zoom In</h2>
+        <p class="section-description">Current page zooms in and fades while new page appears from smaller scale</p>
+        
+        <div class="demo-container zoom-in" id="demo1">
+            <div class="demo-page demo-page--a">
+                <span class="demo-page__icon">🔍</span>
+                <h3 class="demo-page__title">Overview</h3>
+                <p class="demo-page__subtitle">The big picture</p>
+            </div>
+            <div class="demo-page demo-page--b">
+                <span class="demo-page__icon">🎯</span>
+                <h3 class="demo-page__title">Details</h3>
+                <p class="demo-page__subtitle">Zoomed in view</p>
+            </div>
+            <button class="trigger-btn" onclick="toggleDemo('demo1')">Trigger Transition</button>
+        </div>
+    </section>
+
+    <!-- Style 2: Zoom Out -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">2</span> Zoom Out</h2>
+        <p class="section-description">Page shrinks away while new content zooms in from larger scale</p>
+        
+        <div class="demo-container zoom-out" id="demo2">
+            <div class="demo-page demo-page--a">
+                <span class="demo-page__icon">📍</span>
+                <h3 class="demo-page__title">Street View</h3>
+                <p class="demo-page__subtitle">Close up</p>
+            </div>
+            <div class="demo-page demo-page--b">
+                <span class="demo-page__icon">🗺️</span>
+                <h3 class="demo-page__title">Map View</h3>
+                <p class="demo-page__subtitle">Zoomed out</p>
+            </div>
+            <button class="trigger-btn" onclick="toggleDemo('demo2')">Trigger Transition</button>
+        </div>
+    </section>
+
+    <!-- Style 3: Zoom Center -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">3</span> Zoom Center</h2>
+        <p class="section-description">Elements scale from/to the center point - perfect focus effect</p>
+        
+        <div class="demo-container zoom-center" id="demo3">
+            <div class="demo-page demo-page--a">
+                <span class="demo-page__icon">⭕</span>
+                <h3 class="demo-page__title">Portal</h3>
+                <p class="demo-page__subtitle">Enter the gateway</p>
+            </div>
+            <div class="demo-page demo-page--b">
+                <span class="demo-page__icon">🌀</span>
+                <h3 class="demo-page__title">New Realm</h3>
+                <p class="demo-page__subtitle">You've arrived</p>
+            </div>
+            <button class="trigger-btn" onclick="toggleDemo('demo3')">Trigger Transition</button>
+        </div>
+    </section>
+
+    <!-- Style 4: Zoom Corner -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">4</span> Zoom Corner</h2>
+        <p class="section-description">Transform origin at corners for diagonal zoom effect</p>
+        
+        <div class="demo-container zoom-corner" id="demo4">
+            <div class="demo-page demo-page--a">
+                <span class="demo-page__icon">↖️</span>
+                <h3 class="demo-page__title">Top Left</h3>
+                <p class="demo-page__subtitle">Corner origin</p>
+            </div>
+            <div class="demo-page demo-page--b">
+                <span class="demo-page__icon">↘️</span>
+                <h3 class="demo-page__title">Bottom Right</h3>
+                <p class="demo-page__subtitle">Opposite corner</p>
+            </div>
+            <button class="trigger-btn" onclick="toggleDemo('demo4')">Trigger Transition</button>
+        </div>
+    </section>
+
+    <!-- Style 5: Zoom with Blur -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">5</span> Zoom with Blur</h2>
+        <p class="section-description">Combines scale with blur for depth-of-field zoom effect</p>
+        
+        <div class="demo-container zoom-blur" id="demo5">
+            <div class="demo-page demo-page--a">
+                <span class="demo-page__icon">📷</span>
+                <h3 class="demo-page__title">In Focus</h3>
+                <p class="demo-page__subtitle">Sharp and clear</p>
+            </div>
+            <div class="demo-page demo-page--b">
+                <span class="demo-page__icon">🎞️</span>
+                <h3 class="demo-page__title">New Frame</h3>
+                <p class="demo-page__subtitle">Focus shifted</p>
+            </div>
+            <button class="trigger-btn" onclick="toggleDemo('demo5')">Trigger Transition</button>
+        </div>
+    </section>
+
+    <!-- Style 6: Zoom with Rotate -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">6</span> Zoom with Rotate</h2>
+        <p class="section-description">Adds rotation to zoom for dynamic spiral-like effect</p>
+        
+        <div class="demo-container zoom-rotate" id="demo6">
+            <div class="demo-page demo-page--a">
+                <span class="demo-page__icon">🎡</span>
+                <h3 class="demo-page__title">Spin Up</h3>
+                <p class="demo-page__subtitle">Start rotating</p>
+            </div>
+            <div class="demo-page demo-page--b">
+                <span class="demo-page__icon">🎢</span>
+                <h3 class="demo-page__title">Spin Down</h3>
+                <p class="demo-page__subtitle">Landing smoothly</p>
+            </div>
+            <button class="trigger-btn" onclick="toggleDemo('demo6')">Trigger Transition</button>
+        </div>
+    </section>
+
+    <!-- Style 7: Zoom Split -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">7</span> Zoom Split (3D)</h2>
+        <p class="section-description">3D perspective zoom with Z-axis translation for depth</p>
+        
+        <div class="demo-container zoom-split" id="demo7">
+            <div class="demo-page demo-page--a">
+                <span class="demo-page__icon">🎭</span>
+                <h3 class="demo-page__title">Front Layer</h3>
+                <p class="demo-page__subtitle">Foreground</p>
+            </div>
+            <div class="demo-page demo-page--b">
+                <span class="demo-page__icon">🖼️</span>
+                <h3 class="demo-page__title">Back Layer</h3>
+                <p class="demo-page__subtitle">Background revealed</p>
+            </div>
+            <button class="trigger-btn" onclick="toggleDemo('demo7')">Trigger Transition</button>
+        </div>
+    </section>
+
+    <script>
+        function toggleDemo(id) {
+            const demo = document.getElementById(id);
+            demo.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

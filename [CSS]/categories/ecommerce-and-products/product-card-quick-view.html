@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Card Quick View - JaZeR E-commerce Patterns</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-body); background: var(--bg-dark); color: var(--text-light); line-height: 1.6; padding: 1.5rem; min-height: 100vh; }
+    .back-button { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-gray); text-decoration: none; font-family: var(--font-secondary); font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 12px; border: 2px solid var(--border-default); background: var(--bg-card); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-bottom: 1.5rem; }
+    .back-button:hover { border-color: var(--jazer-cyan); color: var(--jazer-cyan); transform: translateX(-5px); box-shadow: var(--shadow-cyan); }
+    h1 { font-family: var(--font-primary); font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; background: var(--gradient-text); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .description { color: var(--text-gray); font-size: 1.1rem; margin-bottom: 1.5rem; max-width: 700px; }
+    .hero-keys { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .key-hint { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-gray); font-size: 0.875rem; }
+    .key-hint kbd { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 6px; padding: 0.25rem 0.5rem; font-family: var(--font-secondary); font-size: 0.75rem; color: var(--jazer-cyan); }
+    .style-selector { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 2rem; }
+    .style-btn { padding: 0.625rem 1.25rem; font-family: var(--font-secondary); font-weight: 600; font-size: 0.875rem; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px; border: 2px solid var(--border-default); background: var(--bg-card); color: var(--text-gray); }
+    .style-btn:hover { border-color: var(--jazer-cyan); color: var(--jazer-cyan); transform: translateY(-2px); }
+    .style-btn.active { background: var(--gradient-primary); border-color: var(--jazer-cyan); color: var(--text-light); box-shadow: var(--shadow-cyan); }
+    .demo-container { padding: 3rem; background: var(--bg-card); border: 2px solid var(--border-default); border-radius: 16px; min-height: 500px; display: flex; align-items: center; justify-content: center; }
+
+    /* Quick View Card Base Styles */
+    .quickview-widget { perspective: 1000px; }
+    .card-container { width: 280px; height: 380px; position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+    .card-container.flipped { transform: rotateY(180deg); }
+    .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+    .card-back { transform: rotateY(180deg); }
+    .card-image { height: 200px; display: flex; align-items: center; justify-content: center; font-size: 5rem; }
+    .card-content { flex: 1; padding: 1.25rem; display: flex; flex-direction: column; }
+    .card-title { font-family: var(--font-secondary); font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .card-price { font-family: var(--font-primary); font-size: 1.5rem; font-weight: 800; margin-bottom: auto; }
+    .card-hint { font-size: 0.75rem; opacity: 0.6; text-align: center; }
+    .back-title { font-family: var(--font-secondary); font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; }
+    .back-desc { font-size: 0.875rem; opacity: 0.8; margin-bottom: 1rem; line-height: 1.5; flex: 1; }
+    .add-btn { width: 100%; padding: 0.875rem; border: none; border-radius: 10px; font-family: var(--font-secondary); font-weight: 700; font-size: 0.875rem; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; }
+    .add-btn:hover { transform: scale(1.02); }
+
+    /* Style 1: Neon */
+    .style-neon .card-face { background: var(--bg-card); border: 2px solid var(--jazer-cyan); box-shadow: 0 0 30px rgba(6, 182, 212, 0.2); }
+    .style-neon .card-image { background: rgba(6, 182, 212, 0.1); }
+    .style-neon .card-title { color: var(--text-light); }
+    .style-neon .card-price { background: var(--gradient-text); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .style-neon .back-title { color: var(--jazer-cyan); }
+    .style-neon .add-btn { background: var(--gradient-primary); color: white; }
+
+    /* Style 2: Gradient */
+    .style-gradient .card-face { background: linear-gradient(145deg, rgba(102, 126, 234, 0.2), rgba(240, 147, 251, 0.2)); border: 1px solid rgba(167, 139, 250, 0.3); }
+    .style-gradient .card-image { background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(240, 147, 251, 0.3)); }
+    .style-gradient .card-title { background: linear-gradient(90deg, #e0e7ff, #f5d0fe); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .style-gradient .card-price { background: linear-gradient(90deg, #f093fb, #667eea); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .style-gradient .back-title { color: #a78bfa; }
+    .style-gradient .add-btn { background: linear-gradient(90deg, #667eea, #f093fb); color: white; }
+
+    /* Style 3: Minimal */
+    .style-minimal .card-face { background: #1a1a2e; border: 1px solid #2a2a4e; }
+    .style-minimal .card-image { background: #151525; }
+    .style-minimal .card-title { color: #e0e0e0; }
+    .style-minimal .card-price { color: #888; -webkit-text-fill-color: #888; }
+    .style-minimal .back-title { color: #aaa; }
+    .style-minimal .add-btn { background: #333; color: #ccc; }
+
+    /* Style 4: Neumorphic */
+    .style-neumorphic .card-face { background: #2d2d3a; border: none; box-shadow: 12px 12px 24px #1a1a24, -12px -12px 24px #404050; border-radius: 24px; }
+    .style-neumorphic .card-image { background: #2d2d3a; box-shadow: inset 4px 4px 8px #1a1a24, inset -4px -4px 8px #404050; }
+    .style-neumorphic .card-title { color: #d0d0e0; }
+    .style-neumorphic .card-price { color: #8b5cf6; -webkit-text-fill-color: #8b5cf6; }
+    .style-neumorphic .back-title { color: #8b5cf6; }
+    .style-neumorphic .add-btn { background: #2d2d3a; color: #8b5cf6; box-shadow: 4px 4px 8px #1a1a24, -4px -4px 8px #404050; }
+
+    /* Style 5: Outline */
+    .style-outline .card-face { background: transparent; border: 3px solid var(--jazer-pink); }
+    .style-outline .card-back { border-color: var(--jazer-cyan); }
+    .style-outline .card-image { border-bottom: 2px solid var(--jazer-purple); }
+    .style-outline .card-title { color: var(--jazer-pink); }
+    .style-outline .card-price { color: var(--jazer-cyan); -webkit-text-fill-color: var(--jazer-cyan); }
+    .style-outline .back-title { color: var(--jazer-cyan); }
+    .style-outline .add-btn { background: transparent; color: var(--jazer-pink); border: 2px solid var(--jazer-pink); }
+    .style-outline .add-btn:hover { background: var(--jazer-pink); color: white; }
+
+    /* Style 6: Retro */
+    .style-retro .card-face { background: #2a1f4e; border: 4px solid #ff6b6b; box-shadow: 8px 8px 0 #ff6b6b; border-radius: 0; }
+    .style-retro .card-image { background: #1a1333; border-bottom: 4px solid #5f27cd; }
+    .style-retro .card-title { color: #feca57; font-family: var(--font-primary); }
+    .style-retro .card-price { color: #ff6b6b; -webkit-text-fill-color: #ff6b6b; }
+    .style-retro .back-title { color: #feca57; }
+    .style-retro .add-btn { background: #ff6b6b; color: #222; border-radius: 0; }
+
+    /* Style 7: Glass */
+    .style-glass .card-face { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    .style-glass .card-image { background: rgba(255, 255, 255, 0.03); }
+    .style-glass .card-title { color: rgba(255, 255, 255, 0.95); }
+    .style-glass .card-price { color: rgba(6, 182, 212, 0.95); -webkit-text-fill-color: rgba(6, 182, 212, 0.95); }
+    .style-glass .back-title { color: rgba(255, 255, 255, 0.9); }
+    .style-glass .add-btn { background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2); }
+
+    /* Style 8: Cyberpunk */
+    .style-cyberpunk .card-face { background: linear-gradient(135deg, #0a0a0a, #1a0a2e); border: 2px solid #ff00ff; box-shadow: 0 0 30px rgba(255, 0, 255, 0.4); clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px)); border-radius: 0; }
+    .style-cyberpunk .card-back { border-color: #00ffff; box-shadow: 0 0 30px rgba(0, 255, 255, 0.4); }
+    .style-cyberpunk .card-image { background: rgba(255, 0, 255, 0.1); border-bottom: 2px solid #ff00ff; }
+    .style-cyberpunk .card-title { color: #00ffff; text-shadow: 0 0 10px #00ffff; font-family: var(--font-primary); }
+    .style-cyberpunk .card-price { color: #ff00ff; -webkit-text-fill-color: #ff00ff; text-shadow: 0 0 15px #ff00ff; }
+    .style-cyberpunk .back-title { color: #ffff00; text-shadow: 0 0 10px #ffff00; }
+    .style-cyberpunk .add-btn { background: linear-gradient(90deg, #ff00ff, #00ffff); color: #000; font-weight: 800; border-radius: 0; }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to E-commerce Patterns</a>
+  <h1>Product Card Quick View</h1>
+  <p class="description">3D flip card that reveals product details and quick-add functionality on hover or click interaction.</p>
+  <div class="hero-keys">
+    <span class="key-hint"><kbd>Space</kbd> Flip card</span>
+    <span class="key-hint"><kbd>R</kbd> Reset card</span>
+  </div>
+
+  <div class="style-selector">
+    <button class="style-btn active" data-style="neon">Neon</button>
+    <button class="style-btn" data-style="gradient">Gradient</button>
+    <button class="style-btn" data-style="minimal">Minimal</button>
+    <button class="style-btn" data-style="neumorphic">Neumorphic</button>
+    <button class="style-btn" data-style="outline">Outline</button>
+    <button class="style-btn" data-style="retro">Retro</button>
+    <button class="style-btn" data-style="glass">Glass</button>
+    <button class="style-btn" data-style="cyberpunk">Cyberpunk</button>
+  </div>
+
+  <div class="demo-container">
+    <div id="demoContent"></div>
+  </div>
+
+  <script>
+    let currentStyle = 'neon';
+    let isFlipped = false;
+
+    const templates = {
+      neon: () => renderCard('style-neon'),
+      gradient: () => renderCard('style-gradient'),
+      minimal: () => renderCard('style-minimal'),
+      neumorphic: () => renderCard('style-neumorphic'),
+      outline: () => renderCard('style-outline'),
+      retro: () => renderCard('style-retro'),
+      glass: () => renderCard('style-glass'),
+      cyberpunk: () => renderCard('style-cyberpunk')
+    };
+
+    function renderCard(styleClass) {
+      return `
+        <div class="${styleClass}">
+          <div class="quickview-widget">
+            <div class="card-container ${isFlipped ? 'flipped' : ''}" onclick="flipCard()">
+              <div class="card-face card-front">
+                <div class="card-image">🎧</div>
+                <div class="card-content">
+                  <div class="card-title">Premium Wireless Headphones</div>
+                  <div class="card-price">$299</div>
+                  <div class="card-hint">Click for quick view</div>
+                </div>
+              </div>
+              <div class="card-face card-back">
+                <div class="card-content" style="height: 100%;">
+                  <div class="back-title">Quick View</div>
+                  <div class="back-desc">Premium wireless headphones with active noise cancellation, 30-hour battery life, and studio-quality sound. Perfect for audiophiles and professionals.</div>
+                  <button class="add-btn" onclick="event.stopPropagation();">Add to Cart</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function flipCard() {
+      isFlipped = !isFlipped;
+      render();
+    }
+
+    function resetCard() {
+      isFlipped = false;
+      render();
+    }
+
+    function render() {
+      document.getElementById('demoContent').innerHTML = templates[currentStyle]();
+    }
+
+    // Style selector
+    document.querySelectorAll('.style-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentStyle = btn.dataset.style;
+        render();
+      });
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        flipCard();
+      } else if (e.code === 'KeyR') {
+        resetCard();
+      }
+    });
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>

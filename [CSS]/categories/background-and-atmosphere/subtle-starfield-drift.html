@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subtle Starfield Drift - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="cyan"] { background: var(--jazer-cyan); }
+    .color-btn[data-color="purple"] { background: var(--jazer-purple); }
+    .color-btn[data-color="pink"] { background: var(--jazer-pink); }
+    .color-btn[data-color="rainbow"] { background: conic-gradient(#0ff, #f0f, #ff0, #0ff); }
+    .color-btn[data-color="mono"] { background: #888; }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .starfield-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(ellipse at center, #1a0a2e 0%, #0a0515 100%);
+      overflow: hidden;
+    }
+    #starCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 90%; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .hero-keys { gap: 0.5rem; }
+      .controls { min-width: 140px; padding: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Subtle Starfield Drift</h1>
+    <p>Peaceful cosmic background with drifting, twinkling stars</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Reset</span>
+      <span class="key-hint"><kbd>B</kbd> Burst</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="cyan" title="Cyan"></button>
+      <button class="color-btn" data-color="purple" title="Purple"></button>
+      <button class="color-btn" data-color="pink" title="Pink"></button>
+      <button class="color-btn" data-color="rainbow" title="Rainbow"></button>
+      <button class="color-btn" data-color="mono" title="Monochrome"></button>
+    </div>
+    <div class="slider-group">
+      <label>Density: <span class="slider-value" id="densityValue">1.0</span></label>
+      <input type="range" id="densitySlider" min="0.5" max="2" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Drift Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.1" max="2" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Twinkle: <span class="slider-value" id="twinkleValue">1.0</span></label>
+      <input type="range" id="twinkleSlider" min="0.2" max="2" step="0.1" value="1">
+    </div>
+  </div>
+
+  <div class="starfield-container">
+    <canvas id="starCanvas"></canvas>
+  </div>
+
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const canvas = document.getElementById('starCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      density: 1,
+      driftSpeed: 1,
+      twinkleSpeed: 1,
+      colorScheme: 'cyan',
+      paused: false
+    };
+
+    const colorSchemes = {
+      cyan: [
+        { r: 0, g: 242, b: 234 },
+        { r: 0, g: 180, b: 220 },
+        { r: 255, g: 255, b: 255 }
+      ],
+      purple: [
+        { r: 147, g: 51, b: 234 },
+        { r: 168, g: 85, b: 247 },
+        { r: 255, g: 255, b: 255 }
+      ],
+      pink: [
+        { r: 255, g: 0, b: 110 },
+        { r: 255, g: 107, b: 157 },
+        { r: 255, g: 255, b: 255 }
+      ],
+      rainbow: null,
+      mono: [
+        { r: 255, g: 255, b: 255 },
+        { r: 220, g: 220, b: 220 },
+        { r: 200, g: 200, b: 200 }
+      ]
+    };
+
+    let stars = [];
+    let time = 0;
+    let rainbowHue = 0;
+    let burstActive = false;
+    let burstIntensity = 0;
+
+    const layers = [
+      { count: 50, sizeMin: 1.5, sizeMax: 2.5, speed: 0.1, depth: 1 },
+      { count: 100, sizeMin: 1, sizeMax: 1.5, speed: 0.15, depth: 0.7 },
+      { count: 200, sizeMin: 0.5, sizeMax: 1, speed: 0.2, depth: 0.4 }
+    ];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      initStars();
+    }
+
+    function initStars() {
+      stars = [];
+      layers.forEach((layer, layerIdx) => {
+        const count = Math.floor(layer.count * config.density);
+        for (let i = 0; i < count; i++) {
+          stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: layer.sizeMin + Math.random() * (layer.sizeMax - layer.sizeMin),
+            speed: layer.speed,
+            depth: layer.depth,
+            twinkleOffset: Math.random() * Math.PI * 2,
+            twinkleSpeed: 0.5 + Math.random() * 1.5,
+            colorIdx: Math.floor(Math.random() * 3),
+            layer: layerIdx
+          });
+        }
+      });
+    }
+
+    function getStarColor(star) {
+      if (config.colorScheme === 'rainbow') {
+        const hue = (rainbowHue + star.twinkleOffset * 30) % 360;
+        return `hsl(${hue}, 80%, 70%)`;
+      }
+      const colors = colorSchemes[config.colorScheme];
+      const c = colors[star.colorIdx];
+      return c;
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.016;
+        rainbowHue = (rainbowHue + 0.3) % 360;
+      }
+
+      // Handle burst decay
+      if (burstActive) {
+        burstIntensity *= 0.95;
+        if (burstIntensity < 0.01) {
+          burstActive = false;
+          burstIntensity = 0;
+        }
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      stars.forEach(star => {
+        if (!config.paused) {
+          // Drift movement
+          star.x += star.speed * config.driftSpeed * star.depth;
+          star.y += star.speed * config.driftSpeed * star.depth * 0.5;
+
+          // Wrap around
+          if (star.x > canvas.width + 10) star.x = -10;
+          if (star.y > canvas.height + 10) star.y = -10;
+        }
+
+        // Twinkle effect
+        const twinkle = Math.sin(time * star.twinkleSpeed * config.twinkleSpeed + star.twinkleOffset);
+        const brightness = 0.4 + twinkle * 0.3 + burstIntensity * 0.3;
+        const size = star.size * (0.8 + twinkle * 0.2);
+
+        const color = getStarColor(star);
+        
+        if (config.colorScheme === 'rainbow') {
+          ctx.fillStyle = color.replace('70%', `${50 + brightness * 30}%`);
+        } else {
+          ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${brightness})`;
+        }
+
+        // Draw star with glow
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, size, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Add glow for larger stars
+        if (star.layer === 0 && brightness > 0.5) {
+          const gradient = ctx.createRadialGradient(star.x, star.y, 0, star.x, star.y, size * 4);
+          if (config.colorScheme === 'rainbow') {
+            gradient.addColorStop(0, color.replace('70%', '70%)').replace(')', `, ${brightness * 0.3})`).replace('hsl', 'hsla'));
+          } else {
+            gradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, ${brightness * 0.3})`);
+          }
+          gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, size * 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    function triggerBurst() {
+      burstActive = true;
+      burstIntensity = 1;
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('densitySlider').addEventListener('input', e => {
+      config.density = parseFloat(e.target.value);
+      document.getElementById('densityValue').textContent = config.density.toFixed(1);
+      initStars();
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.driftSpeed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.driftSpeed.toFixed(1);
+    });
+
+    document.getElementById('twinkleSlider').addEventListener('input', e => {
+      config.twinkleSpeed = parseFloat(e.target.value);
+      document.getElementById('twinkleValue').textContent = config.twinkleSpeed.toFixed(1);
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        time = 0;
+        rainbowHue = 0;
+        initStars();
+      }
+      if (e.code === 'KeyB') {
+        triggerBurst();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['cyan', 'purple', 'pink', 'rainbow', 'mono'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Initialize
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    animate();
+  </script>
+</body>
+</html>

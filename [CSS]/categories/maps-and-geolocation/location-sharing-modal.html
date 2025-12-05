@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Location Sharing Modal - JaZeR Maps Patterns</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:var(--font-body);background:var(--bg-dark);color:var(--text-light);margin:0;padding:1.25rem}
+    .back-button{display:inline-flex;align-items:center;gap:.5rem;color:var(--text-gray);text-decoration:none;font-family:var(--font-secondary);font-weight:600;padding:.5rem 1rem;border-radius:8px;border:1px solid var(--border-default);background:var(--bg-card)}
+    .back-button:hover{border-color:var(--jazer-cyan);color:var(--jazer-cyan)}
+
+    .hero{text-align:center;margin:1rem 0}
+    .hero h1{font-size:clamp(1.75rem,3.5vw,2.5rem);margin:.25rem 0;background:var(--gradient-text);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .hero p{color:var(--text-gray);max-width:760px;margin:0.35rem auto}
+
+    .layout{max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr;gap:1rem}
+    .panel{background:var(--bg-card);border-radius:12px;padding:1rem;border:2px solid var(--border-default);box-shadow:var(--shadow-card)}
+    .center{display:flex;flex-direction:column;align-items:center;gap:.75rem}
+
+    .modal{width:100%;max-width:640px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));border-radius:12px;border:1px solid var(--border-default);padding:1rem;position:relative}
+    .modal-header{display:flex;align-items:center;justify-content:space-between}
+    .share-link{display:flex;gap:.5rem;width:100%}
+    input[type=text]{flex:1;padding:.6rem .75rem;border-radius:8px;background:var(--bg-dark);border:1px solid var(--border-default);color:var(--text-light)}
+    .btn{font-family:var(--font-secondary);font-weight:700;padding:.45rem .65rem;border-radius:8px;background:var(--gradient-accent);border:none;color:var(--text-light);cursor:pointer}
+    .btn-ghost{background:transparent;border:1px solid var(--border-default);color:var(--text-light)}
+
+    .options{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-top:.5rem}
+    .option{display:inline-flex;align-items:center;gap:.45rem;padding:.35rem .5rem;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid var(--border-default)}
+    .option input{appearance:auto}
+
+    .share-targets{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem}
+    .target{display:flex;gap:.5rem;align-items:center;background:rgba(255,255,255,0.03);padding:.45rem .6rem;border-radius:10px;border:1px solid var(--border-default);cursor:pointer}
+
+    .qr{width:110px;height:110px;border-radius:8px;background:linear-gradient(135deg, rgba(0,242,234,0.03), rgba(147,51,234,0.03));display:flex;align-items:center;justify-content:center;color:var(--text-gray);font-size:.8rem}
+
+    .meta{color:var(--text-gray);font-size:.9rem}
+
+    .advanced{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.5rem}
+    .small{font-size:.85rem;color:var(--text-gray)}
+
+    .hint{text-align:center;color:var(--text-gray);font-size:.85rem;margin-top:.5rem}
+
+    @media (max-width:600px){ .advanced{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to Maps & Geolocation</a>
+  <header class="hero">
+    <h1>Location Sharing Modal</h1>
+    <p>Share a location with options for expiration, privacy, and platform targets. Includes a QR preview and a copy-to-clipboard flow.</p>
+  </header>
+
+  <main class="layout">
+    <div class="panel modal" role="dialog" aria-modal="true" aria-labelledby="shareTitle" aria-describedby="shareDesc">
+      <div class="modal-header">
+        <div>
+          <div id="shareTitle" style="font-weight:700">Share Location</div>
+          <div id="shareDesc" class="small">Generate a shareable link, QR code, or send directly to apps</div>
+        </div>
+        <div class="small">Live • Expires in <strong id="expires">24h</strong></div>
+      </div>
+
+      <div style="margin-top:.75rem">
+        <div class="share-link" style="align-items:center">
+          <input id="share-input" type="text" value="https://maps.example.com/share/xyz123" aria-label="Share link">
+          <button id="copy-link" class="btn-ghost">Copy</button>
+          <button id="open-link" class="btn">Open</button>
+        </div>
+
+        <div class="options">
+          <label class="option"><input id="pin-persistence" type="checkbox"> Keep pin visible</label>
+          <label class="option"><input id="requ-auth" type="checkbox"> Require auth</label>
+          <label class="option"><input id="include-coords" type="checkbox" checked> Include coords</label>
+        </div>
+
+        <div class="share-targets">
+          <div class="target" id="t-email">✉️ Email</div>
+          <div class="target" id="t-wa">💬 WhatsApp</div>
+          <div class="target" id="t-twitter">🐦 Twitter</div>
+          <div class="target" id="t-copy">📋 Copy</div>
+          <div class="target" id="t-qr">🔲 QR</div>
+        </div>
+
+        <div style="margin-top:.5rem;display:flex;gap:.6rem;align-items:center">
+          <div class="qr" id="qr-preview">QR</div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center"><div class="meta">Link metadata</div><div class="meta small">Clicks: <strong id="clicks">23</strong></div></div>
+            <div class="small" id="meta-text">Shared location: Times Square • New York</div>
+          </div>
+        </div>
+
+        <div class="advanced">
+          <div>
+            <label class="small">Link expires</label>
+            <select id="expiry" class="btn-ghost">
+              <option value="1h">1 hour</option>
+              <option value="24h" selected>24 hours</option>
+              <option value="7d">7 days</option>
+            </select>
+          </div>
+          <div>
+            <label class="small">Access</label>
+            <select id="access" class="btn-ghost">
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+              <option value="restricted">Restricted</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:.5rem;margin-top:.6rem;justify-content:flex-end;">
+          <button id="revoke" class="btn-ghost">Revoke</button>
+          <button id="save" class="btn">Save</button>
+        </div>
+
+      </div>
+
+      <div class="hint">Tip: Use an expiration to keep shared links temporary.</div>
+    </div>
+  </main>
+
+  <script>
+    // Small interactions: copy, open link, show QR, copy to clipboard, track clicks
+    const copyBtn = document.getElementById('copy-link');
+    const openBtn = document.getElementById('open-link');
+    const shareInput = document.getElementById('share-input');
+    const qrPreview = document.getElementById('qr-preview');
+    const clicksEl = document.getElementById('clicks');
+    let clicks = 23;
+
+    async function copyToClipboard(text){ try{ await navigator.clipboard.writeText(text); copyBtn.textContent='Copied'; setTimeout(()=>copyBtn.textContent='Copy',1500); } catch(e){ alert('Copy failed'); }}
+
+    copyBtn.addEventListener('click', ()=>{ copyToClipboard(shareInput.value); });
+    openBtn.addEventListener('click', ()=>{ window.open(shareInput.value, '_blank'); });
+
+    document.getElementById('t-copy').addEventListener('click', ()=> copyToClipboard(shareInput.value));
+
+    document.getElementById('t-qr').addEventListener('click', ()=>{
+      // For demo - generate simple QR text (not real barcode)
+      qrPreview.textContent = '🔲';
+      qrPreview.style.color = 'var(--jazer-cyan)';
+      qrPreview.style.fontSize = '28px';
+      alert('QR preview generated (demo)');
+    });
+
+    document.getElementById('t-email').addEventListener('click', ()=>{ window.open(`mailto:?subject=Shared%20Location&body=${encodeURIComponent(shareInput.value)}`) });
+
+    document.getElementById('t-wa').addEventListener('click', ()=>{ window.open(`https://wa.me/?text=${encodeURIComponent(shareInput.value)}`) });
+
+    document.getElementById('t-twitter').addEventListener('click', ()=>{ window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareInput.value)}`) });
+
+    document.getElementById('save').addEventListener('click', ()=>{ alert('Saved share settings (demo)'); });
+    document.getElementById('revoke').addEventListener('click', ()=>{ if(confirm('Revoke this link?')) { shareInput.value='revoked'; clicks=0; clicksEl.textContent=clicks; } });
+
+    document.getElementById('t-copy').addEventListener('click', ()=> { copyToClipboard(shareInput.value); });
+  </script>
+</body>
+</html>

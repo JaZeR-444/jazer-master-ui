@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake/Worm Cursor Segments Follow Path</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0b2e 100%);
+            color: var(--jazer-cyan);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            cursor: none;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 50%, rgba(255, 0, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: backgroundPulse 10s ease-in-out infinite;
+        }
+
+        @keyframes backgroundPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        .container, .back-button {
+            position: relative;
+            z-index: 1;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            font-size: 0.9rem;
+            border: 1px solid var(--jazer-cyan);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--gradient-primary);
+            box-shadow: 0 0 20px var(--jazer-cyan);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: var(--font-primary);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .snake-segment {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: none;
+        }
+
+        .snake-head {
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            box-shadow: 0 0 20px var(--jazer-cyan);
+            z-index: 10000;
+        }
+
+        .snake-body {
+            background: var(--jazer-purple);
+            box-shadow: 0 0 15px var(--jazer-purple);
+        }
+
+        .snake-tail {
+            background: var(--jazer-pink);
+            box-shadow: 0 0 10px var(--jazer-pink);
+        }
+
+        .demo-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .demo-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-section h2 {
+            font-family: var(--font-primary);
+            margin-bottom: 1rem;
+            color: var(--jazer-purple);
+        }
+
+        .movement-zone {
+            width: 100%;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px dashed var(--jazer-pink);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1rem 0;
+            position: relative;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        .movement-zone::before {
+            content: 'Move cursor here';
+            color: var(--jazer-pink);
+            font-family: var(--font-secondary);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .controls {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            min-width: 250px;
+            z-index: 1001;
+        }
+
+        .control-group {
+            margin: 1rem 0;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--jazer-purple);
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 0.25rem;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 0.25rem;
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 0.25rem;
+        }
+
+        .stats {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            font-size: 0.9rem;
+        }
+
+        .stats div {
+            margin: 0.25rem 0;
+        }
+
+        .path-trail {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9997;
+            width: 4px;
+            height: 4px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: fadeOut 2s ease-out forwards;
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+        }
+
+        .obstacle {
+            position: absolute;
+            background: var(--gradient-accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-primary);
+            font-weight: bold;
+            color: white;
+            cursor: none;
+        }
+
+        .food-pellet {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--jazer-pink);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--jazer-pink);
+            cursor: none;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .instructions {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 2rem;
+            border-left: 4px solid var(--jazer-purple);
+        }
+
+        .instructions h3 {
+            font-family: var(--font-primary);
+            color: var(--jazer-purple);
+            margin-top: 0;
+        }
+
+        .instructions ul {
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .instructions li {
+            margin: 0.5rem 0;
+        }
+
+        .speed-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-pink);
+            border-radius: 50%;
+            margin-left: 0.5rem;
+            animation: blink 0.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .game-zone {
+            position: relative;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--jazer-cyan);
+        }
+
+        .score {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-family: var(--font-primary);
+            color: var(--jazer-cyan);
+            font-size: 1.2rem;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+
+    <div class="controls">
+        <h3 style="margin-top: 0; color: var(--jazer-cyan);">Snake Controls</h3>
+        
+        <div class="control-group">
+            <label for="segmentCount">Segments: <span id="segmentValue">8</span></label>
+            <input type="range" id="segmentCount" min="3" max="20" step="1" value="8">
+        </div>
+        
+        <div class="control-group">
+            <label for="segmentSize">Segment Size: <span id="sizeValue">16px</span></label>
+            <input type="range" id="segmentSize" min="8" max="24" step="2" value="16">
+        </div>
+        
+        <div class="control-group">
+            <label for="followSpeed">Follow Speed: <span id="speedValue">0.15</span></label>
+            <input type="range" id="followSpeed" min="0.05" max="0.3" step="0.05" value="0.15">
+        </div>
+        
+        <div class="control-group">
+            <label for="snakeStyle">Style:</label>
+            <select id="snakeStyle">
+                <option value="gradient">Gradient</option>
+                <option value="rainbow">Rainbow</option>
+                <option value="monochrome">Monochrome</option>
+                <option value="neon">Neon</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="showTrail">Show Trail:</label>
+            <select id="showTrail">
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div>Position: <span id="position">0, 0</span></div>
+        <div>Speed: <span id="speed">0</span>px/s <span class="speed-indicator"></span></div>
+        <div>Direction: <span id="direction">—</span></div>
+        <div>Length: <span id="length">8</span> segments</div>
+    </div>
+
+    <div class="container">
+        <h1>Snake/Worm Cursor</h1>
+        <p class="description">
+            Interactive snake cursor with multiple segments that follow the cursor path. 
+            Each segment smoothly follows the one before it, creating a natural serpentine movement.
+        </p>
+
+        <div class="demo-area">
+            <div class="demo-section">
+                <h2>Free Movement</h2>
+                <div class="movement-zone" id="freeZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary);">
+                        Move freely to see the snake follow!
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Speed Test</h2>
+                <div class="movement-zone" id="speedZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary);">
+                        Move quickly to stretch the snake!
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Snake Game</h2>
+                <div class="movement-zone game-zone" id="gameZone">
+                    <div class="score">Score: <span id="gameScore">0</span></div>
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary);">
+                        Collect the pink pellets!
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Maze Navigation</h2>
+                <div class="movement-zone" id="mazeZone">
+                    <div class="obstacle" style="width: 40px; height: 40px; top: 20%; left: 30%;">🚫</div>
+                    <div class="obstacle" style="width: 30px; height: 30px; top: 60%; left: 70%;">🚫</div>
+                    <div class="obstacle" style="width: 50px; height: 50px; top: 40%; left: 50%;">🚫</div>
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary);">
+                        Navigate around obstacles!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>How It Works:</h3>
+            <ul>
+                <li>Snake head follows cursor directly</li>
+                <li>Each segment follows the previous one with smooth easing</li>
+                <li>Segments stretch based on movement speed</li>
+                <li>Customizable segment count, size, and follow speed</li>
+                <li>Different visual styles: gradient, rainbow, monochrome, neon</li>
+                <li>Optional path trail visualization</li>
+                <li>Interactive game mode with food collection</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        class SnakeCursor {
+            constructor() {
+                this.segments = [];
+                this.segmentCount = 8;
+                this.segmentSize = 16;
+                this.followSpeed = 0.15;
+                this.showTrail = true;
+                this.snakeStyle = 'gradient';
+                
+                this.currentX = 0;
+                this.currentY = 0;
+                this.previousX = 0;
+                this.previousY = 0;
+                this.speed = 0;
+                this.angle = 0;
+                
+                this.foodPellets = [];
+                this.gameScore = 0;
+                this.gameActive = false;
+                
+                this.init();
+            }
+
+            init() {
+                // Create snake segments
+                this.createSegments();
+                
+                // Set up event listeners
+                document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                document.addEventListener('mouseenter', () => this.showSnake());
+                document.addEventListener('mouseleave', () => this.hideSnake());
+                
+                // Control listeners
+                document.getElementById('segmentCount').addEventListener('input', (e) => this.updateSegmentCount(e.target.value));
+                document.getElementById('segmentSize').addEventListener('input', (e) => this.updateSegmentSize(e.target.value));
+                document.getElementById('followSpeed').addEventListener('input', (e) => this.updateFollowSpeed(e.target.value));
+                document.getElementById('snakeStyle').addEventListener('change', (e) => this.updateSnakeStyle(e.target.value));
+                document.getElementById('showTrail').addEventListener('change', (e) => this.updateShowTrail(e.target.value));
+                
+                // Hide default cursor
+                document.body.style.cursor = 'none';
+                
+                // Set up game zone
+                this.setupGameZone();
+                
+                // Start animation loop
+                this.animate();
+            }
+
+            createSegments() {
+                // Clear existing segments
+                this.segments.forEach(segment => segment.element.remove());
+                this.segments = [];
+                
+                // Create head
+                const head = document.createElement('div');
+                head.className = 'snake-segment snake-head';
+                document.body.appendChild(head);
+                this.segments.push({
+                    element: head,
+                    x: 0,
+                    y: 0,
+                    targetX: 0,
+                    targetY: 0
+                });
+                
+                // Create body segments
+                for (let i = 1; i < this.segmentCount - 1; i++) {
+                    const segment = document.createElement('div');
+                    segment.className = 'snake-segment snake-body';
+                    segment.style.width = this.segmentSize + 'px';
+                    segment.style.height = this.segmentSize + 'px';
+                    document.body.appendChild(segment);
+                    this.segments.push({
+                        element: segment,
+                        x: 0,
+                        y: 0,
+                        targetX: 0,
+                        targetY: 0
+                    });
+                }
+                
+                // Create tail
+                const tail = document.createElement('div');
+                tail.className = 'snake-segment snake-tail';
+                tail.style.width = (this.segmentSize * 0.8) + 'px';
+                tail.style.height = (this.segmentSize * 0.8) + 'px';
+                document.body.appendChild(tail);
+                this.segments.push({
+                    element: tail,
+                    x: 0,
+                    y: 0,
+                    targetX: 0,
+                    targetY: 0
+                });
+                
+                this.updateSnakeStyle(this.snakeStyle);
+            }
+
+            handleMouseMove(e) {
+                this.previousX = this.currentX;
+                this.previousY = this.currentY;
+                this.currentX = e.clientX;
+                this.currentY = e.clientY;
+                
+                // Calculate speed and angle
+                const dx = this.currentX - this.previousX;
+                const dy = this.currentY - this.previousY;
+                this.speed = Math.sqrt(dx * dx + dy * dy);
+                this.angle = Math.atan2(dy, dx);
+                
+                // Update head position
+                this.segments[0].targetX = this.currentX;
+                this.segments[0].targetY = this.currentY;
+                
+                // Update displays
+                this.updateDisplays();
+                
+                // Create trail
+                if (this.showTrail && this.speed > 2) {
+                    this.createTrailDot();
+                }
+                
+                // Check game collisions
+                if (this.gameActive) {
+                    this.checkGameCollisions();
+                }
+            }
+
+            animate() {
+                // Update segment positions
+                for (let i = 1; i < this.segments.length; i++) {
+                    const segment = this.segments[i];
+                    const targetSegment = this.segments[i - 1];
+                    
+                    // Calculate distance to target
+                    const dx = targetSegment.x - segment.x;
+                    const dy = targetSegment.y - segment.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // Follow with easing
+                    segment.targetX = targetSegment.x - (dx / distance) * (this.segmentSize * 0.8);
+                    segment.targetY = targetSegment.y - (dy / distance) * (this.segmentSize * 0.8);
+                    
+                    // Smooth movement
+                    segment.x += (segment.targetX - segment.x) * this.followSpeed;
+                    segment.y += (segment.targetY - segment.y) * this.followSpeed;
+                    
+                    // Update DOM
+                    segment.element.style.left = segment.x + 'px';
+                    segment.element.style.top = segment.y + 'px';
+                }
+                
+                // Update head position immediately
+                this.segments[0].x = this.currentX;
+                this.segments[0].y = this.currentY;
+                this.segments[0].element.style.left = this.currentX + 'px';
+                this.segments[0].element.style.top = this.currentY + 'px';
+                
+                requestAnimationFrame(() => this.animate());
+            }
+
+            createTrailDot() {
+                const dot = document.createElement('div');
+                dot.className = 'path-trail';
+                dot.style.left = this.currentX + 'px';
+                dot.style.top = this.currentY + 'px';
+                document.body.appendChild(dot);
+                
+                setTimeout(() => dot.remove(), 2000);
+            }
+
+            updateDisplays() {
+                document.getElementById('position').textContent = `${Math.round(this.currentX)}, ${Math.round(this.currentY)}`;
+                document.getElementById('speed').textContent = Math.round(this.speed * 10);
+                document.getElementById('length').textContent = this.segments.length;
+                
+                // Direction
+                const normalizedAngle = ((this.angle * 180 / Math.PI) % 360 + 360) % 360;
+                let direction = '—';
+                if (this.speed > 1) {
+                    if (normalizedAngle >= 315 || normalizedAngle < 45) direction = '→';
+                    else if (normalizedAngle >= 45 && normalizedAngle < 135) direction = '↓';
+                    else if (normalizedAngle >= 135 && normalizedAngle < 225) direction = '←';
+                    else direction = '↑';
+                }
+                document.getElementById('direction').textContent = direction;
+            }
+
+            updateSegmentCount(value) {
+                this.segmentCount = parseInt(value);
+                document.getElementById('segmentValue').textContent = value;
+                this.createSegments();
+            }
+
+            updateSegmentSize(value) {
+                this.segmentSize = parseInt(value);
+                document.getElementById('sizeValue').textContent = value + 'px';
+                
+                // Update existing segments
+                this.segments.forEach((segment, index) => {
+                    if (index === 0) {
+                        // Head
+                        segment.element.style.width = (this.segmentSize * 1.25) + 'px';
+                        segment.element.style.height = (this.segmentSize * 1.25) + 'px';
+                    } else if (index === this.segments.length - 1) {
+                        // Tail
+                        segment.element.style.width = (this.segmentSize * 0.8) + 'px';
+                        segment.element.style.height = (this.segmentSize * 0.8) + 'px';
+                    } else {
+                        // Body
+                        segment.element.style.width = this.segmentSize + 'px';
+                        segment.element.style.height = this.segmentSize + 'px';
+                    }
+                });
+            }
+
+            updateFollowSpeed(value) {
+                this.followSpeed = parseFloat(value);
+                document.getElementById('speedValue').textContent = value;
+            }
+
+            updateSnakeStyle(style) {
+                this.snakeStyle = style;
+                
+                this.segments.forEach((segment, index) => {
+                    const progress = index / (this.segments.length - 1);
+                    
+                    switch (style) {
+                        case 'gradient':
+                            if (index === 0) {
+                                segment.element.style.background = 'var(--jazer-cyan)';
+                                segment.element.style.boxShadow = '0 0 20px var(--jazer-cyan)';
+                            } else if (index === this.segments.length - 1) {
+                                segment.element.style.background = 'var(--jazer-pink)';
+                                segment.element.style.boxShadow = '0 0 10px var(--jazer-pink)';
+                            } else {
+                                segment.element.style.background = 'var(--jazer-purple)';
+                                segment.element.style.boxShadow = '0 0 15px var(--jazer-purple)';
+                            }
+                            break;
+                            
+                        case 'rainbow':
+                            const hue = progress * 300;
+                            segment.element.style.background = `hsl(${hue}, 100%, 50%)`;
+                            segment.element.style.boxShadow = `0 0 15px hsl(${hue}, 100%, 50%)`;
+                            break;
+                            
+                        case 'monochrome':
+                            const brightness = 100 - (progress * 50);
+                            segment.element.style.background = `hsl(180, 100%, ${brightness}%)`;
+                            segment.element.style.boxShadow = `0 0 ${15 - (progress * 5)}px hsl(180, 100%, ${brightness}%)`;
+                            break;
+                            
+                        case 'neon':
+                            const neonColors = ['#ff00ff', '#00ffff', '#ffff00', '#ff00aa', '#00ff00'];
+                            const colorIndex = Math.floor(progress * (neonColors.length - 1));
+                            segment.element.style.background = neonColors[colorIndex];
+                            segment.element.style.boxShadow = `0 0 20px ${neonColors[colorIndex]}`;
+                            break;
+                    }
+                });
+            }
+
+            updateShowTrail(value) {
+                this.showTrail = value === 'yes';
+            }
+
+            setupGameZone() {
+                const gameZone = document.getElementById('gameZone');
+                
+                gameZone.addEventListener('mouseenter', () => {
+                    this.gameActive = true;
+                    this.gameScore = 0;
+                    document.getElementById('gameScore').textContent = '0';
+                    this.spawnFoodPellets();
+                });
+                
+                gameZone.addEventListener('mouseleave', () => {
+                    this.gameActive = false;
+                    this.clearFoodPellets();
+                });
+            }
+
+            spawnFoodPellets() {
+                const gameZone = document.getElementById('gameZone');
+                const rect = gameZone.getBoundingClientRect();
+                
+                // Spawn initial pellets
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        if (this.gameActive) {
+                            this.spawnFoodPellet(rect);
+                        }
+                    }, i * 1000);
+                }
+            }
+
+            spawnFoodPellet(rect) {
+                const pellet = document.createElement('div');
+                pellet.className = 'food-pellet';
+                
+                const x = rect.left + Math.random() * (rect.width - 20) + 10;
+                const y = rect.top + Math.random() * (rect.height - 20) + 10;
+                
+                pellet.style.left = x + 'px';
+                pellet.style.top = y + 'px';
+                
+                document.body.appendChild(pellet);
+                this.foodPellets.push(pellet);
+            }
+
+            checkGameCollisions() {
+                const head = this.segments[0];
+                
+                this.foodPellets = this.foodPellets.filter(pellet => {
+                    const pelletRect = pellet.getBoundingClientRect();
+                    const distance = Math.sqrt(
+                        Math.pow(head.x - pelletRect.left, 2) + 
+                        Math.pow(head.y - pelletRect.top, 2)
+                    );
+                    
+                    if (distance < 20) {
+                        // Eat pellet
+                        pellet.remove();
+                        this.gameScore += 10;
+                        document.getElementById('gameScore').textContent = this.gameScore;
+                        
+                        // Spawn new pellet
+                        const gameZone = document.getElementById('gameZone');
+                        const rect = gameZone.getBoundingClientRect();
+                        setTimeout(() => {
+                            if (this.gameActive) {
+                                this.spawnFoodPellet(rect);
+                            }
+                        }, 500);
+                        
+                        return false;
+                    }
+                    return true;
+                });
+            }
+
+            clearFoodPellets() {
+                this.foodPellets.forEach(pellet => pellet.remove());
+                this.foodPellets = [];
+            }
+
+            showSnake() {
+                this.segments.forEach(segment => {
+                    segment.element.style.display = 'block';
+                });
+            }
+
+            hideSnake() {
+                this.segments.forEach(segment => {
+                    segment.element.style.display = 'none';
+                });
+            }
+        }
+
+        // Initialize the snake cursor
+        const snakeCursor = new SnakeCursor();
+    </script>
+</body>
+</html>

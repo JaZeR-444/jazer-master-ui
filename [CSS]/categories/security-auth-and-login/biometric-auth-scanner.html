@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biometric Auth Scanner - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            font-family: var(--font-body);
+            color: #ffffff;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            transform: translateX(-5px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        .scanners-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .scanner-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.2);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .scanner-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 255, 255, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--jazer-cyan);
+            margin-bottom: 2rem;
+        }
+
+        /* Fingerprint Scanner */
+        .fingerprint-scanner {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 2rem;
+            position: relative;
+        }
+
+        .fingerprint-circle {
+            width: 100%;
+            height: 100%;
+            border: 3px solid rgba(0, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .fingerprint-circle.scanning {
+            border-color: var(--jazer-cyan);
+            animation: scanPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes scanPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(0, 255, 255, 0.6); }
+        }
+
+        .fingerprint-icon {
+            font-size: 6rem;
+            opacity: 0.3;
+            transition: all 0.3s ease;
+        }
+
+        .fingerprint-circle.scanning .fingerprint-icon {
+            opacity: 1;
+            color: var(--jazer-cyan);
+        }
+
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: var(--jazer-cyan);
+            box-shadow: 0 0 10px var(--jazer-cyan);
+            display: none;
+        }
+
+        .fingerprint-circle.scanning .scan-line {
+            display: block;
+            animation: scanMove 2s ease-in-out infinite;
+        }
+
+        @keyframes scanMove {
+            0%, 100% { top: 20%; }
+            50% { top: 80%; }
+        }
+
+        /* Face Scanner */
+        .face-scanner {
+            width: 200px;
+            height: 250px;
+            margin: 0 auto 2rem;
+            position: relative;
+        }
+
+        .face-frame {
+            width: 100%;
+            height: 100%;
+            border: 3px solid rgba(0, 255, 255, 0.3);
+            border-radius: 50% 50% 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .face-frame.scanning {
+            border-color: var(--jazer-cyan);
+        }
+
+        .face-icon {
+            font-size: 6rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.3;
+        }
+
+        .face-frame.scanning .face-icon {
+            opacity: 1;
+            color: var(--jazer-cyan);
+        }
+
+        .face-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+
+        .face-frame.scanning .face-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 2px;
+            animation: gridFadeIn 0.5s ease;
+        }
+
+        @keyframes gridFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .grid-dot {
+            width: 4px;
+            height: 4px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            margin: auto;
+            animation: dotPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes dotPulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+        }
+
+        /* Iris Scanner */
+        .iris-scanner {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 2rem;
+            position: relative;
+        }
+
+        .iris-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            border: 3px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .iris-circle.scanning {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.5);
+        }
+
+        .iris-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5rem;
+            opacity: 0.3;
+        }
+
+        .iris-circle.scanning .iris-icon {
+            opacity: 1;
+            color: var(--jazer-cyan);
+        }
+
+        .iris-rings {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+
+        .iris-circle.scanning .iris-rings {
+            display: block;
+        }
+
+        .iris-ring {
+            position: absolute;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 50%;
+            animation: irisRing 2s ease-out infinite;
+        }
+
+        .iris-ring:nth-child(1) {
+            width: 50px;
+            height: 50px;
+            top: -25px;
+            left: -25px;
+        }
+
+        .iris-ring:nth-child(2) {
+            width: 80px;
+            height: 80px;
+            top: -40px;
+            left: -40px;
+            animation-delay: 0.3s;
+        }
+
+        .iris-ring:nth-child(3) {
+            width: 110px;
+            height: 110px;
+            top: -55px;
+            left: -55px;
+            animation-delay: 0.6s;
+        }
+
+        @keyframes irisRing {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        /* Status Display */
+        .scan-status {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            min-height: 1.5rem;
+        }
+
+        .scan-status.idle {
+            color: #888;
+        }
+
+        .scan-status.scanning {
+            color: var(--jazer-cyan);
+            animation: statusBlink 1s ease-in-out infinite;
+        }
+
+        @keyframes statusBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .scan-status.success {
+            color: var(--jazer-neon-green);
+        }
+
+        .scan-status.error {
+            color: var(--jazer-pink);
+        }
+
+        /* Scan Button */
+        .scan-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(139, 0, 255, 0.1));
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .scan-btn:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .scan-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .scanners-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to Security, Auth & Login</a>
+    
+    <div class="header">
+        <h1>Biometric Auth Scanner</h1>
+        <p>Advanced biometric authentication interfaces with scanning animations</p>
+    </div>
+
+    <div class="scanners-container">
+        <!-- Fingerprint Scanner -->
+        <div class="scanner-card">
+            <div class="card-title">Fingerprint Scanner</div>
+            <div class="fingerprint-scanner">
+                <div class="fingerprint-circle" id="fingerprintCircle">
+                    <div class="fingerprint-icon">👆</div>
+                    <div class="scan-line"></div>
+                </div>
+            </div>
+            <div class="scan-status idle" id="fingerprintStatus">Place finger on sensor</div>
+            <button class="scan-btn" id="fingerprintBtn" onclick="startFingerprintScan()">Start Scan</button>
+        </div>
+
+        <!-- Face Scanner -->
+        <div class="scanner-card">
+            <div class="card-title">Facial Recognition</div>
+            <div class="face-scanner">
+                <div class="face-frame" id="faceFrame">
+                    <div class="face-icon">👤</div>
+                    <div class="face-grid">
+                        ${Array(20).fill().map(() => '<div class="grid-dot"></div>').join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="scan-status idle" id="faceStatus">Position face in frame</div>
+            <button class="scan-btn" id="faceBtn" onclick="startFaceScan()">Start Scan</button>
+        </div>
+
+        <!-- Iris Scanner -->
+        <div class="scanner-card">
+            <div class="card-title">Iris Recognition</div>
+            <div class="iris-scanner">
+                <div class="iris-circle" id="irisCircle">
+                    <div class="iris-icon">👁️</div>
+                    <div class="iris-rings">
+                        <div class="iris-ring"></div>
+                        <div class="iris-ring"></div>
+                        <div class="iris-ring"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="scan-status idle" id="irisStatus">Look at the sensor</div>
+            <button class="scan-btn" id="irisBtn" onclick="startIrisScan()">Start Scan</button>
+        </div>
+    </div>
+
+    <script>
+        function startFingerprintScan() {
+            const circle = document.getElementById('fingerprintCircle');
+            const status = document.getElementById('fingerprintStatus');
+            const btn = document.getElementById('fingerprintBtn');
+
+            btn.disabled = true;
+            circle.classList.add('scanning');
+            status.textContent = 'Scanning fingerprint...';
+            status.className = 'scan-status scanning';
+
+            setTimeout(() => {
+                const success = Math.random() > 0.2;
+                circle.classList.remove('scanning');
+                
+                if (success) {
+                    status.textContent = '✓ Fingerprint verified!';
+                    status.className = 'scan-status success';
+                } else {
+                    status.textContent = '✗ Scan failed. Try again.';
+                    status.className = 'scan-status error';
+                }
+
+                setTimeout(() => {
+                    status.textContent = 'Place finger on sensor';
+                    status.className = 'scan-status idle';
+                    btn.disabled = false;
+                }, 2000);
+            }, 3000);
+        }
+
+        function startFaceScan() {
+            const frame = document.getElementById('faceFrame');
+            const status = document.getElementById('faceStatus');
+            const btn = document.getElementById('faceBtn');
+
+            btn.disabled = true;
+            frame.classList.add('scanning');
+            status.textContent = 'Analyzing facial features...';
+            status.className = 'scan-status scanning';
+
+            setTimeout(() => {
+                const success = Math.random() > 0.2;
+                frame.classList.remove('scanning');
+                
+                if (success) {
+                    status.textContent = '✓ Face recognized!';
+                    status.className = 'scan-status success';
+                } else {
+                    status.textContent = '✗ Recognition failed. Try again.';
+                    status.className = 'scan-status error';
+                }
+
+                setTimeout(() => {
+                    status.textContent = 'Position face in frame';
+                    status.className = 'scan-status idle';
+                    btn.disabled = false;
+                }, 2000);
+            }, 3000);
+        }
+
+        function startIrisScan() {
+            const circle = document.getElementById('irisCircle');
+            const status = document.getElementById('irisStatus');
+            const btn = document.getElementById('irisBtn');
+
+            btn.disabled = true;
+            circle.classList.add('scanning');
+            status.textContent = 'Scanning iris pattern...';
+            status.className = 'scan-status scanning';
+
+            setTimeout(() => {
+                const success = Math.random() > 0.2;
+                circle.classList.remove('scanning');
+                
+                if (success) {
+                    status.textContent = '✓ Iris verified!';
+                    status.className = 'scan-status success';
+                } else {
+                    status.textContent = '✗ Scan failed. Try again.';
+                    status.className = 'scan-status error';
+                }
+
+                setTimeout(() => {
+                    status.textContent = 'Look at the sensor';
+                    status.className = 'scan-status idle';
+                    btn.disabled = false;
+                }, 2000);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

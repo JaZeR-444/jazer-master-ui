@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environment Variable Viewer - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Back Button */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.6rem 1.2rem;
+            border: 2px solid var(--border-cyan);
+            border-radius: 8px;
+            background: rgba(0, 242, 234, 0.1);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--bg-dark);
+            box-shadow: var(--shadow-cyan);
+            transform: translateX(-3px);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(147, 51, 234, 0.08) 50%, rgba(236, 72, 153, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid var(--border-cyan);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr 350px;
+            }
+        }
+
+        /* Environment Panel */
+        .env-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-default);
+        }
+
+        .panel-title {
+            font-family: var(--font-primary);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .env-badge {
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--border-cyan);
+            border-radius: 8px;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--jazer-cyan);
+        }
+
+        /* Search and Filter Bar */
+        .search-bar {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(0, 242, 234, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .category-filter {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .filter-btn {
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            border: 2px solid var(--border-default);
+            background: var(--bg-card);
+            color: var(--text-gray);
+            cursor: pointer;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        .filter-btn.active {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+            color: var(--bg-dark);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: rgba(0, 242, 234, 0.05);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-family: var(--font-primary);
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--jazer-cyan);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: var(--font-secondary);
+        }
+
+        /* Variable List */
+        .variable-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .variable-category {
+            margin-bottom: 1.5rem;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: rgba(0, 242, 234, 0.05);
+            border-left: 3px solid var(--jazer-cyan);
+            border-radius: 6px;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .category-header:hover {
+            background: rgba(0, 242, 234, 0.1);
+        }
+
+        .category-icon {
+            font-size: 1.25rem;
+        }
+
+        .category-name {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-light);
+            flex: 1;
+        }
+
+        .category-count {
+            padding: 0.25rem 0.6rem;
+            background: rgba(0, 242, 234, 0.2);
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+        }
+
+        .category-toggle {
+            color: var(--jazer-cyan);
+            font-size: 0.9rem;
+            transition: transform 0.3s ease;
+        }
+
+        .category-header.collapsed .category-toggle {
+            transform: rotate(-90deg);
+        }
+
+        .category-items {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .category-items.collapsed {
+            display: none;
+        }
+
+        .variable-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .variable-item:hover {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 242, 234, 0.03);
+            transform: translateX(3px);
+        }
+
+        .variable-item.secret {
+            border-color: var(--jazer-pink);
+        }
+
+        .variable-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .variable-key {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            word-break: break-all;
+        }
+
+        .variable-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-default);
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-gray);
+            cursor: pointer;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        .variable-value {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.75rem;
+            border-radius: 6px;
+            word-break: break-all;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .variable-value.masked {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .variable-meta {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.75rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .controls-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .controls-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            border: 2px solid var(--border-default);
+            background: var(--bg-card);
+            color: var(--text-light);
+            cursor: pointer;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(0, 242, 234, 0.2);
+        }
+
+        .btn.btn-primary {
+            background: var(--gradient-accent);
+            border: none;
+            color: white;
+        }
+
+        .btn.btn-primary:hover {
+            box-shadow: var(--shadow-pink);
+            transform: translateY(-2px);
+        }
+
+        /* Environment Selector */
+        .env-selector {
+            margin-bottom: 1rem;
+        }
+
+        .env-select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .env-select:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+
+        .env-select option {
+            background: #1a1a1a;
+            color: var(--text-light);
+        }
+
+        /* Toggle Settings */
+        .settings-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .settings-toggle:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: var(--jazer-cyan);
+        }
+
+        .toggle-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-family: var(--font-secondary);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(24px);
+        }
+
+        /* Quick Access List */
+        .quick-access {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .quick-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quick-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .quick-item:hover {
+            background: rgba(0, 242, 234, 0.1);
+        }
+
+        .quick-icon {
+            font-size: 1.1rem;
+        }
+
+        .quick-name {
+            flex: 1;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Status Bar Footer */
+        .status-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 2rem;
+        }
+
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { 
+                opacity: 1; 
+                box-shadow: 0 0 8px var(--jazer-cyan);
+            }
+            50% { 
+                opacity: 0.6; 
+                box-shadow: 0 0 16px var(--jazer-cyan);
+            }
+        }
+
+        /* Scrollbar Styling */
+        .variable-list::-webkit-scrollbar,
+        .quick-access::-webkit-scrollbar,
+        .variable-value::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .variable-list::-webkit-scrollbar-track,
+        .quick-access::-webkit-scrollbar-track,
+        .variable-value::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .variable-list::-webkit-scrollbar-thumb,
+        .quick-access::-webkit-scrollbar-thumb,
+        .variable-value::-webkit-scrollbar-thumb {
+            background: var(--jazer-cyan);
+            border-radius: 4px;
+        }
+
+        .variable-list::-webkit-scrollbar-thumb:hover,
+        .quick-access::-webkit-scrollbar-thumb:hover,
+        .variable-value::-webkit-scrollbar-thumb:hover {
+            background: var(--jazer-purple);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .hero h1 {
+                font-size: 1.75rem;
+            }
+
+            .search-bar {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .status-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .status-info {
+                width: 100%;
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back to DevTools</a>
+
+        <!-- Hero Section -->
+        <header class="hero">
+            <h1>⚙️ Environment Variable Viewer</h1>
+            <p class="hero-description">View, search, and manage environment variables across different environments with secure handling of sensitive data</p>
+        </header>
+
+        <!-- Main Content Grid -->
+        <div class="main-grid">
+            <!-- Left Column: Environment Variables -->
+            <div>
+                <!-- Environment Panel -->
+                <div class="env-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Environment Variables</h2>
+                        <div class="env-badge" id="envBadge">Development</div>
+                    </div>
+
+                    <!-- Search Bar -->
+                    <div class="search-bar">
+                        <input 
+                            type="text" 
+                            class="search-input" 
+                            placeholder="Search variables (e.g., API_KEY, NODE_ENV)..."
+                            id="searchInput"
+                            oninput="searchVariables()"
+                        >
+                        <div class="category-filter">
+                            <button class="filter-btn active" onclick="filterByCategory('all')">All</button>
+                            <button class="filter-btn" onclick="filterByCategory('api')">API</button>
+                            <button class="filter-btn" onclick="filterByCategory('database')">DB</button>
+                        </div>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-value" id="totalVars">0</span>
+                            <span class="stat-label">Total Variables</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-value" id="secretVars">0</span>
+                            <span class="stat-label">Secrets</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-value" id="publicVars">0</span>
+                            <span class="stat-label">Public</span>
+                        </div>
+                    </div>
+
+                    <!-- Variable List -->
+                    <div class="variable-list" id="variableList">
+                        <!-- Categories will be rendered here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Controls -->
+            <div>
+                <!-- Controls Panel -->
+                <div class="controls-panel">
+                    <div class="controls-section">
+                        <h3 class="section-title">Environment</h3>
+                        <div class="env-selector">
+                            <select class="env-select" id="envSelect" onchange="changeEnvironment()">
+                                <option value="development">Development</option>
+                                <option value="staging">Staging</option>
+                                <option value="production">Production</option>
+                                <option value="test">Test</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="controls-section">
+                        <h3 class="section-title">Actions</h3>
+                        <button class="btn btn-primary" onclick="refreshVariables()">
+                            🔄 Refresh Variables
+                        </button>
+                        <button class="btn" onclick="exportVariables()">
+                            💾 Export to .env
+                        </button>
+                        <button class="btn" onclick="copyAllVariables()">
+                            📋 Copy All
+                        </button>
+                    </div>
+
+                    <div class="controls-section">
+                        <h3 class="section-title">Display Settings</h3>
+                        <div class="settings-toggle" onclick="toggleSetting('showSecrets')">
+                            <span class="toggle-label">Show secret values</span>
+                            <div class="toggle-switch" id="toggleShowSecrets">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        <div class="settings-toggle" onclick="toggleSetting('showEmpty')">
+                            <span class="toggle-label">Show empty values</span>
+                            <div class="toggle-switch active" id="toggleShowEmpty">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        <div class="settings-toggle" onclick="toggleSetting('groupByCategory')">
+                            <span class="toggle-label">Group by category</span>
+                            <div class="toggle-switch active" id="toggleGroupByCategory">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="controls-section">
+                        <h3 class="section-title">Quick Access</h3>
+                        <div class="quick-access">
+                            <div class="quick-item" onclick="jumpToVariable('API_KEY')">
+                                <span class="quick-icon">🔑</span>
+                                <span class="quick-name">API_KEY</span>
+                            </div>
+                            <div class="quick-item" onclick="jumpToVariable('DATABASE_URL')">
+                                <span class="quick-icon">💾</span>
+                                <span class="quick-name">DATABASE_URL</span>
+                            </div>
+                            <div class="quick-item" onclick="jumpToVariable('NODE_ENV')">
+                                <span class="quick-icon">⚙️</span>
+                                <span class="quick-name">NODE_ENV</span>
+                            </div>
+                            <div class="quick-item" onclick="jumpToVariable('PORT')">
+                                <span class="quick-icon">🔌</span>
+                                <span class="quick-name">PORT</span>
+                            </div>
+                            <div class="quick-item" onclick="jumpToVariable('JWT_SECRET')">
+                                <span class="quick-icon">🔐</span>
+                                <span class="quick-name">JWT_SECRET</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar Footer -->
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Environment:</span>
+                    <span id="statusEnv">Development</span>
+                </div>
+                <div class="status-item">
+                    <span>Loaded:</span>
+                    <span id="statusLoaded">0 variables</span>
+                </div>
+                <div class="status-item">
+                    <span>Last Update:</span>
+                    <span id="lastUpdate">Just now</span>
+                </div>
+                <div class="status-item">
+                    <span>Size:</span>
+                    <span id="envSize">0 KB</span>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Variables Loaded</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // State management
+        const state = {
+            environment: 'development',
+            variables: [],
+            searchTerm: '',
+            categoryFilter: 'all',
+            settings: {
+                showSecrets: false,
+                showEmpty: true,
+                groupByCategory: true
+            }
+        };
+
+        // Mock environment variables
+        const mockVariables = {
+            development: [
+                { key: 'NODE_ENV', value: 'development', category: 'system', secret: false, size: 11 },
+                { key: 'PORT', value: '3000', category: 'system', secret: false, size: 4 },
+                { key: 'HOST', value: 'localhost', category: 'system', secret: false, size: 9 },
+                { key: 'API_KEY', value: 'sk_dev_1234567890abcdef', category: 'api', secret: true, size: 24 },
+                { key: 'API_URL', value: 'https://api.dev.example.com', category: 'api', secret: false, size: 30 },
+                { key: 'API_TIMEOUT', value: '5000', category: 'api', secret: false, size: 4 },
+                { key: 'DATABASE_URL', value: 'postgresql://user:pass@localhost:5432/dev_db', category: 'database', secret: true, size: 50 },
+                { key: 'DB_POOL_SIZE', value: '10', category: 'database', secret: false, size: 2 },
+                { key: 'DB_SSL_MODE', value: 'disable', category: 'database', secret: false, size: 7 },
+                { key: 'REDIS_URL', value: 'redis://localhost:6379', category: 'database', secret: false, size: 23 },
+                { key: 'JWT_SECRET', value: 'supersecret123456789', category: 'auth', secret: true, size: 21 },
+                { key: 'JWT_EXPIRES_IN', value: '7d', category: 'auth', secret: false, size: 2 },
+                { key: 'SESSION_SECRET', value: 'session_secret_key_dev', category: 'auth', secret: true, size: 23 },
+                { key: 'LOG_LEVEL', value: 'debug', category: 'logging', secret: false, size: 5 },
+                { key: 'LOG_FORMAT', value: 'json', category: 'logging', secret: false, size: 4 },
+                { key: 'SENTRY_DSN', value: '', category: 'monitoring', secret: true, size: 0 },
+            ],
+            staging: [
+                { key: 'NODE_ENV', value: 'staging', category: 'system', secret: false, size: 7 },
+                { key: 'PORT', value: '8080', category: 'system', secret: false, size: 4 },
+                { key: 'API_KEY', value: 'sk_stg_abcdef1234567890', category: 'api', secret: true, size: 24 },
+                { key: 'DATABASE_URL', value: 'postgresql://user:pass@staging-db.example.com:5432/stg_db', category: 'database', secret: true, size: 60 },
+                { key: 'JWT_SECRET', value: 'staging_jwt_secret_key', category: 'auth', secret: true, size: 24 },
+            ],
+            production: [
+                { key: 'NODE_ENV', value: 'production', category: 'system', secret: false, size: 10 },
+                { key: 'PORT', value: '443', category: 'system', secret: false, size: 3 },
+                { key: 'API_KEY', value: 'sk_prod_xyz9876543210abc', category: 'api', secret: true, size: 24 },
+                { key: 'DATABASE_URL', value: 'postgresql://user:pass@prod-db.example.com:5432/prod_db', category: 'database', secret: true, size: 58 },
+                { key: 'JWT_SECRET', value: 'prod_super_secret_key_2024', category: 'auth', secret: true, size: 27 },
+            ],
+            test: [
+                { key: 'NODE_ENV', value: 'test', category: 'system', secret: false, size: 4 },
+                { key: 'PORT', value: '9999', category: 'system', secret: false, size: 4 },
+                { key: 'DATABASE_URL', value: 'postgresql://test:test@localhost:5432/test_db', category: 'database', secret: false, size: 48 },
+            ]
+        };
+
+        // Category icons
+        const categoryIcons = {
+            system: '⚙️',
+            api: '🌐',
+            database: '💾',
+            auth: '🔐',
+            logging: '📝',
+            monitoring: '📊',
+            other: '📦'
+        };
+
+        // DOM references
+        const variableList = document.getElementById('variableList');
+        const searchInput = document.getElementById('searchInput');
+        const envBadge = document.getElementById('envBadge');
+        const totalVarsEl = document.getElementById('totalVars');
+        const secretVarsEl = document.getElementById('secretVars');
+        const publicVarsEl = document.getElementById('publicVars');
+        const statusEnvEl = document.getElementById('statusEnv');
+        const statusLoadedEl = document.getElementById('statusLoaded');
+        const envSizeEl = document.getElementById('envSize');
+        const lastUpdateEl = document.getElementById('lastUpdate');
+
+        // Initialize
+        function initialize() {
+            loadEnvironment('development');
+        }
+
+        // Load environment
+        function loadEnvironment(env) {
+            state.environment = env;
+            state.variables = mockVariables[env] || [];
+            renderVariables();
+            updateStats();
+            updateStatusBar();
+        }
+
+        // Change environment
+        function changeEnvironment() {
+            const env = document.getElementById('envSelect').value;
+            envBadge.textContent = env.charAt(0).toUpperCase() + env.slice(1);
+            loadEnvironment(env);
+            lastUpdateEl.textContent = 'Just now';
+        }
+
+        // Render variables
+        function renderVariables() {
+            let filtered = state.variables.filter(v => {
+                const matchesSearch = v.key.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+                                     v.value.toLowerCase().includes(state.searchTerm.toLowerCase());
+                const matchesCategory = state.categoryFilter === 'all' || v.category === state.categoryFilter;
+                const showEmpty = state.settings.showEmpty || v.value !== '';
+                
+                return matchesSearch && matchesCategory && showEmpty;
+            });
+
+            if (filtered.length === 0) {
+                variableList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <div class="empty-state-text">No variables found</div>
+                    </div>
+                `;
+                return;
+            }
+
+            if (state.settings.groupByCategory) {
+                renderGroupedVariables(filtered);
+            } else {
+                renderFlatVariables(filtered);
+            }
+        }
+
+        // Render grouped by category
+        function renderGroupedVariables(vars) {
+            const grouped = vars.reduce((acc, v) => {
+                if (!acc[v.category]) acc[v.category] = [];
+                acc[v.category].push(v);
+                return acc;
+            }, {});
+
+            variableList.innerHTML = Object.entries(grouped).map(([category, items]) => `
+                <div class="variable-category">
+                    <div class="category-header" onclick="toggleCategory(this)">
+                        <span class="category-icon">${categoryIcons[category] || categoryIcons.other}</span>
+                        <span class="category-name">${category.toUpperCase()}</span>
+                        <span class="category-count">${items.length}</span>
+                        <span class="category-toggle">▼</span>
+                    </div>
+                    <div class="category-items">
+                        ${items.map(v => renderVariableItem(v)).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render flat list
+        function renderFlatVariables(vars) {
+            variableList.innerHTML = `
+                <div class="category-items">
+                    ${vars.map(v => renderVariableItem(v)).join('')}
+                </div>
+            `;
+        }
+
+        // Render variable item
+        function renderVariableItem(v) {
+            const displayValue = v.secret && !state.settings.showSecrets 
+                ? '••••••••••••••••' 
+                : v.value || '(empty)';
+            const maskedClass = v.secret && !state.settings.showSecrets ? 'masked' : '';
+
+            return `
+                <div class="variable-item ${v.secret ? 'secret' : ''}" id="var-${v.key}">
+                    <div class="variable-header">
+                        <div class="variable-key">${v.key}</div>
+                        <div class="variable-actions">
+                            <button class="action-btn" onclick="copyVariable('${v.key}', '${v.value}')">Copy</button>
+                            ${v.secret ? '<button class="action-btn" onclick="toggleMask(event)">👁️</button>' : ''}
+                        </div>
+                    </div>
+                    <div class="variable-value ${maskedClass}">${displayValue}</div>
+                    <div class="variable-meta">
+                        <div class="meta-item">
+                            <span>${v.secret ? '🔒' : '🔓'}</span>
+                            <span>${v.secret ? 'Secret' : 'Public'}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span>📏</span>
+                            <span>${v.size} bytes</span>
+                        </div>
+                        <div class="meta-item">
+                            <span>🏷️</span>
+                            <span>${v.category}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Search variables
+        function searchVariables() {
+            state.searchTerm = searchInput.value;
+            renderVariables();
+        }
+
+        // Filter by category
+        function filterByCategory(category) {
+            state.categoryFilter = category;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            renderVariables();
+        }
+
+        // Toggle category
+        function toggleCategory(header) {
+            header.classList.toggle('collapsed');
+            const items = header.nextElementSibling;
+            items.classList.toggle('collapsed');
+        }
+
+        // Copy variable
+        function copyVariable(key, value) {
+            navigator.clipboard.writeText(value).then(() => {
+                alert(`Copied ${key} to clipboard`);
+            });
+        }
+
+        // Toggle mask
+        function toggleMask(e) {
+            e.stopPropagation();
+            const valueEl = e.target.closest('.variable-item').querySelector('.variable-value');
+            valueEl.classList.toggle('masked');
+            
+            const variable = state.variables.find(v => 
+                e.target.closest('.variable-item').id === `var-${v.key}`
+            );
+            
+            if (valueEl.classList.contains('masked')) {
+                valueEl.textContent = '••••••••••••••••';
+            } else {
+                valueEl.textContent = variable.value;
+            }
+        }
+
+        // Toggle setting
+        function toggleSetting(setting) {
+            state.settings[setting] = !state.settings[setting];
+            
+            const toggleEl = document.getElementById(`toggle${setting.charAt(0).toUpperCase() + setting.slice(1)}`);
+            if (state.settings[setting]) {
+                toggleEl.classList.add('active');
+            } else {
+                toggleEl.classList.remove('active');
+            }
+
+            renderVariables();
+        }
+
+        // Refresh variables
+        function refreshVariables() {
+            loadEnvironment(state.environment);
+            lastUpdateEl.textContent = 'Just now';
+        }
+
+        // Export variables
+        function exportVariables() {
+            const envContent = state.variables
+                .map(v => `${v.key}=${v.value}`)
+                .join('\n');
+            
+            console.log('Export to .env file:\n', envContent);
+            alert('Variables exported to console (check developer tools)');
+        }
+
+        // Copy all variables
+        function copyAllVariables() {
+            const envContent = state.variables
+                .map(v => `${v.key}=${v.value}`)
+                .join('\n');
+            
+            navigator.clipboard.writeText(envContent).then(() => {
+                alert('All variables copied to clipboard');
+            });
+        }
+
+        // Jump to variable
+        function jumpToVariable(key) {
+            const el = document.getElementById(`var-${key}`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.style.backgroundColor = 'rgba(0, 242, 234, 0.2)';
+                setTimeout(() => {
+                    el.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
+
+        // Update stats
+        function updateStats() {
+            const total = state.variables.length;
+            const secrets = state.variables.filter(v => v.secret).length;
+            const publics = total - secrets;
+
+            totalVarsEl.textContent = total;
+            secretVarsEl.textContent = secrets;
+            publicVarsEl.textContent = publics;
+        }
+
+        // Update status bar
+        function updateStatusBar() {
+            const envName = state.environment.charAt(0).toUpperCase() + state.environment.slice(1);
+            const totalSize = state.variables.reduce((sum, v) => sum + v.size, 0);
+            
+            statusEnvEl.textContent = envName;
+            statusLoadedEl.textContent = `${state.variables.length} variables`;
+            envSizeEl.textContent = `${(totalSize / 1024).toFixed(2)} KB`;
+        }
+
+        // Initialize on load
+        initialize();
+    </script>
+</body>
+</html>

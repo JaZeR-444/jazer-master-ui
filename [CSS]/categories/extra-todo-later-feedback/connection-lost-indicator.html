@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connection Lost Indicator - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%); 
+            min-height: 100vh; 
+            padding: 2rem; 
+            color: white;
+        }
+        
+        .container { max-width: 1100px; margin: 0 auto; }
+        
+        .back-button { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            padding: 0.75rem 1.5rem; 
+            border: 2px solid var(--jazer-cyan); 
+            border-radius: 12px; 
+            background: rgba(0, 255, 255, 0.1); 
+            transition: all 0.3s ease; 
+            margin-bottom: 2rem; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: #0a0a0a; 
+            transform: translateX(-5px); 
+        }
+        
+        .hero-section {
+            text-align: center;
+            padding: 2rem 0 3rem;
+        }
+        
+        h1 { 
+            font-family: var(--font-primary); 
+            font-size: clamp(2rem, 5vw, 3rem); 
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink)); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text; 
+            margin-bottom: 1rem;
+            text-shadow: 0 0 40px rgba(0, 242, 234, 0.3);
+        }
+        
+        .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .keyboard-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(147, 51, 234, 0.2);
+            border: 1px solid var(--jazer-purple);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--jazer-purple);
+        }
+        
+        .keyboard-hint kbd {
+            background: rgba(147, 51, 234, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-secondary);
+        }
+        
+        /* Controls Section */
+        .controls-section {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            font-family: var(--font-secondary);
+            font-size: 1.3rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .control-group label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: var(--font-secondary);
+        }
+        
+        .control-group select {
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .control-group select:hover,
+        .control-group select:focus {
+            border-color: var(--jazer-cyan);
+            outline: none;
+        }
+        
+        .control-group select option {
+            background: #1a1a2e;
+            color: white;
+        }
+        
+        /* Status Toggle Buttons */
+        .status-toggles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .toggle-btn {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: 2px solid;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .toggle-btn.connected {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+        }
+        
+        .toggle-btn.connected:hover {
+            background: #00ff88;
+            color: #0a0a0a;
+        }
+        
+        .toggle-btn.disconnected {
+            border-color: #ff4444;
+            background: rgba(255, 68, 68, 0.15);
+            color: #ff4444;
+        }
+        
+        .toggle-btn.disconnected:hover {
+            background: #ff4444;
+            color: white;
+        }
+        
+        .toggle-btn.reconnecting {
+            border-color: #ffaa00;
+            background: rgba(255, 170, 0, 0.15);
+            color: #ffaa00;
+        }
+        
+        .toggle-btn.reconnecting:hover {
+            background: #ffaa00;
+            color: #0a0a0a;
+        }
+        
+        .toggle-btn.weak {
+            border-color: var(--jazer-purple);
+            background: rgba(147, 51, 234, 0.15);
+            color: var(--jazer-purple);
+        }
+        
+        .toggle-btn.weak:hover {
+            background: var(--jazer-purple);
+            color: white;
+        }
+        
+        /* Indicator Variants Grid */
+        .variants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .variant-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .variant-card:hover {
+            border-color: var(--jazer-purple);
+        }
+        
+        .variant-card h3 {
+            font-family: var(--font-secondary);
+            font-size: 1.1rem;
+            color: var(--jazer-purple);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .variant-preview {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* === INDICATOR STYLES === */
+        
+        /* 1. Top Banner */
+        .banner-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .banner-indicator.connected {
+            background: linear-gradient(90deg, rgba(0, 255, 136, 0.2), rgba(0, 255, 136, 0.1));
+            border-bottom: 2px solid #00ff88;
+            color: #00ff88;
+        }
+        
+        .banner-indicator.disconnected {
+            background: linear-gradient(90deg, rgba(255, 68, 68, 0.3), rgba(255, 68, 68, 0.1));
+            border-bottom: 2px solid #ff4444;
+            color: #ff4444;
+            animation: bannerPulse 2s ease infinite;
+        }
+        
+        .banner-indicator.reconnecting {
+            background: linear-gradient(90deg, rgba(255, 170, 0, 0.2), rgba(255, 170, 0, 0.1));
+            border-bottom: 2px solid #ffaa00;
+            color: #ffaa00;
+        }
+        
+        .banner-indicator.weak {
+            background: linear-gradient(90deg, rgba(147, 51, 234, 0.2), rgba(147, 51, 234, 0.1));
+            border-bottom: 2px solid var(--jazer-purple);
+            color: var(--jazer-purple);
+        }
+        
+        @keyframes bannerPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* 2. Status Pill */
+        .pill-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-family: var(--font-secondary);
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+        
+        .pill-indicator .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .pill-indicator.connected {
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+        
+        .pill-indicator.connected .dot {
+            background: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+        }
+        
+        .pill-indicator.disconnected {
+            background: rgba(255, 68, 68, 0.15);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+        }
+        
+        .pill-indicator.disconnected .dot {
+            background: #ff4444;
+            box-shadow: 0 0 10px #ff4444;
+            animation: dotBlink 1s ease infinite;
+        }
+        
+        .pill-indicator.reconnecting {
+            background: rgba(255, 170, 0, 0.15);
+            border: 1px solid #ffaa00;
+            color: #ffaa00;
+        }
+        
+        .pill-indicator.reconnecting .dot {
+            background: #ffaa00;
+            animation: dotPulse 1.5s ease infinite;
+        }
+        
+        .pill-indicator.weak {
+            background: rgba(147, 51, 234, 0.15);
+            border: 1px solid var(--jazer-purple);
+            color: var(--jazer-purple);
+        }
+        
+        .pill-indicator.weak .dot {
+            background: var(--jazer-purple);
+            animation: dotFlicker 0.5s ease infinite;
+        }
+        
+        @keyframes dotBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        @keyframes dotPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+        }
+        
+        @keyframes dotFlicker {
+            0%, 100% { opacity: 1; }
+            25% { opacity: 0.5; }
+            75% { opacity: 0.8; }
+        }
+        
+        /* 3. Signal Bars */
+        .signal-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .signal-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 30px;
+        }
+        
+        .signal-bar {
+            width: 8px;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .signal-bar:nth-child(1) { height: 20%; }
+        .signal-bar:nth-child(2) { height: 40%; }
+        .signal-bar:nth-child(3) { height: 60%; }
+        .signal-bar:nth-child(4) { height: 80%; }
+        .signal-bar:nth-child(5) { height: 100%; }
+        
+        .signal-indicator.connected .signal-bar {
+            background: #00ff88;
+            box-shadow: 0 0 5px #00ff88;
+        }
+        
+        .signal-indicator.disconnected .signal-bar {
+            background: rgba(255, 68, 68, 0.3);
+        }
+        
+        .signal-indicator.disconnected .signal-bar:first-child {
+            background: #ff4444;
+            animation: barBlink 1s ease infinite;
+        }
+        
+        .signal-indicator.reconnecting .signal-bar {
+            background: rgba(255, 170, 0, 0.3);
+            animation: barWave 1.5s ease infinite;
+        }
+        
+        .signal-indicator.reconnecting .signal-bar:nth-child(1) { animation-delay: 0s; }
+        .signal-indicator.reconnecting .signal-bar:nth-child(2) { animation-delay: 0.1s; }
+        .signal-indicator.reconnecting .signal-bar:nth-child(3) { animation-delay: 0.2s; }
+        .signal-indicator.reconnecting .signal-bar:nth-child(4) { animation-delay: 0.3s; }
+        .signal-indicator.reconnecting .signal-bar:nth-child(5) { animation-delay: 0.4s; }
+        
+        .signal-indicator.weak .signal-bar:nth-child(1),
+        .signal-indicator.weak .signal-bar:nth-child(2) {
+            background: var(--jazer-purple);
+            box-shadow: 0 0 5px var(--jazer-purple);
+        }
+        
+        @keyframes barBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        @keyframes barWave {
+            0%, 100% { background: rgba(255, 170, 0, 0.3); }
+            50% { background: #ffaa00; }
+        }
+        
+        .signal-label {
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        /* 4. Full Screen Overlay */
+        .overlay-container {
+            width: 100%;
+            height: 100%;
+            min-height: 200px;
+            position: relative;
+        }
+        
+        .overlay-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            transition: all 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .overlay-indicator.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .overlay-indicator.disconnected {
+            background: rgba(255, 68, 68, 0.15);
+            backdrop-filter: blur(5px);
+        }
+        
+        .overlay-indicator.reconnecting {
+            background: rgba(255, 170, 0, 0.1);
+            backdrop-filter: blur(3px);
+        }
+        
+        .overlay-icon {
+            font-size: 3rem;
+        }
+        
+        .overlay-text {
+            font-family: var(--font-secondary);
+            font-size: 1.1rem;
+            color: white;
+        }
+        
+        .overlay-subtext {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .retry-btn {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-family: var(--font-secondary);
+            transition: all 0.3s ease;
+        }
+        
+        .retry-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: white;
+        }
+        
+        /* 5. Toast Notification */
+        .toast-container {
+            width: 100%;
+            height: 100%;
+            min-height: 150px;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 1rem;
+        }
+        
+        .toast-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px;
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .toast-indicator.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast-indicator.connected {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+        
+        .toast-indicator.disconnected {
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+        }
+        
+        .toast-indicator.reconnecting {
+            background: rgba(255, 170, 0, 0.2);
+            border: 1px solid #ffaa00;
+            color: #ffaa00;
+        }
+        
+        .toast-icon {
+            font-size: 1.2rem;
+        }
+        
+        /* 6. Corner Badge */
+        .corner-container {
+            width: 100%;
+            height: 100%;
+            min-height: 150px;
+            position: relative;
+        }
+        
+        .corner-indicator {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.75rem;
+            border-radius: 8px;
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        
+        .corner-indicator.connected {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+        
+        .corner-indicator.disconnected {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+            animation: cornerPulse 2s ease infinite;
+        }
+        
+        .corner-indicator.reconnecting {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+        }
+        
+        .corner-indicator.weak {
+            background: rgba(147, 51, 234, 0.2);
+            color: var(--jazer-purple);
+        }
+        
+        .corner-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .corner-indicator.connected .corner-dot {
+            background: #00ff88;
+        }
+        
+        .corner-indicator.disconnected .corner-dot {
+            background: #ff4444;
+            animation: dotBlink 1s ease infinite;
+        }
+        
+        .corner-indicator.reconnecting .corner-dot {
+            background: #ffaa00;
+            animation: dotPulse 1.5s ease infinite;
+        }
+        
+        .corner-indicator.weak .corner-dot {
+            background: var(--jazer-purple);
+        }
+        
+        @keyframes cornerPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.4); }
+            50% { box-shadow: 0 0 0 4px rgba(255, 68, 68, 0); }
+        }
+        
+        /* Spinner for reconnecting */
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 170, 0, 0.3);
+            border-top-color: #ffaa00;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Demo Section */
+        .demo-section {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-pink);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+        
+        .app-mockup {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 12px;
+            overflow: hidden;
+            min-height: 300px;
+            position: relative;
+        }
+        
+        .mockup-header {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .mockup-title {
+            font-family: var(--font-secondary);
+            color: var(--jazer-cyan);
+        }
+        
+        .mockup-content {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .mockup-item {
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        .mockup-item:nth-child(2) { width: 80%; }
+        .mockup-item:nth-child(3) { width: 60%; }
+        
+        /* Connection Status Display */
+        .current-status {
+            text-align: center;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .current-status .label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 0.5rem;
+        }
+        
+        .current-status .value {
+            font-family: var(--font-secondary);
+            font-size: 1.2rem;
+        }
+        
+        .current-status.connected .value { color: #00ff88; }
+        .current-status.disconnected .value { color: #ff4444; }
+        .current-status.reconnecting .value { color: #ffaa00; }
+        .current-status.weak .value { color: var(--jazer-purple); }
+        
+        /* Footer */
+        .footer-info {
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .footer-info h4 {
+            color: var(--jazer-cyan);
+            font-family: var(--font-secondary);
+            margin-bottom: 0.75rem;
+        }
+        
+        .footer-info ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+        }
+        
+        .footer-info li {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+            padding-left: 1rem;
+            position: relative;
+        }
+        
+        .footer-info li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--jazer-purple);
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .variants-grid { grid-template-columns: 1fr; }
+            .status-toggles { flex-direction: column; }
+            .toggle-btn { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back</a>
+        
+        <section class="hero-section">
+            <h1>Connection Lost Indicator</h1>
+            <p class="subtitle">Visual feedback for network status changes - disconnections, reconnections, and weak signals</p>
+            <div class="keyboard-hint">
+                <kbd>Space</kbd> to cycle connection states
+            </div>
+        </section>
+        
+        <!-- Controls -->
+        <section class="controls-section">
+            <h2 class="section-title">🔌 Connection Control</h2>
+            
+            <div class="current-status connected" id="current-status">
+                <div class="label">Current Status</div>
+                <div class="value" id="status-value">● Connected</div>
+            </div>
+            
+            <div class="status-toggles">
+                <button class="toggle-btn connected" onclick="setStatus('connected')">
+                    ● Connected
+                </button>
+                <button class="toggle-btn disconnected" onclick="setStatus('disconnected')">
+                    ○ Disconnected
+                </button>
+                <button class="toggle-btn reconnecting" onclick="setStatus('reconnecting')">
+                    ◐ Reconnecting
+                </button>
+                <button class="toggle-btn weak" onclick="setStatus('weak')">
+                    ◔ Weak Signal
+                </button>
+            </div>
+        </section>
+        
+        <!-- Indicator Variants -->
+        <section class="variants-grid">
+            <!-- Top Banner -->
+            <div class="variant-card">
+                <h3>📢 Top Banner</h3>
+                <div class="variant-preview">
+                    <div class="banner-indicator connected" id="banner-indicator">
+                        <span class="banner-icon">●</span>
+                        <span class="banner-text">Connected</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Status Pill -->
+            <div class="variant-card">
+                <h3>💊 Status Pill</h3>
+                <div class="variant-preview">
+                    <div class="pill-indicator connected" id="pill-indicator">
+                        <span class="dot"></span>
+                        <span class="text">Online</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Signal Bars -->
+            <div class="variant-card">
+                <h3>📶 Signal Bars</h3>
+                <div class="variant-preview">
+                    <div class="signal-indicator connected" id="signal-indicator">
+                        <div class="signal-bars">
+                            <div class="signal-bar"></div>
+                            <div class="signal-bar"></div>
+                            <div class="signal-bar"></div>
+                            <div class="signal-bar"></div>
+                            <div class="signal-bar"></div>
+                        </div>
+                        <span class="signal-label">Strong Signal</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Full Screen Overlay -->
+            <div class="variant-card">
+                <h3>🖥️ Full Overlay</h3>
+                <div class="variant-preview">
+                    <div class="overlay-container">
+                        <div class="mockup-content" style="opacity: 0.3; padding: 1rem;">
+                            <div class="mockup-item"></div>
+                            <div class="mockup-item"></div>
+                            <div class="mockup-item"></div>
+                        </div>
+                        <div class="overlay-indicator disconnected" id="overlay-indicator">
+                            <span class="overlay-icon">📡</span>
+                            <span class="overlay-text">Connection Lost</span>
+                            <span class="overlay-subtext">Check your internet connection</span>
+                            <button class="retry-btn" onclick="simulateReconnect()">Retry</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Toast Notification -->
+            <div class="variant-card">
+                <h3>🍞 Toast Notification</h3>
+                <div class="variant-preview">
+                    <div class="toast-container">
+                        <div class="toast-indicator disconnected show" id="toast-indicator">
+                            <span class="toast-icon">⚠️</span>
+                            <span>You are offline</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Corner Badge -->
+            <div class="variant-card">
+                <h3>🏷️ Corner Badge</h3>
+                <div class="variant-preview">
+                    <div class="corner-container">
+                        <div class="corner-indicator connected" id="corner-indicator">
+                            <span class="corner-dot"></span>
+                            <span>Online</span>
+                        </div>
+                        <div class="mockup-content" style="padding: 1rem; padding-top: 2.5rem;">
+                            <div class="mockup-item"></div>
+                            <div class="mockup-item"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Interactive Demo -->
+        <section class="demo-section">
+            <h2 class="section-title">🎮 Interactive App Demo</h2>
+            
+            <div class="app-mockup" id="app-mockup">
+                <div class="banner-indicator connected" id="demo-banner">
+                    <span class="banner-icon">●</span>
+                    <span class="banner-text">Connected</span>
+                </div>
+                
+                <div class="mockup-header">
+                    <span class="mockup-title">Dashboard</span>
+                    <div class="pill-indicator connected" id="demo-pill">
+                        <span class="dot"></span>
+                        <span class="text">Online</span>
+                    </div>
+                </div>
+                
+                <div class="mockup-content">
+                    <div class="mockup-item"></div>
+                    <div class="mockup-item"></div>
+                    <div class="mockup-item"></div>
+                </div>
+                
+                <div class="overlay-indicator" id="demo-overlay">
+                    <span class="overlay-icon">📡</span>
+                    <span class="overlay-text">Connection Lost</span>
+                    <span class="overlay-subtext">Attempting to reconnect...</span>
+                    <div class="spinner" id="demo-spinner" style="display: none;"></div>
+                </div>
+            </div>
+        </section>
+        
+        <div class="footer-info">
+            <h4>Features</h4>
+            <ul>
+                <li>6 indicator styles: banner, pill, signal, overlay, toast, corner</li>
+                <li>4 connection states: connected, disconnected, reconnecting, weak</li>
+                <li>Animated transitions and status indicators</li>
+                <li>Signal strength visualization</li>
+                <li>Retry button for user-initiated reconnection</li>
+                <li>Keyboard shortcut (Space) to cycle states</li>
+                <li>Accessible color-coded status feedback</li>
+                <li>Mobile-responsive design</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        let currentStatus = 'connected';
+        const statuses = ['connected', 'disconnected', 'reconnecting', 'weak'];
+        
+        const statusConfig = {
+            connected: {
+                icon: '●',
+                text: 'Connected',
+                pillText: 'Online',
+                signalLabel: 'Strong Signal',
+                toastIcon: '✓',
+                toastText: 'Back online',
+                overlayIcon: '✓',
+                overlayText: 'Connected',
+                overlaySubtext: ''
+            },
+            disconnected: {
+                icon: '○',
+                text: 'No Connection',
+                pillText: 'Offline',
+                signalLabel: 'No Signal',
+                toastIcon: '⚠️',
+                toastText: 'You are offline',
+                overlayIcon: '📡',
+                overlayText: 'Connection Lost',
+                overlaySubtext: 'Check your internet connection'
+            },
+            reconnecting: {
+                icon: '◐',
+                text: 'Reconnecting...',
+                pillText: 'Reconnecting',
+                signalLabel: 'Searching...',
+                toastIcon: '🔄',
+                toastText: 'Reconnecting...',
+                overlayIcon: '🔄',
+                overlayText: 'Reconnecting',
+                overlaySubtext: 'Please wait...'
+            },
+            weak: {
+                icon: '◔',
+                text: 'Weak Connection',
+                pillText: 'Unstable',
+                signalLabel: 'Weak Signal',
+                toastIcon: '📶',
+                toastText: 'Weak connection',
+                overlayIcon: '',
+                overlayText: '',
+                overlaySubtext: ''
+            }
+        };
+        
+        function setStatus(status) {
+            currentStatus = status;
+            const config = statusConfig[status];
+            
+            // Update current status display
+            const statusDisplay = document.getElementById('current-status');
+            const statusValue = document.getElementById('status-value');
+            statusDisplay.className = 'current-status ' + status;
+            statusValue.textContent = config.icon + ' ' + config.text;
+            
+            // Update all indicators
+            updateBanner(status, config);
+            updatePill(status, config);
+            updateSignal(status, config);
+            updateOverlay(status, config);
+            updateToast(status, config);
+            updateCorner(status, config);
+            updateDemo(status, config);
+        }
+        
+        function updateBanner(status, config) {
+            const banner = document.getElementById('banner-indicator');
+            banner.className = 'banner-indicator ' + status;
+            banner.querySelector('.banner-icon').textContent = config.icon;
+            banner.querySelector('.banner-text').textContent = config.text;
+        }
+        
+        function updatePill(status, config) {
+            const pill = document.getElementById('pill-indicator');
+            pill.className = 'pill-indicator ' + status;
+            pill.querySelector('.text').textContent = config.pillText;
+        }
+        
+        function updateSignal(status, config) {
+            const signal = document.getElementById('signal-indicator');
+            signal.className = 'signal-indicator ' + status;
+            signal.querySelector('.signal-label').textContent = config.signalLabel;
+        }
+        
+        function updateOverlay(status, config) {
+            const overlay = document.getElementById('overlay-indicator');
+            overlay.className = 'overlay-indicator ' + status;
+            
+            if (status === 'disconnected' || status === 'reconnecting') {
+                overlay.classList.add('active');
+                overlay.querySelector('.overlay-icon').textContent = config.overlayIcon;
+                overlay.querySelector('.overlay-text').textContent = config.overlayText;
+                overlay.querySelector('.overlay-subtext').textContent = config.overlaySubtext;
+            } else {
+                overlay.classList.remove('active');
+            }
+        }
+        
+        function updateToast(status, config) {
+            const toast = document.getElementById('toast-indicator');
+            toast.className = 'toast-indicator ' + status;
+            
+            if (status !== 'weak') {
+                toast.classList.add('show');
+                toast.querySelector('.toast-icon').textContent = config.toastIcon;
+                toast.querySelector('span:last-child').textContent = config.toastText;
+            }
+        }
+        
+        function updateCorner(status, config) {
+            const corner = document.getElementById('corner-indicator');
+            corner.className = 'corner-indicator ' + status;
+            corner.querySelector('span:last-child').textContent = config.pillText;
+        }
+        
+        function updateDemo(status, config) {
+            const banner = document.getElementById('demo-banner');
+            const pill = document.getElementById('demo-pill');
+            const overlay = document.getElementById('demo-overlay');
+            const spinner = document.getElementById('demo-spinner');
+            
+            banner.className = 'banner-indicator ' + status;
+            banner.querySelector('.banner-icon').textContent = config.icon;
+            banner.querySelector('.banner-text').textContent = config.text;
+            
+            pill.className = 'pill-indicator ' + status;
+            pill.querySelector('.text').textContent = config.pillText;
+            
+            overlay.className = 'overlay-indicator ' + status;
+            
+            if (status === 'disconnected') {
+                overlay.classList.add('active');
+                overlay.querySelector('.overlay-icon').textContent = '📡';
+                overlay.querySelector('.overlay-text').textContent = 'Connection Lost';
+                overlay.querySelector('.overlay-subtext').textContent = 'Check your internet connection';
+                spinner.style.display = 'none';
+            } else if (status === 'reconnecting') {
+                overlay.classList.add('active');
+                overlay.querySelector('.overlay-icon').textContent = '';
+                overlay.querySelector('.overlay-text').textContent = 'Reconnecting';
+                overlay.querySelector('.overlay-subtext').textContent = 'Please wait...';
+                spinner.style.display = 'block';
+            } else {
+                overlay.classList.remove('active');
+                spinner.style.display = 'none';
+            }
+        }
+        
+        function simulateReconnect() {
+            setStatus('reconnecting');
+            setTimeout(() => {
+                setStatus('connected');
+            }, 2000);
+        }
+        
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && e.target.tagName !== 'BUTTON') {
+                e.preventDefault();
+                const currentIndex = statuses.indexOf(currentStatus);
+                const nextIndex = (currentIndex + 1) % statuses.length;
+                setStatus(statuses[nextIndex]);
+            }
+        });
+        
+        // Initialize
+        setStatus('connected');
+    </script>
+</body>
+</html>

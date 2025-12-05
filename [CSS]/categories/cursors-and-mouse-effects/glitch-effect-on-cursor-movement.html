@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glitch Effect on Cursor Movement - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a, #1a0a2a, #0a1a2a);
+            font-family: var(--font-body);
+            color: #fff;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        /* Hide default cursor */
+        * {
+            cursor: none !important;
+        }
+
+        /* Custom cursor */
+        .custom-cursor {
+            position: fixed;
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px var(--jazer-cyan);
+            transition: transform 0.05s ease;
+        }
+
+        /* Glitch layers */
+        .glitch-layer {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.1s ease;
+        }
+
+        .glitch-layer.active {
+            opacity: 1;
+        }
+
+        .glitch-1 {
+            background: var(--jazer-cyan);
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 0);
+        }
+
+        .glitch-2 {
+            background: var(--jazer-pink);
+            clip-path: polygon(0 0, 0 100%, 100% 100%, 0);
+        }
+
+        .glitch-3 {
+            background: var(--jazer-purple);
+            clip-path: polygon(100% 0, 100% 0, 0 100%, 0);
+        }
+
+        .glitch-4 {
+            background: var(--jazer-cyan);
+            clip-path: polygon(0 100%, 100% 100%, 100% 0);
+        }
+
+        /* Glitch text */
+        .glitch-text {
+            position: fixed;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #fff;
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0;
+            text-shadow: 
+                2px 2px 0 var(--jazer-cyan),
+                -2px -2px 0 var(--jazer-pink),
+                2px 2px 0 var(--jazer-purple);
+            white-space: pre;
+            overflow: hidden;
+            transition: opacity 0.1s ease;
+        }
+
+        .glitch-text.active {
+            opacity: 1;
+        }
+
+        /* Scanlines */
+        .scanline {
+            position: fixed;
+            width: 100%;
+            height: 2px;
+            background: var(--jazer-cyan);
+            pointer-events: none;
+            z-index: 9997;
+            opacity: 0;
+            transition: opacity 0.1s ease;
+        }
+
+        .scanline.active {
+            opacity: 0.3;
+            animation: scanline 0.5s ease-in-out;
+        }
+
+        @keyframes scanline {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Content area */
+        .content {
+            position: relative;
+            z-index: 1;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+
+        /* Demo area */
+        .demo-area {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-title {
+            font-size: 1.5rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        /* Interactive zones */
+        .interactive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .interactive-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .interactive-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .interactive-card:hover::before {
+            left: 100%;
+        }
+
+        .interactive-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            color: var(--jazer-pink);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* Glitch trigger zones */
+        .glitch-zone {
+            background: rgba(255, 0, 0, 0.1);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glitch-zone::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.3), transparent);
+            animation: glitchPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes glitchPulse {
+            0%, 100% { left: -100%; }
+            50% { left: 100%; }
+        }
+
+        /* Controls */
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .controls-title {
+            font-size: 1.3rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-input {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .control-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+        }
+
+        .control-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+            border: none;
+        }
+
+        .color-picker {
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: none;
+        }
+
+        /* Stats display */
+        .stats {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            display: block;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            background: linear-gradient(45deg, var(--jazer-purple), var(--jazer-pink));
+            border: none;
+            border-radius: 25px;
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 0, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--jazer-cyan);
+        }
+
+        .btn-secondary:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+        }
+
+        /* Back navigation */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 25px;
+            border: 1px solid var(--jazer-cyan);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .interactive-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back navigation -->
+    <a href="index.html" class="back-button">← Back to Cursors</a>
+
+    <!-- Custom cursor -->
+    <div class="custom-cursor" id="customCursor"></div>
+
+    <!-- Glitch layers -->
+    <div class="glitch-layer glitch-1" id="glitch1"></div>
+    <div class="glitch-layer glitch-2" id="glitch2"></div>
+    <div class="glitch-layer glitch-3" id="glitch3"></div>
+    <div class="glitch-layer glitch-4" id="glitch4"></div>
+
+    <!-- Scanlines -->
+    <div class="scanline" id="scanline1"></div>
+    <div class="scanline" id="scanline2"></div>
+    <div class="scanline" id="scanline3"></div>
+
+    <!-- Glitch text -->
+    <div class="glitch-text" id="glitchText"></div>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">🎆 Glitch Effect on Cursor Movement</h1>
+            <p class="subtitle">Digital distortion effects that create cyberpunk-style glitches as you move the cursor with customizable intensity and patterns</p>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value" id="glitchIntensity">Medium</span>
+                    <span class="stat-label">Glitch Intensity</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="glitchSpeed">Fast</span>
+                    <span class="stat-label">Movement Speed</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="glitchType">RGB</span>
+                    <span class="stat-label">Glitch Type</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="triggerMode">Movement</span>
+                    <span class="stat-label">Trigger Mode</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <h2 class="controls-title">🎛️ Glitch Controls</h2>
+            <div class="control-group">
+                <div class="control-item">
+                    <label class="control-label">Glitch Intensity</label>
+                    <input type="range" class="control-slider" id="glitchIntensitySlider" min="1" max="10" value="5">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Movement Speed</label>
+                    <input type="range" class="control-slider" id="glitchSpeedSlider" min="1" max="10" value="7">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Glitch Frequency</label>
+                    <input type="range" class="control-slider" id="glitchFrequencySlider" min="1" max="20" value="10">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Trigger Mode</label>
+                    <select class="control-input" id="triggerModeSelect">
+                        <option value="movement">Movement Only</option>
+                        <option value="click">On Click</option>
+                        <option value="hover">On Hover</option>
+                        <option value="auto">Auto</option>
+                    </select>
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Glitch Type</label>
+                    <select class="control-input" id="glitchTypeSelect">
+                        <option value="rgb">RGB Split</option>
+                        <option value="offset">Offset Layers</option>
+                        <option value="scanline">Scanlines</option>
+                        <option value="text">Text Glitch</option>
+                        <option value="combined">Combined</option>
+                    </select>
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Primary Color</label>
+                    <input type="color" class="color-picker" id="primaryColor" value="#00ffff">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Secondary Color</label>
+                    <input type="color" class="color-picker" id="secondaryColor" value="#ff00ff">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Text Content</label>
+                    <input type="text" class="control-input" id="textContent" value="GLITCH" placeholder="Enter custom text">
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Area -->
+        <div class="demo-area">
+            <h2 class="demo-title">🎮 Interactive Glitch Demo</h2>
+            
+            <!-- Glitch trigger zones -->
+            <div class="interactive-grid">
+                <div class="glitch-zone" id="glitchZone1">
+                    <span class="card-icon">⚡</span>
+                    <h3 class="card-title">Movement Glitch</h3>
+                    <p class="card-description">Move cursor rapidly to trigger intense glitch effects</p>
+                </div>
+                <div class="glitch-zone" id="glitchZone2">
+                    <span class="card-icon">🎯</span>
+                    <h3 class="card-title">Click Glitch</h3>
+                    <p class="card-description">Click to create burst glitch effects</p>
+                </div>
+                <div class="glitch-zone" id="glitchZone3">
+                    <span class="card-icon">👁</span>
+                    <h3 class="card-title">Hover Glitch</h3>
+                    <p class="card-description">Hover over this area for continuous glitching</p>
+                </div>
+                <div class="glitch-zone" id="glitchZone4">
+                    <span class="card-icon">🎲</span>
+                    <h3 class="card-title">Auto Glitch</h3>
+                    <p class="card-description">Automatic glitching based on movement patterns</p>
+                </div>
+            </div>
+
+            <!-- Interactive cards -->
+            <div class="interactive-grid">
+                <div class="interactive-card">
+                    <span class="card-icon">🎨</span>
+                    <h3 class="card-title">Digital Distortion</h3>
+                    <p class="card-description">Experience cyberpunk-style digital distortion with multiple layers</p>
+                </div>
+                <div class="interactive-card">
+                    <span class="card-icon">📺</span>
+                    <h3 class="card-title">Scanline Effects</h3>
+                    <p class="card-description">Retro scanline animations that create authentic CRT monitor feel</p>
+                </div>
+                <div class="interactive-card">
+                    <span class="card-icon">💬</span>
+                    <h3 class="card-title">Text Glitch</h3>
+                    <p class="card-description">Custom text that glitches and distorts on cursor movement</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+            <button class="btn" id="toggleEffect">Toggle Effect</button>
+            <button class="btn btn-secondary" id="randomizeColors">Randomize Colors</button>
+            <button class="btn btn-secondary" id="resetSettings">Reset Settings</button>
+            <button class="btn btn-secondary" id="triggerGlitch">Trigger Glitch</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        let config = {
+            glitchIntensity: 5,
+            glitchSpeed: 7,
+            glitchFrequency: 10,
+            triggerMode: 'movement',
+            glitchType: 'rgb',
+            primaryColor: '#00ffff',
+            secondaryColor: '#ff00ff',
+            textContent: 'GLITCH',
+            effectEnabled: true
+        };
+
+        // State
+        let mouseX = 0, mouseY = 0;
+        let lastMouseX = 0, lastMouseY = 0;
+        let isGlitching = false;
+        let glitchTimeout = null;
+        let animationFrame = null;
+
+        // Elements
+        const customCursor = document.getElementById('customCursor');
+        const glitch1 = document.getElementById('glitch1');
+        const glitch2 = document.getElementById('glitch2');
+        const glitch3 = document.getElementById('glitch3');
+        const glitch4 = document.getElementById('glitch4');
+        const glitchText = document.getElementById('glitchText');
+        const scanline1 = document.getElementById('scanline1');
+        const scanline2 = document.getElementById('scanline2');
+        const scanline3 = document.getElementById('scanline3');
+        const glitchIntensityEl = document.getElementById('glitchIntensity');
+        const glitchSpeedEl = document.getElementById('glitchSpeed');
+        const glitchFrequencyEl = document.getElementById('glitchFrequency');
+        const triggerModeEl = document.getElementById('triggerModeSelect');
+        const glitchTypeEl = document.getElementById('glitchTypeSelect');
+        const primaryColorEl = document.getElementById('primaryColor');
+        const secondaryColorEl = document.getElementById('secondaryColor');
+        const textContentEl = document.getElementById('textContent');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            updateGlitchStyles();
+            updateStats();
+            startAnimation();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Mouse events
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mousedown', handleMouseDown);
+            document.addEventListener('mouseup', handleMouseUp);
+            
+            // Control inputs
+            document.getElementById('glitchIntensitySlider').addEventListener('input', (e) => {
+                config.glitchIntensity = parseInt(e.target.value);
+                updateStats();
+            });
+            
+            document.getElementById('glitchSpeedSlider').addEventListener('input', (e) => {
+                config.glitchSpeed = parseInt(e.target.value);
+                updateStats();
+            });
+            
+            document.getElementById('glitchFrequencySlider').addEventListener('input', (e) => {
+                config.glitchFrequency = parseInt(e.target.value);
+                updateStats();
+            });
+            
+            document.getElementById('triggerModeSelect').addEventListener('change', (e) => {
+                config.triggerMode = e.target.value;
+                updateStats();
+            });
+            
+            document.getElementById('glitchTypeSelect').addEventListener('change', (e) => {
+                config.glitchType = e.target.value;
+                updateGlitchStyles();
+            });
+            
+            document.getElementById('primaryColor').addEventListener('input', (e) => {
+                config.primaryColor = e.target.value;
+                updateGlitchStyles();
+            });
+            
+            document.getElementById('secondaryColor').addEventListener('input', (e) => {
+                config.secondaryColor = e.target.value;
+                updateGlitchStyles();
+            });
+            
+            document.getElementById('textContent').addEventListener('input', (e) => {
+                config.textContent = e.target.value.toUpperCase();
+            });
+
+            // Glitch zones
+            document.getElementById('glitchZone1').addEventListener('mouseenter', () => {
+                if (config.triggerMode === 'hover') {
+                    startGlitch();
+                }
+            });
+            
+            document.getElementById('glitchZone1').addEventListener('mouseleave', () => {
+                if (config.triggerMode === 'hover') {
+                    stopGlitch();
+                }
+            });
+            
+            document.getElementById('glitchZone2').addEventListener('click', () => {
+                if (config.triggerMode === 'click') {
+                    triggerGlitch();
+                }
+            });
+            
+            document.getElementById('glitchZone3').addEventListener('mouseenter', () => {
+                if (config.triggerMode === 'hover') {
+                    startGlitch();
+                }
+            });
+            
+            document.getElementById('glitchZone3').addEventListener('mouseleave', () => {
+                if (config.triggerMode === 'hover') {
+                    stopGlitch();
+                }
+            });
+            
+            document.getElementById('glitchZone4').addEventListener('mouseenter', () => {
+                if (config.triggerMode === 'auto') {
+                    startGlitch();
+                }
+            });
+
+            // Action buttons
+            document.getElementById('toggleEffect').addEventListener('click', toggleEffect);
+            document.getElementById('randomizeColors').addEventListener('click', randomizeColors);
+            document.getElementById('resetSettings').addEventListener('click', resetSettings);
+            document.getElementById('triggerGlitch').addEventListener('click', triggerGlitch);
+        }
+
+        // Handle mouse movement
+        function handleMouseMove(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Update custom cursor position
+            customCursor.style.left = mouseX + 'px';
+            customCursor.style.top = mouseY + 'px';
+            
+            // Trigger glitch based on mode
+            if (config.triggerMode === 'movement') {
+                const deltaX = Math.abs(mouseX - lastMouseX);
+                const deltaY = Math.abs(mouseY - lastMouseY);
+                const movementSpeed = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                
+                // Trigger glitch based on movement speed
+                if (movementSpeed > config.glitchSpeed * 5) {
+                    startGlitch();
+                }
+            }
+            
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+        }
+
+        // Handle mouse down
+        function handleMouseDown(e) {
+            if (config.triggerMode === 'click') {
+                triggerGlitch();
+            }
+        }
+
+        // Handle mouse up
+        function handleMouseUp(e) {
+            if (config.triggerMode === 'click') {
+                stopGlitch();
+            }
+        }
+
+        // Start glitch effect
+        function startGlitch() {
+            if (!isGlitching && config.effectEnabled) {
+                isGlitching = true;
+                
+                // Clear any existing timeout
+                if (glitchTimeout) {
+                    clearTimeout(glitchTimeout);
+                }
+                
+                // Create glitch layers
+                createGlitchLayers();
+                
+                // Show glitch text
+                glitchText.classList.add('active');
+                
+                // Auto stop after duration
+                const duration = 200 + Math.random() * 300;
+                glitchTimeout = setTimeout(stopGlitch, duration);
+            }
+        }
+
+        // Stop glitch effect
+        function stopGlitch() {
+            isGlitching = false;
+            
+            // Clear timeout
+            if (glitchTimeout) {
+                clearTimeout(glitchTimeout);
+            }
+            
+            // Hide glitch layers
+            document.querySelectorAll('.glitch-layer').forEach(layer => {
+                layer.classList.remove('active');
+            });
+            
+            // Hide glitch text
+            glitchText.classList.remove('active');
+        }
+
+        // Create glitch layers
+        function createGlitchLayers() {
+            const layers = [glitch1, glitch2, glitch3, glitch4];
+            
+            layers.forEach((layer, index) => {
+                layer.classList.add('active');
+                
+                // Random positioning for each layer
+                const offsetX = (Math.random() - 0.5) * 20;
+                const offsetY = (Math.random() - 0.5) * 20;
+                
+                layer.style.left = (mouseX + offsetX) + 'px';
+                layer.style.top = (mouseY + offsetY) + 'px';
+                layer.style.width = '40px';
+                layer.style.height = '40px';
+            });
+        }
+
+        // Update glitch styles
+        function updateGlitchStyles() {
+            // Update glitch layers
+            const layers = [glitch1, glitch2, glitch3, glitch4];
+            
+            layers.forEach((layer, index) => {
+                layer.style.background = config.primaryColor;
+                layer.style.opacity = (config.glitchIntensity / 10) * 0.8;
+            });
+            
+            // Update glitch text
+            glitchText.style.color = config.primaryColor;
+            glitchText.style.textShadow = `
+                2px 2px 0 ${config.primaryColor},
+                -2px -2px 0 ${config.secondaryColor},
+                2px 2px 0 ${config.secondaryColor}
+            `;
+            
+            // Update scanlines
+            const scanlines = [scanline1, scanline2, scanline3];
+            scanlines.forEach(scanline => {
+                scanline.style.background = config.primaryColor;
+            });
+        }
+
+        // Start animation loop
+        function startAnimation() {
+            function animate() {
+                if (config.effectEnabled) {
+                    // Auto-glitch based on frequency
+                    if (config.triggerMode === 'auto' && Math.random() < config.glitchFrequency / 20) {
+                        startGlitch();
+                    }
+                    
+                    // Update glitch text content
+                    if (config.textContent && Math.random() < 0.1) {
+                        const glitchChars = '!@#$%^&*()_+-=[]{}|;:<>?,./';
+                        let glitchedText = '';
+                        for (let i = 0; i < config.textContent.length; i++) {
+                            if (Math.random() < 0.1) {
+                                glitchedText += glitchChars[Math.floor(Math.random() * glitchChars.length)];
+                            } else {
+                                glitchedText += config.textContent[i];
+                            }
+                        }
+                        glitchText.textContent = glitchedText;
+                    }
+                }
+                
+                animationFrame = requestAnimationFrame(animate);
+            }
+        }
+
+        // Update stats display
+        function updateStats() {
+            const intensityLabels = ['Very Low', 'Low', 'Medium-Low', 'Medium', 'Medium-High', 'High', 'Very High', 'Maximum'];
+            glitchIntensityEl.textContent = intensityLabels[config.glitchIntensity - 1] || 'Custom';
+            
+            const speedLabels = ['Very Slow', 'Slow', 'Medium', 'Fast', 'Very Fast', 'Ultra Fast'];
+            glitchSpeedEl.textContent = speedLabels[config.glitchSpeed - 1] || 'Custom';
+            
+            const frequencyLabels = ['Rare', 'Occasional', 'Frequent', 'Very Frequent', 'Constant', 'Non-Stop'];
+            glitchFrequencyEl.textContent = frequencyLabels[config.glitchFrequency - 1] || 'Custom';
+            
+            const typeLabels = {
+                'rgb': 'RGB Split',
+                'offset': 'Offset Layers',
+                'scanline': 'Scanlines',
+                'text': 'Text Glitch',
+                'combined': 'Combined'
+            };
+            glitchTypeEl.textContent = typeLabels[config.glitchType] || 'Custom';
+            
+            const modeLabels = {
+                'movement': 'Movement Only',
+                'click': 'On Click',
+                'hover': 'On Hover',
+                'auto': 'Auto'
+            };
+            triggerModeEl.textContent = modeLabels[config.triggerMode] || 'Custom';
+        }
+
+        // Toggle effect
+        function toggleEffect() {
+            config.effectEnabled = !config.effectEnabled;
+            const btn = document.getElementById('toggleEffect');
+            btn.textContent = config.effectEnabled ? 'Disable Effect' : 'Enable Effect';
+            
+            if (!config.effectEnabled) {
+                stopGlitch();
+            }
+        }
+
+        // Randomize colors
+        function randomizeColors() {
+            const randomColor = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            config.primaryColor = randomColor();
+            config.secondaryColor = randomColor();
+            
+            document.getElementById('primaryColor').value = config.primaryColor;
+            document.getElementById('secondaryColor').value = config.secondaryColor;
+            
+            updateGlitchStyles();
+        }
+
+        // Reset settings
+        function resetSettings() {
+            config = {
+                glitchIntensity: 5,
+                glitchSpeed: 7,
+                glitchFrequency: 10,
+                triggerMode: 'movement',
+                glitchType: 'rgb',
+                primaryColor: '#00ffff',
+                secondaryColor: '#ff00ff',
+                textContent: 'GLITCH',
+                effectEnabled: true
+            };
+            
+            // Update UI controls
+            document.getElementById('glitchIntensitySlider').value = config.glitchIntensity;
+            document.getElementById('glitchSpeedSlider').value = config.glitchSpeed;
+            document.getElementById('glitchFrequencySlider').value = config.glitchFrequency;
+            document.getElementById('triggerModeSelect').value = config.triggerMode;
+            document.getElementById('glitchTypeSelect').value = config.glitchType;
+            document.getElementById('primaryColor').value = config.primaryColor;
+            document.getElementById('secondaryColor').value = config.secondaryColor;
+            document.getElementById('textContent').value = config.textContent;
+            
+            updateGlitchStyles();
+            updateStats();
+            
+            const btn = document.getElementById('toggleEffect');
+            btn.textContent = 'Disable Effect';
+        }
+
+        // Trigger manual glitch
+        function triggerGlitch() {
+            startGlitch();
+            setTimeout(stopGlitch, 500);
+        }
+
+        // Hide default cursor on leave
+        document.addEventListener('mouseleave', () => {
+            customCursor.style.display = 'none';
+        });
+
+        document.addEventListener('mouseenter', () => {
+            customCursor.style.display = 'block';
+        });
+    </script>
+</body>
+</html>

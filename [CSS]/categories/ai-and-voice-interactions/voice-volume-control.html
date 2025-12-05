@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Volume Control - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            font-family: var(--font-body);
+            color: #ffffff;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            transform: translateX(-5px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        .main-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            gap: 2rem;
+        }
+
+        /* Primary Control Panel */
+        .control-panel {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 3rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.2);
+        }
+
+        .volume-display {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .volume-percentage {
+            font-size: 5rem;
+            font-weight: bold;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            animation: volumeFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes volumeFloat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .volume-label {
+            font-size: 1.2rem;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        /* Main Slider */
+        .slider-container {
+            position: relative;
+            margin: 3rem 0;
+        }
+
+        .slider-track {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slider-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 6px;
+            transition: width 0.1s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            animation: sliderGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes sliderGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(139, 0, 255, 0.7); }
+        }
+
+        .slider-input {
+            position: absolute;
+            top: -8px;
+            left: 0;
+            width: 100%;
+            height: 28px;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .slider-thumb {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            border: 3px solid #0a0a0a;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+            pointer-events: none;
+            transition: transform 0.1s ease;
+        }
+
+        .slider-input:active ~ .slider-thumb {
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+
+        /* Visual Equalizer */
+        .equalizer {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            height: 150px;
+            align-items: flex-end;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+
+        .eq-bar {
+            width: 16px;
+            background: linear-gradient(180deg, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 8px;
+            transition: height 0.1s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            animation: eqBounce 0.5s ease-in-out infinite;
+        }
+
+        .eq-bar:nth-child(1) { animation-delay: 0s; }
+        .eq-bar:nth-child(2) { animation-delay: 0.1s; }
+        .eq-bar:nth-child(3) { animation-delay: 0.2s; }
+        .eq-bar:nth-child(4) { animation-delay: 0.3s; }
+        .eq-bar:nth-child(5) { animation-delay: 0.4s; }
+        .eq-bar:nth-child(6) { animation-delay: 0.3s; }
+        .eq-bar:nth-child(7) { animation-delay: 0.2s; }
+        .eq-bar:nth-child(8) { animation-delay: 0.1s; }
+
+        @keyframes eqBounce {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(1.1); }
+        }
+
+        /* Quick Presets */
+        .presets-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .preset-button {
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(139, 0, 255, 0.1));
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 12px;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .preset-button:hover {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .preset-icon {
+            font-size: 1.5rem;
+        }
+
+        .preset-label {
+            font-size: 0.9rem;
+        }
+
+        /* Additional Controls */
+        .controls-row {
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .control-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(139, 0, 255, 0.1));
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-icon:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            transform: scale(1.1);
+        }
+
+        .control-icon.active {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Channel Controls */
+        .channels-section {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(139, 0, 255, 0.2);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--jazer-purple);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .channel-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .channel-label {
+            min-width: 100px;
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+
+        .channel-slider {
+            flex: 1;
+            position: relative;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .channel-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--jazer-purple), var(--jazer-pink));
+            border-radius: 4px;
+            transition: width 0.1s ease;
+            box-shadow: 0 0 15px rgba(139, 0, 255, 0.5);
+        }
+
+        .channel-value {
+            min-width: 50px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--jazer-purple);
+        }
+
+        /* Level Meter */
+        .level-meter {
+            display: flex;
+            gap: 0.25rem;
+            align-items: flex-end;
+            height: 40px;
+            margin-top: 1rem;
+        }
+
+        .level-segment {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            transition: all 0.1s ease;
+        }
+
+        .level-segment.active {
+            background: var(--jazer-neon-green);
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.6);
+        }
+
+        .level-segment.warning {
+            background: #ffaa00;
+            box-shadow: 0 0 10px rgba(255, 170, 0, 0.6);
+        }
+
+        .level-segment.danger {
+            background: var(--jazer-pink);
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .control-panel {
+                padding: 2rem;
+            }
+
+            .volume-percentage {
+                font-size: 3.5rem;
+            }
+
+            .presets-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .controls-row {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .channel-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .channel-slider {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to AI & Voice Interactions</a>
+    
+    <div class="header">
+        <h1>Voice Volume Control</h1>
+        <p>Professional audio volume control with equalizer visualization and channel management</p>
+    </div>
+
+    <div class="main-container">
+        <div class="control-panel">
+            <div class="volume-display">
+                <div class="volume-percentage" id="volumePercent">75%</div>
+                <div class="volume-label">Master Volume</div>
+            </div>
+
+            <div class="slider-container">
+                <div class="slider-track">
+                    <div class="slider-fill" id="sliderFill"></div>
+                </div>
+                <input type="range" min="0" max="100" value="75" class="slider-input" id="volumeSlider">
+                <div class="slider-thumb" id="sliderThumb"></div>
+            </div>
+
+            <div class="equalizer" id="equalizer">
+                <!-- EQ bars will be generated by JavaScript -->
+            </div>
+
+            <div class="presets-grid">
+                <button class="preset-button" onclick="setVolume(0)">
+                    <div class="preset-icon">🔇</div>
+                    <div class="preset-label">Mute</div>
+                </button>
+                <button class="preset-button" onclick="setVolume(30)">
+                    <div class="preset-icon">🔉</div>
+                    <div class="preset-label">Low</div>
+                </button>
+                <button class="preset-button" onclick="setVolume(70)">
+                    <div class="preset-icon">🔊</div>
+                    <div class="preset-label">Medium</div>
+                </button>
+                <button class="preset-button" onclick="setVolume(100)">
+                    <div class="preset-icon">📢</div>
+                    <div class="preset-label">High</div>
+                </button>
+            </div>
+
+            <div class="controls-row">
+                <div class="control-group">
+                    <div class="control-icon" id="muteBtn" onclick="toggleMute()" title="Mute/Unmute">
+                        🔊
+                    </div>
+                    <div class="control-icon" onclick="decreaseVolume()" title="Decrease Volume">
+                        −
+                    </div>
+                    <div class="control-icon" onclick="increaseVolume()" title="Increase Volume">
+                        +
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-icon" id="boostBtn" onclick="toggleBoost()" title="Volume Boost">
+                        ⚡
+                    </div>
+                    <div class="control-icon" id="normBtn" onclick="toggleNormalization()" title="Auto Normalize">
+                        ⚙️
+                    </div>
+                </div>
+            </div>
+
+            <div class="level-meter" id="levelMeter">
+                <!-- Level segments will be generated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="channels-section">
+            <div class="section-title">Channel Controls</div>
+
+            <div class="channel-row">
+                <div class="channel-label">Voice Input</div>
+                <div class="channel-slider">
+                    <div class="channel-fill" id="inputFill" style="width: 80%"></div>
+                </div>
+                <div class="channel-value" id="inputValue">80%</div>
+            </div>
+
+            <div class="channel-row">
+                <div class="channel-label">Voice Output</div>
+                <div class="channel-slider">
+                    <div class="channel-fill" id="outputFill" style="width: 75%"></div>
+                </div>
+                <div class="channel-value" id="outputValue">75%</div>
+            </div>
+
+            <div class="channel-row">
+                <div class="channel-label">AI Response</div>
+                <div class="channel-slider">
+                    <div class="channel-fill" id="aiFill" style="width: 70%"></div>
+                </div>
+                <div class="channel-value" id="aiValue">70%</div>
+            </div>
+
+            <div class="channel-row">
+                <div class="channel-label">Sound Effects</div>
+                <div class="channel-slider">
+                    <div class="channel-fill" id="sfxFill" style="width: 60%"></div>
+                </div>
+                <div class="channel-value" id="sfxValue">60%</div>
+            </div>
+
+            <div class="channel-row">
+                <div class="channel-label">Notifications</div>
+                <div class="channel-slider">
+                    <div class="channel-fill" id="notifFill" style="width: 85%"></div>
+                </div>
+                <div class="channel-value" id="notifValue">85%</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const volumeSlider = document.getElementById('volumeSlider');
+        const sliderFill = document.getElementById('sliderFill');
+        const sliderThumb = document.getElementById('sliderThumb');
+        const volumePercent = document.getElementById('volumePercent');
+        const equalizer = document.getElementById('equalizer');
+        const levelMeter = document.getElementById('levelMeter');
+        const muteBtn = document.getElementById('muteBtn');
+        
+        let isMuted = false;
+        let isBoostActive = false;
+        let isNormActive = false;
+        let previousVolume = 75;
+
+        // Create EQ bars
+        const eqBars = [];
+        for (let i = 0; i < 8; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'eq-bar';
+            equalizer.appendChild(bar);
+            eqBars.push(bar);
+        }
+
+        // Create level meter segments
+        const levelSegments = [];
+        for (let i = 0; i < 20; i++) {
+            const segment = document.createElement('div');
+            segment.className = 'level-segment';
+            levelMeter.appendChild(segment);
+            levelSegments.push(segment);
+        }
+
+        function updateVolume(value) {
+            volumePercent.textContent = value + '%';
+            sliderFill.style.width = value + '%';
+            sliderThumb.style.left = value + '%';
+            volumeSlider.value = value;
+            
+            updateEqualizer(value);
+            updateLevelMeter(value);
+        }
+
+        function updateEqualizer(volume) {
+            const scaleFactor = volume / 100;
+            eqBars.forEach((bar, index) => {
+                const baseHeight = 30 + Math.sin(Date.now() / 500 + index) * 50;
+                const height = baseHeight * scaleFactor;
+                bar.style.height = Math.max(height, 10) + 'px';
+            });
+        }
+
+        function updateLevelMeter(volume) {
+            const activeCount = Math.ceil((volume / 100) * 20);
+            
+            levelSegments.forEach((segment, index) => {
+                if (index < activeCount) {
+                    segment.style.height = '100%';
+                    if (index < 14) {
+                        segment.className = 'level-segment active';
+                    } else if (index < 17) {
+                        segment.className = 'level-segment active warning';
+                    } else {
+                        segment.className = 'level-segment active danger';
+                    }
+                } else {
+                    segment.style.height = '30%';
+                    segment.className = 'level-segment';
+                }
+            });
+        }
+
+        function setVolume(value) {
+            if (isMuted) {
+                isMuted = false;
+                muteBtn.textContent = '🔊';
+                muteBtn.classList.remove('active');
+            }
+            updateVolume(value);
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            
+            if (isMuted) {
+                previousVolume = parseInt(volumeSlider.value);
+                updateVolume(0);
+                muteBtn.textContent = '🔇';
+                muteBtn.classList.add('active');
+            } else {
+                updateVolume(previousVolume);
+                muteBtn.textContent = '🔊';
+                muteBtn.classList.remove('active');
+            }
+        }
+
+        function increaseVolume() {
+            const newValue = Math.min(parseInt(volumeSlider.value) + 5, 100);
+            setVolume(newValue);
+        }
+
+        function decreaseVolume() {
+            const newValue = Math.max(parseInt(volumeSlider.value) - 5, 0);
+            setVolume(newValue);
+        }
+
+        function toggleBoost() {
+            isBoostActive = !isBoostActive;
+            const boostBtn = document.getElementById('boostBtn');
+            
+            if (isBoostActive) {
+                boostBtn.classList.add('active');
+                const currentValue = parseInt(volumeSlider.value);
+                setVolume(Math.min(currentValue + 20, 100));
+            } else {
+                boostBtn.classList.remove('active');
+                const currentValue = parseInt(volumeSlider.value);
+                setVolume(Math.max(currentValue - 20, 0));
+            }
+        }
+
+        function toggleNormalization() {
+            isNormActive = !isNormActive;
+            const normBtn = document.getElementById('normBtn');
+            
+            if (isNormActive) {
+                normBtn.classList.add('active');
+            } else {
+                normBtn.classList.remove('active');
+            }
+        }
+
+        // Slider event listener
+        volumeSlider.addEventListener('input', (e) => {
+            if (isMuted) {
+                isMuted = false;
+                muteBtn.textContent = '🔊';
+                muteBtn.classList.remove('active');
+            }
+            updateVolume(e.target.value);
+        });
+
+        // Animate equalizer continuously
+        setInterval(() => {
+            const volume = parseInt(volumeSlider.value);
+            updateEqualizer(volume);
+        }, 100);
+
+        // Initialize
+        updateVolume(75);
+
+        // Simulate dynamic channel controls
+        const channelSliders = [
+            { fill: 'inputFill', value: 'inputValue', current: 80 },
+            { fill: 'outputFill', value: 'outputValue', current: 75 },
+            { fill: 'aiFill', value: 'aiValue', current: 70 },
+            { fill: 'sfxFill', value: 'sfxValue', current: 60 },
+            { fill: 'notifFill', value: 'notifValue', current: 85 }
+        ];
+
+        // Add interactivity to channel sliders
+        document.querySelectorAll('.channel-slider').forEach((slider, index) => {
+            slider.style.cursor = 'pointer';
+            slider.addEventListener('click', (e) => {
+                const rect = slider.getBoundingClientRect();
+                const percent = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+                const channel = channelSliders[index];
+                
+                channel.current = percent;
+                document.getElementById(channel.fill).style.width = percent + '%';
+                document.getElementById(channel.value).textContent = percent + '%';
+            });
+        });
+    </script>
+</body>
+</html>

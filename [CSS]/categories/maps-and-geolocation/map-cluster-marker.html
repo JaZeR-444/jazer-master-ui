@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Map Cluster Marker - JaZeR Maps Patterns</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:var(--font-body);background:var(--bg-dark);color:var(--text-light);margin:0;padding:1.25rem}
+    .back-button{display:inline-flex;align-items:center;gap:.5rem;color:var(--text-gray);text-decoration:none;font-family:var(--font-secondary);font-weight:600;padding:.5rem 1rem;border-radius:8px;border:1px solid var(--border-default);background:var(--bg-card)}
+    .back-button:hover{border-color:var(--jazer-cyan);color:var(--jazer-cyan)}
+
+    .hero{text-align:center;margin:1rem 0}
+    .hero h1{font-size:clamp(1.75rem,3.5vw,2.5rem);background:var(--gradient-text);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .hero p{color:var(--text-gray);max-width:760px;margin:.4rem auto}
+
+    .panel{max-width:1100px;margin:0 auto;background:var(--bg-card);border-radius:12px;padding:1rem;border:2px solid var(--border-default)}
+    .controls{display:flex;gap:.5rem;align-items:center;margin-bottom:.5rem}
+    .map-area{height:500px;border-radius:12px;border:1px solid var(--border-default);background:linear-gradient(90deg, rgba(0,0,0,0.35), rgba(0,0,0,0.45));position:relative;overflow:hidden}
+
+    .cluster{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;border:4px solid rgba(0,0,0,0.3);cursor:pointer}
+    .cluster.small{width:36px;height:36px}
+    .muted{color:var(--text-gray)}
+    .small{font-size:.85rem}
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to Maps & Geolocation</a>
+  <header class="hero">
+    <h1>Map Cluster Marker</h1>
+    <p>Cluster nearby markers into grouped counts. Click to expand cluster or zoom to group. Demonstrates cluster sizing and color based on density.</p>
+  </header>
+
+  <main class="panel">
+    <div class="controls"><label class="small">Cluster threshold</label><input id="threshold" type="range" min="2" max="12" value="4" style="flex:1"><div class="small muted" id="thresholdVal">4</div></div>
+    <div class="map-area" id="mapArea"></div>
+  </main>
+
+  <script>
+    const mapArea = document.getElementById('mapArea'); const threshold = document.getElementById('threshold'); const thresholdVal = document.getElementById('thresholdVal');
+    const markers = Array.from({length:50},(_,i)=>({ id:i+1, x: Math.random()*90+5, y: Math.random()*80+5 }));
+
+    function clusterMarkers(th){ const clusters = []; const used = new Set(); markers.forEach(m=>{ if(used.has(m.id)) return; const near = markers.filter(o => Math.hypot(o.x-m.x, o.y-m.y) < (th*6)); near.forEach(n=>used.add(n.id)); clusters.push({ count: near.length, x: near.reduce((s,p)=>s+p.x,0)/near.length, y: near.reduce((s,p)=>s+p.y,0)/near.length, members: near }); }); return clusters; }
+
+    function render(){ const th = Number(threshold.value); thresholdVal.textContent = th; const clusters = clusterMarkers(th); mapArea.innerHTML = ''; clusters.forEach(c =>{ const el = document.createElement('div'); const size = Math.min(64, 24 + Math.round(c.count*6)); const color = c.count > 8 ? 'var(--jazer-pink)' : c.count > 4 ? 'var(--jazer-purple)' : 'var(--jazer-cyan)'; el.className = 'cluster'; el.style.width = size + 'px'; el.style.height = size + 'px'; el.style.left = c.x + '%'; el.style.top = c.y + '%'; el.style.position = 'absolute'; el.style.transform = 'translate(-50%, -50%)'; el.style.background = color; el.textContent = c.count > 1 ? c.count : '•'; el.title = `${c.count} markers`; el.addEventListener('click', ()=>{ if(c.count>1){ mapArea.innerHTML = ''; c.members.forEach(m=>{ const mark = document.createElement('div'); mark.className='cluster small'; mark.style.left = m.x + '%'; mark.style.top = m.y + '%'; mark.style.background = 'rgba(255,255,255,0.04)'; mark.style.transform = 'translate(-50%,-50%)'; mark.textContent = '•'; mapArea.appendChild(mark); }); } }); mapArea.appendChild(el); }); }
+
+    threshold.addEventListener('input', render); render();
+  </script>
+</body>
+</html>

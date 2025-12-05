@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Component Tree Navigator - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 2rem;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid rgba(147, 51, 234, 0.3);
+            background: rgba(147, 51, 234, 0.05);
+            color: var(--jazer-purple);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-family: var(--font-secondary);
+        }
+
+        .back-button:hover {
+            border-color: var(--jazer-purple);
+            background: rgba(147, 51, 234, 0.15);
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(147, 51, 234, 0.08) 50%, rgba(236, 72, 153, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(147, 51, 234, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr 380px;
+            }
+        }
+
+        .tree-container {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: border-color 0.3s ease;
+        }
+
+        .tree-container:hover {
+            border-color: var(--jazer-purple);
+        }
+
+        .tree-header {
+            background: rgba(147, 51, 234, 0.1);
+            border-bottom: 2px solid var(--border-default);
+            padding: 1rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tree-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--jazer-purple);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tree-stats {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+        }
+
+        .tree-controls {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem 1.25rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 2px solid var(--border-default);
+        }
+
+        .search-box {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            color: var(--text-light);
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--jazer-purple);
+            box-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
+        }
+
+        .filter-btn {
+            background: rgba(147, 51, 234, 0.1);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            color: var(--text-gray);
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+        }
+
+        .filter-btn:hover {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+            background: rgba(147, 51, 234, 0.2);
+        }
+
+        .filter-btn.active {
+            background: rgba(147, 51, 234, 0.2);
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+            box-shadow: 0 0 8px rgba(147, 51, 234, 0.3);
+        }
+
+        .tree-content {
+            padding: 1.5rem;
+            max-height: 600px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+        }
+
+        .tree-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .tree-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .tree-content::-webkit-scrollbar-thumb {
+            background: var(--jazer-purple);
+            border-radius: 4px;
+        }
+
+        .breadcrumb {
+            background: rgba(147, 51, 234, 0.05);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        .breadcrumb-item {
+            color: var(--jazer-purple);
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .breadcrumb-item:hover {
+            color: var(--jazer-cyan);
+        }
+
+        .breadcrumb-separator {
+            color: var(--text-muted);
+        }
+
+        .tree-node {
+            margin-bottom: 0.25rem;
+        }
+
+        .tree-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0.875rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            position: relative;
+        }
+
+        .tree-item:hover {
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .tree-item.selected {
+            background: rgba(147, 51, 234, 0.2);
+            border-left: 3px solid var(--jazer-purple);
+            box-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
+        }
+
+        .tree-item.expanded .tree-toggle::before {
+            transform: rotate(90deg);
+        }
+
+        .tree-item.hidden {
+            display: none;
+        }
+
+        .tree-toggle {
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.5rem;
+            color: var(--text-gray);
+            transition: all 0.2s ease;
+        }
+
+        .tree-toggle::before {
+            content: '▶';
+            font-size: 0.7rem;
+            transition: transform 0.2s ease;
+        }
+
+        .tree-toggle.empty::before {
+            content: '';
+        }
+
+        .tree-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .tree-label {
+            flex: 1;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .tree-badge {
+            background: var(--gradient-accent);
+            color: var(--text-light);
+            font-size: 0.65rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            font-weight: 700;
+            box-shadow: 0 0 8px rgba(147, 51, 234, 0.3);
+            margin-left: 0.5rem;
+        }
+
+        .tree-meta {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-left: 0.5rem;
+        }
+
+        .tree-children {
+            margin-left: 2rem;
+            border-left: 2px solid rgba(147, 51, 234, 0.2);
+            padding-left: 0.75rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .tree-children.expanded {
+            max-height: 2000px;
+        }
+
+        .component-info {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        .info-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .info-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--jazer-purple);
+            margin-bottom: 0.5rem;
+            font-family: var(--font-secondary);
+        }
+
+        .info-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-section {
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-section-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            margin-bottom: 0.75rem;
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-default);
+            font-size: 0.8rem;
+        }
+
+        .info-detail:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: var(--text-gray);
+        }
+
+        .info-value {
+            color: var(--jazer-purple);
+            font-weight: 600;
+        }
+
+        .props-list {
+            list-style: none;
+        }
+
+        .prop-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-default);
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .prop-name {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        .prop-type {
+            color: var(--jazer-pink);
+            margin-left: 0.5rem;
+        }
+
+        .prop-default {
+            color: var(--text-muted);
+            margin-left: 0.5rem;
+        }
+
+        .performance-metrics {
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            font-size: 0.75rem;
+        }
+
+        .metric-label {
+            color: var(--text-gray);
+        }
+
+        .metric-value {
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+
+        .metric-value.good {
+            color: #22c55e;
+        }
+
+        .metric-value.warning {
+            color: var(--jazer-yellow);
+        }
+
+        .metric-value.critical {
+            color: var(--jazer-pink);
+        }
+
+        .metric-bar {
+            height: 4px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 2px;
+            margin-top: 0.25rem;
+            overflow: hidden;
+        }
+
+        .metric-bar-fill {
+            height: 100%;
+            background: var(--jazer-purple);
+            transition: width 0.3s ease;
+        }
+
+        .component-type-layout {
+            color: var(--jazer-purple);
+        }
+
+        .component-type-ui {
+            color: var(--jazer-cyan);
+        }
+
+        .component-type-data {
+            color: var(--jazer-pink);
+        }
+
+        .component-type-util {
+            color: var(--text-gray);
+        }
+
+        .component-type-hook {
+            color: var(--jazer-yellow);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.6rem;
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            background: rgba(147, 51, 234, 0.1);
+            color: var(--jazer-purple);
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+        }
+
+        .action-btn:hover {
+            background: rgba(147, 51, 234, 0.2);
+            border-color: var(--jazer-purple);
+            box-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
+        }
+
+        .status-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-purple);
+            font-weight: 600;
+        }
+
+        .status-indicator-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-purple);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--jazer-purple); }
+            50% { opacity: 0.5; box-shadow: 0 0 8px var(--jazer-purple); }
+        }
+
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .example-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .example-card:hover {
+            border-color: var(--jazer-purple);
+            box-shadow: 0 8px 24px rgba(147, 51, 234, 0.2);
+            transform: translateY(-4px);
+        }
+
+        .example-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            margin-bottom: 1rem;
+            font-family: var(--font-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+
+            .tree-controls {
+                flex-direction: column;
+            }
+
+            .filter-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to DevTools</a>
+
+    <header class="hero">
+        <h1>Component Tree Navigator</h1>
+        <p class="hero-description">Interactive component hierarchy visualization with real-time search, filtering, and performance metrics for React applications</p>
+    </header>
+
+    <div class="main-grid">
+        <div class="tree-container">
+            <div class="tree-header">
+                <h3 class="tree-title">Component Hierarchy</h3>
+                <div class="tree-stats">
+                    <span id="totalComponents">18</span> components
+                </div>
+            </div>
+
+            <div class="tree-controls">
+                <input type="text" class="search-box" id="searchBox" placeholder="Search components...">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="layout">Layout</button>
+                <button class="filter-btn" data-filter="ui">UI</button>
+                <button class="filter-btn" data-filter="data">Data</button>
+            </div>
+
+            <div class="tree-content">
+                <div class="breadcrumb" id="breadcrumb">
+                    <span class="breadcrumb-item" data-path="">Root</span>
+                </div>
+
+                <div class="tree-node">
+                    <div class="tree-item expanded" 
+                         data-component="App" 
+                         data-type="Layout" 
+                         data-children="4" 
+                         data-props="0"
+                         data-renders="1"
+                         data-memory="2.4">
+                        <div class="tree-toggle"></div>
+                        <div class="tree-icon component-type-layout">🏗️</div>
+                        <div class="tree-label">App</div>
+                        <div class="tree-badge">Root</div>
+                    </div>
+                    <div class="tree-children expanded">
+                        <!-- Header Section -->
+                        <div class="tree-node">
+                            <div class="tree-item expanded" 
+                                 data-component="Header" 
+                                 data-type="Layout" 
+                                 data-children="3" 
+                                 data-props="2"
+                                 data-renders="3"
+                                 data-memory="1.8">
+                                <div class="tree-toggle"></div>
+                                <div class="tree-icon component-type-layout">📋</div>
+                                <div class="tree-label">Header</div>
+                                <div class="tree-meta">2 props</div>
+                            </div>
+                            <div class="tree-children expanded">
+                                <div class="tree-node">
+                                    <div class="tree-item" 
+                                         data-component="Logo" 
+                                         data-type="UI" 
+                                         data-children="0" 
+                                         data-props="3"
+                                         data-renders="2"
+                                         data-memory="0.5">
+                                        <div class="tree-toggle empty"></div>
+                                        <div class="tree-icon component-type-ui">🖼️</div>
+                                        <div class="tree-label">Logo</div>
+                                    </div>
+                                </div>
+                                <div class="tree-node">
+                                    <div class="tree-item expanded" 
+                                         data-component="Navigation" 
+                                         data-type="UI" 
+                                         data-children="2" 
+                                         data-props="4"
+                                         data-renders="5"
+                                         data-memory="1.2">
+                                        <div class="tree-toggle"></div>
+                                        <div class="tree-icon component-type-ui">🧭</div>
+                                        <div class="tree-label">Navigation</div>
+                                        <div class="tree-meta">4 props</div>
+                                    </div>
+                                    <div class="tree-children expanded">
+                                        <div class="tree-node">
+                                            <div class="tree-item" 
+                                                 data-component="NavLink" 
+                                                 data-type="UI" 
+                                                 data-children="0" 
+                                                 data-props="3"
+                                                 data-renders="4"
+                                                 data-memory="0.3">
+                                                <div class="tree-toggle empty"></div>
+                                                <div class="tree-icon component-type-ui">🔗</div>
+                                                <div class="tree-label">NavLink</div>
+                                                <div class="tree-badge">×5</div>
+                                            </div>
+                                        </div>
+                                        <div class="tree-node">
+                                            <div class="tree-item" 
+                                                 data-component="ThemeToggle" 
+                                                 data-type="UI" 
+                                                 data-children="0" 
+                                                 data-props="1"
+                                                 data-renders="8"
+                                                 data-memory="0.6">
+                                                <div class="tree-toggle empty"></div>
+                                                <div class="tree-icon component-type-ui">🌓</div>
+                                                <div class="tree-label">ThemeToggle</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tree-node">
+                                    <div class="tree-item" 
+                                         data-component="SearchBar" 
+                                         data-type="UI" 
+                                         data-children="0" 
+                                         data-props="5"
+                                         data-renders="12"
+                                         data-memory="0.9">
+                                        <div class="tree-toggle empty"></div>
+                                        <div class="tree-icon component-type-ui">🔍</div>
+                                        <div class="tree-label">SearchBar</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main Content Section -->
+                        <div class="tree-node">
+                            <div class="tree-item expanded selected" 
+                                 data-component="MainContent" 
+                                 data-type="Layout" 
+                                 data-children="2" 
+                                 data-props="1"
+                                 data-renders="2"
+                                 data-memory="3.5">
+                                <div class="tree-toggle"></div>
+                                <div class="tree-icon component-type-layout">📄</div>
+                                <div class="tree-label">MainContent</div>
+                            </div>
+                            <div class="tree-children expanded">
+                                <div class="tree-node">
+                                    <div class="tree-item expanded" 
+                                         data-component="Dashboard" 
+                                         data-type="Data" 
+                                         data-children="3" 
+                                         data-props="6"
+                                         data-renders="7"
+                                         data-memory="5.2">
+                                        <div class="tree-toggle"></div>
+                                        <div class="tree-icon component-type-data">📊</div>
+                                        <div class="tree-label">Dashboard</div>
+                                        <div class="tree-meta">6 props</div>
+                                    </div>
+                                    <div class="tree-children expanded">
+                                        <div class="tree-node">
+                                            <div class="tree-item" 
+                                                 data-component="MetricCard" 
+                                                 data-type="Data" 
+                                                 data-children="0" 
+                                                 data-props="4"
+                                                 data-renders="6"
+                                                 data-memory="1.1">
+                                                <div class="tree-toggle empty"></div>
+                                                <div class="tree-icon component-type-data">📈</div>
+                                                <div class="tree-label">MetricCard</div>
+                                                <div class="tree-badge">×4</div>
+                                            </div>
+                                        </div>
+                                        <div class="tree-node">
+                                            <div class="tree-item" 
+                                                 data-component="Chart" 
+                                                 data-type="Data" 
+                                                 data-children="0" 
+                                                 data-props="7"
+                                                 data-renders="4"
+                                                 data-memory="2.8">
+                                                <div class="tree-toggle empty"></div>
+                                                <div class="tree-icon component-type-data">📉</div>
+                                                <div class="tree-label">Chart</div>
+                                            </div>
+                                        </div>
+                                        <div class="tree-node">
+                                            <div class="tree-item" 
+                                                 data-component="DataTable" 
+                                                 data-type="Data" 
+                                                 data-children="0" 
+                                                 data-props="8"
+                                                 data-renders="10"
+                                                 data-memory="4.3">
+                                                <div class="tree-toggle empty"></div>
+                                                <div class="tree-icon component-type-data">📋</div>
+                                                <div class="tree-label">DataTable</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="tree-node">
+                                    <div class="tree-item expanded" 
+                                         data-component="Sidebar" 
+                                         data-type="Layout" 
+                                         data-children="2" 
+                                         data-props="3"
+                                         data-renders="3"
+                                         data-memory="1.6">
+                                        <div class="tree-toggle"></div>
+                                        <div class="tree-icon component-type-layout">📑</div>
+                                        <div class="tree-label">Sidebar</div>
+                                    </div>
+                                    <div class="tree-children expanded">
+                                        <div class="tree-node">
+                                            <div class="tree-item" 
+                                                 data-component="FilterPanel" 
+                                                 data-type="UI" 
+                                                 data-children="0" 
+                                                 data-props="5"
+                                                 data-renders="9"
+                                                 data-memory="1.4">
+                                                <div class="tree-toggle empty"></div>
+                                                <div class="tree-icon component-type-ui">🎛️</div>
+                                                <div class="tree-label">FilterPanel</div>
+                                            </div>
+                                        </div>
+                                        <div class="tree-node">
+                                            <div class="tree-item" 
+                                                 data-component="ActivityFeed" 
+                                                 data-type="Data" 
+                                                 data-children="0" 
+                                                 data-props="2"
+                                                 data-renders="15"
+                                                 data-memory="2.9">
+                                                <div class="tree-toggle empty"></div>
+                                                <div class="tree-icon component-type-data">📰</div>
+                                                <div class="tree-label">ActivityFeed</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal Section -->
+                        <div class="tree-node">
+                            <div class="tree-item" 
+                                 data-component="Modal" 
+                                 data-type="UI" 
+                                 data-children="0" 
+                                 data-props="4"
+                                 data-renders="1"
+                                 data-memory="0.8">
+                                <div class="tree-toggle empty"></div>
+                                <div class="tree-icon component-type-ui">🪟</div>
+                                <div class="tree-label">Modal</div>
+                            </div>
+                        </div>
+
+                        <!-- Footer Section -->
+                        <div class="tree-node">
+                            <div class="tree-item" 
+                                 data-component="Footer" 
+                                 data-type="Layout" 
+                                 data-children="0" 
+                                 data-props="1"
+                                 data-renders="1"
+                                 data-memory="0.4">
+                                <div class="tree-toggle empty"></div>
+                                <div class="tree-icon component-type-layout">📄</div>
+                                <div class="tree-label">Footer</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <aside class="component-info">
+            <div class="info-header">
+                <h3 class="info-title" id="infoTitle">MainContent</h3>
+                <p class="info-subtitle" id="infoSubtitle">Layout Component</p>
+            </div>
+
+            <div class="info-section">
+                <div class="info-section-title">Details</div>
+                <div class="info-detail">
+                    <span class="info-label">Type:</span>
+                    <span class="info-value" id="detailType">Layout</span>
+                </div>
+                <div class="info-detail">
+                    <span class="info-label">Children:</span>
+                    <span class="info-value" id="detailChildren">2 components</span>
+                </div>
+                <div class="info-detail">
+                    <span class="info-label">Props:</span>
+                    <span class="info-value" id="detailProps">1 property</span>
+                </div>
+                <div class="info-detail">
+                    <span class="info-label">Path:</span>
+                    <span class="info-value" id="detailPath">App → MainContent</span>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="info-section-title">Props</div>
+                <ul class="props-list" id="propsList">
+                    <li class="prop-item">
+                        <span class="prop-name">className</span>
+                        <span class="prop-type">string</span>
+                        <span class="prop-default">= "main-content"</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="performance-metrics">
+                <div class="info-section-title">Performance</div>
+                <div class="metric-item">
+                    <span class="metric-label">Render Count:</span>
+                    <span class="metric-value good" id="metricRenders">2</span>
+                </div>
+                <div class="metric-bar">
+                    <div class="metric-bar-fill" id="renderBar" style="width: 20%; background: #22c55e;"></div>
+                </div>
+
+                <div class="metric-item">
+                    <span class="metric-label">Memory Usage:</span>
+                    <span class="metric-value good" id="metricMemory">3.5 MB</span>
+                </div>
+                <div class="metric-bar">
+                    <div class="metric-bar-fill" id="memoryBar" style="width: 35%; background: #22c55e;"></div>
+                </div>
+
+                <div class="metric-item">
+                    <span class="metric-label">Update Time:</span>
+                    <span class="metric-value good" id="metricTime">8.2 ms</span>
+                </div>
+                <div class="metric-bar">
+                    <div class="metric-bar-fill" id="timeBar" style="width: 8%; background: #22c55e;"></div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn" id="inspectBtn">Inspect</button>
+                <button class="action-btn" id="editBtn">Edit</button>
+                <button class="action-btn" id="deleteBtn">Delete</button>
+            </div>
+        </aside>
+    </div>
+
+    <div class="examples-grid">
+        <div class="example-card">
+            <h4 class="example-title">Component Types</h4>
+            <div class="info-section">
+                <div class="info-detail">
+                    <span>🏗️ Layout</span>
+                    <span class="component-type-layout">5 components</span>
+                </div>
+                <div class="info-detail">
+                    <span>🎨 UI Component</span>
+                    <span class="component-type-ui">8 components</span>
+                </div>
+                <div class="info-detail">
+                    <span>📊 Data Component</span>
+                    <span class="component-type-data">5 components</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="example-card">
+            <h4 class="example-title">Tree Statistics</h4>
+            <div class="info-section">
+                <div class="info-detail">
+                    <span>Total Depth:</span>
+                    <span class="info-value">5 levels</span>
+                </div>
+                <div class="info-detail">
+                    <span>Total Props:</span>
+                    <span class="info-value">68 properties</span>
+                </div>
+                <div class="info-detail">
+                    <span>Total Memory:</span>
+                    <span class="info-value">32.6 MB</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="example-card">
+            <h4 class="example-title">Hot Components</h4>
+            <div class="info-section">
+                <div class="info-detail">
+                    <span>ActivityFeed</span>
+                    <span class="metric-value warning">15 renders</span>
+                </div>
+                <div class="info-detail">
+                    <span>SearchBar</span>
+                    <span class="metric-value warning">12 renders</span>
+                </div>
+                <div class="info-detail">
+                    <span>DataTable</span>
+                    <span class="metric-value warning">10 renders</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="status-bar">
+        <div class="status-info">
+            <div class="status-item">
+                <span>Selected:</span>
+                <span id="statusSelected">MainContent</span>
+            </div>
+            <div class="status-item">
+                <span>Total Components:</span>
+                <span id="statusTotal">18</span>
+            </div>
+            <div class="status-item">
+                <span>Visible:</span>
+                <span id="statusVisible">18</span>
+            </div>
+            <div class="status-item">
+                <span>Filter:</span>
+                <span id="statusFilter">All</span>
+            </div>
+        </div>
+        <div class="status-indicator-group">
+            <span class="status-dot"></span>
+            <span style="font-size: 0.75rem; color: var(--text-gray);">Tree Ready</span>
+        </div>
+    </footer>
+
+    <script>
+        // State management
+        const state = {
+            selectedComponent: 'MainContent',
+            filter: 'all',
+            searchQuery: '',
+            totalComponents: 18,
+            visibleComponents: 18
+        };
+
+        // DOM references
+        const treeItems = document.querySelectorAll('.tree-item');
+        const searchBox = document.getElementById('searchBox');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const breadcrumb = document.getElementById('breadcrumb');
+
+        // Info panel elements
+        const infoTitle = document.getElementById('infoTitle');
+        const infoSubtitle = document.getElementById('infoSubtitle');
+        const detailType = document.getElementById('detailType');
+        const detailChildren = document.getElementById('detailChildren');
+        const detailProps = document.getElementById('detailProps');
+        const detailPath = document.getElementById('detailPath');
+        const propsList = document.getElementById('propsList');
+        const metricRenders = document.getElementById('metricRenders');
+        const metricMemory = document.getElementById('metricMemory');
+        const metricTime = document.getElementById('metricTime');
+        const renderBar = document.getElementById('renderBar');
+        const memoryBar = document.getElementById('memoryBar');
+        const timeBar = document.getElementById('timeBar');
+
+        // Status bar elements
+        const statusSelected = document.getElementById('statusSelected');
+        const statusVisible = document.getElementById('statusVisible');
+        const statusFilter = document.getElementById('statusFilter');
+
+        // Component data with props
+        const componentData = {
+            'App': {
+                props: [],
+                path: 'App'
+            },
+            'Header': {
+                props: [
+                    { name: 'title', type: 'string', default: '"My App"' },
+                    { name: 'sticky', type: 'boolean', default: 'true' }
+                ],
+                path: 'App → Header'
+            },
+            'Logo': {
+                props: [
+                    { name: 'src', type: 'string', default: '"/logo.png"' },
+                    { name: 'alt', type: 'string', default: '"Logo"' },
+                    { name: 'size', type: 'number', default: '40' }
+                ],
+                path: 'App → Header → Logo'
+            },
+            'Navigation': {
+                props: [
+                    { name: 'items', type: 'array', default: '[]' },
+                    { name: 'activeRoute', type: 'string', default: '"/"' },
+                    { name: 'orientation', type: 'string', default: '"horizontal"' },
+                    { name: 'onNavigate', type: 'function', default: '' }
+                ],
+                path: 'App → Header → Navigation'
+            },
+            'NavLink': {
+                props: [
+                    { name: 'to', type: 'string', default: '""' },
+                    { name: 'children', type: 'ReactNode', default: '' },
+                    { name: 'active', type: 'boolean', default: 'false' }
+                ],
+                path: 'App → Header → Navigation → NavLink'
+            },
+            'ThemeToggle': {
+                props: [
+                    { name: 'theme', type: 'string', default: '"light"' }
+                ],
+                path: 'App → Header → Navigation → ThemeToggle'
+            },
+            'SearchBar': {
+                props: [
+                    { name: 'value', type: 'string', default: '""' },
+                    { name: 'onChange', type: 'function', default: '' },
+                    { name: 'placeholder', type: 'string', default: '"Search..."' },
+                    { name: 'debounceMs', type: 'number', default: '300' },
+                    { name: 'autoFocus', type: 'boolean', default: 'false' }
+                ],
+                path: 'App → Header → SearchBar'
+            },
+            'MainContent': {
+                props: [
+                    { name: 'className', type: 'string', default: '"main-content"' }
+                ],
+                path: 'App → MainContent'
+            },
+            'Dashboard': {
+                props: [
+                    { name: 'data', type: 'array', default: '[]' },
+                    { name: 'loading', type: 'boolean', default: 'false' },
+                    { name: 'error', type: 'string', default: 'null' },
+                    { name: 'onRefresh', type: 'function', default: '' },
+                    { name: 'refreshInterval', type: 'number', default: '30000' },
+                    { name: 'layout', type: 'string', default: '"grid"' }
+                ],
+                path: 'App → MainContent → Dashboard'
+            },
+            'MetricCard': {
+                props: [
+                    { name: 'title', type: 'string', default: '""' },
+                    { name: 'value', type: 'number', default: '0' },
+                    { name: 'change', type: 'number', default: '0' },
+                    { name: 'icon', type: 'ReactNode', default: '' }
+                ],
+                path: 'App → MainContent → Dashboard → MetricCard'
+            },
+            'Chart': {
+                props: [
+                    { name: 'type', type: 'string', default: '"line"' },
+                    { name: 'data', type: 'array', default: '[]' },
+                    { name: 'xAxis', type: 'string', default: '""' },
+                    { name: 'yAxis', type: 'string', default: '""' },
+                    { name: 'colors', type: 'array', default: '[]' },
+                    { name: 'animated', type: 'boolean', default: 'true' },
+                    { name: 'legend', type: 'boolean', default: 'true' }
+                ],
+                path: 'App → MainContent → Dashboard → Chart'
+            },
+            'DataTable': {
+                props: [
+                    { name: 'columns', type: 'array', default: '[]' },
+                    { name: 'data', type: 'array', default: '[]' },
+                    { name: 'sortable', type: 'boolean', default: 'true' },
+                    { name: 'filterable', type: 'boolean', default: 'true' },
+                    { name: 'pageSize', type: 'number', default: '10' },
+                    { name: 'onRowClick', type: 'function', default: '' },
+                    { name: 'loading', type: 'boolean', default: 'false' },
+                    { name: 'emptyMessage', type: 'string', default: '"No data"' }
+                ],
+                path: 'App → MainContent → Dashboard → DataTable'
+            },
+            'Sidebar': {
+                props: [
+                    { name: 'collapsed', type: 'boolean', default: 'false' },
+                    { name: 'width', type: 'number', default: '280' },
+                    { name: 'position', type: 'string', default: '"left"' }
+                ],
+                path: 'App → MainContent → Sidebar'
+            },
+            'FilterPanel': {
+                props: [
+                    { name: 'filters', type: 'array', default: '[]' },
+                    { name: 'activeFilters', type: 'object', default: '{}' },
+                    { name: 'onChange', type: 'function', default: '' },
+                    { name: 'onReset', type: 'function', default: '' },
+                    { name: 'collapsible', type: 'boolean', default: 'true' }
+                ],
+                path: 'App → MainContent → Sidebar → FilterPanel'
+            },
+            'ActivityFeed': {
+                props: [
+                    { name: 'activities', type: 'array', default: '[]' },
+                    { name: 'maxItems', type: 'number', default: '50' }
+                ],
+                path: 'App → MainContent → Sidebar → ActivityFeed'
+            },
+            'Modal': {
+                props: [
+                    { name: 'open', type: 'boolean', default: 'false' },
+                    { name: 'onClose', type: 'function', default: '' },
+                    { name: 'title', type: 'string', default: '""' },
+                    { name: 'size', type: 'string', default: '"medium"' }
+                ],
+                path: 'App → Modal'
+            },
+            'Footer': {
+                props: [
+                    { name: 'copyright', type: 'string', default: '"2024"' }
+                ],
+                path: 'App → Footer'
+            }
+        };
+
+        // Tree interaction
+        treeItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                const componentName = item.dataset.component;
+                state.selectedComponent = componentName;
+                
+                // Update selection
+                treeItems.forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+                
+                // Update info panel
+                updateInfoPanel(item);
+                
+                // Toggle expansion
+                const toggle = item.querySelector('.tree-toggle');
+                const children = item.parentElement.querySelector('.tree-children');
+                
+                if (toggle && children && !toggle.classList.contains('empty')) {
+                    item.classList.toggle('expanded');
+                    children.classList.toggle('expanded');
+                }
+                
+                // Update breadcrumb
+                updateBreadcrumb(componentName);
+                
+                // Update status
+                statusSelected.textContent = componentName;
+            });
+        });
+
+        // Update info panel
+        function updateInfoPanel(item) {
+            const componentName = item.dataset.component;
+            const componentType = item.dataset.type;
+            const componentChildren = item.dataset.children;
+            const componentProps = item.dataset.props;
+            const renders = item.dataset.renders;
+            const memory = item.dataset.memory;
+            
+            // Update basic info
+            infoTitle.textContent = componentName;
+            infoSubtitle.textContent = componentType + ' Component';
+            detailType.textContent = componentType;
+            detailChildren.textContent = componentChildren + (componentChildren === '1' ? ' component' : ' components');
+            detailProps.textContent = componentProps + (componentProps === '1' ? ' property' : ' properties');
+            
+            // Update path
+            if (componentData[componentName]) {
+                detailPath.textContent = componentData[componentName].path;
+                
+                // Update props list
+                const props = componentData[componentName].props;
+                if (props.length > 0) {
+                    propsList.innerHTML = props.map(prop => `
+                        <li class="prop-item">
+                            <span class="prop-name">${prop.name}</span>
+                            <span class="prop-type">${prop.type}</span>
+                            ${prop.default ? `<span class="prop-default">= ${prop.default}</span>` : ''}
+                        </li>
+                    `).join('');
+                } else {
+                    propsList.innerHTML = '<li class="prop-item" style="color: var(--text-muted);">No props</li>';
+                }
+            }
+            
+            // Update performance metrics
+            const renderCount = parseInt(renders);
+            const memoryUsage = parseFloat(memory);
+            const updateTime = (Math.random() * 20 + 5).toFixed(1); // Simulated
+            
+            metricRenders.textContent = renderCount;
+            metricMemory.textContent = memoryUsage.toFixed(1) + ' MB';
+            metricTime.textContent = updateTime + ' ms';
+            
+            // Update metric classes and bars
+            updateMetric(metricRenders, renderBar, renderCount, 5, 10, false);
+            updateMetric(metricMemory, memoryBar, memoryUsage, 3, 5, false);
+            updateMetric(metricTime, timeBar, parseFloat(updateTime), 15, 30, false);
+        }
+
+        function updateMetric(element, bar, value, warningThreshold, criticalThreshold, invert = false) {
+            element.className = 'metric-value';
+            let color = '#22c55e';
+            
+            if (!invert) {
+                if (value >= criticalThreshold) {
+                    element.classList.add('critical');
+                    color = 'var(--jazer-pink)';
+                } else if (value >= warningThreshold) {
+                    element.classList.add('warning');
+                    color = 'var(--jazer-yellow)';
+                } else {
+                    element.classList.add('good');
+                }
+            } else {
+                if (value <= warningThreshold) {
+                    element.classList.add('critical');
+                    color = 'var(--jazer-pink)';
+                } else if (value <= criticalThreshold) {
+                    element.classList.add('warning');
+                    color = 'var(--jazer-yellow)';
+                } else {
+                    element.classList.add('good');
+                }
+            }
+            
+            const percentage = Math.min((value / (criticalThreshold * 2)) * 100, 100);
+            bar.style.width = percentage + '%';
+            bar.style.background = color;
+        }
+
+        // Update breadcrumb
+        function updateBreadcrumb(componentName) {
+            if (componentData[componentName]) {
+                const pathParts = componentData[componentName].path.split(' → ');
+                breadcrumb.innerHTML = pathParts.map((part, index) => {
+                    return `
+                        <span class="breadcrumb-item" data-path="${part}">${part}</span>
+                        ${index < pathParts.length - 1 ? '<span class="breadcrumb-separator">→</span>' : ''}
+                    `;
+                }).join('');
+            }
+        }
+
+        // Search functionality
+        searchBox.addEventListener('input', (e) => {
+            state.searchQuery = e.target.value.toLowerCase();
+            filterTree();
+        });
+
+        // Filter functionality
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                state.filter = btn.dataset.filter;
+                
+                filterButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                statusFilter.textContent = btn.textContent;
+                filterTree();
+            });
+        });
+
+        // Filter tree
+        function filterTree() {
+            let visibleCount = 0;
+            
+            treeItems.forEach(item => {
+                const componentName = item.dataset.component.toLowerCase();
+                const componentType = item.dataset.type.toLowerCase();
+                
+                let matchesSearch = state.searchQuery === '' || componentName.includes(state.searchQuery);
+                let matchesFilter = state.filter === 'all' || componentType === state.filter;
+                
+                if (matchesSearch && matchesFilter) {
+                    item.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+            
+            state.visibleComponents = visibleCount;
+            statusVisible.textContent = visibleCount;
+        }
+
+        // Action buttons
+        document.getElementById('inspectBtn').addEventListener('click', () => {
+            alert(`Inspecting ${state.selectedComponent} in DevTools...`);
+        });
+
+        document.getElementById('editBtn').addEventListener('click', () => {
+            alert(`Opening ${state.selectedComponent} in editor...`);
+        });
+
+        document.getElementById('deleteBtn').addEventListener('click', () => {
+            if (confirm(`Are you sure you want to delete ${state.selectedComponent}?`)) {
+                alert(`${state.selectedComponent} deleted (simulation)`);
+            }
+        });
+
+        // Initialize
+        const selectedItem = document.querySelector('.tree-item.selected');
+        if (selectedItem) {
+            updateInfoPanel(selectedItem);
+            updateBreadcrumb(selectedItem.dataset.component);
+        }
+    </script>
+</body>
+</html>

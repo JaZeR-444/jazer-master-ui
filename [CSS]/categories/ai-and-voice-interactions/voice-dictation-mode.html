@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Dictation Mode - JaZeR Components</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Back Button */
+        .back-button {
+            align-self: flex-start;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 10px;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--bg-dark);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.5);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-family: var(--font-secondary);
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-gray);
+            font-size: 1rem;
+        }
+
+        /* Container */
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        /* Dictation Mode Card */
+        .dictation-mode {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--border-default);
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .dictation-mode::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 242, 234, 0.08) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .dictation-mode.active {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 40px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Mode Header */
+        .mode-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .mode-title {
+            font-family: var(--font-secondary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .mode-icon {
+            font-size: 2rem;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 70px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
+            border: 2px solid var(--border-default);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: rgba(0, 242, 234, 0.2);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 28px;
+            height: 28px;
+            background: var(--text-gray);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            left: 36px;
+            background: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(0, 242, 234, 0.6);
+        }
+
+        /* Waveform */
+        .waveform-container {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            height: 80px;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .dictation-mode.active .waveform-container {
+            display: flex;
+        }
+
+        .wave-bar {
+            width: 8px;
+            background: var(--gradient-accent);
+            border-radius: 4px;
+            animation: wave 1.2s ease-in-out infinite;
+        }
+
+        .wave-bar:nth-child(1) { animation-delay: 0s; height: 40%; }
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; height: 60%; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; height: 80%; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; height: 100%; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; height: 80%; }
+        .wave-bar:nth-child(6) { animation-delay: 0.5s; height: 60%; }
+        .wave-bar:nth-child(7) { animation-delay: 0.6s; height: 40%; }
+
+        @keyframes wave {
+            0%, 100% { transform: scaleY(0.5); opacity: 0.6; }
+            50% { transform: scaleY(1); opacity: 1; }
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            border: 2px solid var(--border-default);
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .dictation-mode.active .status-bar {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 242, 234, 0.05);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .status-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--text-gray);
+            transition: all 0.3s ease;
+        }
+
+        .dictation-mode.active .status-dot {
+            background: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(0, 242, 234, 0.8);
+            animation: dotPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes dotPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+
+        .status-text {
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-gray);
+        }
+
+        .dictation-mode.active .status-text {
+            color: var(--jazer-cyan);
+        }
+
+        .word-count {
+            font-family: var(--font-secondary);
+            font-size: 0.9375rem;
+            color: var(--text-muted);
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        /* Dictation Display */
+        .dictation-display {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 2rem;
+            min-height: 250px;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .dictation-mode.active .dictation-display {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 242, 234, 0.03);
+        }
+
+        .dictation-text {
+            font-family: var(--font-body);
+            font-size: 1.125rem;
+            line-height: 1.8;
+            color: var(--text-light);
+            min-height: 200px;
+        }
+
+        .placeholder {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.4em;
+            background: var(--jazer-cyan);
+            margin-left: 3px;
+            animation: blink 1s infinite;
+            opacity: 0;
+            vertical-align: middle;
+        }
+
+        .dictation-mode.active .cursor {
+            opacity: 1;
+        }
+
+        @keyframes blink {
+            0%, 50%, 100% { opacity: 1; }
+            25%, 75% { opacity: 0; }
+        }
+
+        /* Control Buttons */
+        .control-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .control-btn {
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            border: 2px solid;
+            background: transparent;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .control-btn.primary {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        .control-btn.primary:hover {
+            background: var(--jazer-cyan);
+            color: var(--bg-dark);
+            box-shadow: 0 5px 30px rgba(0, 242, 234, 0.5);
+            transform: translateY(-3px);
+        }
+
+        .control-btn.secondary {
+            border-color: var(--jazer-pink);
+            color: var(--jazer-pink);
+        }
+
+        .control-btn.secondary:hover {
+            background: var(--jazer-pink);
+            color: var(--bg-dark);
+            box-shadow: 0 5px 30px rgba(255, 0, 110, 0.5);
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 768px) {
+            .mode-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .control-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to AI & Voice Interactions</a>
+    
+    <div class="header">
+        <h1>Voice Dictation Mode</h1>
+        <p>Real-time speech-to-text conversion with live transcription</p>
+    </div>
+    
+    <div class="container">
+        <div class="dictation-mode" id="dictationMode">
+            <div class="mode-header">
+                <div class="mode-title">
+                    <span class="mode-icon">🎙️</span>
+                    <span>Dictation Mode</span>
+                </div>
+                <div class="toggle-switch" id="modeToggle">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+
+            <div class="waveform-container">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+            </div>
+
+            <div class="status-bar">
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <div class="status-text" id="statusText">Inactive</div>
+                </div>
+                <div class="word-count" id="wordCount">0 words</div>
+            </div>
+
+            <div class="dictation-display">
+                <div class="dictation-text" id="dictationText">
+                    <span class="placeholder">Click "Start Dictation" to begin...</span>
+                    <span class="cursor"></span>
+                </div>
+            </div>
+
+            <div class="control-buttons">
+                <button class="control-btn primary" id="startBtn">
+                    <span>🎤</span>
+                    <span>Start Dictation</span>
+                </button>
+                <button class="control-btn secondary" id="clearBtn">
+                    <span>🗑️</span>
+                    <span>Clear Text</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dictationMode = document.getElementById('dictationMode');
+        const modeToggle = document.getElementById('modeToggle');
+        const statusText = document.getElementById('statusText');
+        const dictationText = document.getElementById('dictationText');
+        const wordCount = document.getElementById('wordCount');
+        const startBtn = document.getElementById('startBtn');
+        const clearBtn = document.getElementById('clearBtn');
+
+        let isActive = false;
+        let currentText = '';
+        let simulationInterval;
+
+        const samplePhrases = [
+            "Hello, this is a test of the voice dictation system.",
+            "The weather today is absolutely beautiful and perfect for outdoor activities.",
+            "I need to remember to buy milk, eggs, and bread from the grocery store.",
+            "Technology has completely transformed the way we communicate with each other.",
+            "Let's schedule a meeting for next Tuesday afternoon at three o'clock.",
+            "The quick brown fox jumps over the lazy dog near the riverbank.",
+            "Artificial intelligence is revolutionizing industries around the world.",
+            "Please send me the report by end of day tomorrow if possible."
+        ];
+
+        function toggleDictation() {
+            isActive = !isActive;
+            dictationMode.classList.toggle('active', isActive);
+            modeToggle.classList.toggle('active', isActive);
+
+            if (isActive) {
+                statusText.textContent = 'Listening...';
+                startBtn.innerHTML = '<span>⏸️</span><span>Stop Dictation</span>';
+                startDictationSimulation();
+            } else {
+                statusText.textContent = 'Inactive';
+                startBtn.innerHTML = '<span>🎤</span><span>Start Dictation</span>';
+                stopDictationSimulation();
+            }
+        }
+
+        function startDictationSimulation() {
+            const phrase = samplePhrases[Math.floor(Math.random() * samplePhrases.length)];
+            const words = phrase.split(' ');
+            let wordIndex = 0;
+
+            simulationInterval = setInterval(() => {
+                if (wordIndex < words.length) {
+                    currentText += (currentText ? ' ' : '') + words[wordIndex];
+                    updateDisplay();
+                    wordIndex++;
+                } else {
+                    clearInterval(simulationInterval);
+                    setTimeout(() => {
+                        if (isActive) {
+                            currentText += '. ';
+                            updateDisplay();
+                            startDictationSimulation();
+                        }
+                    }, 1500);
+                }
+            }, 350);
+        }
+
+        function stopDictationSimulation() {
+            if (simulationInterval) {
+                clearInterval(simulationInterval);
+                simulationInterval = null;
+            }
+        }
+
+        function updateDisplay() {
+            const words = currentText.trim().split(/\s+/).filter(w => w.length > 0);
+            wordCount.textContent = `${words.length} word${words.length !== 1 ? 's' : ''}`;
+            
+            if (currentText) {
+                dictationText.innerHTML = currentText + '<span class="cursor"></span>';
+            } else {
+                dictationText.innerHTML = '<span class="placeholder">Click "Start Dictation" to begin...</span><span class="cursor"></span>';
+            }
+        }
+
+        function clearText() {
+            currentText = '';
+            updateDisplay();
+        }
+
+        // Event listeners
+        modeToggle.addEventListener('click', toggleDictation);
+        startBtn.addEventListener('click', toggleDictation);
+        clearBtn.addEventListener('click', clearText);
+
+        // Initial display
+        updateDisplay();
+    </script>
+</body>
+</html>

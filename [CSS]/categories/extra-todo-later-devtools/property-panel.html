@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Panel - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: #0a0a0a;
+            min-height: 100vh;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        .devtools-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .devtools-header {
+            background: linear-gradient(135deg, rgba(255, 136, 0, 0.1) 0%, rgba(255, 190, 11, 0.05) 100%);
+            border-bottom: 2px solid rgba(255, 136, 0, 0.4);
+            padding: 1rem 1.5rem;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-orange);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(255, 136, 0, 0.4);
+            border-radius: 6px;
+            background: rgba(255, 136, 0, 0.1);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-orange);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(255, 136, 0, 0.4);
+        }
+
+        .devtools-title {
+            font-family: var(--font-primary);
+            font-size: 1.4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--jazer-orange), var(--jazer-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .component-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .component-selector label {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .component-select {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 136, 0, 0.3);
+            border-radius: 6px;
+            padding: 0.5rem 2rem 0.5rem 0.75rem;
+            color: var(--jazer-orange);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.85rem;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ff8800' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+        }
+
+        .component-select:focus {
+            outline: none;
+            border-color: var(--jazer-orange);
+            box-shadow: 0 0 0 2px rgba(255, 136, 0, 0.2);
+        }
+
+        /* Main Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        @media (min-width: 1100px) {
+            .main-content {
+                grid-template-columns: 340px 1fr 280px;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 1099px) {
+            .main-content {
+                grid-template-columns: 300px 1fr;
+            }
+        }
+
+        /* Properties Panel */
+        .properties-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-right: 1px solid rgba(255, 136, 0, 0.2);
+            overflow-y: auto;
+            max-height: calc(100vh - 120px);
+        }
+
+        .panel-tabs {
+            display: flex;
+            background: rgba(255, 136, 0, 0.05);
+            border-bottom: 1px solid rgba(255, 136, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .panel-tab {
+            flex: 1;
+            padding: 0.75rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 2px solid transparent;
+        }
+
+        .panel-tab:hover {
+            color: var(--text-light);
+            background: rgba(255, 136, 0, 0.1);
+        }
+
+        .panel-tab.active {
+            color: var(--jazer-orange);
+            border-bottom-color: var(--jazer-orange);
+            background: rgba(255, 136, 0, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 1rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Property Groups */
+        .property-section {
+            margin-bottom: 0.5rem;
+        }
+
+        .property-section summary {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: rgba(255, 136, 0, 0.08);
+            border: 1px solid rgba(255, 136, 0, 0.15);
+            border-radius: 6px;
+            color: var(--jazer-orange);
+            font-family: var(--font-secondary);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            list-style: none;
+            transition: all 0.2s ease;
+        }
+
+        .property-section summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .property-section summary::before {
+            content: '>';
+            font-size: 0.7rem;
+            transition: transform 0.2s ease;
+        }
+
+        .property-section[open] summary::before {
+            transform: rotate(90deg);
+        }
+
+        .property-section summary:hover {
+            background: rgba(255, 136, 0, 0.15);
+            border-color: rgba(255, 136, 0, 0.3);
+        }
+
+        .property-section-content {
+            padding: 0.75rem 0.5rem;
+        }
+
+        /* Property Row */
+        .property-row {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background 0.15s ease;
+        }
+
+        .property-row:hover {
+            background: rgba(255, 136, 0, 0.05);
+        }
+
+        .property-name {
+            color: var(--text-gray);
+            font-size: 0.8rem;
+            font-family: var(--font-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .property-value {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Input Styles */
+        .prop-input {
+            width: 100%;
+            padding: 0.4rem 0.6rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            color: var(--text-light);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            transition: all 0.15s ease;
+        }
+
+        .prop-input:focus {
+            outline: none;
+            border-color: var(--jazer-orange);
+            box-shadow: 0 0 0 2px rgba(255, 136, 0, 0.15);
+        }
+
+        .prop-input[type="number"] {
+            width: 70px;
+        }
+
+        .prop-input[type="color"] {
+            width: 32px;
+            height: 28px;
+            padding: 2px;
+            cursor: pointer;
+        }
+
+        .prop-checkbox {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--jazer-orange);
+            cursor: pointer;
+        }
+
+        .prop-select {
+            width: 100%;
+            padding: 0.4rem 0.6rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            color: var(--text-light);
+            font-family: var(--font-secondary);
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .prop-select:focus {
+            outline: none;
+            border-color: var(--jazer-orange);
+        }
+
+        /* Color Row */
+        .color-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .color-hex {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* Preview Panel */
+        .preview-panel {
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(255, 136, 0, 0.02) 100%);
+            border-right: 1px solid rgba(255, 136, 0, 0.2);
+        }
+
+        .preview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 136, 0, 0.05);
+            border-bottom: 1px solid rgba(255, 136, 0, 0.2);
+        }
+
+        .preview-title {
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .preview-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .preview-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 136, 0, 0.1);
+            border: 1px solid rgba(255, 136, 0, 0.3);
+            border-radius: 4px;
+            color: var(--jazer-orange);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preview-btn:hover {
+            background: var(--jazer-orange);
+            color: #0a0a0a;
+        }
+
+        .preview-btn.active {
+            background: var(--jazer-orange);
+            color: #0a0a0a;
+        }
+
+        .preview-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-grid {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(255, 136, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 136, 0, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+        }
+
+        /* Preview Component */
+        .preview-component {
+            position: relative;
+            z-index: 1;
+        }
+
+        .preview-button {
+            padding: 12px 24px;
+            font-family: var(--font-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            border: 2px solid;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-card {
+            width: 280px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .preview-card-image {
+            height: 120px;
+            background: linear-gradient(135deg, rgba(255, 136, 0, 0.3), rgba(255, 190, 11, 0.2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--jazer-orange);
+            font-size: 2rem;
+        }
+
+        .preview-card-content {
+            padding: 1rem;
+        }
+
+        .preview-card-title {
+            font-family: var(--font-primary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .preview-card-text {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            line-height: 1.5;
+        }
+
+        .preview-input {
+            width: 240px;
+            padding: 12px 16px;
+            font-family: var(--font-body);
+            font-size: 14px;
+            border: 2px solid;
+            background: rgba(0, 0, 0, 0.4);
+            color: var(--text-light);
+            transition: all 0.2s ease;
+        }
+
+        .preview-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .preview-toggle {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .toggle-track {
+            width: 52px;
+            height: 28px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-track.active {
+            background: rgba(255, 136, 0, 0.3);
+        }
+
+        .toggle-thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--text-gray);
+            transition: all 0.2s ease;
+        }
+
+        .toggle-track.active .toggle-thumb {
+            left: calc(100% - 22px);
+            background: var(--jazer-orange);
+            box-shadow: 0 0 10px rgba(255, 136, 0, 0.5);
+        }
+
+        .toggle-label {
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        /* History Panel */
+        .history-panel {
+            background: rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+            max-height: calc(100vh - 120px);
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 136, 0, 0.05);
+            border-bottom: 1px solid rgba(255, 136, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .history-title {
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .history-clear {
+            padding: 0.3rem 0.6rem;
+            background: none;
+            border: 1px solid rgba(255, 136, 0, 0.3);
+            border-radius: 4px;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .history-clear:hover {
+            border-color: var(--jazer-orange);
+            color: var(--jazer-orange);
+        }
+
+        .history-list {
+            padding: 0.5rem;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 0.25rem;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 136, 0, 0.1);
+        }
+
+        .history-item.active {
+            background: rgba(255, 136, 0, 0.15);
+            border: 1px solid rgba(255, 136, 0, 0.3);
+        }
+
+        .history-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 136, 0, 0.15);
+            border-radius: 4px;
+            color: var(--jazer-orange);
+            font-size: 0.7rem;
+            flex-shrink: 0;
+        }
+
+        .history-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-prop {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .history-change {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.7rem;
+        }
+
+        .history-old {
+            color: #ef4444;
+            text-decoration: line-through;
+            max-width: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .history-arrow {
+            color: var(--text-muted);
+        }
+
+        .history-new {
+            color: #22c55e;
+            max-width: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .history-time {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 1rem;
+            background: rgba(255, 136, 0, 0.05);
+            border-top: 1px solid rgba(255, 136, 0, 0.2);
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.7rem;
+        }
+
+        .status-label {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-value {
+            color: var(--jazer-orange);
+            font-weight: 600;
+        }
+
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-orange);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--jazer-orange); }
+            50% { opacity: 0.5; box-shadow: 0 0 8px var(--jazer-orange); }
+        }
+
+        .status-text {
+            font-size: 0.7rem;
+            color: var(--text-gray);
+        }
+
+        /* Action Buttons */
+        .action-row {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border-top: 1px solid rgba(255, 136, 0, 0.1);
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.6rem;
+            background: rgba(255, 136, 0, 0.1);
+            border: 1px solid rgba(255, 136, 0, 0.3);
+            border-radius: 6px;
+            color: var(--jazer-orange);
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 136, 0, 0.2);
+            border-color: var(--jazer-orange);
+        }
+
+        .action-btn.primary {
+            background: var(--jazer-orange);
+            color: #0a0a0a;
+        }
+
+        .action-btn.primary:hover {
+            box-shadow: 0 0 15px rgba(255, 136, 0, 0.4);
+        }
+
+        /* Mobile */
+        @media (max-width: 767px) {
+            .main-content {
+                display: block;
+            }
+
+            .properties-panel,
+            .preview-panel,
+            .history-panel {
+                max-height: none;
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 136, 0, 0.2);
+            }
+
+            .preview-area {
+                min-height: 300px;
+            }
+
+            .header-top {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .component-selector {
+                width: 100%;
+            }
+
+            .component-select {
+                flex: 1;
+            }
+        }
+
+        /* Code Output */
+        .code-output {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 136, 0, 0.2);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 0.75rem;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            overflow-x: auto;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .code-key {
+            color: var(--jazer-purple);
+        }
+
+        .code-string {
+            color: #22c55e;
+        }
+
+        .code-number {
+            color: var(--jazer-cyan);
+        }
+
+        .code-boolean {
+            color: var(--jazer-orange);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 136, 0, 0.3);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 136, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="devtools-wrapper">
+        <!-- Header -->
+        <header class="devtools-header">
+            <div class="header-top">
+                <div class="header-left">
+                    <a href="index.html" class="back-button">← Back to Dev Tools</a>
+                    <h1 class="devtools-title">Property Panel</h1>
+                </div>
+                <div class="component-selector">
+                    <label>Component:</label>
+                    <select class="component-select" id="componentSelect">
+                        <option value="button">&lt;Button /&gt;</option>
+                        <option value="card">&lt;Card /&gt;</option>
+                        <option value="input">&lt;Input /&gt;</option>
+                        <option value="toggle">&lt;Toggle /&gt;</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Properties Panel -->
+            <aside class="properties-panel">
+                <div class="panel-tabs">
+                    <button class="panel-tab active" data-tab="props">Props</button>
+                    <button class="panel-tab" data-tab="styles">Styles</button>
+                    <button class="panel-tab" data-tab="events">Events</button>
+                </div>
+
+                <!-- Props Tab -->
+                <div class="tab-content active" id="propsTab">
+                    <details class="property-section" open>
+                        <summary>Appearance</summary>
+                        <div class="property-section-content">
+                            <div class="property-row">
+                                <span class="property-name">variant</span>
+                                <div class="property-value">
+                                    <select class="prop-select" id="propVariant" data-prop="variant">
+                                        <option value="primary">primary</option>
+                                        <option value="secondary">secondary</option>
+                                        <option value="outline">outline</option>
+                                        <option value="ghost">ghost</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">size</span>
+                                <div class="property-value">
+                                    <select class="prop-select" id="propSize" data-prop="size">
+                                        <option value="sm">sm</option>
+                                        <option value="md" selected>md</option>
+                                        <option value="lg">lg</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">color</span>
+                                <div class="property-value color-row">
+                                    <input type="color" class="prop-input" id="propColor" value="#ff8800" data-prop="color">
+                                    <input type="text" class="prop-input color-hex" id="propColorHex" value="#ff8800" data-prop="colorHex">
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">radius</span>
+                                <div class="property-value">
+                                    <input type="number" class="prop-input" id="propRadius" value="8" min="0" max="50" data-prop="radius">
+                                    <span style="color: var(--text-muted); font-size: 0.75rem;">px</span>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="property-section" open>
+                        <summary>Content</summary>
+                        <div class="property-section-content">
+                            <div class="property-row">
+                                <span class="property-name">text</span>
+                                <div class="property-value">
+                                    <input type="text" class="prop-input" id="propText" value="Click Me" data-prop="text">
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">icon</span>
+                                <div class="property-value">
+                                    <select class="prop-select" id="propIcon" data-prop="icon">
+                                        <option value="none">none</option>
+                                        <option value="arrow">arrow</option>
+                                        <option value="check">check</option>
+                                        <option value="plus">plus</option>
+                                        <option value="star">star</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">iconPos</span>
+                                <div class="property-value">
+                                    <select class="prop-select" id="propIconPos" data-prop="iconPos">
+                                        <option value="left">left</option>
+                                        <option value="right" selected>right</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="property-section">
+                        <summary>State</summary>
+                        <div class="property-section-content">
+                            <div class="property-row">
+                                <span class="property-name">disabled</span>
+                                <div class="property-value">
+                                    <input type="checkbox" class="prop-checkbox" id="propDisabled" data-prop="disabled">
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">loading</span>
+                                <div class="property-value">
+                                    <input type="checkbox" class="prop-checkbox" id="propLoading" data-prop="loading">
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">fullWidth</span>
+                                <div class="property-value">
+                                    <input type="checkbox" class="prop-checkbox" id="propFullWidth" data-prop="fullWidth">
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="property-section">
+                        <summary>Accessibility</summary>
+                        <div class="property-section-content">
+                            <div class="property-row">
+                                <span class="property-name">aria-label</span>
+                                <div class="property-value">
+                                    <input type="text" class="prop-input" id="propAriaLabel" value="" placeholder="Optional" data-prop="ariaLabel">
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">tabIndex</span>
+                                <div class="property-value">
+                                    <input type="number" class="prop-input" id="propTabIndex" value="0" min="-1" max="99" data-prop="tabIndex">
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <div class="action-row">
+                        <button class="action-btn" id="resetBtn">Reset</button>
+                        <button class="action-btn primary" id="copyPropsBtn">Copy Props</button>
+                    </div>
+
+                    <div class="code-output" id="codeOutput"></div>
+                </div>
+
+                <!-- Styles Tab -->
+                <div class="tab-content" id="stylesTab">
+                    <details class="property-section" open>
+                        <summary>Spacing</summary>
+                        <div class="property-section-content">
+                            <div class="property-row">
+                                <span class="property-name">padding</span>
+                                <div class="property-value">
+                                    <input type="text" class="prop-input" id="stylePadding" value="12px 24px" data-style="padding">
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">margin</span>
+                                <div class="property-value">
+                                    <input type="text" class="prop-input" id="styleMargin" value="0" data-style="margin">
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">gap</span>
+                                <div class="property-value">
+                                    <input type="number" class="prop-input" id="styleGap" value="8" min="0" max="50" data-style="gap">
+                                    <span style="color: var(--text-muted); font-size: 0.75rem;">px</span>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="property-section" open>
+                        <summary>Typography</summary>
+                        <div class="property-section-content">
+                            <div class="property-row">
+                                <span class="property-name">fontSize</span>
+                                <div class="property-value">
+                                    <input type="number" class="prop-input" id="styleFontSize" value="14" min="10" max="36" data-style="fontSize">
+                                    <span style="color: var(--text-muted); font-size: 0.75rem;">px</span>
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">fontWeight</span>
+                                <div class="property-value">
+                                    <select class="prop-select" id="styleFontWeight" data-style="fontWeight">
+                                        <option value="400">400 (normal)</option>
+                                        <option value="500">500 (medium)</option>
+                                        <option value="600" selected>600 (semibold)</option>
+                                        <option value="700">700 (bold)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">letterSpacing</span>
+                                <div class="property-value">
+                                    <input type="text" class="prop-input" id="styleLetterSpacing" value="0.5px" data-style="letterSpacing">
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="property-section">
+                        <summary>Effects</summary>
+                        <div class="property-section-content">
+                            <div class="property-row">
+                                <span class="property-name">boxShadow</span>
+                                <div class="property-value">
+                                    <select class="prop-select" id="styleBoxShadow" data-style="boxShadow">
+                                        <option value="none">none</option>
+                                        <option value="sm">sm</option>
+                                        <option value="md" selected>md</option>
+                                        <option value="lg">lg</option>
+                                        <option value="glow">glow</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">opacity</span>
+                                <div class="property-value">
+                                    <input type="range" class="prop-input" id="styleOpacity" value="100" min="0" max="100" data-style="opacity" style="width: 100px;">
+                                    <span style="color: var(--text-muted); font-size: 0.75rem;" id="opacityValue">100%</span>
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">transition</span>
+                                <div class="property-value">
+                                    <input type="text" class="prop-input" id="styleTransition" value="0.2s ease" data-style="transition">
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- Events Tab -->
+                <div class="tab-content" id="eventsTab">
+                    <details class="property-section" open>
+                        <summary>Mouse Events</summary>
+                        <div class="property-section-content">
+                            <div class="property-row">
+                                <span class="property-name">onClick</span>
+                                <div class="property-value">
+                                    <input type="text" class="prop-input" value="handleClick" data-event="onClick">
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">onHover</span>
+                                <div class="property-value">
+                                    <input type="text" class="prop-input" value="" placeholder="Optional" data-event="onHover">
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">onFocus</span>
+                                <div class="property-value">
+                                    <input type="text" class="prop-input" value="" placeholder="Optional" data-event="onFocus">
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">onBlur</span>
+                                <div class="property-value">
+                                    <input type="text" class="prop-input" value="" placeholder="Optional" data-event="onBlur">
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="property-section">
+                        <summary>Keyboard Events</summary>
+                        <div class="property-section-content">
+                            <div class="property-row">
+                                <span class="property-name">onKeyDown</span>
+                                <div class="property-value">
+                                    <input type="text" class="prop-input" value="" placeholder="Optional" data-event="onKeyDown">
+                                </div>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-name">onKeyUp</span>
+                                <div class="property-value">
+                                    <input type="text" class="prop-input" value="" placeholder="Optional" data-event="onKeyUp">
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </aside>
+
+            <!-- Preview Panel -->
+            <main class="preview-panel">
+                <div class="preview-header">
+                    <span class="preview-title">Live Preview</span>
+                    <div class="preview-controls">
+                        <button class="preview-btn active" id="bgLight" title="Light Background">L</button>
+                        <button class="preview-btn" id="bgDark" title="Dark Background">D</button>
+                        <button class="preview-btn" id="bgGrid" title="Toggle Grid">G</button>
+                    </div>
+                </div>
+                <div class="preview-area" id="previewArea">
+                    <div class="preview-grid" id="previewGrid"></div>
+                    <div class="preview-component" id="previewComponent">
+                        <!-- Dynamic preview content -->
+                    </div>
+                </div>
+            </main>
+
+            <!-- History Panel -->
+            <aside class="history-panel">
+                <div class="history-header">
+                    <span class="history-title">Change History</span>
+                    <button class="history-clear" id="clearHistory">Clear</button>
+                </div>
+                <div class="history-list" id="historyList">
+                    <!-- Dynamic history items -->
+                </div>
+            </aside>
+        </div>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <div class="status-left">
+                <div class="status-item">
+                    <span class="status-label">Component:</span>
+                    <span class="status-value" id="statusComponent">Button</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Props:</span>
+                    <span class="status-value" id="statusProps">12</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Changes:</span>
+                    <span class="status-value" id="statusChanges">0</span>
+                </div>
+            </div>
+            <div class="status-right">
+                <div class="status-dot"></div>
+                <span class="status-text">Live Editing</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // State
+        const state = {
+            component: 'button',
+            props: {
+                variant: 'primary',
+                size: 'md',
+                color: '#ff8800',
+                radius: 8,
+                text: 'Click Me',
+                icon: 'none',
+                iconPos: 'right',
+                disabled: false,
+                loading: false,
+                fullWidth: false,
+                ariaLabel: '',
+                tabIndex: 0
+            },
+            styles: {
+                padding: '12px 24px',
+                margin: '0',
+                gap: 8,
+                fontSize: 14,
+                fontWeight: '600',
+                letterSpacing: '0.5px',
+                boxShadow: 'md',
+                opacity: 100,
+                transition: '0.2s ease'
+            },
+            history: [],
+            bgMode: 'light'
+        };
+
+        // DOM Elements
+        const componentSelect = document.getElementById('componentSelect');
+        const previewComponent = document.getElementById('previewComponent');
+        const previewArea = document.getElementById('previewArea');
+        const previewGrid = document.getElementById('previewGrid');
+        const historyList = document.getElementById('historyList');
+        const codeOutput = document.getElementById('codeOutput');
+        const statusComponent = document.getElementById('statusComponent');
+        const statusProps = document.getElementById('statusProps');
+        const statusChanges = document.getElementById('statusChanges');
+
+        // Icon map
+        const icons = {
+            none: '',
+            arrow: '→',
+            check: '✓',
+            plus: '+',
+            star: '★'
+        };
+
+        // Initialize
+        function init() {
+            setupEventListeners();
+            renderPreview();
+            updateCodeOutput();
+            renderHistory();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Component selector
+            componentSelect.addEventListener('change', (e) => {
+                state.component = e.target.value;
+                statusComponent.textContent = capitalize(state.component);
+                renderPreview();
+                updateCodeOutput();
+            });
+
+            // Panel tabs
+            document.querySelectorAll('.panel-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
+                });
+            });
+
+            // Property inputs
+            document.querySelectorAll('[data-prop]').forEach(input => {
+                const eventType = input.type === 'checkbox' ? 'change' : 'input';
+                input.addEventListener(eventType, (e) => {
+                    const prop = e.target.dataset.prop;
+                    let oldValue = state.props[prop];
+                    let newValue;
+
+                    if (e.target.type === 'checkbox') {
+                        newValue = e.target.checked;
+                    } else if (e.target.type === 'number') {
+                        newValue = parseInt(e.target.value) || 0;
+                    } else {
+                        newValue = e.target.value;
+                    }
+
+                    // Sync color inputs
+                    if (prop === 'color') {
+                        document.getElementById('propColorHex').value = newValue;
+                    } else if (prop === 'colorHex') {
+                        if (/^#[0-9A-Fa-f]{6}$/.test(newValue)) {
+                            document.getElementById('propColor').value = newValue;
+                            state.props.color = newValue;
+                        }
+                        return;
+                    }
+
+                    state.props[prop] = newValue;
+                    addHistory(prop, oldValue, newValue);
+                    renderPreview();
+                    updateCodeOutput();
+                });
+            });
+
+            // Style inputs
+            document.querySelectorAll('[data-style]').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const style = e.target.dataset.style;
+                    let oldValue = state.styles[style];
+                    let newValue = e.target.type === 'number' || e.target.type === 'range' 
+                        ? parseInt(e.target.value) 
+                        : e.target.value;
+
+                    state.styles[style] = newValue;
+
+                    if (style === 'opacity') {
+                        document.getElementById('opacityValue').textContent = newValue + '%';
+                    }
+
+                    addHistory(style, oldValue, newValue, 'style');
+                    renderPreview();
+                    updateCodeOutput();
+                });
+            });
+
+            // Background controls
+            document.getElementById('bgLight').addEventListener('click', () => {
+                state.bgMode = 'light';
+                previewArea.style.background = 'rgba(255, 255, 255, 0.05)';
+                document.getElementById('bgLight').classList.add('active');
+                document.getElementById('bgDark').classList.remove('active');
+            });
+
+            document.getElementById('bgDark').addEventListener('click', () => {
+                state.bgMode = 'dark';
+                previewArea.style.background = 'rgba(0, 0, 0, 0.6)';
+                document.getElementById('bgDark').classList.add('active');
+                document.getElementById('bgLight').classList.remove('active');
+            });
+
+            document.getElementById('bgGrid').addEventListener('click', (e) => {
+                e.target.classList.toggle('active');
+                previewGrid.style.display = e.target.classList.contains('active') ? 'block' : 'none';
+            });
+
+            // Reset button
+            document.getElementById('resetBtn').addEventListener('click', resetProps);
+
+            // Copy props button
+            document.getElementById('copyPropsBtn').addEventListener('click', copyProps);
+
+            // Clear history
+            document.getElementById('clearHistory').addEventListener('click', () => {
+                state.history = [];
+                renderHistory();
+                statusChanges.textContent = '0';
+            });
+        }
+
+        // Render preview based on selected component
+        function renderPreview() {
+            const { props, styles } = state;
+            let html = '';
+
+            const baseStyles = `
+                border-radius: ${props.radius}px;
+                border-color: ${props.color};
+                opacity: ${styles.opacity / 100};
+                transition: all ${styles.transition};
+                font-size: ${styles.fontSize}px;
+                font-weight: ${styles.fontWeight};
+                letter-spacing: ${styles.letterSpacing};
+            `;
+
+            const iconHtml = icons[props.icon] ? `<span>${icons[props.icon]}</span>` : '';
+
+            switch (state.component) {
+                case 'button':
+                    const btnVariants = {
+                        primary: `background: ${props.color}; color: #0a0a0a; border-color: ${props.color};`,
+                        secondary: `background: rgba(255,255,255,0.1); color: ${props.color}; border-color: ${props.color};`,
+                        outline: `background: transparent; color: ${props.color}; border-color: ${props.color};`,
+                        ghost: `background: transparent; color: ${props.color}; border-color: transparent;`
+                    };
+                    const sizes = { sm: '8px 16px', md: '12px 24px', lg: '16px 32px' };
+                    const shadow = getShadowStyle(styles.boxShadow, props.color);
+
+                    html = `
+                        <button class="preview-button" style="
+                            ${baseStyles}
+                            ${btnVariants[props.variant]}
+                            padding: ${sizes[props.size]};
+                            ${props.fullWidth ? 'width: 100%; max-width: 300px;' : ''}
+                            ${props.disabled ? 'opacity: 0.5; cursor: not-allowed;' : ''}
+                            ${shadow}
+                            display: inline-flex;
+                            align-items: center;
+                            gap: ${styles.gap}px;
+                            flex-direction: ${props.iconPos === 'left' ? 'row-reverse' : 'row'};
+                        " ${props.disabled ? 'disabled' : ''}>
+                            ${props.loading ? '<span class="spinner">◌</span>' : props.text}
+                            ${!props.loading ? iconHtml : ''}
+                        </button>
+                    `;
+                    break;
+
+                case 'card':
+                    html = `
+                        <div class="preview-card" style="${baseStyles} border-color: ${props.color};">
+                            <div class="preview-card-image" style="background: linear-gradient(135deg, ${props.color}40, ${props.color}20);">
+                                ${icons[props.icon] || '📦'}
+                            </div>
+                            <div class="preview-card-content">
+                                <div class="preview-card-title" style="color: ${props.color};">${props.text || 'Card Title'}</div>
+                                <div class="preview-card-text">This is a preview card component with customizable properties.</div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'input':
+                    html = `
+                        <input type="text" class="preview-input" 
+                            placeholder="${props.text || 'Enter text...'}"
+                            style="${baseStyles} 
+                                border-color: ${props.color}; 
+                                ${props.fullWidth ? 'width: 100%; max-width: 300px;' : ''}
+                                ${props.disabled ? 'opacity: 0.5;' : ''}"
+                            ${props.disabled ? 'disabled' : ''}>
+                    `;
+                    break;
+
+                case 'toggle':
+                    html = `
+                        <div class="preview-toggle">
+                            <div class="toggle-track ${!props.disabled ? 'active' : ''}" 
+                                style="border-color: ${props.color}; border-radius: ${props.radius}px;"
+                                onclick="this.classList.toggle('active')">
+                                <div class="toggle-thumb" style="background: ${props.disabled ? 'var(--text-muted)' : props.color};"></div>
+                            </div>
+                            <span class="toggle-label">${props.text || 'Toggle'}</span>
+                        </div>
+                    `;
+                    break;
+            }
+
+            previewComponent.innerHTML = html;
+        }
+
+        // Get shadow style
+        function getShadowStyle(level, color) {
+            const shadows = {
+                none: 'box-shadow: none;',
+                sm: `box-shadow: 0 2px 4px ${color}20;`,
+                md: `box-shadow: 0 4px 12px ${color}30;`,
+                lg: `box-shadow: 0 8px 24px ${color}40;`,
+                glow: `box-shadow: 0 0 20px ${color}60, 0 0 40px ${color}30;`
+            };
+            return shadows[level] || shadows.none;
+        }
+
+        // Update code output
+        function updateCodeOutput() {
+            const { props } = state;
+            const componentName = capitalize(state.component);
+
+            let propsStr = Object.entries(props)
+                .filter(([key, val]) => {
+                    if (typeof val === 'boolean') return val;
+                    if (typeof val === 'string') return val !== '' && val !== 'none';
+                    return true;
+                })
+                .map(([key, val]) => {
+                    if (typeof val === 'boolean') {
+                        return `  <span class="code-key">${key}</span>`;
+                    } else if (typeof val === 'string') {
+                        return `  <span class="code-key">${key}</span>=<span class="code-string">"${val}"</span>`;
+                    } else {
+                        return `  <span class="code-key">${key}</span>={<span class="code-number">${val}</span>}`;
+                    }
+                })
+                .join('\n');
+
+            codeOutput.innerHTML = `&lt;<span class="code-key">${componentName}</span>\n${propsStr}\n/&gt;`;
+
+            // Update prop count
+            const propCount = Object.keys(props).length;
+            statusProps.textContent = propCount;
+        }
+
+        // Add to history
+        function addHistory(prop, oldValue, newValue, type = 'prop') {
+            if (oldValue === newValue) return;
+
+            state.history.unshift({
+                prop,
+                oldValue,
+                newValue,
+                type,
+                time: new Date()
+            });
+
+            // Keep only last 50 changes
+            if (state.history.length > 50) {
+                state.history.pop();
+            }
+
+            statusChanges.textContent = state.history.length;
+            renderHistory();
+        }
+
+        // Render history
+        function renderHistory() {
+            if (state.history.length === 0) {
+                historyList.innerHTML = `
+                    <div style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.8rem;">
+                        No changes yet.<br>Edit properties to see history.
+                    </div>
+                `;
+                return;
+            }
+
+            historyList.innerHTML = state.history.map((item, index) => `
+                <div class="history-item ${index === 0 ? 'active' : ''}" data-index="${index}">
+                    <div class="history-icon">${item.type === 'style' ? 'S' : 'P'}</div>
+                    <div class="history-details">
+                        <div class="history-prop">${item.prop}</div>
+                        <div class="history-change">
+                            <span class="history-old">${formatValue(item.oldValue)}</span>
+                            <span class="history-arrow">→</span>
+                            <span class="history-new">${formatValue(item.newValue)}</span>
+                        </div>
+                        <div class="history-time">${formatTime(item.time)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Format value for display
+        function formatValue(val) {
+            if (typeof val === 'boolean') return val ? 'true' : 'false';
+            if (val === '' || val === null || val === undefined) return '(empty)';
+            return String(val);
+        }
+
+        // Format time
+        function formatTime(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        // Reset props to defaults
+        function resetProps() {
+            state.props = {
+                variant: 'primary',
+                size: 'md',
+                color: '#ff8800',
+                radius: 8,
+                text: 'Click Me',
+                icon: 'none',
+                iconPos: 'right',
+                disabled: false,
+                loading: false,
+                fullWidth: false,
+                ariaLabel: '',
+                tabIndex: 0
+            };
+
+            // Update form inputs
+            document.getElementById('propVariant').value = 'primary';
+            document.getElementById('propSize').value = 'md';
+            document.getElementById('propColor').value = '#ff8800';
+            document.getElementById('propColorHex').value = '#ff8800';
+            document.getElementById('propRadius').value = 8;
+            document.getElementById('propText').value = 'Click Me';
+            document.getElementById('propIcon').value = 'none';
+            document.getElementById('propIconPos').value = 'right';
+            document.getElementById('propDisabled').checked = false;
+            document.getElementById('propLoading').checked = false;
+            document.getElementById('propFullWidth').checked = false;
+            document.getElementById('propAriaLabel').value = '';
+            document.getElementById('propTabIndex').value = 0;
+
+            renderPreview();
+            updateCodeOutput();
+        }
+
+        // Copy props to clipboard
+        function copyProps() {
+            const { props } = state;
+            const componentName = capitalize(state.component);
+
+            let propsStr = Object.entries(props)
+                .filter(([key, val]) => {
+                    if (typeof val === 'boolean') return val;
+                    if (typeof val === 'string') return val !== '' && val !== 'none';
+                    return true;
+                })
+                .map(([key, val]) => {
+                    if (typeof val === 'boolean') return key;
+                    if (typeof val === 'string') return `${key}="${val}"`;
+                    return `${key}={${val}}`;
+                })
+                .join(' ');
+
+            const code = `<${componentName} ${propsStr} />`;
+
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.getElementById('copyPropsBtn');
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy Props', 1500);
+            });
+        }
+
+        // Capitalize helper
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>

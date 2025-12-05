@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loot Box Parachute Drop</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 0.5rem;
+            font-family: var(--font-primary);
+        }
+
+        .subtitle { color: var(--text-muted); font-size: 1.1rem; }
+
+        .back-button {
+            display: inline-block;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 2px solid var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.1);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--bg-dark);
+            transform: translateX(-5px);
+        }
+
+        .control-panel {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(6, 182, 212, 0.1));
+            border: 2px solid var(--jazer-purple);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-group label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 2px solid var(--jazer-purple);
+            background: rgba(0, 0, 0, 0.4);
+            color: var(--text-light);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .info-panel {
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.1), rgba(147, 51, 234, 0.1));
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--jazer-pink);
+        }
+
+        .demo-area {
+            background: linear-gradient(180deg, #0a0a1a 0%, #1a1a3a 50%, #0d1f2d 100%);
+            border: 2px solid var(--jazer-pink);
+            border-radius: 20px;
+            min-height: 500px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        /* Sky Background */
+        .sky-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, 
+                transparent 0%,
+                rgba(147, 51, 234, 0.1) 50%,
+                rgba(0, 242, 234, 0.1) 100%
+            );
+            pointer-events: none;
+        }
+
+        /* Clouds */
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            animation: cloudFloat 20s linear infinite;
+        }
+
+        @keyframes cloudFloat {
+            from { transform: translateX(-200px); }
+            to { transform: translateX(calc(100vw + 200px)); }
+        }
+
+        /* Loot Box Container */
+        .lootbox-drop {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: dropDown var(--drop-duration, 3s) ease-in forwards;
+        }
+
+        @keyframes dropDown {
+            0% { top: -150px; }
+            80% { top: calc(100% - 200px); }
+            85% { top: calc(100% - 220px); }
+            90% { top: calc(100% - 180px); }
+            95% { top: calc(100% - 190px); }
+            100% { top: calc(100% - 185px); }
+        }
+
+        /* Parachute */
+        .parachute {
+            width: 100px;
+            height: 60px;
+            position: relative;
+            animation: parachuteSway 2s ease-in-out infinite;
+        }
+
+        @keyframes parachuteSway {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        .parachute-canopy {
+            width: 100%;
+            height: 100%;
+            border-radius: 50px 50px 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .parachute-canopy::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                90deg,
+                var(--chute-color-1) 0px,
+                var(--chute-color-1) 12.5px,
+                var(--chute-color-2) 12.5px,
+                var(--chute-color-2) 25px
+            );
+        }
+
+        .parachute-strings {
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            width: 80px;
+            height: 40px;
+            transform: translateX(-50%);
+        }
+
+        .string {
+            position: absolute;
+            width: 2px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.5);
+            transform-origin: top center;
+        }
+
+        .string:nth-child(1) { left: 0; transform: rotate(-20deg); }
+        .string:nth-child(2) { left: 25%; transform: rotate(-10deg); }
+        .string:nth-child(3) { left: 50%; transform: translateX(-50%); }
+        .string:nth-child(4) { right: 25%; transform: rotate(10deg); }
+        .string:nth-child(5) { right: 0; transform: rotate(20deg); }
+
+        /* Loot Box */
+        .lootbox {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin-top: 30px;
+        }
+
+        .lootbox:hover {
+            transform: scale(1.1);
+        }
+
+        .lootbox-body {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        /* Rarity Styles */
+        .lootbox[data-rarity="common"] {
+            --chute-color-1: #808080;
+            --chute-color-2: #606060;
+        }
+        .lootbox[data-rarity="common"] .lootbox-body {
+            background: linear-gradient(135deg, #808080, #505050);
+            border: 3px solid #a0a0a0;
+            box-shadow: 0 0 20px rgba(128, 128, 128, 0.5);
+        }
+
+        .lootbox[data-rarity="rare"] {
+            --chute-color-1: #00f2ea;
+            --chute-color-2: #0891b2;
+        }
+        .lootbox[data-rarity="rare"] .lootbox-body {
+            background: linear-gradient(135deg, #00f2ea, #0891b2);
+            border: 3px solid #22d3ee;
+            box-shadow: 0 0 30px rgba(0, 242, 234, 0.6);
+        }
+
+        .lootbox[data-rarity="epic"] {
+            --chute-color-1: #9333ea;
+            --chute-color-2: #6b21a8;
+        }
+        .lootbox[data-rarity="epic"] .lootbox-body {
+            background: linear-gradient(135deg, #9333ea, #6b21a8);
+            border: 3px solid #a855f7;
+            box-shadow: 0 0 40px rgba(147, 51, 234, 0.7);
+        }
+
+        .lootbox[data-rarity="legendary"] {
+            --chute-color-1: #ffd700;
+            --chute-color-2: #ff8c00;
+        }
+        .lootbox[data-rarity="legendary"] .lootbox-body {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border: 3px solid #fbbf24;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.8);
+            animation: legendaryPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes legendaryPulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.6); }
+            50% { box-shadow: 0 0 60px rgba(255, 215, 0, 1); }
+        }
+
+        /* Open Animation */
+        .lootbox.opening .lootbox-body {
+            animation: boxShake 0.5s ease-in-out;
+        }
+
+        @keyframes boxShake {
+            0%, 100% { transform: rotate(0); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+
+        .lootbox.opened .parachute {
+            animation: parachuteFlyAway 0.5s ease-out forwards;
+        }
+
+        @keyframes parachuteFlyAway {
+            to { transform: translateY(-100px) rotate(45deg); opacity: 0; }
+        }
+
+        /* Reward Reveal */
+        .reward-reveal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .reward-reveal.active {
+            animation: rewardPopup 0.5s ease-out forwards;
+            pointer-events: auto;
+        }
+
+        @keyframes rewardPopup {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .reward-icon {
+            font-size: 5rem;
+            animation: rewardBounce 0.5s ease infinite;
+        }
+
+        @keyframes rewardBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .reward-name {
+            font-family: var(--font-primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+            text-shadow: 0 0 20px currentColor;
+        }
+
+        /* Ground */
+        .ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: linear-gradient(180deg, #1a2a1a, #0a150a);
+            border-top: 2px solid #2a4a2a;
+        }
+
+        .trigger-btn {
+            display: block;
+            margin: 0 auto;
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 25px rgba(6, 182, 212, 0.4);
+        }
+
+        .trigger-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(6, 182, 212, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .control-panel { grid-template-columns: 1fr 1fr; }
+            .lootbox { width: 60px; height: 60px; }
+            .parachute { width: 80px; height: 50px; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+
+    <div class="header">
+        <h1>Loot Box Parachute Drop</h1>
+        <p class="subtitle">Exciting loot box drops with parachute animations and reward reveals</p>
+    </div>
+
+    <div class="control-panel">
+        <div class="control-group">
+            <label>Rarity</label>
+            <select id="raritySelect">
+                <option value="common">Common</option>
+                <option value="rare">Rare</option>
+                <option value="epic" selected>Epic</option>
+                <option value="legendary">Legendary</option>
+                <option value="random">Random</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Drop Speed</label>
+            <select id="speedSelect">
+                <option value="2">Fast</option>
+                <option value="3" selected>Normal</option>
+                <option value="5">Slow</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Auto Open</label>
+            <select id="autoOpen">
+                <option value="true">Yes</option>
+                <option value="false" selected>No (Click)</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Multi Drop</label>
+            <select id="multiDrop">
+                <option value="1" selected>1 Box</option>
+                <option value="3">3 Boxes</option>
+                <option value="5">5 Boxes</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <div class="info-item">
+            <div class="info-label">Drops</div>
+            <div class="info-value" id="dropCount">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Opened</div>
+            <div class="info-value" id="openCount">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Legendary</div>
+            <div class="info-value" id="legendaryCount">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Last Reward</div>
+            <div class="info-value" id="lastReward">-</div>
+        </div>
+    </div>
+
+    <div class="demo-area" id="demoArea">
+        <div class="sky-layer"></div>
+        <div class="ground"></div>
+    </div>
+
+    <button class="trigger-btn" id="triggerBtn">Drop Loot Box</button>
+
+    <script>
+        const rewards = {
+            common: [
+                { icon: '&#128176;', name: '50 Coins' },
+                { icon: '&#127873;', name: 'Small Pack' },
+                { icon: '&#9889;', name: 'Energy x5' }
+            ],
+            rare: [
+                { icon: '&#128142;', name: '10 Gems' },
+                { icon: '&#127942;', name: 'Bronze Trophy' },
+                { icon: '&#128293;', name: 'Fire Boost' }
+            ],
+            epic: [
+                { icon: '&#11088;', name: 'Star Token' },
+                { icon: '&#127775;', name: 'Epic Skin' },
+                { icon: '&#128081;', name: 'Crown' }
+            ],
+            legendary: [
+                { icon: '&#128293;', name: 'Dragon Pet' },
+                { icon: '&#127752;', name: 'Rainbow Aura' },
+                { icon: '&#9971;', name: 'Godlike Power' }
+            ]
+        };
+
+        const rarityColors = {
+            common: '#808080',
+            rare: '#00f2ea',
+            epic: '#9333ea',
+            legendary: '#ffd700'
+        };
+
+        let dropCount = 0;
+        let openCount = 0;
+        let legendaryCount = 0;
+
+        const demoArea = document.getElementById('demoArea');
+
+        function getRarity() {
+            const selected = document.getElementById('raritySelect').value;
+            if (selected === 'random') {
+                const rand = Math.random();
+                if (rand < 0.5) return 'common';
+                if (rand < 0.8) return 'rare';
+                if (rand < 0.95) return 'epic';
+                return 'legendary';
+            }
+            return selected;
+        }
+
+        function createLootDrop(xPos) {
+            const rarity = getRarity();
+            const speed = document.getElementById('speedSelect').value;
+            
+            const container = document.createElement('div');
+            container.className = 'lootbox-drop';
+            container.style.left = xPos + 'px';
+            container.style.setProperty('--drop-duration', speed + 's');
+
+            container.innerHTML = `
+                <div class="parachute">
+                    <div class="parachute-canopy"></div>
+                    <div class="parachute-strings">
+                        <div class="string"></div>
+                        <div class="string"></div>
+                        <div class="string"></div>
+                        <div class="string"></div>
+                        <div class="string"></div>
+                    </div>
+                </div>
+                <div class="lootbox" data-rarity="${rarity}">
+                    <div class="lootbox-body">&#127873;</div>
+                </div>
+            `;
+
+            demoArea.appendChild(container);
+            dropCount++;
+            updateDisplay();
+
+            const lootbox = container.querySelector('.lootbox');
+            
+            // Auto open or click to open
+            const autoOpen = document.getElementById('autoOpen').value === 'true';
+            
+            if (autoOpen) {
+                setTimeout(() => openBox(lootbox, container, rarity), speed * 1000 + 500);
+            } else {
+                lootbox.addEventListener('click', () => openBox(lootbox, container, rarity));
+            }
+        }
+
+        function openBox(lootbox, container, rarity) {
+            if (lootbox.classList.contains('opened')) return;
+            
+            lootbox.classList.add('opening');
+            
+            setTimeout(() => {
+                lootbox.classList.remove('opening');
+                lootbox.classList.add('opened');
+                
+                // Get random reward
+                const rewardList = rewards[rarity];
+                const reward = rewardList[Math.floor(Math.random() * rewardList.length)];
+                
+                // Show reward
+                const reveal = document.createElement('div');
+                reveal.className = 'reward-reveal';
+                reveal.innerHTML = `
+                    <div class="reward-icon">${reward.icon}</div>
+                    <div class="reward-name" style="color: ${rarityColors[rarity]}">${reward.name}</div>
+                `;
+                container.appendChild(reveal);
+                
+                setTimeout(() => reveal.classList.add('active'), 100);
+                
+                // Update stats
+                openCount++;
+                if (rarity === 'legendary') legendaryCount++;
+                document.getElementById('lastReward').textContent = reward.name;
+                updateDisplay();
+                
+                // Remove after delay
+                setTimeout(() => {
+                    container.style.transition = 'opacity 0.5s';
+                    container.style.opacity = '0';
+                    setTimeout(() => container.remove(), 500);
+                }, 3000);
+                
+            }, 500);
+        }
+
+        function dropLootBoxes() {
+            const count = parseInt(document.getElementById('multiDrop').value);
+            const areaWidth = demoArea.offsetWidth - 120;
+            
+            for (let i = 0; i < count; i++) {
+                const xPos = (areaWidth / (count + 1)) * (i + 1);
+                setTimeout(() => createLootDrop(xPos), i * 300);
+            }
+        }
+
+        function updateDisplay() {
+            document.getElementById('dropCount').textContent = dropCount;
+            document.getElementById('openCount').textContent = openCount;
+            document.getElementById('legendaryCount').textContent = legendaryCount;
+        }
+
+        // Create clouds
+        function createClouds() {
+            for (let i = 0; i < 5; i++) {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud';
+                cloud.style.width = (100 + Math.random() * 100) + 'px';
+                cloud.style.height = (30 + Math.random() * 20) + 'px';
+                cloud.style.top = (Math.random() * 40) + '%';
+                cloud.style.animationDuration = (15 + Math.random() * 10) + 's';
+                cloud.style.animationDelay = (-Math.random() * 20) + 's';
+                demoArea.appendChild(cloud);
+            }
+        }
+
+        document.getElementById('triggerBtn').addEventListener('click', dropLootBoxes);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                dropLootBoxes();
+            }
+        });
+
+        createClouds();
+    </script>
+</body>
+</html>

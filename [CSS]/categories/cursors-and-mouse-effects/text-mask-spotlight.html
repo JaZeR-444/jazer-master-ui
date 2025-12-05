@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Mask Spotlight</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a, #1a0a2a, #0a1a2a);
+            font-family: var(--font-body);
+            color: #fff;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Custom cursor */
+        .custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease-out;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Spotlight mask */
+        .spotlight-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        .spotlight {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, transparent 30%, rgba(0, 0, 0, 0.95) 70%);
+            transform: translate(-50%, -50%);
+            mix-blend-mode: multiply;
+        }
+
+        /* Text reveal layers */
+        .text-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 2rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .text-layer.revealed {
+            opacity: 1;
+        }
+
+        .text-layer-1 {
+            background: linear-gradient(45deg, var(--jazer-cyan), var(--jazer-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            z-index: 3;
+        }
+
+        .text-layer-2 {
+            color: var(--jazer-pink);
+            text-shadow: 0 0 30px rgba(255, 0, 255, 0.5);
+            z-index: 2;
+        }
+
+        .text-layer-3 {
+            color: #fff;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+
+        /* Main content */
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Demo sections */
+        .demo-section {
+            margin-bottom: 4rem;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        /* Text showcase areas */
+        .text-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .text-area {
+            padding: 3rem 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .text-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .text-area:hover::before {
+            left: 100%;
+        }
+
+        .text-area:hover {
+            transform: translateY(-5px);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+        }
+
+        .area-title {
+            font-size: 1.3rem;
+            color: var(--jazer-pink);
+            margin-bottom: 0.5rem;
+        }
+
+        .area-description {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* Interactive cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .reveal-card {
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reveal-card:hover {
+            transform: scale(1.05);
+            border-color: var(--jazer-purple);
+            box-shadow: 0 10px 30px rgba(255, 0, 255, 0.2);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--jazer-cyan);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            color: var(--jazer-purple);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-text {
+            color: #ccc;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Control panel */
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid var(--jazer-cyan);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+        }
+
+        .control-title {
+            color: var(--jazer-cyan);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .control-group {
+            margin-bottom: 1rem;
+        }
+
+        .control-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .slider {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        .slider-value {
+            color: var(--jazer-pink);
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 0.25rem;
+        }
+
+        .style-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .style-btn {
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-radius: 5px;
+            cursor: none;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .style-btn:hover {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+        }
+
+        .style-btn.active {
+            background: var(--jazer-purple);
+            border-color: var(--jazer-purple);
+        }
+
+        .toggle-btn {
+            width: 100%;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-radius: 5px;
+            cursor: none;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+        }
+
+        .toggle-btn:hover {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+        }
+
+        .toggle-btn.active {
+            background: var(--jazer-purple);
+            border-color: var(--jazer-purple);
+        }
+
+        /* Back navigation */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 25px;
+            border: 1px solid var(--jazer-cyan);
+            z-index: 10001;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Info panel */
+        .info-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--jazer-purple);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+        }
+
+        .info-text {
+            color: var(--jazer-pink);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                top: auto;
+                bottom: 20px;
+                right: 20px;
+                left: 20px;
+                max-width: none;
+            }
+            
+            .text-showcase {
+                grid-template-columns: 1fr;
+            }
+            
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back navigation -->
+    <a href="../index.html" class="back-button">← Back to Cursors</a>
+
+    <!-- Custom cursor -->
+    <div class="custom-cursor" id="customCursor"></div>
+
+    <!-- Spotlight container -->
+    <div class="spotlight-container" id="spotlightContainer">
+        <div class="spotlight" id="spotlight"></div>
+    </div>
+
+    <!-- Text layers -->
+    <div class="text-layer text-layer-1" id="textLayer1">
+        <div>✨ HIDDEN TEXT REVEALED ✨</div>
+    </div>
+    <div class="text-layer text-layer-2" id="textLayer2">
+        <div>🎯 SPOTLIGHT EFFECT ACTIVE</div>
+    </div>
+    <div class="text-layer text-layer-3" id="textLayer3">
+        <div>🌟 CURSOR CONTROLLED MASK</div>
+    </div>
+
+    <!-- Info panel -->
+    <div class="info-panel">
+        <div class="info-text">Spotlight Size: <span id="spotlightSize">150</span>px</div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <h1 class="title">Text Mask Spotlight</h1>
+        <p class="subtitle">Move your cursor to reveal hidden text with a spotlight mask effect</p>
+    </header>
+
+    <!-- Main content -->
+    <main class="content">
+        <!-- Text showcase -->
+        <section class="demo-section">
+            <h2 class="section-title">🔦 Spotlight Reveal Areas</h2>
+            <div class="text-showcase">
+                <div class="text-area">
+                    <h3 class="area-title">Discovery Zone</h3>
+                    <p class="area-description">Move cursor here to reveal the hidden message beneath the darkness</p>
+                </div>
+                
+                <div class="text-area">
+                    <h3 class="area-title">Exploration Area</h3>
+                    <p class="area-description">The spotlight follows your cursor, uncovering secrets as you explore</p>
+                </div>
+                
+                <div class="text-area">
+                    <h3 class="area-title">Mystery Zone</h3>
+                    <p class="area-description">Hidden content awaits discovery through cursor-controlled illumination</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature cards -->
+        <section class="demo-section">
+            <h2 class="section-title">🎨 Mask Effects</h2>
+            <div class="card-grid">
+                <div class="reveal-card">
+                    <div class="card-icon">🎭</div>
+                    <h3 class="card-title">Dynamic Masking</h3>
+                    <p class="card-text">Real-time mask that follows cursor movement with smooth transitions</p>
+                </div>
+                
+                <div class="reveal-card">
+                    <div class="card-icon">✨</div>
+                    <h3 class="card-title">Multiple Layers</h3>
+                    <p class="card-text">Stacked text layers with different reveal effects and styling</p>
+                </div>
+                
+                <div class="reveal-card">
+                    <div class="card-icon">🎯</div>
+                    <h3 class="card-title">Precise Control</h3>
+                    <p class="card-text">Accurate cursor tracking for precise spotlight positioning</p>
+                </div>
+                
+                <div class="reveal-card">
+                    <div class="card-icon">🌟</div>
+                    <h3 class="card-title">Smooth Animations</h3>
+                    <p class="card-text">Fluid transitions and easing for natural reveal effects</p>
+                </div>
+                
+                <div class="reveal-card">
+                    <div class="card-icon">🎨</div>
+                    <h3 class="card-title">Customizable</h3>
+                    <p class="card-text">Adjust spotlight size, intensity, and reveal behavior</p>
+                </div>
+                
+                <div class="reveal-card">
+                    <div class="card-icon">📱</div>
+                    <h3 class="card-title">Touch Support</h3>
+                    <p class="card-text">Works on mobile devices with touch event handling</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Control panel -->
+    <div class="controls">
+        <h3 class="control-title">⚙️ Spotlight Controls</h3>
+        
+        <div class="control-group">
+            <label class="control-label">Spotlight Size:</label>
+            <input type="range" class="slider" id="sizeSlider" min="50" max="300" value="150">
+            <div class="slider-value" id="sizeValue">150px</div>
+        </div>
+        
+        <div class="control-group">
+            <label class="control-label">Softness:</label>
+            <input type="range" class="slider" id="softnessSlider" min="20" max="80" value="30">
+            <div class="slider-value" id="softnessValue">30%</div>
+        </div>
+        
+        <div class="control-group">
+            <label class="control-label">Darkness Level:</label>
+            <input type="range" class="slider" id="darknessSlider" min="80" max="99" value="95">
+            <div class="slider-value" id="darknessValue">95%</div>
+        </div>
+        
+        <div class="control-group">
+            <label class="control-label">Text Layers:</label>
+            <div class="style-buttons">
+                <button class="style-btn active" data-layer="1">Layer 1</button>
+                <button class="style-btn" data-layer="2">Layer 2</button>
+                <button class="style-btn" data-layer="3">Layer 3</button>
+                <button class="style-btn" data-layer="all">All Layers</button>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <button class="toggle-btn active" id="animationToggle">Smooth Animation</button>
+        </div>
+    </div>
+
+    <script>
+        // Text mask spotlight controller
+        class TextMaskSpotlightController {
+            constructor() {
+                this.cursor = document.getElementById('customCursor');
+                this.spotlight = document.getElementById('spotlight');
+                this.spotlightContainer = document.getElementById('spotlightContainer');
+                this.spotlightSizeSpan = document.getElementById('spotlightSize');
+                this.sizeSlider = document.getElementById('sizeSlider');
+                this.sizeValue = document.getElementById('sizeValue');
+                this.softnessSlider = document.getElementById('softnessSlider');
+                this.softnessValue = document.getElementById('softnessValue');
+                this.darknessSlider = document.getElementById('darknessSlider');
+                this.darknessValue = document.getElementById('darknessValue');
+                this.animationToggle = document.getElementById('animationToggle');
+                
+                this.mouseX = 0;
+                this.mouseY = 0;
+                this.spotlightSize = 150;
+                this.softness = 30;
+                this.darkness = 95;
+                this.activeLayer = 'all';
+                this.smoothAnimation = true;
+                
+                this.init();
+            }
+            
+            init() {
+                // Mouse move handler
+                document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                
+                // Touch move handler for mobile
+                document.addEventListener('touchmove', (e) => this.handleTouchMove(e));
+                
+                // Control handlers
+                this.sizeSlider.addEventListener('input', (e) => this.updateSpotlightSize(e.target.value));
+                this.softnessSlider.addEventListener('input', (e) => this.updateSoftness(e.target.value));
+                this.darknessSlider.addEventListener('input', (e) => this.updateDarkness(e.target.value));
+                this.animationToggle.addEventListener('click', () => this.toggleAnimation());
+                
+                // Layer buttons
+                document.querySelectorAll('[data-layer]').forEach(btn => {
+                    btn.addEventListener('click', (e) => this.changeLayer(e));
+                });
+                
+                // Hide default cursor
+                document.body.style.cursor = 'none';
+                
+                // Initialize spotlight
+                this.updateSpotlight();
+            }
+            
+            handleMouseMove(e) {
+                this.mouseX = e.clientX;
+                this.mouseY = e.clientY;
+                
+                // Update cursor position
+                this.cursor.style.left = `${e.clientX}px`;
+                this.cursor.style.top = `${e.clientY}px`;
+                
+                // Update spotlight position
+                this.updateSpotlightPosition(e.clientX, e.clientY);
+            }
+            
+            handleTouchMove(e) {
+                if (e.touches.length > 0) {
+                    const touch = e.touches[0];
+                    this.mouseX = touch.clientX;
+                    this.mouseY = touch.clientY;
+                    
+                    this.cursor.style.left = `${touch.clientX}px`;
+                    this.cursor.style.top = `${touch.clientY}px`;
+                    
+                    this.updateSpotlightPosition(touch.clientX, touch.clientY);
+                }
+            }
+            
+            updateSpotlightPosition(x, y) {
+                if (this.smoothAnimation) {
+                    // Smooth animation with easing
+                    const easing = 0.15;
+                    const currentX = parseFloat(this.spotlight.style.left) || x;
+                    const currentY = parseFloat(this.spotlight.style.top) || y;
+                    
+                    const newX = currentX + (x - currentX) * easing;
+                    const newY = currentY + (y - currentY) * easing;
+                    
+                    this.spotlight.style.left = `${newX}px`;
+                    this.spotlight.style.top = `${newY}px`;
+                } else {
+                    // Direct positioning
+                    this.spotlight.style.left = `${x}px`;
+                    this.spotlight.style.top = `${y}px`;
+                }
+            }
+            
+            updateSpotlight() {
+                this.spotlight.style.width = `${this.spotlightSize}px`;
+                this.spotlight.style.height = `${this.spotlightSize}px`;
+                this.spotlight.style.background = `radial-gradient(circle, transparent ${this.softness}%, rgba(0, 0, 0, ${this.darkness / 100}) 70%)`;
+            }
+            
+            updateSpotlightSize(size) {
+                this.spotlightSize = parseInt(size);
+                this.sizeValue.textContent = `${size}px`;
+                this.spotlightSizeSpan.textContent = size;
+                this.updateSpotlight();
+            }
+            
+            updateSoftness(softness) {
+                this.softness = parseInt(softness);
+                this.softnessValue.textContent = `${softness}%`;
+                this.updateSpotlight();
+            }
+            
+            updateDarkness(darkness) {
+                this.darkness = parseInt(darkness);
+                this.darknessValue.textContent = `${darkness}%`;
+                this.updateSpotlight();
+            }
+            
+            changeLayer(e) {
+                const btn = e.target;
+                const layer = btn.dataset.layer;
+                
+                // Update active button
+                document.querySelectorAll('[data-layer]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                this.activeLayer = layer;
+                
+                // Update text layers visibility
+                const layers = ['textLayer1', 'textLayer2', 'textLayer3'];
+                
+                layers.forEach((layerId, index) => {
+                    const element = document.getElementById(layerId);
+                    if (layer === 'all') {
+                        element.classList.add('revealed');
+                    } else if (layer === (index + 1).toString()) {
+                        element.classList.add('revealed');
+                    } else {
+                        element.classList.remove('revealed');
+                    }
+                });
+            }
+            
+            toggleAnimation() {
+                this.smoothAnimation = !this.smoothAnimation;
+                this.animationToggle.classList.toggle('active');
+                this.animationToggle.textContent = this.smoothAnimation ? 'Smooth Animation' : 'Direct Position';
+            }
+        }
+        
+        // Initialize text mask spotlight controller
+        const spotlightController = new TextMaskSpotlightController();
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'c' || e.key === 'C') {
+                const cursor = document.getElementById('customCursor');
+                const spotlight = document.getElementById('spotlightContainer');
+                cursor.style.display = cursor.style.display === 'none' ? 'block' : 'none';
+                spotlight.style.display = spotlight.style.display === 'none' ? 'block' : 'none';
+            }
+            
+            if (e.key === 's' || e.key === 'S') {
+                // Cycle through layers
+                const layers = ['1', '2', '3', 'all'];
+                const currentLayer = spotlightController.activeLayer;
+                const currentIndex = layers.indexOf(currentLayer);
+                const nextIndex = (currentIndex + 1) % layers.length;
+                const nextLayer = layers[nextIndex];
+                
+                const nextBtn = document.querySelector(`[data-layer="${nextLayer}"]`);
+                if (nextBtn) {
+                    nextBtn.click();
+                }
+            }
+            
+            if (e.key === 'a' || e.key === 'A') {
+                // Toggle animation
+                spotlightController.toggleAnimation();
+            }
+            
+            if (e.key === 'r' || e.key === 'R') {
+                // Reset to defaults
+                document.getElementById('sizeSlider').value = 150;
+                document.getElementById('softnessSlider').value = 30;
+                document.getElementById('darknessSlider').value = 95;
+                
+                spotlightController.updateSpotlightSize(150);
+                spotlightController.updateSoftness(30);
+                spotlightController.updateDarkness(95);
+                
+                // Reset to all layers
+                const allBtn = document.querySelector('[data-layer="all"]');
+                if (allBtn) {
+                    allBtn.click();
+                }
+            }
+        });
+        
+        // Add click effect
+        document.addEventListener('click', (e) => {
+            // Don't create effect on control panel clicks
+            if (e.target.closest('.controls') || e.target.closest('.back-button') || e.target.closest('.info-panel')) {
+                return;
+            }
+            
+            const flash = document.createElement('div');
+            flash.style.cssText = `
+                position: fixed;
+                width: 100px;
+                height: 100px;
+                background: radial-gradient(circle, var(--jazer-cyan), transparent);
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 99999;
+                left: ${e.clientX - 50}px;
+                top: ${e.clientY - 50}px;
+                transform: scale(0);
+                animation: flash-effect 0.4s ease-out forwards;
+            `;
+            
+            document.body.appendChild(flash);
+            
+            setTimeout(() => flash.remove(), 400);
+        });
+        
+        // Add flash animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes flash-effect {
+                to {
+                    transform: scale(2);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Add some ambient particles
+        setInterval(() => {
+            if (Math.random() > 0.95) {
+                const particle = document.createElement('div');
+                particle.style.cssText = `
+                    position: fixed;
+                    width: 2px;
+                    height: 2px;
+                    background: var(--jazer-purple);
+                    border-radius: 50%;
+                    pointer-events: none;
+                    z-index: 1;
+                    left: ${Math.random() * window.innerWidth}px;
+                    top: ${Math.random() * window.innerHeight}px;
+                    animation: ambient-float 4s ease-out forwards;
+                `;
+                
+                document.body.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 4000);
+            }
+        }, 2000);
+        
+        // Add ambient float animation
+        const ambientStyle = document.createElement('style');
+        ambientStyle.textContent = `
+            @keyframes ambient-float {
+                to {
+                    transform: translateY(-50px) scale(0);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(ambientStyle);
+    </script>
+</body>
+</html>

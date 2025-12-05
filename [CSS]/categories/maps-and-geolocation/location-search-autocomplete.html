@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Location Search Autocomplete - JaZeR Maps Patterns</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:var(--font-body);background:var(--bg-dark);color:var(--text-light);margin:0;padding:1.25rem}
+    .back-button{display:inline-flex;align-items:center;gap:.5rem;color:var(--text-gray);text-decoration:none;font-family:var(--font-secondary);font-weight:600;padding:.5rem 1rem;border-radius:8px;border:1px solid var(--border-default);background:var(--bg-card)}
+    .back-button:hover{border-color:var(--jazer-cyan);color:var(--jazer-cyan)}
+
+    .hero{text-align:center;margin:1rem 0 1.25rem}
+    .hero h1{font-size:clamp(1.75rem,3.5vw,2.5rem);margin:.4rem 0;background:var(--gradient-text);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+    .hero p{color:var(--text-gray);max-width:760px;margin:0.25rem auto}
+    .hero-badge{display:inline-flex;gap:.5rem;padding:.35rem .75rem;border-radius:999px;background:rgba(255,255,255,0.03);border:1px solid var(--border-default);font-family:var(--font-secondary)}
+
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;max-width:1300px;margin:0 auto}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+
+    .card{background:var(--bg-card);border-radius:12px;padding:1rem;border:2px solid var(--border-default);box-shadow:var(--shadow-card)}
+    .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem}
+    .title{font-family:var(--font-secondary);font-weight:700}
+    .subtitle{color:var(--text-gray);font-size:.9rem}
+
+    .search-row{display:flex;gap:.5rem;align-items:center}
+    .input{flex:1;position:relative}
+    input[type=search]{width:100%;padding:.6rem .75rem;border-radius:10px;background:var(--bg-dark);border:1px solid var(--border-default);color:var(--text-light);outline:none}
+    input[type=search]:focus{border-color:var(--jazer-cyan);box-shadow:var(--shadow-cyan)}
+    .action{display:inline-flex;align-items:center;gap:.5rem;padding:.45rem .6rem;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid var(--border-default);cursor:pointer}
+
+    .filters{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem}
+    .chip{display:inline-flex;align-items:center;gap:.5rem;padding:.3rem .5rem;border-radius:999px;background:rgba(255,255,255,0.03);border:1px solid var(--border-default);color:var(--text-light);cursor:pointer}
+    .chip--active{border-color:var(--jazer-cyan);background:rgba(0,242,234,0.05);color:var(--jazer-cyan)}
+
+    .listbox{position:absolute;background:var(--bg-dark);border:1px solid var(--border-default);border-radius:8px;max-height:220px;overflow:auto;margin-top:.6rem;z-index:40;box-shadow:0 8px 35px rgba(0,0,0,0.6)}
+    .row{display:flex;gap:.6rem;padding:.6rem .75rem;align-items:flex-start;border-bottom:1px dashed rgba(255,255,255,0.02);cursor:pointer}
+    .row:last-child{border-bottom:none}
+    .row:hover,.row[aria-selected='true']{background:rgba(0,242,234,0.04)}
+    .row .title{font-weight:700}
+    .row .meta{color:var(--text-gray);font-size:.9rem}
+    .meta .distance{color:var(--jazer-cyan);font-weight:700;margin-left:.5rem}
+
+    .map{height:180px;border-radius:8px;background:linear-gradient(90deg, rgba(0,0,0,0.35), rgba(0,0,0,0.45));border:1px solid var(--border-default);display:flex;align-items:center;justify-content:center;color:var(--text-gray)}
+    .coords{font-family:var(--font-secondary);color:var(--jazer-cyan)}
+
+    .hint{text-align:center;color:var(--text-gray);font-size:.85rem;margin-top:.5rem}
+
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to Maps & Geolocation</a>
+  <header class="hero">
+    <h1>Location Search Autocomplete</h1>
+    <p>Enhanced location search with category filters, type-ahead suggestions, live distance display, and demonstrations of recent searches and results grouping.</p>
+    <div class="hero-badge">+ 6 Styles Included</div>
+  </header>
+
+  <div class="grid">
+
+    <section class="card">
+      <div class="header">
+        <div>
+          <div class="title">Grouped Results</div>
+          <div class="subtitle">Addresses, businesses, and POIs grouped for clarity</div>
+        </div>
+        <div class="action" title="Change radius">⟲ 50km</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.5rem">
+        <div class="search-row">
+          <div class="input">
+            <input id="ls-group" type="search" placeholder="Search for a place or address" aria-controls="ls-group-listbox" aria-autocomplete="list" autocomplete="off">
+            <div id="ls-group-listbox" role="listbox" class="listbox" hidden></div>
+          </div>
+          <button class="action" id="geo-locate" title="Use my location">📍</button>
+        </div>
+        <div class="filters" id="filter-chips">
+          <button class="chip chip--active" data-type="all">All</button>
+          <button class="chip" data-type="poi">POI</button>
+          <button class="chip" data-type="address">Address</button>
+          <button class="chip" data-type="business">Business</button>
+        </div>
+        <div class="map" id="ls-map">No selection</div>
+        <div class="hint">Keyboard: <span class="kbd">↑</span>/<span class="kbd">↓</span> navigate, <span class="kbd">Enter</span> select</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="header">
+        <div>
+          <div class="title">Recent & Nearby</div>
+          <div class="subtitle">Saved searches and nearby quick picks</div>
+        </div>
+        <div class="action" title="Clear recents">🗑️</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.5rem">
+        <div id="recent-list" style="display:flex;gap:.5rem;flex-wrap:wrap"></div>
+        <div id="ls-simple-row" class="search-row">
+          <div class="input">
+            <input id="ls-simple" type="search" placeholder="Jump to a nearby place" aria-controls="ls-simple-listbox" aria-autocomplete="list" autocomplete="off">
+            <div id="ls-simple-listbox" role="listbox" class="listbox" hidden></div>
+          </div>
+          <button class="action" id="nearby-filter">🔎</button>
+        </div>
+        <div class="map" id="ls-nearby-map">Latitude / Longitude</div>
+      </div>
+    </section>
+
+
+    <section class="card">
+      <div class="header">
+        <div>
+          <div class="title">Autocomplete Inline</div>
+          <div class="subtitle">Compact input with inline suggestions</div>
+        </div>
+        <div class="action">⌨️</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.5rem">
+        <div class="search-row">
+          <div class="input">
+            <input id="ls-inline" type="search" placeholder="Inline suggestions" aria-controls="ls-inline-listbox" aria-autocomplete="list" autocomplete="off">
+            <div id="ls-inline-listbox" role="listbox" class="listbox" hidden></div>
+          </div>
+        </div>
+        <div class="hint">Tip: Filter by category to narrow results</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="header">
+        <div>
+          <div class="title">Category Filtered</div>
+          <div class="subtitle">Filter results by category and display distance</div>
+        </div>
+        <div class="action">⚙️</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.5rem">
+        <div class="filters" id="category-chips">
+          <button class="chip chip--active" data-category="all">All</button>
+          <button class="chip" data-category="food">Food</button>
+          <button class="chip" data-category="hotel">Hotel</button>
+          <button class="chip" data-category="park">Parks</button>
+        </div>
+        <div class="search-row">
+          <div class="input">
+            <input id="ls-category" type="search" placeholder="Search categories" aria-controls="ls-category-listbox" aria-autocomplete="list" autocomplete="off">
+            <div id="ls-category-listbox" role="listbox" class="listbox" hidden></div>
+          </div>
+          <div class="action">🏷️</div>
+        </div>
+        <div class="map" id="ls-category-map">No selection</div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    const DATA = [
+      { id:1, title:'Blue Moon Café', address:'803 Main St', city:'Portland', state:'OR', lat:45.5152, lon:-122.6784, type:'food', rating:4.5 },
+      { id:2, title:'Sunrise Hotel', address:'100 Ocean Ave', city:'Santa Monica', state:'CA', lat:34.0195, lon:-118.4912, type:'hotel', rating:4.2 },
+      { id:3, title:'Greenfield Park', address:'200 Park Ln', city:'Austin', state:'TX', lat:30.2672, lon:-97.7431, type:'park', rating:4.7 },
+      { id:4, title:'Tech Plaza', address:'400 Market St', city:'San Francisco', state:'CA', lat:37.7749, lon:-122.4194, type:'business', rating:4.0 },
+      { id:5, title:'City Library', address:'120 Library Rd', city:'Boston', state:'MA', lat:42.3601, lon:-71.0589, type:'official', rating:4.6 },
+      { id:6, title:'Harbor Fish Market', address:'32 Pier 7', city:'Seattle', state:'WA', lat:47.6062, lon:-122.3321, type:'market', rating:4.4 },
+      { id:7, title:'Central Station', address:'1 Transit Way', city:'Chicago', state:'IL', lat:41.8781, lon:-87.6298, type:'transport', rating:3.9 },
+      { id:8, title:'Oceanview Park', address:'55 Beach Blvd', city:'San Diego', state:'CA', lat:32.7157, lon:-117.1611, type:'park', rating:4.3 },
+      { id:9, title:'City Bistro', address:'12 High St', city:'London', state:'London', lat:51.5074, lon:-0.1278, type:'food', rating:4.6 },
+      { id:10, title:'Market Square', address:'45 Old Town Rd', city:'Edinburgh', state:'Scotland', lat:55.9533, lon:-3.1883, type:'market', rating:4.1 }
+    ];
+
+    function el(id){return document.getElementById(id)}
+
+    function createItemNode(item){
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.setAttribute('role','option');
+      row.dataset.id = item.id;
+      const left = document.createElement('div');
+      left.innerHTML = `<div style='min-width:36px'>${typeIcon(item.type)}</div>`;
+      const content = document.createElement('div');
+      content.style.flex = '1';
+      content.innerHTML = `<div class='title'>${escape(item.title)}</div><div class='meta'>${escape(item.address)}, ${escape(item.city)}<span class='distance'>• ${computeDistance(37.7749,-122.4194,item.lat,item.lon)}</span></div>`;
+      row.appendChild(left);
+      row.appendChild(content);
+      return row;
+    }
+
+    function typeIcon(type){ switch(type){ case 'food': return '🍽️'; case 'hotel': return '🏨'; case 'park': return '🌳'; case 'market': return '🛒'; case 'transport': return '🚉'; default: return '📍'; } }
+
+    function escape(s){ return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+    function computeDistance(lat1, lon1, lat2, lon2){
+      function toRad(d){return d*(Math.PI/180)}
+      const R = 6371; const dLat = toRad(lat2-lat1); const dLon = toRad(lon2-lon1); const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)*Math.sin(dLon/2); const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); const km = R*c; if(km<1) return `${Math.round(km*1000)}m`; return `${km.toFixed(1)}km`;
+    }
+
+    function debounce(fn, wait=250){ let t; return (...a)=>{ clearTimeout(t); t = setTimeout(()=>fn(...a), wait) } }
+
+    function simulateFetch(q, type){ return new Promise(resolve=>{ setTimeout(()=>{ const s = q.trim().toLowerCase(); if(!s) return resolve([]); const res = DATA.filter(d => d.title.toLowerCase().includes(s) || d.city.toLowerCase().includes(s) || d.address.toLowerCase().includes(s)); const filtered = type && type!=='all' ? res.filter(r=>r.type===type) : res; resolve(filtered); }, 300 + Math.random()*200) }) }
+
+    function makeAutocomplete({ inputId, listId, onSelect, categoryElement }){
+      const input = el(inputId); const list = el(listId); let items = []; let active = -1; let open=false;
+      function openList(){ list.hidden=false; input.setAttribute('aria-expanded','true'); open=true }
+      function closeList(){ list.hidden=true; input.setAttribute('aria-expanded','false'); open=false; active=-1 }
+      function render(data){ list.innerHTML=''; if(!data.length){ list.innerHTML = `<div class='row' role='option' aria-selected='false' style='cursor:default'>No matches</div>`; openList(); return;} data.forEach(d=>list.appendChild(createItemNode(d))); items = Array.from(list.querySelectorAll('.row')); openList(); }
+
+      async function handle(e){ const type = categoryElement ? categoryElement.dataset.category || 'all' : 'all'; const v = e.target.value; if(!v.trim()) return closeList(); list.innerHTML = `<div class='row' style='cursor:default; display:flex; gap:.5rem; align-items:center; padding:.6rem .75rem'><span style='width:18px;height:18px' class='loading-spinner'></span>Searching...</div>`; openList(); const results = await simulateFetch(v, type); render(results);
+      }
+
+      const debounced = debounce(handle, 260);
+      input.addEventListener('input', debounced);
+      input.addEventListener('keydown', (e)=>{ if(!open) return; if(e.key==='ArrowDown'){ e.preventDefault(); active = Math.min(active+1, items.length-1); updateActive() } if(e.key==='ArrowUp'){ e.preventDefault(); active = Math.max(active-1, 0); updateActive() } if(e.key==='Enter'){ e.preventDefault(); if(active>=0) select(items[active]); } if(e.key==='Escape'){ closeList() } });
+      function updateActive(){ items.forEach((it,i)=> it.setAttribute('aria-selected', i===active ? 'true' : 'false')); if(active>=0 && items[active]) items[active].scrollIntoView({block:'nearest'}); }
+      function select(node){ const id = Number(node.dataset.id); const item = DATA.find(d=>d.id===id); if(!item) return; input.value = `${item.title}, ${item.city}`; closeList(); if(onSelect) onSelect(item); addRecent(item); }
+      list.addEventListener('click', (e)=>{ const row = e.target.closest('.row'); if(!row || row.innerText==='No matches') return; select(row); });
+      document.addEventListener('click', (e)=>{ if(!input.contains(e.target) && !list.contains(e.target)) closeList(); });
+      return { closeList }
+    }
+
+    function addRecent(item){ const key='jazer.recent.locations'; const existing = JSON.parse(localStorage.getItem(key) || '[]'); const title = `${item.title}, ${item.city}`; const arr = [title, ...existing.filter(x=>x!==title)].slice(0,6); localStorage.setItem(key, JSON.stringify(arr)); renderRecents(); }
+    function renderRecents(){ const key='jazer.recent.locations'; const arr = JSON.parse(localStorage.getItem(key) || '[]'); const container = el('recent-list'); container.innerHTML=''; arr.forEach(v=>{ const b = document.createElement('button'); b.className='chip'; b.textContent = v; b.addEventListener('click', ()=>{ el('ls-simple').value = v; }); container.appendChild(b) }); }
+
+    function showOnMap(elid, item){ const map = el(elid); if(!item) return map.innerHTML='No selection'; map.innerHTML = `<div style='display:flex;flex-direction:column;align-items:center;gap:4px'><div class='coords'>${item.lat.toFixed(5)}, ${item.lon.toFixed(5)}</div><div style='color:var(--text-gray)'>${escape(item.title)} - ${escape(item.city)}</div></div>` }
+
+    // wire up category chips
+    function chipHandler(parentId, inputId, listId){ const parent = el(parentId); const chips = parent.querySelectorAll('.chip'); chips.forEach(c=>c.addEventListener('click', ()=>{ chips.forEach(x=>x.classList.remove('chip--active')); c.classList.add('chip--active'); el(inputId).dispatchEvent(new Event('input')); })); }
+
+    // initialize
+    chipHandler('filter-chips','ls-group','ls-group-listbox');
+    chipHandler('category-chips','ls-category','ls-category-listbox');
+
+    makeAutocomplete({ inputId:'ls-group', listId:'ls-group-listbox', onSelect:(it)=>showOnMap('ls-map',it), categoryElement: el('filter-chips').querySelector('.chip--active') });
+    makeAutocomplete({ inputId:'ls-simple', listId:'ls-simple-listbox', onSelect:(it)=>showOnMap('ls-nearby-map',it) });
+    makeAutocomplete({ inputId:'ls-inline', listId:'ls-inline-listbox', onSelect:(it)=>showOnMap('ls-map',it) });
+    makeAutocomplete({ inputId:'ls-category', listId:'ls-category-listbox', onSelect:(it)=>showOnMap('ls-category-map',it), categoryElement: el('category-chips').querySelector('.chip--active') });
+
+    document.getElementById('geo-locate').addEventListener('click', ()=>{ showOnMap('ls-map', { lat:37.7749, lon:-122.4194, title:'Current Location', city:'San Francisco' }) });
+    document.querySelectorAll('#filter-chips .chip').forEach(ch=>ch.addEventListener('click', ()=>{ el('ls-group').dispatchEvent(new Event('input')) }));
+
+    renderRecents();
+  </script>
+</body>
+</html>

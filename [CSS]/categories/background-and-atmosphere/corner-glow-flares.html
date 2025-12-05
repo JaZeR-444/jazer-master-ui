@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Corner Glow Flares - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="cyan"] { background: var(--jazer-cyan); }
+    .color-btn[data-color="purple"] { background: var(--jazer-purple); }
+    .color-btn[data-color="pink"] { background: var(--jazer-pink); }
+    .color-btn[data-color="rainbow"] { background: conic-gradient(#0ff, #f0f, #ff0, #0ff); }
+    .color-btn[data-color="mono"] { background: #888; }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .flares-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0a0a0f 0%, #0f0623 100%);
+      overflow: hidden;
+    }
+    .corner-flare {
+      position: absolute;
+      pointer-events: none;
+      filter: blur(60px);
+      mix-blend-mode: screen;
+      will-change: transform, opacity;
+    }
+    .flare-tl { top: -100px; left: -100px; }
+    .flare-tr { top: -100px; right: -100px; }
+    .flare-bl { bottom: -100px; left: -100px; }
+    .flare-br { bottom: -100px; right: -100px; }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Corner Glow Flares</h1>
+    <p>Pulsing corner accents with glowing neon flares</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Reset</span>
+      <span class="key-hint"><kbd>B</kbd> Burst</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="cyan" title="Cyan"></button>
+      <button class="color-btn" data-color="purple" title="Purple"></button>
+      <button class="color-btn" data-color="pink" title="Pink"></button>
+      <button class="color-btn" data-color="rainbow" title="Rainbow"></button>
+      <button class="color-btn" data-color="mono" title="Monochrome"></button>
+    </div>
+    <div class="slider-group">
+      <label>Flare Size: <span class="slider-value" id="sizeValue">350</span></label>
+      <input type="range" id="sizeSlider" min="200" max="500" step="25" value="350">
+    </div>
+    <div class="slider-group">
+      <label>Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.3" max="2.5" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Intensity: <span class="slider-value" id="intensityValue">0.6</span></label>
+      <input type="range" id="intensitySlider" min="0.2" max="1" step="0.05" value="0.6">
+    </div>
+  </div>
+
+  <div class="flares-container" id="container">
+    <div class="corner-flare flare-tl" id="flareTL"></div>
+    <div class="corner-flare flare-tr" id="flareTR"></div>
+    <div class="corner-flare flare-bl" id="flareBL"></div>
+    <div class="corner-flare flare-br" id="flareBR"></div>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const flares = {
+      tl: document.getElementById('flareTL'),
+      tr: document.getElementById('flareTR'),
+      bl: document.getElementById('flareBL'),
+      br: document.getElementById('flareBR')
+    };
+    const status = document.getElementById('status');
+
+    let config = {
+      flareSize: 350,
+      speed: 1,
+      intensity: 0.6,
+      colorScheme: 'cyan',
+      paused: false
+    };
+
+    const colorSchemes = {
+      cyan: {
+        tl: 'rgba(0, 242, 234, VAR)',
+        tr: 'rgba(0, 180, 220, VAR)',
+        bl: 'rgba(0, 200, 200, VAR)',
+        br: 'rgba(50, 220, 230, VAR)'
+      },
+      purple: {
+        tl: 'rgba(147, 51, 234, VAR)',
+        tr: 'rgba(120, 70, 200, VAR)',
+        bl: 'rgba(168, 85, 247, VAR)',
+        br: 'rgba(99, 102, 241, VAR)'
+      },
+      pink: {
+        tl: 'rgba(255, 0, 110, VAR)',
+        tr: 'rgba(236, 72, 153, VAR)',
+        bl: 'rgba(255, 107, 157, VAR)',
+        br: 'rgba(200, 50, 100, VAR)'
+      },
+      rainbow: {
+        tl: 'rgba(0, 242, 234, VAR)',
+        tr: 'rgba(147, 51, 234, VAR)',
+        bl: 'rgba(255, 0, 110, VAR)',
+        br: 'rgba(255, 200, 0, VAR)'
+      },
+      mono: {
+        tl: 'rgba(255, 255, 255, VAR)',
+        tr: 'rgba(200, 200, 200, VAR)',
+        bl: 'rgba(180, 180, 180, VAR)',
+        br: 'rgba(220, 220, 220, VAR)'
+      }
+    };
+
+    const flareConfigs = {
+      tl: { duration: 3, scaleRange: 0.2, rotationRange: 5, gradientDir: 'bottom right' },
+      tr: { duration: 4, scaleRange: 0.3, rotationRange: -5, gradientDir: 'bottom left' },
+      bl: { duration: 3.5, scaleRange: 0.15, rotationRange: 3, gradientDir: 'top right' },
+      br: { duration: 4.5, scaleRange: 0.25, rotationRange: -3, gradientDir: 'top left' }
+    };
+
+    let animationId;
+    let time = 0;
+
+    function updateFlareStyles() {
+      const scheme = colorSchemes[config.colorScheme];
+      
+      Object.keys(flares).forEach(key => {
+        const flare = flares[key];
+        const cfg = flareConfigs[key];
+        const color = scheme[key].replace('VAR', config.intensity);
+        const colorFade = scheme[key].replace('VAR', config.intensity * 0.5);
+        
+        flare.style.width = `${config.flareSize}px`;
+        flare.style.height = `${config.flareSize}px`;
+        flare.style.background = `radial-gradient(circle at ${cfg.gradientDir}, ${color} 0%, ${colorFade} 40%, transparent 70%)`;
+      });
+    }
+
+    function animate() {
+      if (config.paused) {
+        animationId = requestAnimationFrame(animate);
+        return;
+      }
+
+      time += 0.016 * config.speed;
+
+      Object.keys(flares).forEach(key => {
+        const flare = flares[key];
+        const cfg = flareConfigs[key];
+        
+        const phase = (time / cfg.duration) * Math.PI * 2;
+        const scale = 1 + Math.sin(phase) * cfg.scaleRange;
+        const rotation = Math.sin(phase * 0.7) * cfg.rotationRange;
+        const opacity = 0.5 + Math.sin(phase * 0.8) * 0.3;
+
+        flare.style.transform = `scale(${scale}) rotate(${rotation}deg)`;
+        flare.style.opacity = opacity * config.intensity;
+      });
+
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function burstEffect() {
+      Object.keys(flares).forEach((key, i) => {
+        setTimeout(() => {
+          const flare = flares[key];
+          flare.style.transition = 'transform 0.2s ease-out, opacity 0.2s ease-out';
+          flare.style.transform = 'scale(1.8)';
+          flare.style.opacity = '1';
+          
+          setTimeout(() => {
+            flare.style.transition = 'transform 0.5s ease-in, opacity 0.5s ease-in';
+            flare.style.transform = 'scale(1)';
+            flare.style.opacity = String(config.intensity * 0.7);
+            
+            setTimeout(() => {
+              flare.style.transition = '';
+            }, 500);
+          }, 200);
+        }, i * 100);
+      });
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+        updateFlareStyles();
+      });
+    });
+
+    // Sliders
+    document.getElementById('sizeSlider').addEventListener('input', e => {
+      config.flareSize = parseInt(e.target.value);
+      document.getElementById('sizeValue').textContent = config.flareSize;
+      updateFlareStyles();
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('intensitySlider').addEventListener('input', e => {
+      config.intensity = parseFloat(e.target.value);
+      document.getElementById('intensityValue').textContent = config.intensity.toFixed(2);
+      updateFlareStyles();
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        time = 0;
+        updateFlareStyles();
+      }
+      if (e.code === 'KeyB') {
+        burstEffect();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['cyan', 'purple', 'pink', 'rainbow', 'mono'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+        updateFlareStyles();
+      }
+    });
+
+    // Initialize
+    updateFlareStyles();
+    animate();
+  </script>
+</body>
+</html>

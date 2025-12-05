@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Geofence Editor - JaZeR Maps Patterns</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:var(--font-body);background:var(--bg-dark);color:var(--text-light);margin:0;padding:1.5rem}
+    .back-button{display:inline-flex;align-items:center;gap:.5rem;color:var(--text-gray);text-decoration:none;font-family:var(--font-secondary);font-weight:600;padding:.5rem 1rem;border-radius:8px;border:1px solid var(--border-default);background:var(--bg-card)}
+    .back-button:hover{border-color:var(--jazer-cyan);color:var(--jazer-cyan)}
+
+    .hero{margin:1rem 0 1.25rem;text-align:center}
+    .hero h1{font-size:clamp(1.75rem,3.5vw,2.5rem);background:var(--gradient-text);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:0}
+    .hero p{color:var(--text-gray);max-width:760px;margin:0.5rem auto}
+    .hero-badge{display:inline-flex;gap:.5rem;padding:.35rem .75rem;border-radius:99px;background:rgba(255,255,255,0.03);border:1px solid var(--border-default)}
+
+    .layout{display:grid;grid-template-columns:380px 1fr;gap:1rem;max-width:1400px;margin:0 auto}
+    @media (max-width:900px){.layout{grid-template-columns:1fr}}
+
+    .panel{background:var(--bg-card);border-radius:12px;padding:1rem;border:2px solid var(--border-default);box-shadow:var(--shadow-card)}
+    .controls{display:flex;flex-direction:column;gap:.5rem}
+    .row{display:flex;gap:.5rem;align-items:center}
+    .label{font-size:.9rem;color:var(--text-gray)}
+    .btn{font-family:var(--font-secondary);font-weight:700;padding:.45rem .65rem;border-radius:8px;background:var(--gradient-accent);border:none;color:var(--text-light);cursor:pointer}
+    .btn-ghost{background:transparent;border:1px solid var(--border-default);color:var(--text-light)}
+
+    .map{height:520px;border-radius:12px;background:linear-gradient(90deg, rgba(0,0,0,0.35), rgba(0,0,0,0.45));border:1px solid var(--border-default);display:flex;align-items:center;justify-content:center;color:var(--text-gray);position:relative;overflow:hidden}
+    .map svg{width:100%;height:100%}
+
+    .geozone{fill:rgba(0,242,234,0.08);stroke:rgba(0,242,234,0.6);stroke-width:2}
+    .handles{fill:var(--bg-dark);stroke:var(--jazer-cyan);stroke-width:2}
+
+    .list{max-height:240px;overflow:auto;margin-top:.5rem}
+    .zone-item{display:flex;align-items:center;justify-content:space-between;padding:.5rem;border-radius:8px;border:1px dashed rgba(255,255,255,0.03);margin-bottom:0.5rem}
+    .zone-item .meta{color:var(--text-gray);font-size:.9rem}
+    .small{font-size:.85rem;color:var(--text-gray)}
+
+    .hint{color:var(--text-gray);font-size:.85rem;text-align:center;margin-top:.5rem}
+
+    .inline-controls{display:flex;gap:.5rem;align-items:center}
+    input[type=range]{width:100%}
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to Maps & Geolocation</a>
+  <header class="hero">
+    <h1>Geofence Editor</h1>
+    <p>Draw, edit, and manage geofenced areas with shape types, snapping handles, and exportable coordinates.</p>
+    <div class="hero-badge">+ 4 Shapes Included</div>
+  </header>
+
+  <div class="layout">
+
+    <aside class="panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+        <div>
+          <div class="small">Current Tool</div>
+          <div style="font-weight:700">Polygon</div>
+        </div>
+        <div style="display:flex;gap:.5rem">
+          <button id="undo" class="btn-ghost">Undo</button>
+          <button id="redo" class="btn-ghost">Redo</button>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div><label class="small">Shape Type</label></div>
+        <div class="row">
+          <select id="shape-type" class="btn-ghost" aria-label="Select shape type">
+            <option value="polygon">Polygon</option>
+            <option value="circle">Circle</option>
+            <option value="rectangle">Rectangle</option>
+            <option value="ellipse">Ellipse</option>
+            <option value="path">Path</option>
+          </select>
+        </div>
+
+        <div style="margin-top:.5rem"><label class="small">Style</label></div>
+        <div class="row">
+          <label class="label">Fill opacity</label>
+          <input id="opacity" type="range" min="0" max="100" value="8" aria-label="Fill opacity">
+        </div>
+
+        <div class="row">
+          <label class="label">Stroke width</label>
+          <input id="stroke-width" type="range" min="1" max="8" value="2" aria-label="Stroke width">
+        </div>
+
+        <div style="margin-top:.5rem; display:flex; gap:.5rem">
+          <button id="add-zone" class="btn">Create Zone</button>
+          <button id="clear-zones" class="btn-ghost">Clear</button>
+        </div>
+
+        <div style="margin-top:.75rem">
+          <div class="small">Zones</div>
+          <div class="list" id="zone-list"></div>
+        </div>
+
+        <div style="margin-top:.5rem">
+          <div class="small">Export</div>
+          <div class="row">
+            <button id="export-geojson" class="btn-ghost">GeoJSON</button>
+            <button id="export-kml" class="btn-ghost">KML</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="hint">Click to add points. Drag handles to reshape. Shift-click to move entire polygon.</div>
+    </aside>
+
+    <main class="panel">
+      <div class="map" id="editor-map">
+        <svg viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet" id="map-svg" aria-hidden="true"></svg>
+        <div style="position:absolute;left:8px;top:8px;display:flex;gap:.5rem;">
+          <div class="btn-ghost small" id="zoom-in">＋</div>
+          <div class="btn-ghost small" id="zoom-out">－</div>
+          <div class="btn-ghost small" id="reset-view">⤢</div>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <script>
+    // Minimal SVG-based editor for demo; not a full map integration.
+    const svg = document.getElementById('map-svg');
+    let zones = [];
+    let currentPoints = [];
+    let tool = 'polygon';
+
+    function toSvgPoint(x,y){ const rect = svg.getBoundingClientRect(); const vx = (x - rect.left) / rect.width * 1000; const vy = (y - rect.top) / rect.height * 1000; return { x:vx, y:vy }}
+
+    function drawZones(){ svg.innerHTML = ''; zones.forEach((zone, idx)=>{
+      if(zone.type==='circle'){
+        const c = document.createElementNS('http://www.w3.org/2000/svg','circle'); c.setAttribute('cx',zone.cx); c.setAttribute('cy',zone.cy); c.setAttribute('r',zone.r); c.setAttribute('class','geozone'); svg.appendChild(c);
+      } else if(zone.type==='rectangle'){
+        const rect = document.createElementNS('http://www.w3.org/2000/svg','rect'); rect.setAttribute('x',zone.x); rect.setAttribute('y',zone.y); rect.setAttribute('width',zone.w); rect.setAttribute('height',zone.h); rect.setAttribute('class','geozone'); svg.appendChild(rect);
+      } else if(zone.type==='ellipse'){
+        const e = document.createElementNS('http://www.w3.org/2000/svg','ellipse'); e.setAttribute('cx',zone.cx); e.setAttribute('cy',zone.cy); e.setAttribute('rx',zone.rx); e.setAttribute('ry',zone.ry); e.setAttribute('class','geozone'); svg.appendChild(e);
+      } else if(zone.type==='path' || zone.type==='polygon'){
+        const path = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+        const pts = zone.points.map(p=>`${p.x},${p.y}`).join(' ');
+        path.setAttribute('points', pts);
+        path.setAttribute('class','geozone'); svg.appendChild(path);
+
+        // draw handles
+        zone.points.forEach((p, i)=>{
+          const h = document.createElementNS('http://www.w3.org/2000/svg','circle'); h.setAttribute('cx',p.x); h.setAttribute('cy',p.y); h.setAttribute('r',6); h.setAttribute('class','handles'); h.dataset.zone = idx; h.dataset.idx = i; svg.appendChild(h);
+        });
+      }
+    }) }
+
+    // Mouse handling
+    svg.addEventListener('click', (ev)=>{
+      const pt = toSvgPoint(ev.clientX, ev.clientY);
+      if(tool === 'polygon'){
+        currentPoints.push(pt);
+        drawTemporary();
+      } else if(tool === 'circle'){
+        const zone = { type:'circle', cx:pt.x, cy:pt.y, r:40 }; zones.push(zone); refreshList(); drawZones();
+      } else if(tool === 'rectangle'){
+        const zone = { type:'rectangle', x:pt.x-40, y:pt.y-25, w:80, h:50 }; zones.push(zone); refreshList(); drawZones();
+      }
+    });
+
+    function drawTemporary(){ svg.querySelectorAll('.temp').forEach(e=>e.remove()); if(currentPoints.length<1) return; // draw polyline
+      const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon'); poly.classList.add('temp'); poly.setAttribute('points', currentPoints.map(p=>`${p.x},${p.y}`).join(' ')); poly.setAttribute('fill','rgba(255,255,255,0.02)'); poly.setAttribute('stroke','rgba(255,255,255,0.3)'); poly.setAttribute('stroke-dasharray','4 6'); svg.appendChild(poly);
+      currentPoints.forEach(p=>{ const h = document.createElementNS('http://www.w3.org/2000/svg','circle'); h.classList.add('temp'); h.setAttribute('cx',p.x); h.setAttribute('cy',p.y); h.setAttribute('r',4); h.setAttribute('fill','rgba(0,242,234,0.8)'); svg.appendChild(h); });
+    }
+
+    function commitPolygon(){ if(currentPoints.length<3){ alert('Need at least 3 points'); return; } zones.push({ type:'polygon', points: currentPoints.slice() }); currentPoints = []; drawTemporary(); drawZones(); refreshList(); }
+
+    document.getElementById('add-zone').addEventListener('click', ()=>{
+      if(tool === 'polygon') commitPolygon(); else { alert('Other shapes immediate'); }
+    });
+
+    document.getElementById('clear-zones').addEventListener('click', ()=>{ if(!confirm('Clear all zones?')) return; zones=[]; drawZones(); refreshList(); })
+
+    document.getElementById('shape-type').addEventListener('change', (e)=>{ tool = e.target.value; document.querySelector('.hero small')?.textContent = tool; });
+
+    document.getElementById('opacity').addEventListener('input', (e)=>{ document.querySelectorAll('.geozone').forEach(el=> el.style.fill = `rgba(0,242,234,${e.target.value/100})`) });
+    document.getElementById('stroke-width').addEventListener('input', (e)=>{ document.querySelectorAll('.geozone').forEach(el=> el.style.strokeWidth = e.target.value) });
+
+    function refreshList(){ const list = document.getElementById('zone-list'); list.innerHTML=''; zones.forEach((z,i)=>{ const item = document.createElement('div'); item.className='zone-item'; item.innerHTML = `<div><div style='font-weight:700'>Zone ${i+1}</div><div class='meta'>Type: ${z.type} • ${describePoints(z)}</div></div><div><button class='btn-ghost' data-delete='${i}'>Delete</button></div>`; list.appendChild(item); });
+      list.querySelectorAll('[data-delete]').forEach(b=>b.addEventListener('click', (ev)=>{ const idx = Number(ev.target.dataset.delete); zones.splice(idx,1); refreshList(); drawZones(); })); }
+
+    function describePoints(z){ if(z.type==='circle') return `center ${Math.round(z.cx)},${Math.round(z.cy)} r${Math.round(z.r)}`; if(z.type==='rectangle') return `${Math.round(z.x)},${Math.round(z.y)} ${Math.round(z.w)}x${Math.round(z.h)}`; if(z.type==='ellipse') return `cx:${Math.round(z.cx)} ry:${Math.round(z.ry)}`; if(z.type==='path' || z.type==='polygon') return `${z.points.length} points`; return '' }
+
+    document.getElementById('export-geojson').addEventListener('click', ()=>{ const geo = zonesToGeoJSON(); const blob = new Blob([JSON.stringify(geo,null,2)], { type:'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download='geofence.geojson'; a.click(); URL.revokeObjectURL(url); });
+    document.getElementById('export-kml').addEventListener('click', ()=>{ alert('KML export: demo only'); });
+
+    function zonesToGeoJSON(){ const features = zones.map(z=>{ if(z.type==='polygon') return { type:'Feature', properties:{}, geometry:{ type:'Polygon', coordinates:[z.points.map(p=>[p.x/1000*360-180, 90-(p.y/1000*180)])] } }; if(z.type==='circle') return { type:'Feature', properties:{shape:'circle'}, geometry:{ type:'Point', coordinates:[z.cx/1000*360-180, 90-(z.cy/1000*180)] } }; return { type:'Feature', properties:{shape:z.type}, geometry:{ type:'GeometryCollection', geometries:[] } } }); return { type:'FeatureCollection', features } }
+
+    // Simple handle drag for polygons
+    let dragging = null;
+    svg.addEventListener('mousedown', (e)=>{
+      if(e.target.tagName === 'circle' && e.target.classList.contains('handles')){ dragging = { el: e.target, zone: Number(e.target.dataset.zone), idx: Number(e.target.dataset.idx) }; }
+    });
+    window.addEventListener('mousemove', (e)=>{ if(!dragging) return; const p = toSvgPoint(e.clientX, e.clientY); const z = zones[dragging.zone]; z.points[dragging.idx] = p; drawZones(); });
+    window.addEventListener('mouseup', ()=>{ dragging = null; });
+
+    // Undo/redo simple minimal
+    const history = []; let histIdx = -1;
+    function snapshot(){ history.splice(histIdx+1); history.push(JSON.stringify(zones)); histIdx++; }
+    function undo(){ if(histIdx<=0) return; histIdx--; zones = JSON.parse(history[histIdx]); drawZones(); refreshList(); }
+    function redo(){ if(histIdx>=history.length-1) return; histIdx++; zones = JSON.parse(history[histIdx]); drawZones(); refreshList(); }
+    document.getElementById('undo').addEventListener('click', ()=>undo()); document.getElementById('redo').addEventListener('click', ()=>redo());
+
+    // init
+    snapshot();
+
+  </script>
+</body>
+</html>

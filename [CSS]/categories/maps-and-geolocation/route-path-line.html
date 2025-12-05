@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route Path Line - JaZeR Maps Patterns</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body, 'Segoe UI', system-ui, sans-serif);
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0a0a0f 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #e0e0e0;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 2px solid var(--border-default, #333);
+            background: rgba(0, 0, 0, 0.3);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            border-color: var(--jazer-cyan, #00f2ea);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 3rem 1rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea, #9333ea, #ff006e));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .hero p {
+            color: #888;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid var(--jazer-cyan, #00f2ea);
+            border-radius: 100px;
+            font-size: 0.875rem;
+            color: var(--jazer-cyan, #00f2ea);
+        }
+
+        .components-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .component-card {
+            background: rgba(20, 20, 35, 0.8);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .component-card:hover {
+            border-color: var(--jazer-purple, #9333ea);
+            box-shadow: 0 8px 32px rgba(147, 51, 234, 0.2);
+            transform: translateY(-4px);
+        }
+
+        .component-card h3 {
+            font-family: var(--font-secondary, 'Rajdhani', sans-serif);
+            color: var(--jazer-cyan, #00f2ea);
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .component-card p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-area {
+            background: rgba(10, 10, 20, 0.6);
+            border-radius: 12px;
+            padding: 2rem;
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Map grid background */
+        .map-grid {
+            position: absolute;
+            inset: 0;
+            background: 
+                linear-gradient(rgba(0, 242, 234, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 242, 234, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+        }
+
+        /* ==================== STYLE 1: Solid Route Line ==================== */
+        .route-container-1 {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            z-index: 1;
+        }
+
+        .route-line-1 {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--jazer-cyan, #00f2ea);
+            border-radius: 3px;
+            box-shadow: 0 0 15px rgba(0, 242, 234, 0.5);
+        }
+
+        .route-marker-1 {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan, #00f2ea);
+            border-radius: 50%;
+            border: 3px solid #0a0a0f;
+            box-shadow: 0 0 15px rgba(0, 242, 234, 0.6);
+        }
+
+        .route-marker-1.start { left: 0; }
+        .route-marker-1.end { right: 0; background: var(--jazer-pink, #ff006e); box-shadow: 0 0 15px rgba(255, 0, 110, 0.6); }
+
+        .route-marker-1 .pulse {
+            position: absolute;
+            inset: -8px;
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            border-radius: 50%;
+            animation: markerPulse 2s ease-out infinite;
+        }
+
+        .route-marker-1.end .pulse {
+            border-color: var(--jazer-pink, #ff006e);
+        }
+
+        /* ==================== STYLE 2: Dashed Animated Route ==================== */
+        .route-container-2 {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            z-index: 1;
+        }
+
+        .route-line-2 {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: repeating-linear-gradient(
+                90deg,
+                var(--jazer-purple, #9333ea) 0px,
+                var(--jazer-purple, #9333ea) 15px,
+                transparent 15px,
+                transparent 25px
+            );
+            background-size: 200% 100%;
+            animation: dashMove 1s linear infinite;
+        }
+
+        @keyframes dashMove {
+            0% { background-position: 0% 0; }
+            100% { background-position: -40px 0; }
+        }
+
+        .route-marker-2 {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background: var(--jazer-purple, #9333ea);
+            border-radius: 50%;
+            border: 3px solid #1a1a2e;
+        }
+
+        .route-marker-2.start { left: 0; }
+        .route-marker-2.end { right: 0; }
+
+        /* ==================== STYLE 3: Gradient Flow Route ==================== */
+        .route-container-3 {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            z-index: 1;
+        }
+
+        .route-line-3 {
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            right: 10px;
+            height: 8px;
+            background: linear-gradient(90deg, var(--jazer-cyan, #00f2ea), var(--jazer-purple, #9333ea), var(--jazer-pink, #ff006e));
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .route-line-3::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: shimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+
+        .route-marker-3 {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #0a0a0f;
+        }
+
+        .route-marker-3.start { 
+            left: 0; 
+            background: var(--jazer-cyan, #00f2ea);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.5);
+        }
+        .route-marker-3.end { 
+            right: 0; 
+            background: var(--jazer-pink, #ff006e);
+            box-shadow: 0 0 20px rgba(255, 0, 110, 0.5);
+        }
+
+        /* ==================== STYLE 4: SVG Curved Path ==================== */
+        .route-container-4 {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            z-index: 1;
+        }
+
+        .route-svg-4 {
+            width: 100%;
+            height: 100%;
+        }
+
+        .route-path-4 {
+            fill: none;
+            stroke: var(--jazer-cyan, #00f2ea);
+            stroke-width: 4;
+            stroke-linecap: round;
+            filter: drop-shadow(0 0 8px rgba(0, 242, 234, 0.5));
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawPath 3s ease forwards infinite;
+        }
+
+        @keyframes drawPath {
+            0% { stroke-dashoffset: 1000; }
+            50% { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: 0; }
+        }
+
+        .route-point-4 {
+            fill: var(--jazer-cyan, #00f2ea);
+            filter: drop-shadow(0 0 6px rgba(0, 242, 234, 0.6));
+        }
+
+        .route-point-4.end {
+            fill: var(--jazer-pink, #ff006e);
+            filter: drop-shadow(0 0 6px rgba(255, 0, 110, 0.6));
+        }
+
+        /* ==================== STYLE 5: Neon Glow Route ==================== */
+        .route-container-5 {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            z-index: 1;
+        }
+
+        .route-line-5 {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            right: 20px;
+            height: 3px;
+            background: var(--jazer-pink, #ff006e);
+            box-shadow: 
+                0 0 5px var(--jazer-pink, #ff006e),
+                0 0 10px var(--jazer-pink, #ff006e),
+                0 0 20px var(--jazer-pink, #ff006e),
+                0 0 40px var(--jazer-pink, #ff006e);
+            animation: neonPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes neonPulse {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 5px var(--jazer-pink, #ff006e),
+                    0 0 10px var(--jazer-pink, #ff006e),
+                    0 0 20px var(--jazer-pink, #ff006e),
+                    0 0 40px var(--jazer-pink, #ff006e);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 10px var(--jazer-pink, #ff006e),
+                    0 0 20px var(--jazer-pink, #ff006e),
+                    0 0 40px var(--jazer-pink, #ff006e),
+                    0 0 80px var(--jazer-pink, #ff006e);
+            }
+        }
+
+        .route-marker-5 {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background: #0a0a0f;
+            border: 3px solid var(--jazer-pink, #ff006e);
+            border-radius: 50%;
+            box-shadow: 
+                0 0 10px var(--jazer-pink, #ff006e),
+                inset 0 0 5px rgba(255, 0, 110, 0.5);
+        }
+
+        .route-marker-5.start { left: 10px; }
+        .route-marker-5.end { right: 10px; }
+
+        /* ==================== STYLE 6: Dotted Trail ==================== */
+        .route-container-6 {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            z-index: 1;
+        }
+
+        .route-dots-6 {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+        }
+
+        .route-dot-6 {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan, #00f2ea);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: dotFade 1.5s ease-in-out infinite;
+        }
+
+        .route-dot-6:nth-child(1) { animation-delay: 0s; }
+        .route-dot-6:nth-child(2) { animation-delay: 0.1s; }
+        .route-dot-6:nth-child(3) { animation-delay: 0.2s; }
+        .route-dot-6:nth-child(4) { animation-delay: 0.3s; }
+        .route-dot-6:nth-child(5) { animation-delay: 0.4s; }
+        .route-dot-6:nth-child(6) { animation-delay: 0.5s; }
+        .route-dot-6:nth-child(7) { animation-delay: 0.6s; }
+        .route-dot-6:nth-child(8) { animation-delay: 0.7s; }
+        .route-dot-6:nth-child(9) { animation-delay: 0.8s; }
+        .route-dot-6:nth-child(10) { animation-delay: 0.9s; }
+        .route-dot-6:nth-child(11) { animation-delay: 1s; }
+
+        @keyframes dotFade {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 10px var(--jazer-cyan, #00f2ea); }
+        }
+
+        .route-endpoint-6 {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            background: var(--jazer-cyan, #00f2ea);
+            border-radius: 50%;
+            border: 3px solid #0a0a0f;
+        }
+
+        .route-endpoint-6.start { left: 10px; }
+        .route-endpoint-6.end { right: 10px; background: var(--jazer-purple, #9333ea); }
+
+        /* ==================== STYLE 7: Cyberpunk Circuit Route ==================== */
+        .route-container-7 {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            z-index: 1;
+        }
+
+        .route-circuit-7 {
+            position: absolute;
+            top: 30%;
+            left: 20px;
+            right: 20px;
+            height: 80px;
+        }
+
+        .circuit-segment {
+            position: absolute;
+            background: var(--jazer-cyan, #00f2ea);
+            box-shadow: 0 0 8px var(--jazer-cyan, #00f2ea);
+        }
+
+        .circuit-segment.h1 { top: 0; left: 0; width: 80px; height: 3px; }
+        .circuit-segment.v1 { top: 0; left: 77px; width: 3px; height: 40px; }
+        .circuit-segment.h2 { top: 37px; left: 77px; width: 100px; height: 3px; }
+        .circuit-segment.v2 { top: 37px; right: 80px; width: 3px; height: 43px; }
+        .circuit-segment.h3 { bottom: 0; right: 0; width: 83px; height: 3px; }
+
+        .circuit-node {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--jazer-cyan, #00f2ea);
+            border-radius: 2px;
+            box-shadow: 0 0 10px var(--jazer-cyan, #00f2ea);
+        }
+
+        .circuit-node.n1 { top: -4px; left: -4px; }
+        .circuit-node.n2 { top: -4px; left: 74px; }
+        .circuit-node.n3 { top: 34px; right: 77px; }
+        .circuit-node.n4 { bottom: -4px; right: -4px; background: var(--jazer-pink, #ff006e); box-shadow: 0 0 10px var(--jazer-pink, #ff006e); }
+
+        .circuit-pulse {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px white;
+            animation: circuitPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes circuitPulse {
+            0% { top: -2px; left: 0; }
+            20% { top: -2px; left: 74px; }
+            40% { top: 36px; left: 74px; }
+            60% { top: 36px; right: 80px; left: auto; }
+            80% { top: 78px; right: 80px; left: auto; }
+            100% { top: 78px; right: 0; left: auto; }
+        }
+
+        /* ==================== STYLE 8: Multi-segment Route ==================== */
+        .route-container-8 {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            z-index: 1;
+        }
+
+        .route-segments-8 {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            right: 20px;
+            height: 8px;
+            display: flex;
+            gap: 4px;
+            transform: translateY(-50%);
+        }
+
+        .segment-8 {
+            flex: 1;
+            height: 100%;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .segment-8:nth-child(1) { background: var(--jazer-cyan, #00f2ea); }
+        .segment-8:nth-child(2) { background: #00d4ff; }
+        .segment-8:nth-child(3) { background: var(--jazer-purple, #9333ea); }
+        .segment-8:nth-child(4) { background: #c026d3; }
+        .segment-8:nth-child(5) { background: var(--jazer-pink, #ff006e); }
+
+        .segment-8::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: segmentShine 2s ease-in-out infinite;
+        }
+
+        .segment-8:nth-child(1)::after { animation-delay: 0s; }
+        .segment-8:nth-child(2)::after { animation-delay: 0.2s; }
+        .segment-8:nth-child(3)::after { animation-delay: 0.4s; }
+        .segment-8:nth-child(4)::after { animation-delay: 0.6s; }
+        .segment-8:nth-child(5)::after { animation-delay: 0.8s; }
+
+        @keyframes segmentShine {
+            0% { left: -100%; }
+            50%, 100% { left: 100%; }
+        }
+
+        .waypoint-8 {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 14px;
+            background: #0a0a0f;
+            border: 3px solid white;
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        .waypoint-8.p1 { left: 12px; border-color: var(--jazer-cyan, #00f2ea); }
+        .waypoint-8.p2 { left: calc(25% + 8px); border-color: #00d4ff; }
+        .waypoint-8.p3 { left: calc(50% + 4px); border-color: var(--jazer-purple, #9333ea); }
+        .waypoint-8.p4 { left: calc(75%); border-color: #c026d3; }
+        .waypoint-8.p5 { right: 12px; border-color: var(--jazer-pink, #ff006e); background: var(--jazer-pink, #ff006e); }
+
+        /* Animation keyframes */
+        @keyframes markerPulse {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* Interactive controls */
+        .route-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .route-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid var(--jazer-cyan, #00f2ea);
+            border-radius: 6px;
+            color: var(--jazer-cyan, #00f2ea);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .route-btn:hover {
+            background: var(--jazer-cyan, #00f2ea);
+            color: #0a0a0f;
+        }
+
+        .route-btn.active {
+            background: var(--jazer-cyan, #00f2ea);
+            color: #0a0a0f;
+        }
+
+        /* Route info display */
+        .route-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            font-size: 0.75rem;
+        }
+
+        .route-stat {
+            text-align: center;
+        }
+
+        .route-stat-value {
+            font-weight: 700;
+            color: var(--jazer-cyan, #00f2ea);
+            font-size: 1rem;
+        }
+
+        .route-stat-label {
+            color: #666;
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            letter-spacing: 0.5px;
+        }
+
+        .keyboard-hint {
+            text-align: center;
+            margin-top: 2rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .keyboard-hint kbd {
+            background: rgba(147, 51, 234, 0.2);
+            border: 1px solid rgba(147, 51, 234, 0.4);
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            font-family: monospace;
+            color: var(--jazer-cyan, #00f2ea);
+        }
+
+        @media (max-width: 768px) {
+            .components-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            body {
+                padding: 1rem;
+            }
+
+            .route-container-1,
+            .route-container-2,
+            .route-container-3,
+            .route-container-4,
+            .route-container-5,
+            .route-container-6,
+            .route-container-7,
+            .route-container-8 {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to Maps & Geolocation</a>
+
+    <section class="hero">
+        <h1>Route Path Line</h1>
+        <p>Visualize routes and paths on maps with animated lines, gradients, and cyberpunk styling</p>
+        <div class="hero-badge">
+            <span>━━━</span>
+            <span>8 Styles Included</span>
+        </div>
+    </section>
+
+    <div class="components-grid">
+        <!-- Style 1: Solid Route Line -->
+        <div class="component-card">
+            <h3>Solid Route Line</h3>
+            <p>Clean solid line with glowing endpoints and pulse animation</p>
+            <div class="preview-area">
+                <div class="map-grid"></div>
+                <div class="route-container-1">
+                    <div class="route-line-1"></div>
+                    <div class="route-marker-1 start">
+                        <div class="pulse"></div>
+                    </div>
+                    <div class="route-marker-1 end">
+                        <div class="pulse"></div>
+                    </div>
+                </div>
+                <div class="route-info">
+                    <div class="route-stat">
+                        <div class="route-stat-value">12.4</div>
+                        <div class="route-stat-label">km</div>
+                    </div>
+                    <div class="route-stat">
+                        <div class="route-stat-value">18</div>
+                        <div class="route-stat-label">min</div>
+                    </div>
+                    <div class="route-stat">
+                        <div class="route-stat-value">Direct</div>
+                        <div class="route-stat-label">Route</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Style 2: Dashed Animated Route -->
+        <div class="component-card">
+            <h3>Dashed Animated Route</h3>
+            <p>Animated dashed line showing direction of travel</p>
+            <div class="preview-area">
+                <div class="map-grid"></div>
+                <div class="route-container-2">
+                    <div class="route-line-2"></div>
+                    <div class="route-marker-2 start"></div>
+                    <div class="route-marker-2 end"></div>
+                </div>
+                <div class="route-info">
+                    <div class="route-stat">
+                        <div class="route-stat-value">8.7</div>
+                        <div class="route-stat-label">km</div>
+                    </div>
+                    <div class="route-stat">
+                        <div class="route-stat-value">25</div>
+                        <div class="route-stat-label">min</div>
+                    </div>
+                    <div class="route-stat">
+                        <div class="route-stat-value">Transit</div>
+                        <div class="route-stat-label">Route</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Style 3: Gradient Flow Route -->
+        <div class="component-card">
+            <h3>Gradient Flow Route</h3>
+            <p>Multi-color gradient with shimmer animation effect</p>
+            <div class="preview-area">
+                <div class="map-grid"></div>
+                <div class="route-container-3">
+                    <div class="route-line-3"></div>
+                    <div class="route-marker-3 start">A</div>
+                    <div class="route-marker-3 end">B</div>
+                </div>
+                <div class="route-info">
+                    <div class="route-stat">
+                        <div class="route-stat-value">15.2</div>
+                        <div class="route-stat-label">km</div>
+                    </div>
+                    <div class="route-stat">
+                        <div class="route-stat-value">22</div>
+                        <div class="route-stat-label">min</div>
+                    </div>
+                    <div class="route-stat">
+                        <div class="route-stat-value">Fastest</div>
+                        <div class="route-stat-label">Route</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Style 4: SVG Curved Path -->
+        <div class="component-card">
+            <h3>SVG Curved Path</h3>
+            <p>Smooth curved path with draw-on animation</p>
+            <div class="preview-area">
+                <div class="map-grid"></div>
+                <div class="route-container-4">
+                    <svg class="route-svg-4" viewBox="0 0 300 200">
+                        <path class="route-path-4" d="M 20 100 Q 80 20, 150 100 T 280 100" />
+                        <circle class="route-point-4" cx="20" cy="100" r="8" />
+                        <circle class="route-point-4 end" cx="280" cy="100" r="8" />
+                    </svg>
+                </div>
+                <div class="route-info">
+                    <div class="route-stat">
+                        <div class="route-stat-value">10.8</div>
+                        <div class="route-stat-label">km</div>
+                    </div>
+                    <div class="route-stat">
+                        <div class="route-stat-value">14</div>
+                        <div class="route-stat-label">min</div>
+                    </div>
+                    <div class="route-stat">
+                        <div class="route-stat-value">Scenic</div>
+                        <div class="route-stat-label">Route</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Style 5: Neon Glow Route -->
+        <div class="component-card">
+            <h3>Neon Glow Route</h3>
+            <p>Intense neon glow effect with pulsing animation</p>
+            <div class="preview-area">
+                <div class="map-grid"></div>
+                <div class="route-container-5">
+                    <div class="route-line-5"></div>
+                    <div class="route-marker-5 start"></div>
+                    <div class="route-marker-5 end"></div>
+                </div>
+                <div class="route-info">
+                    <div class="route-stat">
+                        <div class="route-stat-value">6.3</div>
+                        <div class="route-stat-label">km</div>
+                    </div>
+                    <div class="route-stat">
+                        <div class="route-stat-value">12</div>
+                        <div class="route-stat-label">min</div>
+                    </div>
+                    <div class="route-stat">
+                        <div class="route-stat-value">Express</div>
+                        <div class="route-stat-label">Route</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Style 6: Dotted Trail -->
+        <div class="component-card">
+            <h3>Dotted Trail</h3>
+            <p>Sequential dot animation showing route progress</p>
+            <div class="preview-area">
+                <div class="map-grid"></div>
+                <div class="route-container-6">
+                    <div class="route-dots-6">
+                        <div class="route-dot-6"></div>
+                        <div class="route-dot-6"></div>
+                        <div class="route-dot-6"></div>
+                        <div class="route-dot-6"></div>
+                        <div class="route-dot-6"></div>
+                        <div class="route-dot-6"></div>
+                        <div class="route-dot-6"></div>
+                        <div class="route-dot-6"></div>
+                        <div class="route-dot-6"></div>
+                        <div class="route-dot-6"></div>
+                        <div class="route-dot-6"></div>
+                    </div>
+                    <div class="route-endpoint-6 start"></div>
+                    <div class="route-endpoint-6 end"></div>
+                </div>
+                <div class="route-info">
+                    <div class="route-stat">
+                        <div class="route-stat-value">4.1</div>
+                        <div class="route-stat-label">km</div>
+                    </div>
+                    <div class="route-stat">
+                        <div class="route-stat-value">8</div>
+                        <div class="route-stat-label">min</div>
+                    </div>
+                    <div class="route-stat">
+                        <div class="route-stat-value">Walking</div>
+                        <div class="route-stat-label">Route</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Style 7: Cyberpunk Circuit Route -->
+        <div class="component-card">
+            <h3>Cyberpunk Circuit</h3>
+            <p>Angular circuit-board style path with data pulse</p>
+            <div class="preview-area">
+                <div class="map-grid"></div>
+                <div class="route-container-7">
+                    <div class="route-circuit-7">
+                        <div class="circuit-segment h1"></div>
+                        <div class="circuit-segment v1"></div>
+                        <div class="circuit-segment h2"></div>
+                        <div class="circuit-segment v2"></div>
+                        <div class="circuit-segment h3"></div>
+                        <div class="circuit-node n1"></div>
+                        <div class="circuit-node n2"></div>
+                        <div class="circuit-node n3"></div>
+                        <div class="circuit-node n4"></div>
+                        <div class="circuit-pulse"></div>
+                    </div>
+                </div>
+                <div class="route-info">
+                    <div class="route-stat">
+                        <div class="route-stat-value">9.6</div>
+                        <div class="route-stat-label">km</div>
+                    </div>
+                    <div class="route-stat">
+                        <div class="route-stat-value">16</div>
+                        <div class="route-stat-label">min</div>
+                    </div>
+                    <div class="route-stat">
+                        <div class="route-stat-value">Alt</div>
+                        <div class="route-stat-label">Route</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Style 8: Multi-segment Route -->
+        <div class="component-card">
+            <h3>Multi-segment Route</h3>
+            <p>Color-coded segments with waypoint markers</p>
+            <div class="preview-area">
+                <div class="map-grid"></div>
+                <div class="route-container-8">
+                    <div class="route-segments-8">
+                        <div class="segment-8"></div>
+                        <div class="segment-8"></div>
+                        <div class="segment-8"></div>
+                        <div class="segment-8"></div>
+                        <div class="segment-8"></div>
+                    </div>
+                    <div class="waypoint-8 p1"></div>
+                    <div class="waypoint-8 p2"></div>
+                    <div class="waypoint-8 p3"></div>
+                    <div class="waypoint-8 p4"></div>
+                    <div class="waypoint-8 p5"></div>
+                </div>
+                <div class="route-info">
+                    <div class="route-stat">
+                        <div class="route-stat-value">18.5</div>
+                        <div class="route-stat-label">km</div>
+                    </div>
+                    <div class="route-stat">
+                        <div class="route-stat-value">35</div>
+                        <div class="route-stat-label">min</div>
+                    </div>
+                    <div class="route-stat">
+                        <div class="route-stat-value">5 stops</div>
+                        <div class="route-stat-label">Waypoints</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p class="keyboard-hint">Hover over routes to see animations | Each style represents different route types</p>
+
+    <script>
+        // Add interactive hover states
+        document.querySelectorAll('.component-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-8px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(-4px)';
+            });
+        });
+
+        // Randomize route stats periodically for demo
+        function updateRouteStats() {
+            const stats = document.querySelectorAll('.route-stat-value');
+            stats.forEach((stat, index) => {
+                if (index % 3 === 0) {
+                    // Distance
+                    const distance = (Math.random() * 20 + 2).toFixed(1);
+                    stat.textContent = distance;
+                } else if (index % 3 === 1) {
+                    // Time
+                    const time = Math.floor(Math.random() * 40 + 5);
+                    stat.textContent = time;
+                }
+            });
+        }
+
+        // Update stats every 5 seconds
+        // setInterval(updateRouteStats, 5000);
+    </script>
+</body>
+</html>

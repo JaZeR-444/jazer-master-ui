@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heat Haze Distortion | JaZeR Background Effects</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: #000;
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Background with grid */
+        .haze-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: linear-gradient(180deg, #1a0033 0%, #330066 50%, #1a0033 100%);
+        }
+
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 242, 234, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 242, 234, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            filter: url(#distortion);
+            opacity: 0.5;
+        }
+
+        /* Canvas for visual effect */
+        #hazeCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        /* SVG filter */
+        .svg-filters {
+            position: absolute;
+            width: 0;
+            height: 0;
+        }
+
+        /* Demo content with distortion */
+        .demo-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+            text-align: center;
+            filter: url(#distortion);
+        }
+
+        .demo-content h2 {
+            font-family: var(--font-primary);
+            font-size: 4rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .demo-content p {
+            font-size: 1.2rem;
+            color: var(--jazer-cyan);
+        }
+
+        /* Back button - fixed top left */
+        .back-button {
+            position: fixed;
+            top: 1.5rem;
+            left: 1.5rem;
+            z-index: 100;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-family: var(--font-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.5);
+        }
+
+        /* Hero content - fixed top center */
+        .hero {
+            position: fixed;
+            top: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            text-align: center;
+            padding: 1.5rem 2.5rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(147, 51, 234, 0.5);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            max-width: 600px;
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: 1.75rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero p {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+
+        .hero .kbd-hint {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        .hero .kbd-hint kbd {
+            background: rgba(0, 242, 234, 0.2);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 4px;
+            padding: 0.15rem 0.4rem;
+            font-family: var(--font-body);
+            color: var(--jazer-cyan);
+        }
+
+        /* Control panel - fixed top right */
+        .controls {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 0, 110, 0.5);
+            border-radius: 16px;
+            padding: 1.25rem;
+            backdrop-filter: blur(10px);
+            min-width: 200px;
+        }
+
+        .controls h3 {
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: var(--jazer-pink);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Color theme buttons */
+        .color-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .color-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.15);
+        }
+
+        .color-btn.active {
+            border-color: #fff;
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        .color-btn.cyan { background: var(--jazer-cyan); }
+        .color-btn.purple { background: var(--jazer-purple); }
+        .color-btn.pink { background: var(--jazer-pink); }
+        .color-btn.rainbow { background: conic-gradient(#00f2ea, #9333ea, #ff006e, #ffbe0b, #00f2ea); }
+        .color-btn.mono { background: linear-gradient(135deg, #fff, #666); }
+
+        /* Slider controls */
+        .control-group {
+            margin-bottom: 1rem;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-group label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            margin-bottom: 0.4rem;
+        }
+
+        .control-group label span {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--jazer-cyan);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 242, 234, 0.5);
+        }
+
+        /* Mode selector */
+        .mode-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 0.4rem 0.6rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: var(--text-gray);
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn:hover {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+        }
+
+        .mode-btn.active {
+            background: rgba(147, 51, 234, 0.3);
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+        }
+
+        /* Status indicator - fixed bottom left */
+        .status {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 1.5rem;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.25rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--jazer-cyan);
+            animation: pulse-status 2s ease-in-out infinite;
+        }
+
+        .status-dot.paused {
+            background: var(--jazer-pink);
+            animation: none;
+        }
+
+        @keyframes pulse-status {
+            0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--jazer-cyan); }
+            50% { opacity: 0.5; box-shadow: 0 0 5px var(--jazer-cyan); }
+        }
+
+        .status-text {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            font-family: var(--font-body);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .hero {
+                top: auto;
+                bottom: 5rem;
+                max-width: 90%;
+                padding: 1rem 1.5rem;
+            }
+
+            .hero h1 {
+                font-size: 1.25rem;
+            }
+
+            .controls {
+                top: auto;
+                bottom: 1.5rem;
+                right: 1.5rem;
+                left: 1.5rem;
+                min-width: auto;
+            }
+
+            .status {
+                display: none;
+            }
+
+            .demo-content h2 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- SVG Filters -->
+    <svg class="svg-filters">
+        <defs>
+            <filter id="distortion">
+                <feTurbulence id="turbulence" type="fractalNoise" baseFrequency="0.01 0.02" numOctaves="3" seed="1">
+                    <animate attributeName="baseFrequency" dur="20s" values="0.01 0.02;0.015 0.025;0.01 0.02" repeatCount="indefinite"/>
+                </feTurbulence>
+                <feDisplacementMap id="displacement" in="SourceGraphic" scale="8" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+        </defs>
+    </svg>
+
+    <div class="haze-bg">
+        <div class="grid-overlay" id="gridOverlay"></div>
+        <canvas id="hazeCanvas"></canvas>
+    </div>
+
+    <div class="demo-content" id="demoContent">
+        <h2>DISTORTED</h2>
+        <p>Heat shimmer effect active</p>
+    </div>
+
+    <a href="index.html" class="back-button">
+        <span>←</span> Back to Backgrounds
+    </a>
+
+    <div class="hero">
+        <h1>Heat Haze Distortion</h1>
+        <p>Realistic heat shimmer effect with SVG displacement filters. Features multiple modes including heat rise, water ripple, glass refraction, and turbulence.</p>
+        <div class="kbd-hint">
+            <span><kbd>Space</kbd> Pause</span>
+            <span><kbd>R</kbd> Reset</span>
+            <span><kbd>G</kbd> Grid</span>
+            <span><kbd>1-5</kbd> Colors</span>
+        </div>
+    </div>
+
+    <div class="controls">
+        <h3>Controls</h3>
+        
+        <div class="color-buttons">
+            <button class="color-btn cyan active" data-theme="cyan" title="Cyan"></button>
+            <button class="color-btn purple" data-theme="purple" title="Purple"></button>
+            <button class="color-btn pink" data-theme="pink" title="Pink"></button>
+            <button class="color-btn rainbow" data-theme="rainbow" title="Rainbow"></button>
+            <button class="color-btn mono" data-theme="mono" title="Monochrome"></button>
+        </div>
+
+        <div class="control-group">
+            <label>Intensity <span id="intensityValue">8</span></label>
+            <input type="range" id="intensitySlider" min="2" max="20" step="1" value="8">
+        </div>
+
+        <div class="control-group">
+            <label>Speed <span id="speedValue">1.0x</span></label>
+            <input type="range" id="speedSlider" min="0.2" max="3" step="0.1" value="1">
+        </div>
+
+        <div class="control-group">
+            <label>Scale <span id="scaleValue">50</span></label>
+            <input type="range" id="scaleSlider" min="20" max="100" step="5" value="50">
+        </div>
+
+        <div class="control-group">
+            <label>Mode</label>
+            <div class="mode-buttons">
+                <button class="mode-btn active" data-mode="heat">Heat</button>
+                <button class="mode-btn" data-mode="water">Water</button>
+                <button class="mode-btn" data-mode="glass">Glass</button>
+                <button class="mode-btn" data-mode="turbulence">Turb</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="status">
+        <div class="status-dot" id="statusDot"></div>
+        <span class="status-text" id="statusText">Playing</span>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('hazeCanvas');
+        const ctx = canvas.getContext('2d');
+        const gridOverlay = document.getElementById('gridOverlay');
+        const turbulence = document.getElementById('turbulence');
+        const displacement = document.getElementById('displacement');
+
+        // Configuration
+        const config = {
+            theme: 'cyan',
+            intensity: 8,
+            speed: 1,
+            scale: 50,
+            mode: 'heat',
+            isPaused: false,
+            showGrid: true
+        };
+
+        // Color themes
+        const themes = {
+            cyan: { bg: '#1a0033', mid: '#002233', accent: '0, 242, 234' },
+            purple: { bg: '#1a0033', mid: '#330066', accent: '147, 51, 234' },
+            pink: { bg: '#330022', mid: '#440033', accent: '255, 0, 110' },
+            rainbow: { bg: '#1a0033', mid: '#330066', accent: '255, 190, 11' },
+            mono: { bg: '#111', mid: '#222', accent: '200, 200, 200' }
+        };
+
+        // Mode settings
+        const modes = {
+            heat: { baseFreq: '0.01 0.03', scale: 2.5 },
+            water: { baseFreq: '0.02 0.02', scale: 2 },
+            glass: { baseFreq: '0.03 0.01', scale: 1.5 },
+            turbulence: { baseFreq: '0.04 0.04', scale: 3 }
+        };
+
+        let time = 0;
+        let animationId = null;
+
+        // Resize canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        // Simple noise function
+        function noise(x, y, t) {
+            return Math.sin(x * 0.1 + t) * Math.cos(y * 0.1 + t) +
+                   Math.sin((x * 0.05 + y * 0.05) * 1.5 + t * 0.5) * 0.5 +
+                   Math.sin(x * 0.02 + t * 0.3) * 0.25 +
+                   Math.cos(y * 0.03 + t * 0.4) * 0.3;
+        }
+
+        // Draw heat haze visualization
+        function drawHaze() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const theme = themes[config.theme];
+            const lineCount = 30;
+            
+            // Create gradient based on mode
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            
+            switch (config.mode) {
+                case 'heat':
+                    gradient.addColorStop(0, 'rgba(255, 100, 0, 0)');
+                    gradient.addColorStop(0.5, `rgba(${theme.accent}, 0.08)`);
+                    gradient.addColorStop(1, `rgba(${theme.accent}, 0.15)`);
+                    break;
+                case 'water':
+                    gradient.addColorStop(0, `rgba(${theme.accent}, 0.05)`);
+                    gradient.addColorStop(0.5, `rgba(${theme.accent}, 0.12)`);
+                    gradient.addColorStop(1, `rgba(${theme.accent}, 0.05)`);
+                    break;
+                case 'glass':
+                    gradient.addColorStop(0, `rgba(${theme.accent}, 0.08)`);
+                    gradient.addColorStop(0.5, `rgba(${theme.accent}, 0.15)`);
+                    gradient.addColorStop(1, `rgba(${theme.accent}, 0.08)`);
+                    break;
+                case 'turbulence':
+                    gradient.addColorStop(0, `rgba(${theme.accent}, 0.05)`);
+                    gradient.addColorStop(0.5, `rgba(${theme.accent}, 0.12)`);
+                    gradient.addColorStop(1, `rgba(${theme.accent}, 0.05)`);
+                    break;
+            }
+            
+            // Draw wavy lines
+            for (let i = 0; i < lineCount; i++) {
+                ctx.beginPath();
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = 1.5;
+                
+                const yBase = (canvas.height / lineCount) * i;
+                
+                for (let x = 0; x < canvas.width; x += 3) {
+                    const noiseVal = noise(x / config.scale, yBase / config.scale, time);
+                    const y = yBase + noiseVal * config.intensity * 8;
+                    
+                    if (x === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.globalAlpha = 0.3 + (i / lineCount) * 0.4;
+                ctx.stroke();
+            }
+            
+            ctx.globalAlpha = 1;
+            
+            // Shimmer particles
+            const particleCount = 50;
+            for (let i = 0; i < particleCount; i++) {
+                const x = (i * 123.456 + time * 50) % canvas.width;
+                const y = (i * 789.012 + time * 30) % canvas.height;
+                const noiseVal = noise(x / 50, y / 50, time * 2);
+                const size = Math.abs(noiseVal) * 2 + 0.5;
+                const alpha = Math.abs(Math.sin(time + i)) * 0.4 + 0.1;
+                
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Update SVG filter
+        function updateFilter() {
+            const mode = modes[config.mode];
+            turbulence.setAttribute('baseFrequency', mode.baseFreq);
+            displacement.setAttribute('scale', (config.intensity * mode.scale).toString());
+        }
+
+        // Update background colors
+        function updateColors() {
+            const theme = themes[config.theme];
+            document.querySelector('.haze-bg').style.background = 
+                `linear-gradient(180deg, ${theme.bg} 0%, ${theme.mid} 50%, ${theme.bg} 100%)`;
+            
+            gridOverlay.style.backgroundImage = `
+                linear-gradient(rgba(${theme.accent}, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(${theme.accent}, 0.1) 1px, transparent 1px)
+            `;
+        }
+
+        // Animation loop
+        function animate() {
+            if (!config.isPaused) {
+                time += 0.01 * config.speed;
+                drawHaze();
+            }
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Toggle grid
+        function toggleGrid() {
+            config.showGrid = !config.showGrid;
+            gridOverlay.style.opacity = config.showGrid ? '0.5' : '0';
+        }
+
+        // Reset
+        function reset() {
+            config.intensity = 8;
+            config.speed = 1;
+            config.scale = 50;
+            config.mode = 'heat';
+            config.isPaused = false;
+            config.showGrid = true;
+
+            document.getElementById('intensitySlider').value = 8;
+            document.getElementById('speedSlider').value = 1;
+            document.getElementById('scaleSlider').value = 50;
+            document.getElementById('intensityValue').textContent = '8';
+            document.getElementById('speedValue').textContent = '1.0x';
+            document.getElementById('scaleValue').textContent = '50';
+
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('[data-mode="heat"]').classList.add('active');
+
+            gridOverlay.style.opacity = '0.5';
+            updateFilter();
+            updateColors();
+            updateStatus();
+        }
+
+        // Update status display
+        function updateStatus() {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            
+            if (config.isPaused) {
+                dot.classList.add('paused');
+                text.textContent = 'Paused';
+            } else {
+                dot.classList.remove('paused');
+                text.textContent = 'Playing';
+            }
+        }
+
+        // Event listeners - Color buttons
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                config.theme = btn.dataset.theme;
+                updateColors();
+            });
+        });
+
+        // Mode buttons
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                config.mode = btn.dataset.mode;
+                updateFilter();
+            });
+        });
+
+        // Sliders
+        document.getElementById('intensitySlider').addEventListener('input', (e) => {
+            config.intensity = parseInt(e.target.value);
+            document.getElementById('intensityValue').textContent = e.target.value;
+            updateFilter();
+        });
+
+        document.getElementById('speedSlider').addEventListener('input', (e) => {
+            config.speed = parseFloat(e.target.value);
+            document.getElementById('speedValue').textContent = config.speed.toFixed(1) + 'x';
+        });
+
+        document.getElementById('scaleSlider').addEventListener('input', (e) => {
+            config.scale = parseInt(e.target.value);
+            document.getElementById('scaleValue').textContent = e.target.value;
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            switch (e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    config.isPaused = !config.isPaused;
+                    updateStatus();
+                    break;
+                case 'KeyR':
+                    reset();
+                    break;
+                case 'KeyG':
+                    toggleGrid();
+                    break;
+                case 'Digit1':
+                    document.querySelector('.color-btn.cyan').click();
+                    break;
+                case 'Digit2':
+                    document.querySelector('.color-btn.purple').click();
+                    break;
+                case 'Digit3':
+                    document.querySelector('.color-btn.pink').click();
+                    break;
+                case 'Digit4':
+                    document.querySelector('.color-btn.rainbow').click();
+                    break;
+                case 'Digit5':
+                    document.querySelector('.color-btn.mono').click();
+                    break;
+            }
+        });
+
+        // Window resize
+        window.addEventListener('resize', resizeCanvas);
+
+        // Initialize
+        resizeCanvas();
+        updateFilter();
+        updateColors();
+        animate();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Endpoint Tester - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: #0a0a0a;
+            min-height: 100vh; 
+            color: #e0e0e0;
+        }
+        .devtools-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .devtools-header {
+            background: #1a1a1a;
+            border-bottom: 2px solid var(--jazer-cyan);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.4rem 0.8rem;
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 4px;
+            background: rgba(0, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+        }
+        .header-title {
+            font-size: 1rem;
+            color: var(--jazer-cyan);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .header-title::before {
+            content: '🔌';
+        }
+
+        /* Main Layout */
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* History Sidebar */
+        .history-sidebar {
+            width: 280px;
+            background: #141414;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .sidebar-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .sidebar-title {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .sidebar-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.7rem;
+            padding: 0.3rem 0.5rem;
+            border-radius: 3px;
+        }
+        .sidebar-btn:hover {
+            color: var(--jazer-cyan);
+            background: rgba(0, 255, 255, 0.1);
+        }
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .history-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #1a1a1a;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .history-item.selected {
+            background: rgba(0, 255, 255, 0.1);
+            border-left: 3px solid var(--jazer-cyan);
+        }
+        .history-method {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+        .history-method.GET { background: rgba(57, 255, 20, 0.2); color: #39ff14; }
+        .history-method.POST { background: rgba(255, 190, 11, 0.2); color: #ffbe0b; }
+        .history-method.PUT { background: rgba(6, 182, 212, 0.2); color: var(--jazer-cyan); }
+        .history-method.PATCH { background: rgba(147, 51, 234, 0.2); color: #a78bfa; }
+        .history-method.DELETE { background: rgba(255, 71, 87, 0.2); color: #ff4757; }
+        .history-url {
+            font-size: 0.75rem;
+            color: #aaa;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .history-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.4rem;
+            font-size: 0.65rem;
+            color: #555;
+        }
+        .history-status {
+            font-weight: 600;
+        }
+        .history-status.success { color: #39ff14; }
+        .history-status.error { color: #ff4757; }
+
+        /* Request Panel */
+        .request-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* URL Bar */
+        .url-bar {
+            padding: 1rem;
+            background: #141414;
+            border-bottom: 1px solid #333;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        .method-select {
+            padding: 0.6rem 0.8rem;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #1a1a1a;
+            color: var(--jazer-cyan);
+            font-family: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            min-width: 100px;
+        }
+        .method-select:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+        .url-input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+        .url-input {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #0a0a0a;
+            color: #fff;
+            font-family: inherit;
+        }
+        .url-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+        .url-input::placeholder {
+            color: #555;
+        }
+        .send-btn {
+            padding: 0.6rem 1.5rem;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            border: none;
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            font-family: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .send-btn:hover {
+            background: #00d4d4;
+        }
+        .send-btn:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+        .send-btn.loading {
+            position: relative;
+            color: transparent;
+        }
+        .send-btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin: -8px 0 0 -8px;
+            border: 2px solid #0a0a0a;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Tabs */
+        .tabs-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .tabs-header {
+            display: flex;
+            background: #141414;
+            border-bottom: 1px solid #333;
+        }
+        .tab-btn {
+            padding: 0.75rem 1.25rem;
+            font-size: 0.75rem;
+            background: transparent;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-family: inherit;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .tab-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .tab-btn.active {
+            color: var(--jazer-cyan);
+            border-bottom-color: var(--jazer-cyan);
+        }
+        .tabs-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        .tab-pane {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .tab-pane.active {
+            display: flex;
+        }
+
+        /* Split View */
+        .split-view {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        .split-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .split-pane:first-child {
+            border-right: 1px solid #333;
+        }
+        .pane-header {
+            padding: 0.5rem 1rem;
+            background: #141414;
+            border-bottom: 1px solid #2a2a2a;
+            font-size: 0.7rem;
+            color: #666;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .pane-content {
+            flex: 1;
+            overflow: auto;
+            padding: 1rem;
+        }
+
+        /* Key-Value Editor */
+        .kv-editor {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .kv-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .kv-checkbox {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--jazer-cyan);
+        }
+        .kv-input {
+            flex: 1;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            font-family: inherit;
+        }
+        .kv-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+        .kv-input::placeholder {
+            color: #555;
+        }
+        .kv-input.key {
+            max-width: 200px;
+        }
+        .kv-delete {
+            background: none;
+            border: none;
+            color: #555;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.3rem;
+        }
+        .kv-delete:hover {
+            color: #ff4757;
+        }
+        .add-row-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px dashed #444;
+            background: transparent;
+            color: #666;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .add-row-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        /* Body Editor */
+        .body-type-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .body-type-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.7rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: transparent;
+            color: #888;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+        .body-type-btn.active {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            background: rgba(0, 255, 255, 0.1);
+        }
+        .body-editor {
+            flex: 1;
+            width: 100%;
+            padding: 1rem;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            resize: none;
+        }
+        .body-editor:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+
+        /* Response Panel */
+        .response-header {
+            padding: 0.75rem 1rem;
+            background: #141414;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .response-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+        .stat-label {
+            color: #666;
+        }
+        .stat-value {
+            font-weight: 600;
+        }
+        .stat-value.success { color: #39ff14; }
+        .stat-value.redirect { color: #ffbe0b; }
+        .stat-value.error { color: #ff4757; }
+        .response-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .response-action-btn {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.7rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: transparent;
+            color: #888;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .response-action-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        /* JSON Viewer */
+        .json-viewer {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+        .json-key { color: #ff79c6; }
+        .json-string { color: #f1fa8c; }
+        .json-number { color: #bd93f9; }
+        .json-boolean { color: #ff79c6; }
+        .json-null { color: #666; }
+        .json-bracket { color: #888; }
+        .json-line {
+            padding: 0 0.5rem;
+        }
+        .json-line:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .json-collapsible {
+            cursor: pointer;
+        }
+        .json-collapsible::before {
+            content: '▼';
+            display: inline-block;
+            margin-right: 0.3rem;
+            font-size: 0.6rem;
+            color: #555;
+        }
+        .json-collapsible.collapsed::before {
+            content: '▶';
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #555;
+            text-align: center;
+        }
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        .empty-state-text {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        .empty-state-hint {
+            font-size: 0.75rem;
+            color: #444;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.7rem;
+        }
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #666;
+        }
+        .status-item span:last-child {
+            color: var(--jazer-cyan);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .history-sidebar {
+                display: none;
+            }
+            .split-view {
+                flex-direction: column;
+            }
+            .split-pane:first-child {
+                border-right: none;
+                border-bottom: 1px solid #333;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="devtools-container">
+        <header class="devtools-header">
+            <a href="index.html" class="back-button">← Back</a>
+            <div class="header-title">API Endpoint Tester</div>
+        </header>
+
+        <div class="main-content">
+            <aside class="history-sidebar">
+                <div class="sidebar-header">
+                    <span class="sidebar-title">History</span>
+                    <button class="sidebar-btn" onclick="clearHistory()">Clear</button>
+                </div>
+                <div class="history-list" id="historyList">
+                    <!-- History items rendered here -->
+                </div>
+            </aside>
+
+            <div class="request-panel">
+                <div class="url-bar">
+                    <select class="method-select" id="methodSelect">
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="PATCH">PATCH</option>
+                        <option value="DELETE">DELETE</option>
+                    </select>
+                    <div class="url-input-wrapper">
+                        <input type="text" class="url-input" id="urlInput" placeholder="Enter request URL (e.g., https://api.example.com/users)" value="https://jsonplaceholder.typicode.com/users/1">
+                    </div>
+                    <button class="send-btn" id="sendBtn" onclick="sendRequest()">Send</button>
+                </div>
+
+                <div class="tabs-container">
+                    <div class="tabs-header">
+                        <button class="tab-btn active" data-tab="params" onclick="switchTab('params')">Params</button>
+                        <button class="tab-btn" data-tab="headers" onclick="switchTab('headers')">Headers</button>
+                        <button class="tab-btn" data-tab="body" onclick="switchTab('body')">Body</button>
+                        <button class="tab-btn" data-tab="auth" onclick="switchTab('auth')">Auth</button>
+                    </div>
+
+                    <div class="tabs-content">
+                        <div class="split-view">
+                            <!-- Request Side -->
+                            <div class="split-pane">
+                                <div class="pane-header">
+                                    <span>Request</span>
+                                </div>
+                                <div class="pane-content">
+                                    <!-- Params Tab -->
+                                    <div class="tab-pane active" id="paramsTab">
+                                        <div class="kv-editor" id="paramsEditor">
+                                            <!-- Params rows rendered here -->
+                                        </div>
+                                        <button class="add-row-btn" onclick="addParamRow()">+ Add Parameter</button>
+                                    </div>
+
+                                    <!-- Headers Tab -->
+                                    <div class="tab-pane" id="headersTab">
+                                        <div class="kv-editor" id="headersEditor">
+                                            <!-- Headers rows rendered here -->
+                                        </div>
+                                        <button class="add-row-btn" onclick="addHeaderRow()">+ Add Header</button>
+                                    </div>
+
+                                    <!-- Body Tab -->
+                                    <div class="tab-pane" id="bodyTab">
+                                        <div class="body-type-selector">
+                                            <button class="body-type-btn active" data-type="json" onclick="setBodyType('json')">JSON</button>
+                                            <button class="body-type-btn" data-type="form" onclick="setBodyType('form')">Form Data</button>
+                                            <button class="body-type-btn" data-type="raw" onclick="setBodyType('raw')">Raw</button>
+                                            <button class="body-type-btn" data-type="none" onclick="setBodyType('none')">None</button>
+                                        </div>
+                                        <textarea class="body-editor" id="bodyEditor" placeholder='{\n  "key": "value"\n}'>{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "role": "admin"
+}</textarea>
+                                    </div>
+
+                                    <!-- Auth Tab -->
+                                    <div class="tab-pane" id="authTab">
+                                        <div class="body-type-selector">
+                                            <button class="body-type-btn active" data-type="none" onclick="setAuthType('none')">None</button>
+                                            <button class="body-type-btn" data-type="bearer" onclick="setAuthType('bearer')">Bearer Token</button>
+                                            <button class="body-type-btn" data-type="basic" onclick="setAuthType('basic')">Basic Auth</button>
+                                            <button class="body-type-btn" data-type="apikey" onclick="setAuthType('apikey')">API Key</button>
+                                        </div>
+                                        <div id="authContent">
+                                            <div class="empty-state" style="height: auto; padding: 2rem;">
+                                                <div class="empty-state-text">No Auth</div>
+                                                <div class="empty-state-hint">Select an authentication type above</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Response Side -->
+                            <div class="split-pane">
+                                <div class="pane-header">
+                                    <span>Response</span>
+                                </div>
+                                <div class="response-header" id="responseHeader" style="display: none;">
+                                    <div class="response-stat">
+                                        <span class="stat-label">Status:</span>
+                                        <span class="stat-value success" id="responseStatus">200 OK</span>
+                                    </div>
+                                    <div class="response-stat">
+                                        <span class="stat-label">Time:</span>
+                                        <span class="stat-value" id="responseTime">0ms</span>
+                                    </div>
+                                    <div class="response-stat">
+                                        <span class="stat-label">Size:</span>
+                                        <span class="stat-value" id="responseSize">0 B</span>
+                                    </div>
+                                    <div class="response-actions">
+                                        <button class="response-action-btn" onclick="copyResponse()">Copy</button>
+                                        <button class="response-action-btn" onclick="formatResponse()">Format</button>
+                                    </div>
+                                </div>
+                                <div class="pane-content" id="responseContent">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon">📡</div>
+                                        <div class="empty-state-text">Enter a URL and click Send</div>
+                                        <div class="empty-state-hint">Response will appear here</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Requests:</span>
+                    <span id="requestCount">0</span>
+                </div>
+                <div class="status-item">
+                    <span>Last request:</span>
+                    <span id="lastRequest">--</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // State
+        let currentTab = 'params';
+        let bodyType = 'json';
+        let authType = 'none';
+        let requestHistory = [];
+        let requestCount = 0;
+
+        // Default headers
+        const defaultHeaders = [
+            { enabled: true, key: 'Content-Type', value: 'application/json' },
+            { enabled: true, key: 'Accept', value: 'application/json' },
+            { enabled: false, key: 'Authorization', value: '' }
+        ];
+
+        // Default params
+        const defaultParams = [
+            { enabled: false, key: '', value: '' }
+        ];
+
+        // Initialize
+        function init() {
+            renderParams();
+            renderHeaders();
+            loadSampleHistory();
+        }
+
+        // Tab switching
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+            document.getElementById(`${tab}Tab`).classList.add('active');
+        }
+
+        // Params editor
+        function renderParams() {
+            const editor = document.getElementById('paramsEditor');
+            editor.innerHTML = defaultParams.map((p, i) => `
+                <div class="kv-row">
+                    <input type="checkbox" class="kv-checkbox" ${p.enabled ? 'checked' : ''} onchange="toggleParam(${i})">
+                    <input type="text" class="kv-input key" placeholder="Key" value="${p.key}" onchange="updateParam(${i}, 'key', this.value)">
+                    <input type="text" class="kv-input" placeholder="Value" value="${p.value}" onchange="updateParam(${i}, 'value', this.value)">
+                    <button class="kv-delete" onclick="deleteParam(${i})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function addParamRow() {
+            defaultParams.push({ enabled: true, key: '', value: '' });
+            renderParams();
+        }
+
+        function toggleParam(index) {
+            defaultParams[index].enabled = !defaultParams[index].enabled;
+        }
+
+        function updateParam(index, field, value) {
+            defaultParams[index][field] = value;
+        }
+
+        function deleteParam(index) {
+            defaultParams.splice(index, 1);
+            renderParams();
+        }
+
+        // Headers editor
+        function renderHeaders() {
+            const editor = document.getElementById('headersEditor');
+            editor.innerHTML = defaultHeaders.map((h, i) => `
+                <div class="kv-row">
+                    <input type="checkbox" class="kv-checkbox" ${h.enabled ? 'checked' : ''} onchange="toggleHeader(${i})">
+                    <input type="text" class="kv-input key" placeholder="Header" value="${h.key}" onchange="updateHeader(${i}, 'key', this.value)">
+                    <input type="text" class="kv-input" placeholder="Value" value="${h.value}" onchange="updateHeader(${i}, 'value', this.value)">
+                    <button class="kv-delete" onclick="deleteHeader(${i})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function addHeaderRow() {
+            defaultHeaders.push({ enabled: true, key: '', value: '' });
+            renderHeaders();
+        }
+
+        function toggleHeader(index) {
+            defaultHeaders[index].enabled = !defaultHeaders[index].enabled;
+        }
+
+        function updateHeader(index, field, value) {
+            defaultHeaders[index][field] = value;
+        }
+
+        function deleteHeader(index) {
+            defaultHeaders.splice(index, 1);
+            renderHeaders();
+        }
+
+        // Body type
+        function setBodyType(type) {
+            bodyType = type;
+            document.querySelectorAll('#bodyTab .body-type-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === type);
+            });
+            document.getElementById('bodyEditor').style.display = type === 'none' ? 'none' : 'block';
+        }
+
+        // Auth type
+        function setAuthType(type) {
+            authType = type;
+            document.querySelectorAll('#authTab .body-type-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === type);
+            });
+
+            const content = document.getElementById('authContent');
+            if (type === 'none') {
+                content.innerHTML = `
+                    <div class="empty-state" style="height: auto; padding: 2rem;">
+                        <div class="empty-state-text">No Auth</div>
+                        <div class="empty-state-hint">Select an authentication type above</div>
+                    </div>
+                `;
+            } else if (type === 'bearer') {
+                content.innerHTML = `
+                    <div class="kv-editor">
+                        <div class="kv-row">
+                            <input type="text" class="kv-input" placeholder="Enter Bearer token" style="max-width: none;">
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'basic') {
+                content.innerHTML = `
+                    <div class="kv-editor">
+                        <div class="kv-row">
+                            <input type="text" class="kv-input key" placeholder="Username">
+                            <input type="password" class="kv-input" placeholder="Password">
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'apikey') {
+                content.innerHTML = `
+                    <div class="kv-editor">
+                        <div class="kv-row">
+                            <input type="text" class="kv-input key" placeholder="Key name" value="X-API-Key">
+                            <input type="text" class="kv-input" placeholder="API Key value">
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Send request (simulated)
+        function sendRequest() {
+            const method = document.getElementById('methodSelect').value;
+            const url = document.getElementById('urlInput').value;
+            const btn = document.getElementById('sendBtn');
+
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            // Simulate API request
+            const startTime = performance.now();
+
+            setTimeout(() => {
+                const endTime = performance.now();
+                const duration = Math.round(endTime - startTime);
+
+                // Generate simulated response based on URL/method
+                const response = generateSimulatedResponse(method, url);
+
+                btn.classList.remove('loading');
+                btn.disabled = false;
+
+                displayResponse(response, duration);
+                addToHistory(method, url, response, duration);
+
+                requestCount++;
+                document.getElementById('requestCount').textContent = requestCount;
+                document.getElementById('lastRequest').textContent = new Date().toLocaleTimeString();
+            }, Math.random() * 500 + 200);
+        }
+
+        // Generate simulated response
+        function generateSimulatedResponse(method, url) {
+            // Parse URL to determine response type
+            if (url.includes('users')) {
+                if (method === 'GET') {
+                    if (url.match(/\/users\/\d+$/)) {
+                        return {
+                            status: 200,
+                            statusText: 'OK',
+                            data: {
+                                id: 1,
+                                name: 'John Doe',
+                                username: 'johndoe',
+                                email: 'john.doe@example.com',
+                                address: {
+                                    street: '123 Main St',
+                                    suite: 'Apt 4',
+                                    city: 'San Francisco',
+                                    zipcode: '94102',
+                                    geo: { lat: '37.7749', lng: '-122.4194' }
+                                },
+                                phone: '(555) 123-4567',
+                                website: 'johndoe.dev',
+                                company: {
+                                    name: 'TechCorp Inc',
+                                    catchPhrase: 'Innovative solutions',
+                                    bs: 'deliver cutting-edge platforms'
+                                }
+                            }
+                        };
+                    } else {
+                        return {
+                            status: 200,
+                            statusText: 'OK',
+                            data: [
+                                { id: 1, name: 'John Doe', email: 'john@example.com' },
+                                { id: 2, name: 'Jane Smith', email: 'jane@example.com' },
+                                { id: 3, name: 'Bob Johnson', email: 'bob@example.com' }
+                            ]
+                        };
+                    }
+                } else if (method === 'POST') {
+                    return {
+                        status: 201,
+                        statusText: 'Created',
+                        data: {
+                            id: 11,
+                            name: 'John Doe',
+                            email: 'john@example.com',
+                            role: 'admin',
+                            createdAt: new Date().toISOString()
+                        }
+                    };
+                } else if (method === 'PUT' || method === 'PATCH') {
+                    return {
+                        status: 200,
+                        statusText: 'OK',
+                        data: {
+                            id: 1,
+                            name: 'John Doe Updated',
+                            email: 'john.updated@example.com',
+                            updatedAt: new Date().toISOString()
+                        }
+                    };
+                } else if (method === 'DELETE') {
+                    return { status: 204, statusText: 'No Content', data: null };
+                }
+            } else if (url.includes('posts')) {
+                return {
+                    status: 200,
+                    statusText: 'OK',
+                    data: [
+                        { id: 1, title: 'Introduction to REST APIs', body: 'REST APIs are...', userId: 1 },
+                        { id: 2, title: 'GraphQL vs REST', body: 'When comparing...', userId: 1 }
+                    ]
+                };
+            } else if (url.includes('404') || url.includes('notfound')) {
+                return {
+                    status: 404,
+                    statusText: 'Not Found',
+                    data: { error: 'Resource not found', message: 'The requested endpoint does not exist' }
+                };
+            } else if (url.includes('500') || url.includes('error')) {
+                return {
+                    status: 500,
+                    statusText: 'Internal Server Error',
+                    data: { error: 'Server error', message: 'An unexpected error occurred' }
+                };
+            }
+
+            // Default response
+            return {
+                status: 200,
+                statusText: 'OK',
+                data: { message: 'Request successful', timestamp: new Date().toISOString() }
+            };
+        }
+
+        // Display response
+        function displayResponse(response, duration) {
+            document.getElementById('responseHeader').style.display = 'flex';
+
+            const statusEl = document.getElementById('responseStatus');
+            statusEl.textContent = `${response.status} ${response.statusText}`;
+            statusEl.className = 'stat-value ' + (response.status < 300 ? 'success' : response.status < 400 ? 'redirect' : 'error');
+
+            document.getElementById('responseTime').textContent = `${duration}ms`;
+
+            const jsonStr = JSON.stringify(response.data, null, 2);
+            document.getElementById('responseSize').textContent = formatBytes(new Blob([jsonStr]).size);
+
+            const content = document.getElementById('responseContent');
+            content.innerHTML = `<div class="json-viewer">${formatJSON(response.data)}</div>`;
+        }
+
+        // Format JSON for display
+        function formatJSON(obj, indent = 0) {
+            if (obj === null) return '<span class="json-null">null</span>';
+            if (typeof obj !== 'object') {
+                if (typeof obj === 'string') return `<span class="json-string">"${escapeHtml(obj)}"</span>`;
+                if (typeof obj === 'number') return `<span class="json-number">${obj}</span>`;
+                if (typeof obj === 'boolean') return `<span class="json-boolean">${obj}</span>`;
+            }
+
+            const isArray = Array.isArray(obj);
+            const entries = Object.entries(obj);
+            const spaces = '  '.repeat(indent);
+            const innerSpaces = '  '.repeat(indent + 1);
+
+            if (entries.length === 0) {
+                return isArray ? '<span class="json-bracket">[]</span>' : '<span class="json-bracket">{}</span>';
+            }
+
+            let html = `<span class="json-bracket">${isArray ? '[' : '{'}</span>\n`;
+
+            entries.forEach(([key, value], i) => {
+                const comma = i < entries.length - 1 ? ',' : '';
+                const keyStr = isArray ? '' : `<span class="json-key">"${escapeHtml(key)}"</span>: `;
+                html += `<div class="json-line">${innerSpaces}${keyStr}${formatJSON(value, indent + 1)}${comma}</div>`;
+            });
+
+            html += `${spaces}<span class="json-bracket">${isArray ? ']' : '}'}</span>`;
+            return html;
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        // History
+        function addToHistory(method, url, response, duration) {
+            const urlPath = new URL(url).pathname;
+            requestHistory.unshift({
+                method,
+                url: urlPath,
+                fullUrl: url,
+                status: response.status,
+                duration,
+                timestamp: new Date()
+            });
+
+            if (requestHistory.length > 20) {
+                requestHistory.pop();
+            }
+
+            renderHistory();
+        }
+
+        function loadSampleHistory() {
+            requestHistory = [
+                { method: 'GET', url: '/api/users', fullUrl: 'https://api.example.com/users', status: 200, duration: 145, timestamp: new Date(Date.now() - 300000) },
+                { method: 'POST', url: '/api/auth/login', fullUrl: 'https://api.example.com/auth/login', status: 200, duration: 234, timestamp: new Date(Date.now() - 600000) },
+                { method: 'GET', url: '/api/products', fullUrl: 'https://api.example.com/products', status: 200, duration: 89, timestamp: new Date(Date.now() - 900000) },
+                { method: 'DELETE', url: '/api/users/5', fullUrl: 'https://api.example.com/users/5', status: 204, duration: 167, timestamp: new Date(Date.now() - 1200000) },
+                { method: 'PUT', url: '/api/settings', fullUrl: 'https://api.example.com/settings', status: 200, duration: 112, timestamp: new Date(Date.now() - 1500000) }
+            ];
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            list.innerHTML = requestHistory.map((item, i) => `
+                <div class="history-item" onclick="loadFromHistory(${i})">
+                    <div>
+                        <span class="history-method ${item.method}">${item.method}</span>
+                        <span class="history-url">${item.url}</span>
+                    </div>
+                    <div class="history-meta">
+                        <span class="history-status ${item.status < 300 ? 'success' : 'error'}">${item.status}</span>
+                        <span>${item.duration}ms</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadFromHistory(index) {
+            const item = requestHistory[index];
+            document.getElementById('methodSelect').value = item.method;
+            document.getElementById('urlInput').value = item.fullUrl;
+        }
+
+        function clearHistory() {
+            requestHistory = [];
+            renderHistory();
+        }
+
+        // Response actions
+        function copyResponse() {
+            const content = document.getElementById('responseContent');
+            navigator.clipboard.writeText(content.textContent);
+        }
+
+        function formatResponse() {
+            // Already formatted
+        }
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>

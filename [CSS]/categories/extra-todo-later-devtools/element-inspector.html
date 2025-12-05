@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element Inspector - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: #0a0a0a;
+            min-height: 100vh; 
+            color: #e0e0e0;
+        }
+        .devtools-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .devtools-header {
+            background: #1a1a1a;
+            border-bottom: 2px solid #8be9fd;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #8be9fd;
+            text-decoration: none;
+            padding: 0.4rem 0.8rem;
+            border: 1px solid #8be9fd;
+            border-radius: 4px;
+            background: rgba(139, 233, 253, 0.1);
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+        .back-button:hover {
+            background: #8be9fd;
+            color: #0a0a0a;
+        }
+        .header-title {
+            font-size: 1rem;
+            color: #8be9fd;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .header-title::before {
+            content: '🔍';
+        }
+        .inspect-mode-badge {
+            padding: 0.3rem 0.75rem;
+            background: rgba(80, 250, 123, 0.2);
+            border: 1px solid #50fa7b;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            color: #50fa7b;
+            display: none;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        .inspect-mode-badge.active {
+            display: inline-flex;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .header-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-left: auto;
+            font-size: 0.75rem;
+        }
+        .header-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .header-stat-label { color: #666; }
+        .header-stat-value { color: #8be9fd; font-weight: 600; }
+
+        /* Toolbar */
+        .toolbar {
+            background: #141414;
+            border-bottom: 1px solid #333;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .toolbar-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #1a1a1a;
+            color: #aaa;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .toolbar-btn:hover {
+            border-color: #8be9fd;
+            color: #8be9fd;
+        }
+        .toolbar-btn.active {
+            background: rgba(139, 233, 253, 0.2);
+            border-color: #8be9fd;
+            color: #8be9fd;
+        }
+        .toolbar-btn.primary {
+            background: #8be9fd;
+            border-color: #8be9fd;
+            color: #0a0a0a;
+            font-weight: 600;
+        }
+        .toolbar-divider {
+            width: 1px;
+            height: 20px;
+            background: #333;
+            margin: 0 0.5rem;
+        }
+        .toolbar-spacer { flex: 1; }
+        .selector-input {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #0a0a0a;
+            color: #f1fa8c;
+            font-family: inherit;
+            width: 300px;
+        }
+        .selector-input:focus {
+            outline: none;
+            border-color: #8be9fd;
+        }
+
+        /* Main Layout */
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Preview Panel */
+        .preview-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #0f0f0f;
+        }
+        .preview-header {
+            padding: 0.5rem 1rem;
+            background: #141414;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.75rem;
+        }
+        .preview-label {
+            color: #666;
+        }
+        .preview-selector {
+            color: #f1fa8c;
+            font-family: 'Courier New', monospace;
+        }
+        .preview-count {
+            color: #8be9fd;
+            margin-left: auto;
+        }
+        .preview-area {
+            flex: 1;
+            position: relative;
+            overflow: auto;
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Mock Page Preview */
+        .mock-page {
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+        .mock-browser-bar {
+            background: #2a2a2a;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid #333;
+        }
+        .mock-dots {
+            display: flex;
+            gap: 0.4rem;
+        }
+        .mock-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .mock-dot.red { background: #ff5f56; }
+        .mock-dot.yellow { background: #ffbd2e; }
+        .mock-dot.green { background: #27c93f; }
+        .mock-url {
+            flex: 1;
+            background: #1a1a1a;
+            padding: 0.3rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            color: #888;
+        }
+        .mock-content {
+            padding: 1.5rem;
+            min-height: 400px;
+        }
+
+        /* Mock Elements */
+        .mock-element {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .mock-element:hover {
+            outline: 2px dashed rgba(139, 233, 253, 0.5);
+            outline-offset: 2px;
+        }
+        .mock-element.selected {
+            outline: 2px solid #8be9fd;
+            outline-offset: 2px;
+            box-shadow: 0 0 20px rgba(139, 233, 253, 0.3);
+        }
+        .mock-element.highlighted {
+            background: rgba(139, 233, 253, 0.1) !important;
+        }
+        
+        .mock-header {
+            background: #2a2a2a;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .mock-logo {
+            font-weight: bold;
+            color: #8be9fd;
+            font-size: 1rem;
+        }
+        .mock-nav {
+            display: flex;
+            gap: 1rem;
+        }
+        .mock-nav-item {
+            color: #888;
+            font-size: 0.8rem;
+            padding: 0.3rem 0.5rem;
+            border-radius: 4px;
+        }
+        .mock-hero {
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(139, 233, 253, 0.1), rgba(189, 147, 249, 0.1));
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        .mock-hero h1 {
+            color: #fff;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .mock-hero p {
+            color: #888;
+            font-size: 0.85rem;
+        }
+        .mock-button {
+            display: inline-block;
+            background: #8be9fd;
+            color: #0a0a0a;
+            padding: 0.5rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+        }
+        .mock-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .mock-card {
+            background: #222;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        .mock-card-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #8be9fd, #bd93f9);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+        }
+        .mock-card h3 {
+            color: #fff;
+            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+        }
+        .mock-card p {
+            color: #666;
+            font-size: 0.75rem;
+            line-height: 1.4;
+        }
+        .mock-footer {
+            background: #222;
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+            color: #666;
+            font-size: 0.75rem;
+        }
+
+        /* Element Overlay */
+        .element-overlay {
+            position: absolute;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .overlay-margin {
+            background: rgba(255, 190, 11, 0.2);
+            border: 1px dashed rgba(255, 190, 11, 0.5);
+        }
+        .overlay-border {
+            background: rgba(80, 250, 123, 0.3);
+        }
+        .overlay-padding {
+            background: rgba(139, 233, 253, 0.2);
+        }
+        .overlay-content {
+            background: rgba(189, 147, 249, 0.3);
+        }
+        .overlay-label {
+            position: absolute;
+            top: -22px;
+            left: 0;
+            background: #8be9fd;
+            color: #0a0a0a;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            border-radius: 3px;
+            white-space: nowrap;
+        }
+        .overlay-size {
+            position: absolute;
+            bottom: -18px;
+            right: 0;
+            background: #333;
+            color: #fff;
+            padding: 0.15rem 0.4rem;
+            font-size: 0.6rem;
+            border-radius: 2px;
+        }
+
+        /* Inspector Panel */
+        .inspector-panel {
+            width: 400px;
+            background: #141414;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .panel-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1a1a1a;
+        }
+        .panel-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #8be9fd;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .close-btn:hover { color: #fff; }
+
+        /* Element Info */
+        .element-info {
+            padding: 1rem;
+            background: #111;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .element-tag {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .element-tag .tag-name { color: #ff79c6; }
+        .element-tag .tag-id { color: #8be9fd; }
+        .element-tag .tag-class { color: #50fa7b; }
+        .element-selector {
+            font-size: 0.75rem;
+            color: #f1fa8c;
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            padding: 0.5rem;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+
+        /* Panel Tabs */
+        .panel-tabs {
+            display: flex;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+        }
+        .panel-tab {
+            flex: 1;
+            padding: 0.6rem;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #666;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .panel-tab:hover {
+            color: #aaa;
+        }
+        .panel-tab.active {
+            color: #8be9fd;
+            border-bottom-color: #8be9fd;
+        }
+
+        /* Panel Content */
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* Computed Styles */
+        .style-section {
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .style-header {
+            padding: 0.6rem 1rem;
+            font-size: 0.7rem;
+            color: #888;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s ease;
+        }
+        .style-header:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .style-toggle {
+            font-size: 0.6rem;
+            color: #666;
+        }
+        .style-body {
+            padding: 0 1rem 0.75rem 1rem;
+        }
+        .style-body.collapsed {
+            display: none;
+        }
+        .style-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0.35rem 0;
+            font-size: 0.75rem;
+            gap: 0.75rem;
+        }
+        .style-name {
+            color: #50fa7b;
+            flex-shrink: 0;
+        }
+        .style-value {
+            color: #f1fa8c;
+            font-family: 'Courier New', monospace;
+            text-align: right;
+            word-break: break-word;
+        }
+        .style-value.color-preview {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .color-swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            border: 1px solid #444;
+        }
+
+        /* Box Model Visual */
+        .box-model {
+            padding: 1.5rem;
+        }
+        .box-model-container {
+            position: relative;
+            max-width: 280px;
+            margin: 0 auto;
+        }
+        .box-margin-area {
+            background: rgba(255, 190, 11, 0.15);
+            border: 2px dashed rgba(255, 190, 11, 0.4);
+            padding: 15px;
+            position: relative;
+        }
+        .box-border-area {
+            background: rgba(80, 250, 123, 0.15);
+            border: 2px solid rgba(80, 250, 123, 0.4);
+            padding: 12px;
+        }
+        .box-padding-area {
+            background: rgba(139, 233, 253, 0.15);
+            border: 2px solid rgba(139, 233, 253, 0.4);
+            padding: 10px;
+        }
+        .box-content-area {
+            background: rgba(189, 147, 249, 0.3);
+            border: 1px solid rgba(189, 147, 249, 0.6);
+            padding: 1rem;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #bd93f9;
+        }
+        .box-label {
+            position: absolute;
+            font-size: 0.55rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .box-label.margin { top: 2px; left: 5px; color: #ffbe0b; }
+        .box-label.border { top: 17px; left: 20px; color: #50fa7b; }
+        .box-label.padding { top: 32px; left: 35px; color: #8be9fd; }
+        .box-value {
+            position: absolute;
+            font-size: 0.65rem;
+            color: #fff;
+            font-weight: 500;
+        }
+        .box-value.top { top: 0; left: 50%; transform: translateX(-50%); }
+        .box-value.right { right: 3px; top: 50%; transform: translateY(-50%); }
+        .box-value.bottom { bottom: 0; left: 50%; transform: translateX(-50%); }
+        .box-value.left { left: 3px; top: 50%; transform: translateY(-50%); }
+
+        /* Accessibility Panel */
+        .a11y-score {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .a11y-score-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #50fa7b;
+        }
+        .a11y-score-label {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .a11y-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #1a1a1a;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        .a11y-icon {
+            font-size: 1rem;
+        }
+        .a11y-icon.pass { color: #50fa7b; }
+        .a11y-icon.warn { color: #ffbe0b; }
+        .a11y-icon.fail { color: #ff4757; }
+        .a11y-text {
+            flex: 1;
+        }
+        .a11y-label {
+            font-size: 0.8rem;
+            color: #e0e0e0;
+            margin-bottom: 0.2rem;
+        }
+        .a11y-detail {
+            font-size: 0.7rem;
+            color: #888;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.7rem;
+        }
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #666;
+        }
+        .status-item span:last-child {
+            color: #8be9fd;
+        }
+
+        /* Responsive */
+        @media (max-width: 1000px) {
+            .mock-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 900px) {
+            .inspector-panel {
+                position: fixed;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 100%;
+                max-width: 400px;
+                z-index: 100;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            }
+            .inspector-panel.visible {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="devtools-container">
+        <header class="devtools-header">
+            <a href="index.html" class="back-button">← Back</a>
+            <div class="header-title">Element Inspector</div>
+            <span class="inspect-mode-badge" id="inspectBadge">INSPECT MODE</span>
+            <div class="header-stats">
+                <div class="header-stat">
+                    <span class="header-stat-label">Selected:</span>
+                    <span class="header-stat-value" id="selectedTag">div.mock-hero</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="toolbar">
+            <button class="toolbar-btn" id="inspectBtn" onclick="toggleInspect()">
+                <span>🎯</span> Select Element
+            </button>
+            <button class="toolbar-btn" onclick="selectParent()">↑ Parent</button>
+            <button class="toolbar-btn" onclick="selectChild()">↓ Child</button>
+            <button class="toolbar-btn" onclick="selectPrev()">← Prev</button>
+            <button class="toolbar-btn" onclick="selectNext()">→ Next</button>
+            <div class="toolbar-divider"></div>
+            <input type="text" class="selector-input" id="selectorInput" placeholder="Enter CSS selector (e.g., .mock-card)" oninput="querySelector()">
+            <div class="toolbar-spacer"></div>
+            <button class="toolbar-btn" onclick="copySelector()">Copy Selector</button>
+            <button class="toolbar-btn" onclick="scrollToElement()">Scroll to View</button>
+        </div>
+
+        <div class="main-content">
+            <div class="preview-panel">
+                <div class="preview-header">
+                    <span class="preview-label">Current selector:</span>
+                    <span class="preview-selector" id="currentSelector">div.mock-hero</span>
+                    <span class="preview-count"><span id="matchCount">1</span> match(es)</span>
+                </div>
+                <div class="preview-area">
+                    <div class="mock-page">
+                        <div class="mock-browser-bar">
+                            <div class="mock-dots">
+                                <span class="mock-dot red"></span>
+                                <span class="mock-dot yellow"></span>
+                                <span class="mock-dot green"></span>
+                            </div>
+                            <div class="mock-url">https://example.com/page</div>
+                        </div>
+                        <div class="mock-content">
+                            <div class="mock-element mock-header" data-tag="header" data-class="site-header" onclick="selectElement(this)">
+                                <span class="mock-logo mock-element" data-tag="span" data-class="logo" onclick="selectElement(this); event.stopPropagation();">MyApp</span>
+                                <nav class="mock-nav mock-element" data-tag="nav" data-class="nav-menu" onclick="selectElement(this); event.stopPropagation();">
+                                    <span class="mock-nav-item mock-element" data-tag="a" data-class="nav-item" onclick="selectElement(this); event.stopPropagation();">Home</span>
+                                    <span class="mock-nav-item mock-element" data-tag="a" data-class="nav-item" onclick="selectElement(this); event.stopPropagation();">About</span>
+                                    <span class="mock-nav-item mock-element" data-tag="a" data-class="nav-item" onclick="selectElement(this); event.stopPropagation();">Contact</span>
+                                </nav>
+                            </div>
+                            <div class="mock-element mock-hero selected" data-tag="div" data-class="hero-section" data-id="hero" onclick="selectElement(this)">
+                                <h1 class="mock-element" data-tag="h1" data-class="hero-title" onclick="selectElement(this); event.stopPropagation();">Welcome to MyApp</h1>
+                                <p class="mock-element" data-tag="p" data-class="hero-subtitle" onclick="selectElement(this); event.stopPropagation();">Build something amazing today</p>
+                                <span class="mock-button mock-element" data-tag="button" data-class="cta-button" data-id="signup-btn" onclick="selectElement(this); event.stopPropagation();">Get Started</span>
+                            </div>
+                            <div class="mock-cards mock-element" data-tag="div" data-class="feature-grid" onclick="selectElement(this)">
+                                <div class="mock-card mock-element" data-tag="article" data-class="feature-card" onclick="selectElement(this); event.stopPropagation();">
+                                    <div class="mock-card-icon mock-element" data-tag="div" data-class="card-icon" onclick="selectElement(this); event.stopPropagation();"></div>
+                                    <h3 class="mock-element" data-tag="h3" onclick="selectElement(this); event.stopPropagation();">Fast</h3>
+                                    <p class="mock-element" data-tag="p" onclick="selectElement(this); event.stopPropagation();">Lightning quick performance</p>
+                                </div>
+                                <div class="mock-card mock-element" data-tag="article" data-class="feature-card" onclick="selectElement(this); event.stopPropagation();">
+                                    <div class="mock-card-icon mock-element" data-tag="div" data-class="card-icon" onclick="selectElement(this); event.stopPropagation();"></div>
+                                    <h3 class="mock-element" data-tag="h3" onclick="selectElement(this); event.stopPropagation();">Secure</h3>
+                                    <p class="mock-element" data-tag="p" onclick="selectElement(this); event.stopPropagation();">Enterprise-grade security</p>
+                                </div>
+                                <div class="mock-card mock-element" data-tag="article" data-class="feature-card" onclick="selectElement(this); event.stopPropagation();">
+                                    <div class="mock-card-icon mock-element" data-tag="div" data-class="card-icon" onclick="selectElement(this); event.stopPropagation();"></div>
+                                    <h3 class="mock-element" data-tag="h3" onclick="selectElement(this); event.stopPropagation();">Scalable</h3>
+                                    <p class="mock-element" data-tag="p" onclick="selectElement(this); event.stopPropagation();">Grows with your needs</p>
+                                </div>
+                            </div>
+                            <div class="mock-element mock-footer" data-tag="footer" data-class="site-footer" onclick="selectElement(this)">
+                                © 2024 MyApp. All rights reserved.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="inspector-panel visible" id="inspectorPanel">
+                <div class="panel-header">
+                    <span class="panel-title">Inspector</span>
+                    <button class="close-btn" onclick="closeInspector()">×</button>
+                </div>
+                <div class="element-info">
+                    <div class="element-tag">
+                        <span class="tag-name" id="infoTag">div</span><span class="tag-id" id="infoId">#hero</span><span class="tag-class" id="infoClass">.hero-section</span>
+                    </div>
+                    <div class="element-selector" id="infoSelector">div#hero.hero-section</div>
+                </div>
+                <div class="panel-tabs">
+                    <div class="panel-tab active" onclick="showTab('styles')">Styles</div>
+                    <div class="panel-tab" onclick="showTab('computed')">Computed</div>
+                    <div class="panel-tab" onclick="showTab('box')">Box Model</div>
+                    <div class="panel-tab" onclick="showTab('a11y')">A11Y</div>
+                </div>
+                <div class="panel-content" id="panelContent">
+                    <!-- Content rendered by JS -->
+                </div>
+            </aside>
+        </div>
+
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Position:</span>
+                    <span id="elementPosition">x: 24, y: 180</span>
+                </div>
+                <div class="status-item">
+                    <span>Size:</span>
+                    <span id="elementSize">752 × 180</span>
+                </div>
+                <div class="status-item">
+                    <span>Depth:</span>
+                    <span id="elementDepth">4</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        let selectedEl = null;
+        let inspectMode = false;
+        let activeTab = 'styles';
+
+        // Mock element data
+        const elementData = {
+            'div.hero-section': {
+                tag: 'div',
+                id: 'hero',
+                class: 'hero-section',
+                styles: {
+                    display: 'flex',
+                    'flex-direction': 'column',
+                    'align-items': 'center',
+                    'text-align': 'center',
+                    padding: '2rem',
+                    background: 'linear-gradient(...)',
+                    'border-radius': '8px',
+                    'margin-bottom': '1rem'
+                },
+                computed: {
+                    width: '752px',
+                    height: '180px',
+                    padding: '32px',
+                    margin: '0 0 16px 0'
+                },
+                box: { margin: [0, 0, 16, 0], border: [0, 0, 0, 0], padding: [32, 32, 32, 32], content: [688, 116] },
+                a11y: { score: 92, issues: [] }
+            },
+            'header.site-header': {
+                tag: 'header',
+                id: '',
+                class: 'site-header',
+                styles: {
+                    display: 'flex',
+                    'justify-content': 'space-between',
+                    'align-items': 'center',
+                    background: '#2a2a2a',
+                    padding: '1rem',
+                    'border-radius': '6px'
+                },
+                computed: { width: '752px', height: '56px', padding: '16px', margin: '0 0 16px 0' },
+                box: { margin: [0, 0, 16, 0], border: [0, 0, 0, 0], padding: [16, 16, 16, 16], content: [720, 24] },
+                a11y: { score: 85, issues: ['Missing landmark role'] }
+            },
+            'button.cta-button': {
+                tag: 'button',
+                id: 'signup-btn',
+                class: 'cta-button',
+                styles: {
+                    display: 'inline-block',
+                    background: '#8be9fd',
+                    color: '#0a0a0a',
+                    padding: '0.5rem 1.5rem',
+                    'border-radius': '6px',
+                    'font-weight': '600',
+                    cursor: 'pointer'
+                },
+                computed: { width: '105px', height: '36px', padding: '8px 24px', margin: '16px 0 0 0' },
+                box: { margin: [16, 0, 0, 0], border: [0, 0, 0, 0], padding: [8, 24, 8, 24], content: [57, 20] },
+                a11y: { score: 100, issues: [] }
+            }
+        };
+
+        function selectElement(el) {
+            if (selectedEl) {
+                selectedEl.classList.remove('selected');
+            }
+            selectedEl = el;
+            el.classList.add('selected');
+            
+            const tag = el.dataset.tag || 'div';
+            const cls = el.dataset.class || '';
+            const id = el.dataset.id || '';
+            
+            let selector = tag;
+            if (id) selector += `#${id}`;
+            if (cls) selector += `.${cls.split(' ')[0]}`;
+            
+            document.getElementById('selectedTag').textContent = selector;
+            document.getElementById('currentSelector').textContent = selector;
+            document.getElementById('matchCount').textContent = '1';
+            document.getElementById('infoTag').textContent = tag;
+            document.getElementById('infoId').textContent = id ? `#${id}` : '';
+            document.getElementById('infoClass').textContent = cls ? `.${cls}` : '';
+            document.getElementById('infoSelector').textContent = selector;
+            
+            updatePanelContent();
+        }
+
+        function updatePanelContent() {
+            if (!selectedEl) return;
+            
+            const selector = document.getElementById('currentSelector').textContent;
+            const data = elementData[selector] || elementData['div.hero-section'];
+            
+            const content = document.getElementById('panelContent');
+            
+            if (activeTab === 'styles') {
+                let html = '<div class="style-section">';
+                html += '<div class="style-header" onclick="toggleSection(this)"><span class="style-toggle">▼</span> Inline Styles</div>';
+                html += '<div class="style-body">';
+                
+                for (const [prop, val] of Object.entries(data.styles || {})) {
+                    const isColor = prop.includes('color') || prop.includes('background');
+                    html += `<div class="style-row">
+                        <span class="style-name">${prop}:</span>
+                        <span class="style-value ${isColor ? 'color-preview' : ''}">
+                            ${isColor && val.startsWith('#') ? `<span class="color-swatch" style="background:${val}"></span>` : ''}
+                            ${val}
+                        </span>
+                    </div>`;
+                }
+                html += '</div></div>';
+                
+                html += '<div class="style-section">';
+                html += '<div class="style-header" onclick="toggleSection(this)"><span class="style-toggle">▼</span> Inherited</div>';
+                html += '<div class="style-body">';
+                html += '<div class="style-row"><span class="style-name">font-family:</span><span class="style-value">Courier New, monospace</span></div>';
+                html += '<div class="style-row"><span class="style-name">font-size:</span><span class="style-value">16px</span></div>';
+                html += '<div class="style-row"><span class="style-name">color:</span><span class="style-value color-preview"><span class="color-swatch" style="background:#e0e0e0"></span>#e0e0e0</span></div>';
+                html += '</div></div>';
+                
+                content.innerHTML = html;
+            } else if (activeTab === 'computed') {
+                let html = '<div class="style-section">';
+                html += '<div class="style-header"><span class="style-toggle">▼</span> Layout</div>';
+                html += '<div class="style-body">';
+                for (const [prop, val] of Object.entries(data.computed || {})) {
+                    html += `<div class="style-row"><span class="style-name">${prop}:</span><span class="style-value">${val}</span></div>`;
+                }
+                html += '</div></div>';
+                
+                html += '<div class="style-section">';
+                html += '<div class="style-header" onclick="toggleSection(this)"><span class="style-toggle">▼</span> Positioning</div>';
+                html += '<div class="style-body">';
+                html += '<div class="style-row"><span class="style-name">position:</span><span class="style-value">relative</span></div>';
+                html += '<div class="style-row"><span class="style-name">z-index:</span><span class="style-value">auto</span></div>';
+                html += '<div class="style-row"><span class="style-name">top:</span><span class="style-value">auto</span></div>';
+                html += '<div class="style-row"><span class="style-name">left:</span><span class="style-value">auto</span></div>';
+                html += '</div></div>';
+                
+                content.innerHTML = html;
+            } else if (activeTab === 'box') {
+                const box = data.box || { margin: [0,0,0,0], border: [0,0,0,0], padding: [0,0,0,0], content: [100,100] };
+                content.innerHTML = `
+                    <div class="box-model">
+                        <div class="box-model-container">
+                            <div class="box-margin-area">
+                                <span class="box-label margin">margin</span>
+                                <span class="box-value top">${box.margin[0]}</span>
+                                <span class="box-value right">${box.margin[1]}</span>
+                                <span class="box-value bottom">${box.margin[2]}</span>
+                                <span class="box-value left">${box.margin[3]}</span>
+                                <div class="box-border-area">
+                                    <span class="box-label border">border</span>
+                                    <div class="box-padding-area">
+                                        <span class="box-label padding">padding</span>
+                                        <div class="box-content-area">
+                                            ${box.content[0]} × ${box.content[1]}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (activeTab === 'a11y') {
+                const a11y = data.a11y || { score: 0, issues: [] };
+                const scoreColor = a11y.score >= 90 ? '#50fa7b' : a11y.score >= 70 ? '#ffbe0b' : '#ff4757';
+                
+                let html = `
+                    <div class="a11y-score">
+                        <div class="a11y-score-value" style="color:${scoreColor}">${a11y.score}</div>
+                        <div class="a11y-score-label">Accessibility Score</div>
+                    </div>
+                `;
+                
+                html += `
+                    <div class="a11y-item">
+                        <span class="a11y-icon pass">✓</span>
+                        <div class="a11y-text">
+                            <div class="a11y-label">Color Contrast</div>
+                            <div class="a11y-detail">Text meets WCAG AA standards</div>
+                        </div>
+                    </div>
+                    <div class="a11y-item">
+                        <span class="a11y-icon pass">✓</span>
+                        <div class="a11y-text">
+                            <div class="a11y-label">Focus Indicators</div>
+                            <div class="a11y-detail">Interactive elements have visible focus</div>
+                        </div>
+                    </div>
+                `;
+                
+                if (a11y.issues.length > 0) {
+                    a11y.issues.forEach(issue => {
+                        html += `
+                            <div class="a11y-item">
+                                <span class="a11y-icon warn">⚠</span>
+                                <div class="a11y-text">
+                                    <div class="a11y-label">${issue}</div>
+                                    <div class="a11y-detail">Consider adding for better accessibility</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += `
+                        <div class="a11y-item">
+                            <span class="a11y-icon pass">✓</span>
+                            <div class="a11y-text">
+                                <div class="a11y-label">All Checks Passed</div>
+                                <div class="a11y-detail">No accessibility issues detected</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                content.innerHTML = html;
+            }
+        }
+
+        function showTab(tab) {
+            activeTab = tab;
+            document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            updatePanelContent();
+        }
+
+        function toggleSection(header) {
+            const body = header.nextElementSibling;
+            const toggle = header.querySelector('.style-toggle');
+            body.classList.toggle('collapsed');
+            toggle.textContent = body.classList.contains('collapsed') ? '▶' : '▼';
+        }
+
+        function toggleInspect() {
+            inspectMode = !inspectMode;
+            document.getElementById('inspectBtn').classList.toggle('active', inspectMode);
+            document.getElementById('inspectBadge').classList.toggle('active', inspectMode);
+        }
+
+        function querySelector() {
+            const selector = document.getElementById('selectorInput').value;
+            // In a real implementation, this would query the DOM
+            document.getElementById('currentSelector').textContent = selector || 'none';
+        }
+
+        function selectParent() {
+            if (selectedEl && selectedEl.parentElement?.classList.contains('mock-element')) {
+                selectElement(selectedEl.parentElement);
+            }
+        }
+
+        function selectChild() {
+            if (selectedEl) {
+                const child = selectedEl.querySelector('.mock-element');
+                if (child) selectElement(child);
+            }
+        }
+
+        function selectPrev() {
+            if (selectedEl) {
+                let prev = selectedEl.previousElementSibling;
+                while (prev && !prev.classList.contains('mock-element')) {
+                    prev = prev.previousElementSibling;
+                }
+                if (prev) selectElement(prev);
+            }
+        }
+
+        function selectNext() {
+            if (selectedEl) {
+                let next = selectedEl.nextElementSibling;
+                while (next && !next.classList.contains('mock-element')) {
+                    next = next.nextElementSibling;
+                }
+                if (next) selectElement(next);
+            }
+        }
+
+        function copySelector() {
+            const selector = document.getElementById('currentSelector').textContent;
+            navigator.clipboard.writeText(selector);
+        }
+
+        function scrollToElement() {
+            if (selectedEl) {
+                selectedEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function closeInspector() {
+            document.getElementById('inspectorPanel').classList.remove('visible');
+        }
+
+        // Initialize with hero selected
+        document.addEventListener('DOMContentLoaded', () => {
+            const hero = document.querySelector('.mock-hero');
+            if (hero) selectElement(hero);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shipping Estimator - JaZeR E-commerce Patterns</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-body); background: var(--bg-dark); color: var(--text-light); line-height: 1.6; padding: 1.5rem; min-height: 100vh; }
+    .back-button { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-gray); text-decoration: none; font-family: var(--font-secondary); font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 12px; border: 2px solid var(--border-default); background: var(--bg-card); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-bottom: 1.5rem; }
+    .back-button:hover { border-color: var(--jazer-cyan); color: var(--jazer-cyan); transform: translateX(-5px); box-shadow: var(--shadow-cyan); }
+    h1 { font-family: var(--font-primary); font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; background: var(--gradient-text); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .description { color: var(--text-gray); font-size: 1.1rem; margin-bottom: 1.5rem; max-width: 700px; }
+    .hero-keys { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .key-hint { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-gray); font-size: 0.875rem; }
+    .key-hint kbd { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 6px; padding: 0.25rem 0.5rem; font-family: var(--font-secondary); font-size: 0.75rem; color: var(--jazer-cyan); }
+    .style-selector { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 2rem; }
+    .style-btn { padding: 0.625rem 1.25rem; font-family: var(--font-secondary); font-weight: 600; font-size: 0.875rem; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px; border: 2px solid var(--border-default); background: var(--bg-card); color: var(--text-gray); }
+    .style-btn:hover { border-color: var(--jazer-cyan); color: var(--jazer-cyan); transform: translateY(-2px); }
+    .style-btn.active { background: var(--gradient-primary); border-color: var(--jazer-cyan); color: var(--text-light); box-shadow: var(--shadow-cyan); }
+    .demo-container { padding: 3rem; background: var(--bg-card); border: 2px solid var(--border-default); border-radius: 16px; min-height: 500px; display: flex; align-items: center; justify-content: center; }
+
+    /* Shipping Estimator Base Styles */
+    .shipping-widget { max-width: 400px; width: 100%; }
+    .ship-card { padding: 2rem; border-radius: 16px; transition: all 0.3s ease; }
+    .ship-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+    .ship-icon { font-size: 2.5rem; }
+    .ship-title { font-family: var(--font-secondary); font-size: 1.25rem; font-weight: 700; }
+    .ship-subtitle { font-size: 0.875rem; opacity: 0.7; }
+    .input-group { margin-bottom: 1.25rem; }
+    .input-label { display: block; font-family: var(--font-secondary); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; }
+    .ship-input { width: 100%; padding: 0.875rem 1rem; border-radius: 10px; font-family: var(--font-body); font-size: 1rem; transition: all 0.3s ease; }
+    .ship-input:focus { outline: none; }
+    .estimate-btn { width: 100%; padding: 1rem; border: none; border-radius: 12px; font-family: var(--font-secondary); font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; }
+    .estimate-btn:hover { transform: translateY(-2px); }
+    .ship-result { margin-top: 1.5rem; padding: 1rem; border-radius: 12px; text-align: center; display: none; }
+    .ship-result.show { display: block; }
+    .result-label { font-size: 0.875rem; opacity: 0.7; margin-bottom: 0.25rem; }
+    .result-price { font-family: var(--font-primary); font-size: 2rem; font-weight: 800; }
+    .result-time { font-size: 0.875rem; margin-top: 0.5rem; }
+
+    /* Style 1: Neon */
+    .style-neon .ship-card { background: rgba(6, 182, 212, 0.05); border: 2px solid var(--jazer-cyan); box-shadow: 0 0 30px rgba(6, 182, 212, 0.2); }
+    .style-neon .ship-title { color: var(--text-light); }
+    .style-neon .input-label { color: var(--jazer-cyan); }
+    .style-neon .ship-input { background: var(--bg-dark); border: 2px solid var(--border-default); color: var(--text-light); }
+    .style-neon .ship-input:focus { border-color: var(--jazer-cyan); box-shadow: 0 0 15px rgba(6, 182, 212, 0.3); }
+    .style-neon .estimate-btn { background: var(--gradient-primary); color: white; box-shadow: 0 0 20px rgba(6, 182, 212, 0.4); }
+    .style-neon .ship-result { background: rgba(6, 182, 212, 0.1); border: 1px solid var(--jazer-cyan); }
+    .style-neon .result-price { background: var(--gradient-text); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .style-neon .result-time { color: #22c55e; }
+
+    /* Style 2: Gradient */
+    .style-gradient .ship-card { background: linear-gradient(145deg, rgba(102, 126, 234, 0.15), rgba(240, 147, 251, 0.15)); border: 1px solid rgba(167, 139, 250, 0.3); }
+    .style-gradient .ship-title { background: linear-gradient(90deg, #e0e7ff, #f5d0fe); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .style-gradient .input-label { color: #a78bfa; }
+    .style-gradient .ship-input { background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(167, 139, 250, 0.3); color: #e0e7ff; }
+    .style-gradient .ship-input:focus { border-color: #f093fb; }
+    .style-gradient .estimate-btn { background: linear-gradient(90deg, #667eea, #f093fb); color: white; }
+    .style-gradient .ship-result { background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(240, 147, 251, 0.2)); }
+    .style-gradient .result-price { background: linear-gradient(90deg, #f093fb, #667eea); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .style-gradient .result-time { color: #a78bfa; }
+
+    /* Style 3: Minimal */
+    .style-minimal .ship-card { background: #1a1a2e; border: 1px solid #2a2a4e; }
+    .style-minimal .ship-title { color: #e0e0e0; }
+    .style-minimal .input-label { color: #666; }
+    .style-minimal .ship-input { background: #151525; border: 1px solid #333; color: #ccc; }
+    .style-minimal .ship-input:focus { border-color: #555; }
+    .style-minimal .estimate-btn { background: #333; color: #ccc; }
+    .style-minimal .estimate-btn:hover { background: #444; }
+    .style-minimal .ship-result { background: #151525; border: 1px solid #333; }
+    .style-minimal .result-price { color: #aaa; -webkit-text-fill-color: #aaa; }
+    .style-minimal .result-time { color: #666; }
+
+    /* Style 4: Neumorphic */
+    .style-neumorphic .ship-card { background: #2d2d3a; border: none; box-shadow: 12px 12px 24px #1a1a24, -12px -12px 24px #404050; border-radius: 24px; }
+    .style-neumorphic .ship-title { color: #d0d0e0; }
+    .style-neumorphic .input-label { color: #7a7a8c; }
+    .style-neumorphic .ship-input { background: #2d2d3a; border: none; color: #d0d0e0; box-shadow: inset 4px 4px 8px #1a1a24, inset -4px -4px 8px #404050; border-radius: 12px; }
+    .style-neumorphic .ship-input:focus { box-shadow: inset 2px 2px 4px #1a1a24, inset -2px -2px 4px #404050; }
+    .style-neumorphic .estimate-btn { background: #2d2d3a; color: #8b5cf6; box-shadow: 6px 6px 12px #1a1a24, -6px -6px 12px #404050; }
+    .style-neumorphic .estimate-btn:hover { box-shadow: 4px 4px 8px #1a1a24, -4px -4px 8px #404050; }
+    .style-neumorphic .ship-result { background: #2d2d3a; box-shadow: inset 4px 4px 8px #1a1a24, inset -4px -4px 8px #404050; }
+    .style-neumorphic .result-price { color: #8b5cf6; -webkit-text-fill-color: #8b5cf6; }
+    .style-neumorphic .result-time { color: #22c55e; }
+
+    /* Style 5: Outline */
+    .style-outline .ship-card { background: transparent; border: 3px solid var(--jazer-pink); }
+    .style-outline .ship-title { color: var(--jazer-pink); }
+    .style-outline .input-label { color: var(--jazer-purple); }
+    .style-outline .ship-input { background: transparent; border: 2px solid var(--border-default); color: var(--text-light); }
+    .style-outline .ship-input:focus { border-color: var(--jazer-cyan); }
+    .style-outline .estimate-btn { background: transparent; color: var(--jazer-cyan); border: 3px solid var(--jazer-cyan); }
+    .style-outline .estimate-btn:hover { background: var(--jazer-cyan); color: white; }
+    .style-outline .ship-result { background: transparent; border: 2px solid var(--jazer-purple); }
+    .style-outline .result-price { color: var(--jazer-cyan); -webkit-text-fill-color: var(--jazer-cyan); }
+    .style-outline .result-time { color: var(--jazer-pink); }
+
+    /* Style 6: Retro */
+    .style-retro .ship-card { background: #2a1f4e; border: 4px solid #ff6b6b; box-shadow: 8px 8px 0 #ff6b6b; border-radius: 0; }
+    .style-retro .ship-title { color: #feca57; font-family: var(--font-primary); }
+    .style-retro .input-label { color: #5f27cd; }
+    .style-retro .ship-input { background: #1a1333; border: 3px solid #5f27cd; color: #feca57; border-radius: 0; }
+    .style-retro .ship-input:focus { border-color: #feca57; }
+    .style-retro .estimate-btn { background: #ff6b6b; color: #222; border-radius: 0; box-shadow: 4px 4px 0 #feca57; }
+    .style-retro .estimate-btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #feca57; }
+    .style-retro .ship-result { background: #1a1333; border: 3px solid #5f27cd; border-radius: 0; }
+    .style-retro .result-price { color: #ff6b6b; -webkit-text-fill-color: #ff6b6b; }
+    .style-retro .result-time { color: #feca57; }
+
+    /* Style 7: Glass */
+    .style-glass .ship-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+    .style-glass .ship-title { color: rgba(255, 255, 255, 0.95); }
+    .style-glass .input-label { color: rgba(255, 255, 255, 0.5); }
+    .style-glass .ship-input { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: white; }
+    .style-glass .ship-input:focus { border-color: rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.1); }
+    .style-glass .estimate-btn { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); color: white; border: 1px solid rgba(255, 255, 255, 0.2); }
+    .style-glass .estimate-btn:hover { background: rgba(255, 255, 255, 0.2); }
+    .style-glass .ship-result { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); }
+    .style-glass .result-price { color: rgba(6, 182, 212, 0.95); -webkit-text-fill-color: rgba(6, 182, 212, 0.95); }
+    .style-glass .result-time { color: rgba(34, 197, 94, 0.9); }
+
+    /* Style 8: Cyberpunk */
+    .style-cyberpunk .ship-card { background: linear-gradient(135deg, #0a0a0a, #1a0a2e); border: 2px solid #ff00ff; box-shadow: 0 0 30px rgba(255, 0, 255, 0.4); clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px)); border-radius: 0; }
+    .style-cyberpunk .ship-title { color: #00ffff; text-shadow: 0 0 10px #00ffff; font-family: var(--font-primary); }
+    .style-cyberpunk .input-label { color: #ffff00; text-shadow: 0 0 5px #ffff00; }
+    .style-cyberpunk .ship-input { background: rgba(0, 255, 255, 0.1); border: 1px solid #00ffff; color: #00ffff; border-radius: 0; }
+    .style-cyberpunk .ship-input:focus { box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
+    .style-cyberpunk .estimate-btn { background: linear-gradient(90deg, #ff00ff, #00ffff); color: #000; font-weight: 800; border-radius: 0; clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
+    .style-cyberpunk .estimate-btn:hover { box-shadow: 0 0 30px rgba(255, 0, 255, 0.6); }
+    .style-cyberpunk .ship-result { background: rgba(255, 0, 255, 0.1); border: 1px solid #ff00ff; border-radius: 0; }
+    .style-cyberpunk .result-price { color: #ff00ff; -webkit-text-fill-color: #ff00ff; text-shadow: 0 0 15px #ff00ff; }
+    .style-cyberpunk .result-time { color: #00ff00; text-shadow: 0 0 10px #00ff00; }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to E-commerce Patterns</a>
+  <h1>Shipping Estimator</h1>
+  <p class="description">Quick shipping cost estimation widget with zip code input and instant price calculation display.</p>
+  <div class="hero-keys">
+    <span class="key-hint"><kbd>Space</kbd> Calculate shipping</span>
+    <span class="key-hint"><kbd>R</kbd> Reset form</span>
+  </div>
+
+  <div class="style-selector">
+    <button class="style-btn active" data-style="neon">Neon</button>
+    <button class="style-btn" data-style="gradient">Gradient</button>
+    <button class="style-btn" data-style="minimal">Minimal</button>
+    <button class="style-btn" data-style="neumorphic">Neumorphic</button>
+    <button class="style-btn" data-style="outline">Outline</button>
+    <button class="style-btn" data-style="retro">Retro</button>
+    <button class="style-btn" data-style="glass">Glass</button>
+    <button class="style-btn" data-style="cyberpunk">Cyberpunk</button>
+  </div>
+
+  <div class="demo-container">
+    <div id="demoContent"></div>
+  </div>
+
+  <script>
+    let currentStyle = 'neon';
+    let showResult = false;
+    let zipCode = '';
+
+    const templates = {
+      neon: () => renderWidget('style-neon'),
+      gradient: () => renderWidget('style-gradient'),
+      minimal: () => renderWidget('style-minimal'),
+      neumorphic: () => renderWidget('style-neumorphic'),
+      outline: () => renderWidget('style-outline'),
+      retro: () => renderWidget('style-retro'),
+      glass: () => renderWidget('style-glass'),
+      cyberpunk: () => renderWidget('style-cyberpunk')
+    };
+
+    function renderWidget(styleClass) {
+      return `
+        <div class="${styleClass}">
+          <div class="shipping-widget">
+            <div class="ship-card">
+              <div class="ship-header">
+                <span class="ship-icon">📦</span>
+                <div>
+                  <div class="ship-title">Shipping Estimate</div>
+                  <div class="ship-subtitle">Get instant delivery costs</div>
+                </div>
+              </div>
+              <div class="input-group">
+                <label class="input-label">Zip / Postal Code</label>
+                <input type="text" class="ship-input" id="zipInput" placeholder="Enter zip code" value="${zipCode}" oninput="updateZip(this.value)">
+              </div>
+              <button class="estimate-btn" onclick="calculateShipping()">Calculate Shipping</button>
+              <div class="ship-result ${showResult ? 'show' : ''}" id="shipResult">
+                <div class="result-label">Estimated shipping cost</div>
+                <div class="result-price">$7.99</div>
+                <div class="result-time">Arrives in 3-5 business days</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function updateZip(value) {
+      zipCode = value;
+    }
+
+    function calculateShipping() {
+      showResult = true;
+      render();
+    }
+
+    function resetForm() {
+      zipCode = '';
+      showResult = false;
+      render();
+    }
+
+    function render() {
+      document.getElementById('demoContent').innerHTML = templates[currentStyle]();
+    }
+
+    // Style selector
+    document.querySelectorAll('.style-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentStyle = btn.dataset.style;
+        render();
+      });
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT') {
+        e.preventDefault();
+        calculateShipping();
+      } else if (e.code === 'KeyR' && document.activeElement.tagName !== 'INPUT') {
+        resetForm();
+      }
+    });
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>

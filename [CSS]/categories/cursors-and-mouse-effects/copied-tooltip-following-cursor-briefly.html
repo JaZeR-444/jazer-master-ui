@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copied Tooltip Following Cursor Briefly</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0b2e 100%);
+            color: var(--jazer-cyan);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 50%, rgba(255, 0, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: backgroundPulse 10s ease-in-out infinite;
+        }
+
+        @keyframes backgroundPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        .container, .back-button, .controls, .stats {
+            position: relative;
+            z-index: 1;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            font-size: 0.9rem;
+            border: 1px solid var(--jazer-cyan);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--gradient-primary);
+            box-shadow: 0 0 20px var(--jazer-cyan);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: var(--font-primary);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .copy-tooltip {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.9);
+            color: var(--jazer-cyan);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            font-size: 0.9rem;
+            border: 1px solid var(--jazer-cyan);
+            pointer-events: none;
+            z-index: 10000;
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.8);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            white-space: nowrap;
+        }
+
+        .copy-tooltip.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .copy-tooltip.success {
+            background: rgba(0, 255, 0, 0.1);
+            border-color: #00ff00;
+            color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+        }
+
+        .copy-tooltip.error {
+            background: rgba(255, 0, 0, 0.1);
+            border-color: #ff0000;
+            color: #ff0000;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+        }
+
+        .copy-tooltip::before {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid currentColor;
+            opacity: 0.3;
+        }
+
+        .demo-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .demo-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-section h2 {
+            font-family: var(--font-primary);
+            margin-bottom: 1rem;
+            color: var(--jazer-purple);
+        }
+
+        .copy-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .copy-item:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: var(--jazer-purple);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .copy-item.copied {
+            background: rgba(0, 255, 0, 0.1);
+            border-color: #00ff00;
+            animation: copyPulse 0.6s ease;
+        }
+
+        @keyframes copyPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .copy-item .content {
+            font-family: var(--font-body);
+            color: var(--jazer-cyan);
+            margin-bottom: 0.5rem;
+        }
+
+        .copy-item .label {
+            font-family: var(--font-secondary);
+            font-size: 0.8rem;
+            color: var(--jazer-purple);
+            opacity: 0.7;
+        }
+
+        .copy-button {
+            background: var(--gradient-accent);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+
+        .copy-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px var(--jazer-pink);
+        }
+
+        .copy-button:active {
+            transform: scale(0.95);
+        }
+
+        .text-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-body);
+            width: 100%;
+            margin: 0.5rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: var(--jazer-purple);
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+        }
+
+        .controls {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            min-width: 250px;
+            z-index: 1001;
+        }
+
+        .control-group {
+            margin: 1rem 0;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--jazer-purple);
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 0.25rem;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 0.25rem;
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 0.25rem;
+        }
+
+        .stats {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            font-size: 0.9rem;
+        }
+
+        .stats div {
+            margin: 0.25rem 0;
+        }
+
+        .instructions {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 2rem;
+            border-left: 4px solid var(--jazer-purple);
+        }
+
+        .instructions h3 {
+            font-family: var(--font-primary);
+            color: var(--jazer-purple);
+            margin-top: 0;
+        }
+
+        .instructions ul {
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .instructions li {
+            margin: 0.5rem 0;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--jazer-purple);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            color: var(--jazer-cyan);
+            text-align: left;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .code-block:hover {
+            background: rgba(0, 0, 0, 0.7);
+            border-color: var(--jazer-pink);
+        }
+
+        .copy-icon {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            color: var(--jazer-purple);
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .code-block:hover .copy-icon {
+            opacity: 1;
+        }
+
+        .emoji-reaction {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10001;
+            font-size: 2rem;
+            animation: emojiFloat 2s ease-out forwards;
+        }
+
+        @keyframes emojiFloat {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(0);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -80px) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -120px) scale(0.8);
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+
+    <div class="controls">
+        <h3 style="margin-top: 0; color: var(--jazer-cyan);">Tooltip Controls</h3>
+        
+        <div class="control-group">
+            <label for="tooltipDuration">Duration: <span id="durationValue">2s</span></label>
+            <input type="range" id="tooltipDuration" min="1" max="5" step="0.5" value="2">
+        </div>
+        
+        <div class="control-group">
+            <label for="tooltipOffset">Offset: <span id="offsetValue">20px</span></label>
+            <input type="range" id="tooltipOffset" min="0" max="50" step="5" value="20">
+        </div>
+        
+        <div class="control-group">
+            <label for="tooltipStyle">Style:</label>
+            <select id="tooltipStyle">
+                <option value="default">Default</option>
+                <option value="minimal">Minimal</option>
+                <option value="neon">Neon</option>
+                <option value="retro">Retro</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="showEmoji">Show Emoji:</label>
+            <select id="showEmoji">
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div>Total Copies: <span id="totalCopies">0</span></div>
+        <div>Success Rate: <span id="successRate">0%</span></div>
+        <div>Last Action: <span id="lastAction">None</span></div>
+    </div>
+
+    <div class="copy-tooltip" id="copyTooltip">
+        <span id="tooltipText">Copied!</span>
+    </div>
+
+    <div class="container">
+        <h1>Copy Tooltip Following Cursor</h1>
+        <p class="description">
+            Interactive copy tooltips that follow your cursor briefly after copying content. 
+            Click on any element to copy its content and see the tooltip follow your cursor.
+        </p>
+
+        <div class="demo-area">
+            <div class="demo-section">
+                <h2>Text Items</h2>
+                <div class="copy-item" data-copy="Hello, World!">
+                    <div class="content">Hello, World!</div>
+                    <div class="label">Click to copy</div>
+                </div>
+                <div class="copy-item" data-copy="JaZeR Design System">
+                    <div class="content">JaZeR Design System</div>
+                    <div class="label">Click to copy</div>
+                </div>
+                <div class="copy-item" data-copy="🚀 Cyberpunk UI">
+                    <div class="content">🚀 Cyberpunk UI</div>
+                    <div class="label">Click to copy</div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Code Snippets</h2>
+                <div class="code-block" data-copy="const cursor = new InteractiveCursor();">
+                    <span class="copy-icon">📋</span>
+                    const cursor = new InteractiveCursor();
+                </div>
+                <div class="code-block" data-copy="element.addEventListener('click', handler);">
+                    <span class="copy-icon">📋</span>
+                    element.addEventListener('click', handler);
+                </div>
+                <div class="code-block" data-copy="transform: translate(-50%, -50%);">
+                    <span class="copy-icon">📋</span>
+                    transform: translate(-50%, -50%);
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Interactive Elements</h2>
+                <button class="copy-button" data-copy="Button clicked!">
+                    Click to Copy Text
+                </button>
+                <br>
+                <input type="text" class="text-input" placeholder="Type something..." value="Custom text to copy">
+                <br>
+                <button class="copy-button" id="copyInputBtn">
+                    Copy Input Value
+                </button>
+            </div>
+
+            <div class="demo-section">
+                <h2>Dynamic Content</h2>
+                <div class="copy-item" data-copy-dynamic="timestamp">
+                    <div class="content" id="timestampContent">Loading timestamp...</div>
+                    <div class="label">Click to copy current timestamp</div>
+                </div>
+                <div class="copy-item" data-copy-dynamic="random">
+                    <div class="content" id="randomContent">Loading random number...</div>
+                    <div class="label">Click to copy random number</div>
+                </div>
+                <div class="copy-item" data-copy-dynamic="coords">
+                    <div class="content" id="coordsContent">Click to copy mouse coords</div>
+                    <div class="label">Click to copy cursor position</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>How It Works:</h3>
+            <ul>
+                <li>Click on any copyable element to copy its content</li>
+                <li>Tooltip appears and follows cursor for brief duration</li>
+                <li>Different tooltip styles and durations available</li>
+                <li>Supports static and dynamic content copying</li>
+                <li>Visual feedback with success/error states</li>
+                <li>Optional emoji reactions for successful copies</li>
+                <li>Tracks copy statistics and success rates</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        class CopyTooltipSystem {
+            constructor() {
+                this.tooltip = document.getElementById('copyTooltip');
+                this.tooltipText = document.getElementById('tooltipText');
+                this.durationInput = document.getElementById('tooltipDuration');
+                this.offsetInput = document.getElementById('tooltipOffset');
+                this.styleSelect = document.getElementById('tooltipStyle');
+                this.emojiSelect = document.getElementById('showEmoji');
+                
+                this.durationValueDisplay = document.getElementById('durationValue');
+                this.offsetValueDisplay = document.getElementById('offsetValue');
+                this.totalCopiesDisplay = document.getElementById('totalCopies');
+                this.successRateDisplay = document.getElementById('successRate');
+                this.lastActionDisplay = document.getElementById('lastAction');
+                
+                this.tooltipDuration = 2000;
+                this.tooltipOffset = 20;
+                this.tooltipStyle = 'default';
+                this.showEmojiReaction = true;
+                
+                this.totalCopies = 0;
+                this.successfulCopies = 0;
+                this.currentX = 0;
+                this.currentY = 0;
+                this.tooltipVisible = false;
+                this.tooltipTimeout = null;
+                
+                this.init();
+            }
+
+            init() {
+                // Set up event listeners
+                document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                
+                // Control listeners
+                this.durationInput.addEventListener('input', (e) => this.updateDuration(e.target.value));
+                this.offsetInput.addEventListener('input', (e) => this.updateOffset(e.target.value));
+                this.styleSelect.addEventListener('change', (e) => this.updateStyle(e.target.value));
+                this.emojiSelect.addEventListener('change', (e) => this.updateEmojiSetting(e.target.value));
+                
+                // Set up copyable elements
+                this.setupCopyableElements();
+                
+                // Update dynamic content
+                this.updateDynamicContent();
+                setInterval(() => this.updateDynamicContent(), 1000);
+                
+                // Start animation loop
+                this.animate();
+            }
+
+            setupCopyableElements() {
+                // Static copy items
+                document.querySelectorAll('[data-copy]').forEach(element => {
+                    element.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const text = element.getAttribute('data-copy');
+                        this.copyToClipboard(text, element);
+                    });
+                });
+                
+                // Dynamic copy items
+                document.querySelectorAll('[data-copy-dynamic]').forEach(element => {
+                    element.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const type = element.getAttribute('data-copy-dynamic');
+                        const text = this.getDynamicContent(type, e);
+                        this.copyToClipboard(text, element);
+                    });
+                });
+                
+                // Copy input button
+                document.getElementById('copyInputBtn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const input = document.querySelector('.text-input');
+                    const text = input.value || 'Empty input';
+                    this.copyToClipboard(text, e.target);
+                });
+            }
+
+            getDynamicContent(type, event) {
+                switch (type) {
+                    case 'timestamp':
+                        return new Date().toISOString();
+                    case 'random':
+                        return Math.floor(Math.random() * 10000).toString();
+                    case 'coords':
+                        return `X: ${event.clientX}, Y: ${event.clientY}`;
+                    default:
+                        return 'Dynamic content';
+                }
+            }
+
+            updateDynamicContent() {
+                // Update timestamp
+                const timestampContent = document.getElementById('timestampContent');
+                if (timestampContent) {
+                    timestampContent.textContent = new Date().toLocaleTimeString();
+                }
+                
+                // Update random number
+                const randomContent = document.getElementById('randomContent');
+                if (randomContent) {
+                    randomContent.textContent = 'Random: ' + Math.floor(Math.random() * 1000);
+                }
+            }
+
+            async copyToClipboard(text, element) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    this.showTooltip('Copied!', 'success', element);
+                    this.addCopiedClass(element);
+                    this.updateStats(true);
+                    this.lastActionDisplay.textContent = 'Success';
+                    
+                    if (this.showEmojiReaction) {
+                        this.showEmojiReaction('✅');
+                    }
+                } catch (err) {
+                    this.showTooltip('Failed to copy', 'error', element);
+                    this.updateStats(false);
+                    this.lastActionDisplay.textContent = 'Failed';
+                    
+                    if (this.showEmojiReaction) {
+                        this.showEmojiReaction('❌');
+                    }
+                }
+            }
+
+            showTooltip(message, type = 'default', element) {
+                // Clear existing timeout
+                if (this.tooltipTimeout) {
+                    clearTimeout(this.tooltipTimeout);
+                }
+                
+                // Set tooltip content and style
+                this.tooltipText.textContent = message;
+                this.tooltip.className = 'copy-tooltip show ' + type;
+                
+                // Apply custom style
+                this.applyTooltipStyle();
+                
+                // Position tooltip
+                this.positionTooltip(element);
+                
+                // Set hide timeout
+                this.tooltipTimeout = setTimeout(() => {
+                    this.hideTooltip();
+                }, this.tooltipDuration);
+                
+                this.tooltipVisible = true;
+            }
+
+            positionTooltip(element) {
+                const rect = element.getBoundingClientRect();
+                const tooltipRect = this.tooltip.getBoundingClientRect();
+                
+                // Position near the element
+                let x = rect.left + rect.width / 2;
+                let y = rect.top - this.tooltipOffset;
+                
+                // Adjust if tooltip would go off screen
+                if (x - tooltipRect.width / 2 < 0) {
+                    x = tooltipRect.width / 2;
+                }
+                if (x + tooltipRect.width / 2 > window.innerWidth) {
+                    x = window.innerWidth - tooltipRect.width / 2;
+                }
+                if (y < 0) {
+                    y = rect.bottom + this.tooltipOffset;
+                }
+                
+                this.currentX = x;
+                this.currentY = y;
+            }
+
+            applyTooltipStyle() {
+                switch (this.tooltipStyle) {
+                    case 'minimal':
+                        this.tooltip.style.background = 'rgba(0, 0, 0, 0.8)';
+                        this.tooltip.style.border = 'none';
+                        this.tooltip.style.boxShadow = 'none';
+                        break;
+                    case 'neon':
+                        this.tooltip.style.background = 'rgba(0, 255, 255, 0.1)';
+                        this.tooltip.style.border = '2px solid var(--jazer-cyan)';
+                        this.tooltip.style.boxShadow = '0 0 30px var(--jazer-cyan), inset 0 0 20px rgba(0, 255, 255, 0.2)';
+                        break;
+                    case 'retro':
+                        this.tooltip.style.background = 'var(--jazer-purple)';
+                        this.tooltip.style.border = '3px solid var(--jazer-pink)';
+                        this.tooltip.style.boxShadow = 'none';
+                        this.tooltip.style.fontFamily = 'Courier New';
+                        break;
+                    default:
+                        this.tooltip.style.background = '';
+                        this.tooltip.style.border = '';
+                        this.tooltip.style.boxShadow = '';
+                        this.tooltip.style.fontFamily = '';
+                }
+            }
+
+            hideTooltip() {
+                this.tooltip.classList.remove('show');
+                this.tooltipVisible = false;
+            }
+
+            addCopiedClass(element) {
+                element.classList.add('copied');
+                setTimeout(() => {
+                    element.classList.remove('copied');
+                }, 600);
+            }
+
+            showEmojiReaction(emoji) {
+                const reaction = document.createElement('div');
+                reaction.className = 'emoji-reaction';
+                reaction.textContent = emoji;
+                reaction.style.left = this.currentX + 'px';
+                reaction.style.top = this.currentY + 'px';
+                
+                document.body.appendChild(reaction);
+                
+                setTimeout(() => {
+                    reaction.remove();
+                }, 2000);
+            }
+
+            updateStats(success) {
+                this.totalCopies++;
+                if (success) {
+                    this.successfulCopies++;
+                }
+                
+                this.totalCopiesDisplay.textContent = this.totalCopies;
+                this.successRateDisplay.textContent = Math.round((this.successfulCopies / this.totalCopies) * 100) + '%';
+            }
+
+            handleMouseMove(e) {
+                if (this.tooltipVisible) {
+                    this.currentX = e.clientX;
+                    this.currentY = e.clientY - this.tooltipOffset;
+                }
+            }
+
+            animate() {
+                if (this.tooltipVisible) {
+                    this.tooltip.style.left = this.currentX + 'px';
+                    this.tooltip.style.top = this.currentY + 'px';
+                }
+                
+                requestAnimationFrame(() => this.animate());
+            }
+
+            updateDuration(value) {
+                this.tooltipDuration = parseFloat(value) * 1000;
+                this.durationValueDisplay.textContent = value + 's';
+            }
+
+            updateOffset(value) {
+                this.tooltipOffset = parseInt(value);
+                this.offsetValueDisplay.textContent = value + 'px';
+            }
+
+            updateStyle(value) {
+                this.tooltipStyle = value;
+            }
+
+            updateEmojiSetting(value) {
+                this.showEmojiReaction = value === 'yes';
+            }
+        }
+
+        // Initialize the copy tooltip system
+        const copyTooltip = new CopyTooltipSystem();
+    </script>
+</body>
+</html>

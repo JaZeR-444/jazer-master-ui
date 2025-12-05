@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overlay Curtain Open/Close Transition - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body, 'Inter', sans-serif);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, color 0.3s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+            color: var(--jazer-purple, #9333ea);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .component-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .component-description {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Demo Grid */
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .demo-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 242, 234, 0.2);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .demo-title {
+            font-family: var(--font-secondary, 'Rajdhani', sans-serif);
+            font-size: 1.2rem;
+            color: var(--jazer-cyan, #00f2ea);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .demo-description {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .trigger-btn {
+            padding: 0.75rem 2rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            border-radius: 0.5rem;
+            font-family: var(--font-secondary, 'Rajdhani', sans-serif);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .trigger-btn:hover {
+            background: rgba(0, 242, 234, 0.2);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Curtain Overlay Base */
+        .curtain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            pointer-events: none;
+            display: flex;
+        }
+
+        .curtain-overlay.active {
+            pointer-events: all;
+        }
+
+        /* Variation 1: Vertical Split */
+        .curtain-vertical {
+            flex-direction: row;
+        }
+
+        .curtain-vertical .curtain-panel {
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);
+            transform: scaleX(0);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .curtain-vertical .curtain-panel:first-child {
+            transform-origin: left;
+        }
+
+        .curtain-vertical .curtain-panel:last-child {
+            transform-origin: right;
+        }
+
+        .curtain-vertical.active .curtain-panel {
+            transform: scaleX(1);
+        }
+
+        /* Variation 2: Horizontal Split */
+        .curtain-horizontal {
+            flex-direction: column;
+        }
+
+        .curtain-horizontal .curtain-panel {
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(135deg, #1a0a2e 0%, #2d1b69 100%);
+            transform: scaleY(0);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .curtain-horizontal .curtain-panel:first-child {
+            transform-origin: top;
+        }
+
+        .curtain-horizontal .curtain-panel:last-child {
+            transform-origin: bottom;
+        }
+
+        .curtain-horizontal.active .curtain-panel {
+            transform: scaleY(1);
+        }
+
+        /* Variation 3: Diagonal Wipe */
+        .curtain-diagonal .curtain-panel {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2d1b69 0%, #6b0f6b 100%);
+            clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+            transition: clip-path 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .curtain-diagonal.active .curtain-panel {
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+        }
+
+        /* Variation 4: Center Expand */
+        .curtain-center .curtain-panel {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #6b0f6b 0%, #0a0a0a 100%);
+            clip-path: circle(0% at 50% 50%);
+            transition: clip-path 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .curtain-center.active .curtain-panel {
+            clip-path: circle(150% at 50% 50%);
+        }
+
+        /* Variation 5: Four Corners */
+        .curtain-corners {
+            flex-wrap: wrap;
+        }
+
+        .curtain-corners .curtain-panel {
+            width: 50%;
+            height: 50%;
+            background: linear-gradient(135deg, #8b1a1a 0%, #ff4d00 50%);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .curtain-corners .curtain-panel:nth-child(1) {
+            transform-origin: top left;
+            transform: scale(0);
+        }
+
+        .curtain-corners .curtain-panel:nth-child(2) {
+            transform-origin: top right;
+            transform: scale(0);
+        }
+
+        .curtain-corners .curtain-panel:nth-child(3) {
+            transform-origin: bottom left;
+            transform: scale(0);
+        }
+
+        .curtain-corners .curtain-panel:nth-child(4) {
+            transform-origin: bottom right;
+            transform: scale(0);
+        }
+
+        .curtain-corners.active .curtain-panel {
+            transform: scale(1);
+        }
+
+        /* Curtain Content */
+        .curtain-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.4s ease 0.4s;
+        }
+
+        .curtain-overlay.active .curtain-content {
+            opacity: 1;
+        }
+
+        .curtain-text {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 4rem);
+            color: #fff;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 30px rgba(0, 242, 234, 0.8);
+        }
+
+        .curtain-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 2rem;
+        }
+
+        .close-btn {
+            padding: 1rem 2.5rem;
+            background: rgba(255, 0, 110, 0.2);
+            border: 2px solid var(--jazer-pink, #ff006e);
+            color: var(--jazer-pink, #ff006e);
+            border-radius: 0.5rem;
+            font-family: var(--font-secondary, 'Rajdhani', sans-serif);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 0, 110, 0.3);
+            box-shadow: 0 0 30px rgba(255, 0, 110, 0.5);
+            transform: scale(1.05);
+        }
+
+        /* Loading Animation */
+        .curtain-loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(0, 242, 234, 0.2);
+            border-top-color: var(--jazer-cyan, #00f2ea);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease 0.5s;
+        }
+
+        .curtain-overlay.active .curtain-loader {
+            opacity: 1;
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .demo-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .demo-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="component-title">Overlay Curtain Transitions</h1>
+            <p class="component-description">
+                Dramatic curtain animations that cover the screen during page transitions. 
+                Perfect for creating cinematic effects when navigating between pages or revealing modal content.
+            </p>
+        </div>
+
+        <div class="demo-grid">
+            <div class="demo-card">
+                <h3 class="demo-title">Vertical Split</h3>
+                <p class="demo-description">
+                    Two panels slide in from left and right, meeting in the center like closing theater curtains.
+                </p>
+                <button class="trigger-btn" data-curtain="vertical">Open Curtain</button>
+            </div>
+
+            <div class="demo-card">
+                <h3 class="demo-title">Horizontal Split</h3>
+                <p class="demo-description">
+                    Panels slide from top and bottom, creating a cinematic letterbox effect.
+                </p>
+                <button class="trigger-btn" data-curtain="horizontal">Open Curtain</button>
+            </div>
+
+            <div class="demo-card">
+                <h3 class="demo-title">Diagonal Wipe</h3>
+                <p class="demo-description">
+                    A smooth diagonal wipe across the screen for a dynamic transition.
+                </p>
+                <button class="trigger-btn" data-curtain="diagonal">Open Curtain</button>
+            </div>
+
+            <div class="demo-card">
+                <h3 class="demo-title">Center Expand</h3>
+                <p class="demo-description">
+                    Circular expansion from the center, like an iris opening or closing.
+                </p>
+                <button class="trigger-btn" data-curtain="center">Open Curtain</button>
+            </div>
+
+            <div class="demo-card">
+                <h3 class="demo-title">Four Corners</h3>
+                <p class="demo-description">
+                    Four panels expand from each corner, meeting in the center.
+                </p>
+                <button class="trigger-btn" data-curtain="corners">Open Curtain</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Curtain Overlays -->
+    <div class="curtain-overlay curtain-vertical" id="curtainVertical">
+        <div class="curtain-panel"></div>
+        <div class="curtain-panel"></div>
+        <div class="curtain-content">
+            <h2 class="curtain-text">Page Transition</h2>
+            <p class="curtain-subtitle">Loading new content...</p>
+            <button class="close-btn" onclick="closeCurtain('curtainVertical')">Close Curtain</button>
+        </div>
+    </div>
+
+    <div class="curtain-overlay curtain-horizontal" id="curtainHorizontal">
+        <div class="curtain-panel"></div>
+        <div class="curtain-panel"></div>
+        <div class="curtain-content">
+            <h2 class="curtain-text">Horizontal Reveal</h2>
+            <p class="curtain-subtitle">Cinematic letterbox effect</p>
+            <button class="close-btn" onclick="closeCurtain('curtainHorizontal')">Close Curtain</button>
+        </div>
+    </div>
+
+    <div class="curtain-overlay curtain-diagonal" id="curtainDiagonal">
+        <div class="curtain-panel"></div>
+        <div class="curtain-content">
+            <h2 class="curtain-text">Diagonal Wipe</h2>
+            <p class="curtain-subtitle">Dynamic screen transition</p>
+            <button class="close-btn" onclick="closeCurtain('curtainDiagonal')">Close Curtain</button>
+        </div>
+    </div>
+
+    <div class="curtain-overlay curtain-center" id="curtainCenter">
+        <div class="curtain-panel"></div>
+        <div class="curtain-content">
+            <h2 class="curtain-text">Center Expand</h2>
+            <p class="curtain-subtitle">Circular iris effect</p>
+            <button class="close-btn" onclick="closeCurtain('curtainCenter')">Close Curtain</button>
+        </div>
+        <div class="curtain-loader"></div>
+    </div>
+
+    <div class="curtain-overlay curtain-corners" id="curtainCorners">
+        <div class="curtain-panel"></div>
+        <div class="curtain-panel"></div>
+        <div class="curtain-panel"></div>
+        <div class="curtain-panel"></div>
+        <div class="curtain-content">
+            <h2 class="curtain-text">Four Corners</h2>
+            <p class="curtain-subtitle">Quadrant expansion</p>
+            <button class="close-btn" onclick="closeCurtain('curtainCorners')">Close Curtain</button>
+        </div>
+    </div>
+
+    <script>
+        // Open curtain animation
+        document.querySelectorAll('.trigger-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const curtainType = e.target.dataset.curtain;
+                const curtainId = `curtain${curtainType.charAt(0).toUpperCase() + curtainType.slice(1)}`;
+                const curtain = document.getElementById(curtainId);
+                
+                // Prevent body scroll
+                document.body.style.overflow = 'hidden';
+                
+                // Open curtain
+                curtain.classList.add('active');
+            });
+        });
+
+        // Close curtain animation
+        function closeCurtain(curtainId) {
+            const curtain = document.getElementById(curtainId);
+            curtain.classList.remove('active');
+            
+            // Restore body scroll
+            document.body.style.overflow = '';
+        }
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.curtain-overlay.active').forEach(curtain => {
+                    curtain.classList.remove('active');
+                });
+                document.body.style.overflow = '';
+            }
+        });
+
+        // Page transition simulation
+        function simulatePageTransition(targetUrl) {
+            // Open vertical curtain
+            const curtain = document.getElementById('curtainVertical');
+            curtain.classList.add('active');
+            
+            // Simulate loading
+            setTimeout(() => {
+                // In real implementation, navigate to new page here
+                // window.location.href = targetUrl;
+                console.log('Transitioning to:', targetUrl);
+                
+                // For demo, just close the curtain
+                setTimeout(() => {
+                    closeCurtain('curtainVertical');
+                }, 1500);
+            }, 1000);
+        }
+
+        // Performance monitoring
+        let frameCount = 0;
+        let lastTime = performance.now();
+        
+        function monitorPerformance() {
+            frameCount++;
+            const currentTime = performance.now();
+            
+            if (currentTime - lastTime >= 1000) {
+                const fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+            
+            requestAnimationFrame(monitorPerformance);
+        }
+        
+        monitorPerformance();
+    </script>
+</body>
+</html>

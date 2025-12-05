@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shipping Calculator Estimate - JaZeR E-commerce Patterns</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-body); background: var(--bg-dark); color: var(--text-light); line-height: 1.6; padding: 1.5rem; min-height: 100vh; }
+    .back-button { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-gray); text-decoration: none; font-family: var(--font-secondary); font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 12px; border: 2px solid var(--border-default); background: var(--bg-card); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-bottom: 1.5rem; }
+    .back-button:hover { border-color: var(--jazer-cyan); color: var(--jazer-cyan); transform: translateX(-5px); box-shadow: var(--shadow-cyan); }
+    h1 { font-family: var(--font-primary); font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; background: var(--gradient-text); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .description { color: var(--text-gray); font-size: 1.1rem; margin-bottom: 1.5rem; max-width: 700px; }
+    .hero-keys { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .key-hint { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-gray); font-size: 0.875rem; }
+    .key-hint kbd { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 6px; padding: 0.25rem 0.5rem; font-family: var(--font-secondary); font-size: 0.75rem; color: var(--jazer-cyan); }
+    .style-selector { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 2rem; }
+    .style-btn { padding: 0.625rem 1.25rem; font-family: var(--font-secondary); font-weight: 600; font-size: 0.875rem; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px; border: 2px solid var(--border-default); background: var(--bg-card); color: var(--text-gray); }
+    .style-btn:hover { border-color: var(--jazer-cyan); color: var(--jazer-cyan); transform: translateY(-2px); }
+    .style-btn.active { background: var(--gradient-primary); border-color: var(--jazer-cyan); color: var(--text-light); box-shadow: var(--shadow-cyan); }
+    .demo-container { padding: 3rem; background: var(--bg-card); border: 2px solid var(--border-default); border-radius: 16px; min-height: 500px; display: flex; align-items: center; justify-content: center; }
+
+    /* Shipping Calculator Base Styles */
+    .calc-widget { max-width: 450px; width: 100%; }
+    .calc-card { padding: 2rem; border-radius: 16px; transition: all 0.3s ease; }
+    .calc-header { text-align: center; margin-bottom: 1.5rem; }
+    .calc-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+    .calc-title { font-family: var(--font-secondary); font-size: 1.25rem; font-weight: 700; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label { display: block; font-family: var(--font-secondary); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; }
+    .form-input, .form-select { width: 100%; padding: 0.75rem 1rem; border-radius: 8px; font-family: var(--font-body); font-size: 0.9rem; transition: all 0.3s ease; }
+    .form-input:focus, .form-select:focus { outline: none; }
+    .calc-btn { width: 100%; padding: 1rem; border: none; border-radius: 12px; font-family: var(--font-secondary); font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; margin-top: 0.5rem; }
+    .calc-btn:hover { transform: translateY(-2px); }
+    .shipping-options { margin-top: 1.5rem; display: none; }
+    .shipping-options.show { display: block; }
+    .options-title { font-family: var(--font-secondary); font-size: 0.875rem; font-weight: 600; margin-bottom: 1rem; }
+    .ship-option { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-radius: 10px; margin-bottom: 0.75rem; cursor: pointer; transition: all 0.3s ease; }
+    .ship-option:hover { transform: translateX(5px); }
+    .option-info { display: flex; align-items: center; gap: 0.75rem; }
+    .option-icon { font-size: 1.25rem; }
+    .option-name { font-weight: 600; font-size: 0.9rem; }
+    .option-time { font-size: 0.75rem; opacity: 0.7; }
+    .option-price { font-family: var(--font-primary); font-weight: 700; font-size: 1.1rem; }
+
+    /* Style 1: Neon */
+    .style-neon .calc-card { background: rgba(6, 182, 212, 0.05); border: 2px solid var(--jazer-cyan); box-shadow: 0 0 30px rgba(6, 182, 212, 0.2); }
+    .style-neon .calc-title { color: var(--text-light); }
+    .style-neon .form-label { color: var(--jazer-cyan); }
+    .style-neon .form-input, .style-neon .form-select { background: var(--bg-dark); border: 2px solid var(--border-default); color: var(--text-light); }
+    .style-neon .form-input:focus, .style-neon .form-select:focus { border-color: var(--jazer-cyan); box-shadow: 0 0 15px rgba(6, 182, 212, 0.3); }
+    .style-neon .calc-btn { background: var(--gradient-primary); color: white; box-shadow: 0 0 20px rgba(6, 182, 212, 0.4); }
+    .style-neon .options-title { color: var(--jazer-cyan); }
+    .style-neon .ship-option { background: rgba(6, 182, 212, 0.05); border: 1px solid var(--border-default); }
+    .style-neon .ship-option:hover { border-color: var(--jazer-cyan); }
+    .style-neon .option-price { color: var(--jazer-pink); }
+
+    /* Style 2: Gradient */
+    .style-gradient .calc-card { background: linear-gradient(145deg, rgba(102, 126, 234, 0.15), rgba(240, 147, 251, 0.15)); border: 1px solid rgba(167, 139, 250, 0.3); }
+    .style-gradient .calc-title { background: linear-gradient(90deg, #e0e7ff, #f5d0fe); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .style-gradient .form-label { color: #a78bfa; }
+    .style-gradient .form-input, .style-gradient .form-select { background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(167, 139, 250, 0.3); color: #e0e7ff; }
+    .style-gradient .form-input:focus, .style-gradient .form-select:focus { border-color: #f093fb; }
+    .style-gradient .calc-btn { background: linear-gradient(90deg, #667eea, #f093fb); color: white; }
+    .style-gradient .options-title { color: #a78bfa; }
+    .style-gradient .ship-option { background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(167, 139, 250, 0.2); }
+    .style-gradient .option-price { background: linear-gradient(90deg, #f093fb, #667eea); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* Style 3: Minimal */
+    .style-minimal .calc-card { background: #1a1a2e; border: 1px solid #2a2a4e; }
+    .style-minimal .calc-title { color: #e0e0e0; }
+    .style-minimal .form-label { color: #666; }
+    .style-minimal .form-input, .style-minimal .form-select { background: #151525; border: 1px solid #333; color: #ccc; }
+    .style-minimal .form-input:focus, .style-minimal .form-select:focus { border-color: #555; }
+    .style-minimal .calc-btn { background: #333; color: #ccc; }
+    .style-minimal .options-title { color: #888; }
+    .style-minimal .ship-option { background: #151525; border: 1px solid #2a2a4e; }
+    .style-minimal .option-price { color: #aaa; }
+
+    /* Style 4: Neumorphic */
+    .style-neumorphic .calc-card { background: #2d2d3a; border: none; box-shadow: 12px 12px 24px #1a1a24, -12px -12px 24px #404050; border-radius: 24px; }
+    .style-neumorphic .calc-title { color: #d0d0e0; }
+    .style-neumorphic .form-label { color: #7a7a8c; }
+    .style-neumorphic .form-input, .style-neumorphic .form-select { background: #2d2d3a; border: none; color: #d0d0e0; box-shadow: inset 3px 3px 6px #1a1a24, inset -3px -3px 6px #404050; }
+    .style-neumorphic .calc-btn { background: #2d2d3a; color: #8b5cf6; box-shadow: 6px 6px 12px #1a1a24, -6px -6px 12px #404050; }
+    .style-neumorphic .options-title { color: #8b5cf6; }
+    .style-neumorphic .ship-option { background: #2d2d3a; box-shadow: 4px 4px 8px #1a1a24, -4px -4px 8px #404050; border: none; }
+    .style-neumorphic .option-price { color: #8b5cf6; }
+
+    /* Style 5: Outline */
+    .style-outline .calc-card { background: transparent; border: 3px solid var(--jazer-pink); }
+    .style-outline .calc-title { color: var(--jazer-pink); }
+    .style-outline .form-label { color: var(--jazer-purple); }
+    .style-outline .form-input, .style-outline .form-select { background: transparent; border: 2px solid var(--border-default); color: var(--text-light); }
+    .style-outline .form-input:focus, .style-outline .form-select:focus { border-color: var(--jazer-cyan); }
+    .style-outline .calc-btn { background: transparent; color: var(--jazer-cyan); border: 3px solid var(--jazer-cyan); }
+    .style-outline .calc-btn:hover { background: var(--jazer-cyan); color: white; }
+    .style-outline .options-title { color: var(--jazer-cyan); }
+    .style-outline .ship-option { background: transparent; border: 2px solid var(--jazer-purple); }
+    .style-outline .option-price { color: var(--jazer-pink); }
+
+    /* Style 6: Retro */
+    .style-retro .calc-card { background: #2a1f4e; border: 4px solid #ff6b6b; box-shadow: 8px 8px 0 #ff6b6b; border-radius: 0; }
+    .style-retro .calc-title { color: #feca57; font-family: var(--font-primary); }
+    .style-retro .form-label { color: #5f27cd; }
+    .style-retro .form-input, .style-retro .form-select { background: #1a1333; border: 3px solid #5f27cd; color: #feca57; border-radius: 0; }
+    .style-retro .calc-btn { background: #ff6b6b; color: #222; border-radius: 0; box-shadow: 4px 4px 0 #feca57; }
+    .style-retro .options-title { color: #feca57; }
+    .style-retro .ship-option { background: #1a1333; border: 3px solid #5f27cd; border-radius: 0; }
+    .style-retro .option-price { color: #ff6b6b; }
+
+    /* Style 7: Glass */
+    .style-glass .calc-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+    .style-glass .calc-title { color: rgba(255, 255, 255, 0.95); }
+    .style-glass .form-label { color: rgba(255, 255, 255, 0.5); }
+    .style-glass .form-input, .style-glass .form-select { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: white; }
+    .style-glass .form-input:focus, .style-glass .form-select:focus { border-color: rgba(255, 255, 255, 0.3); }
+    .style-glass .calc-btn { background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2); }
+    .style-glass .options-title { color: rgba(255, 255, 255, 0.7); }
+    .style-glass .ship-option { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .style-glass .option-price { color: rgba(6, 182, 212, 0.95); }
+
+    /* Style 8: Cyberpunk */
+    .style-cyberpunk .calc-card { background: linear-gradient(135deg, #0a0a0a, #1a0a2e); border: 2px solid #ff00ff; box-shadow: 0 0 30px rgba(255, 0, 255, 0.4); clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px)); border-radius: 0; }
+    .style-cyberpunk .calc-title { color: #00ffff; text-shadow: 0 0 10px #00ffff; font-family: var(--font-primary); }
+    .style-cyberpunk .form-label { color: #ffff00; text-shadow: 0 0 5px #ffff00; }
+    .style-cyberpunk .form-input, .style-cyberpunk .form-select { background: rgba(0, 255, 255, 0.1); border: 1px solid #00ffff; color: #00ffff; border-radius: 0; }
+    .style-cyberpunk .calc-btn { background: linear-gradient(90deg, #ff00ff, #00ffff); color: #000; font-weight: 800; border-radius: 0; }
+    .style-cyberpunk .options-title { color: #ff00ff; text-shadow: 0 0 10px #ff00ff; }
+    .style-cyberpunk .ship-option { background: rgba(255, 0, 255, 0.1); border: 1px solid #ff00ff; border-radius: 0; }
+    .style-cyberpunk .ship-option:hover { box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
+    .style-cyberpunk .option-price { color: #00ffff; text-shadow: 0 0 10px #00ffff; }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to E-commerce Patterns</a>
+  <h1>Shipping Calculator Estimate</h1>
+  <p class="description">Full-featured shipping calculator with multiple delivery options, estimated times, and tiered pricing display.</p>
+  <div class="hero-keys">
+    <span class="key-hint"><kbd>Space</kbd> Calculate shipping</span>
+    <span class="key-hint"><kbd>R</kbd> Reset form</span>
+  </div>
+
+  <div class="style-selector">
+    <button class="style-btn active" data-style="neon">Neon</button>
+    <button class="style-btn" data-style="gradient">Gradient</button>
+    <button class="style-btn" data-style="minimal">Minimal</button>
+    <button class="style-btn" data-style="neumorphic">Neumorphic</button>
+    <button class="style-btn" data-style="outline">Outline</button>
+    <button class="style-btn" data-style="retro">Retro</button>
+    <button class="style-btn" data-style="glass">Glass</button>
+    <button class="style-btn" data-style="cyberpunk">Cyberpunk</button>
+  </div>
+
+  <div class="demo-container">
+    <div id="demoContent"></div>
+  </div>
+
+  <script>
+    let currentStyle = 'neon';
+    let showResults = false;
+
+    const shippingOptions = [
+      { icon: '🚚', name: 'Standard', time: '5-7 business days', price: '$5.99' },
+      { icon: '⚡', name: 'Express', time: '2-3 business days', price: '$12.99' },
+      { icon: '🚀', name: 'Overnight', time: '1 business day', price: '$24.99' }
+    ];
+
+    const templates = {
+      neon: () => renderCalc('style-neon'),
+      gradient: () => renderCalc('style-gradient'),
+      minimal: () => renderCalc('style-minimal'),
+      neumorphic: () => renderCalc('style-neumorphic'),
+      outline: () => renderCalc('style-outline'),
+      retro: () => renderCalc('style-retro'),
+      glass: () => renderCalc('style-glass'),
+      cyberpunk: () => renderCalc('style-cyberpunk')
+    };
+
+    function renderCalc(styleClass) {
+      const optionsHTML = shippingOptions.map(opt => `
+        <div class="ship-option">
+          <div class="option-info">
+            <span class="option-icon">${opt.icon}</span>
+            <div>
+              <div class="option-name">${opt.name}</div>
+              <div class="option-time">${opt.time}</div>
+            </div>
+          </div>
+          <div class="option-price">${opt.price}</div>
+        </div>
+      `).join('');
+
+      return `
+        <div class="${styleClass}">
+          <div class="calc-widget">
+            <div class="calc-card">
+              <div class="calc-header">
+                <div class="calc-icon">📦</div>
+                <div class="calc-title">Shipping Calculator</div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Zip Code</label>
+                  <input type="text" class="form-input" placeholder="12345">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Country</label>
+                  <select class="form-select">
+                    <option>United States</option>
+                    <option>Canada</option>
+                    <option>United Kingdom</option>
+                  </select>
+                </div>
+              </div>
+              <button class="calc-btn" onclick="calculate()">Calculate Shipping</button>
+              <div class="shipping-options ${showResults ? 'show' : ''}">
+                <div class="options-title">Available Options:</div>
+                ${optionsHTML}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function calculate() {
+      showResults = true;
+      render();
+    }
+
+    function resetForm() {
+      showResults = false;
+      render();
+    }
+
+    function render() {
+      document.getElementById('demoContent').innerHTML = templates[currentStyle]();
+    }
+
+    // Style selector
+    document.querySelectorAll('.style-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentStyle = btn.dataset.style;
+        render();
+      });
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT') {
+        e.preventDefault();
+        calculate();
+      } else if (e.code === 'KeyR' && document.activeElement.tagName !== 'INPUT') {
+        resetForm();
+      }
+    });
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>

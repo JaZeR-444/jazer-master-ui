@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Section Slide-Up on Scroll - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+        }
+
+        .header h1 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 1rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        /* Control Panel */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .control-btn.active {
+            background: var(--jazer-cyan, #00f2ea);
+            border-color: var(--jazer-cyan, #00f2ea);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Sections Container */
+        .sections-container {
+            min-height: 500vh;
+        }
+
+        .scroll-section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            position: relative;
+            opacity: 0;
+            will-change: transform, opacity;
+        }
+
+        .scroll-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(147, 51, 234, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Section Content */
+        .section-content {
+            max-width: 800px;
+            text-align: center;
+            z-index: 1;
+        }
+
+        .section-number {
+            font-size: 1rem;
+            color: var(--jazer-cyan, #00f2ea);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .section-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.6) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-description {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .section-cta {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: rgba(147, 51, 234, 0.2);
+            border: 2px solid var(--jazer-purple, #9333ea);
+            color: var(--jazer-purple, #9333ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .section-cta:hover {
+            background: rgba(147, 51, 234, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(147, 51, 234, 0.3);
+        }
+
+        /* Animation Classes */
+        .scroll-section.slide-up {
+            transform: translateY(100px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .scroll-section.slide-down {
+            transform: translateY(-100px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .scroll-section.slide-left {
+            transform: translateX(100px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .scroll-section.slide-right {
+            transform: translateX(-100px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .scroll-section.diagonal-slide {
+            transform: translate(80px, 80px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .scroll-section.bounce-slide {
+            transform: translateY(100px);
+            transition: all 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .scroll-section.visible {
+            opacity: 1;
+            transform: translate(0, 0) !important;
+        }
+
+        /* Speed Variations */
+        .scroll-section.speed-fast {
+            transition-duration: 0.5s !important;
+        }
+
+        .scroll-section.speed-medium {
+            transition-duration: 0.8s !important;
+        }
+
+        .scroll-section.speed-slow {
+            transition-duration: 1.2s !important;
+        }
+
+        /* Distance Variations */
+        .scroll-section.distance-short.slide-up,
+        .scroll-section.distance-short.slide-down {
+            transform: translateY(50px);
+        }
+
+        .scroll-section.distance-short.slide-left,
+        .scroll-section.distance-short.slide-right {
+            transform: translateX(50px);
+        }
+
+        .scroll-section.distance-long.slide-up,
+        .scroll-section.distance-long.slide-down {
+            transform: translateY(150px);
+        }
+
+        .scroll-section.distance-long.slide-left,
+        .scroll-section.distance-long.slide-right {
+            transform: translateX(150px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 6rem 1rem 3rem;
+            }
+
+            .controls {
+                padding: 1rem;
+            }
+
+            .control-group {
+                width: 100%;
+            }
+
+            .button-group {
+                justify-content: center;
+            }
+
+            .scroll-section {
+                min-height: 80vh;
+                padding: 3rem 1rem;
+            }
+
+            .back-button {
+                top: 1rem;
+                left: 1rem;
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <div class="header">
+        <h1>Section Slide-Up on Scroll</h1>
+        <p>Full-height sections that smoothly slide into view as you scroll down the page. Customize the animation direction, speed, and distance.</p>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Animation Direction</label>
+            <div class="button-group">
+                <button class="control-btn direction-btn active" data-direction="slide-up">Slide Up</button>
+                <button class="control-btn direction-btn" data-direction="slide-down">Slide Down</button>
+                <button class="control-btn direction-btn" data-direction="slide-left">Slide Left</button>
+                <button class="control-btn direction-btn" data-direction="slide-right">Slide Right</button>
+                <button class="control-btn direction-btn" data-direction="diagonal-slide">Diagonal</button>
+                <button class="control-btn direction-btn" data-direction="bounce-slide">Bounce</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Animation Speed</label>
+            <div class="button-group">
+                <button class="control-btn speed-btn" data-speed="fast">Fast</button>
+                <button class="control-btn speed-btn active" data-speed="medium">Medium</button>
+                <button class="control-btn speed-btn" data-speed="slow">Slow</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Slide Distance</label>
+            <div class="button-group">
+                <button class="control-btn distance-btn" data-distance="short">Short</button>
+                <button class="control-btn distance-btn active" data-distance="medium">Medium</button>
+                <button class="control-btn distance-btn" data-distance="long">Long</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sections-container">
+        <section class="scroll-section slide-up speed-medium distance-medium">
+            <div class="section-content">
+                <div class="section-number">Section 01</div>
+                <h2 class="section-title">Welcome to the Future</h2>
+                <p class="section-description">Experience cutting-edge scroll animations that bring your content to life. Smooth transitions powered by the Intersection Observer API.</p>
+                <a href="#" class="section-cta">Explore More</a>
+            </div>
+        </section>
+
+        <section class="scroll-section slide-up speed-medium distance-medium">
+            <div class="section-content">
+                <div class="section-number">Section 02</div>
+                <h2 class="section-title">Seamless Interactions</h2>
+                <p class="section-description">Each section slides into view with perfect timing, creating an engaging user experience that keeps visitors scrolling.</p>
+                <a href="#" class="section-cta">Learn More</a>
+            </div>
+        </section>
+
+        <section class="scroll-section slide-up speed-medium distance-medium">
+            <div class="section-content">
+                <div class="section-number">Section 03</div>
+                <h2 class="section-title">Customizable Animations</h2>
+                <p class="section-description">Choose from multiple animation directions, speeds, and distances to match your brand's style and personality.</p>
+                <a href="#" class="section-cta">Get Started</a>
+            </div>
+        </section>
+
+        <section class="scroll-section slide-up speed-medium distance-medium">
+            <div class="section-content">
+                <div class="section-number">Section 04</div>
+                <h2 class="section-title">Performance Optimized</h2>
+                <p class="section-description">GPU-accelerated transforms ensure 60fps animations on all devices, from mobile phones to high-end desktops.</p>
+                <a href="#" class="section-cta">View Details</a>
+            </div>
+        </section>
+
+        <section class="scroll-section slide-up speed-medium distance-medium">
+            <div class="section-content">
+                <div class="section-number">Section 05</div>
+                <h2 class="section-title">Mobile Responsive</h2>
+                <p class="section-description">Animations adapt seamlessly to different screen sizes, maintaining smooth performance across all devices and platforms.</p>
+                <a href="#" class="section-cta">See Demo</a>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Animation state
+        let currentDirection = 'slide-up';
+        let currentSpeed = 'medium';
+        let currentDistance = 'medium';
+        let observer = null;
+
+        // Initialize
+        function init() {
+            createObserver();
+            setupControls();
+        }
+
+        // Create Intersection Observer
+        function createObserver() {
+            if (observer) {
+                observer.disconnect();
+            }
+
+            const options = {
+                threshold: 0.2,
+                rootMargin: '0px'
+            };
+
+            observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, options);
+
+            // Observe all sections
+            const sections = document.querySelectorAll('.scroll-section');
+            sections.forEach(section => observer.observe(section));
+        }
+
+        // Setup control buttons
+        function setupControls() {
+            // Direction controls
+            const directionBtns = document.querySelectorAll('.direction-btn');
+            directionBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    directionBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentDirection = btn.dataset.direction;
+                    updateSections();
+                });
+            });
+
+            // Speed controls
+            const speedBtns = document.querySelectorAll('.speed-btn');
+            speedBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    speedBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentSpeed = btn.dataset.speed;
+                    updateSections();
+                });
+            });
+
+            // Distance controls
+            const distanceBtns = document.querySelectorAll('.distance-btn');
+            distanceBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    distanceBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentDistance = btn.dataset.distance;
+                    updateSections();
+                });
+            });
+        }
+
+        // Update all sections with new animation settings
+        function updateSections() {
+            const sections = document.querySelectorAll('.scroll-section');
+            
+            sections.forEach(section => {
+                // Remove all animation classes
+                section.classList.remove(
+                    'slide-up', 'slide-down', 'slide-left', 'slide-right', 
+                    'diagonal-slide', 'bounce-slide',
+                    'speed-fast', 'speed-medium', 'speed-slow',
+                    'distance-short', 'distance-medium', 'distance-long',
+                    'visible'
+                );
+
+                // Add current settings
+                section.classList.add(currentDirection);
+                section.classList.add(`speed-${currentSpeed}`);
+                section.classList.add(`distance-${currentDistance}`);
+            });
+
+            // Recreate observer to re-trigger animations
+            createObserver();
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

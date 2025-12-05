@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Command Feedback - AI & Voice Interactions</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.1rem;
+        }
+
+        .demo-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .feedback-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .voice-feedback-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid rgba(0, 212, 255, 0.4);
+            border-radius: 20px;
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 60px rgba(0, 212, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 320px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .voice-feedback-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 80px rgba(0, 212, 255, 0.15);
+        }
+
+        .state-label {
+            position: absolute;
+            top: 1.2rem;
+            left: 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .feedback-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            position: relative;
+            margin-bottom: 1.5rem;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .feedback-message {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.6rem;
+            text-align: center;
+        }
+
+        .feedback-command {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-align: center;
+        }
+
+        /* Success State */
+        .voice-feedback-card.success {
+            border-color: rgba(0, 212, 255, 0.5);
+        }
+
+        .voice-feedback-card.success .state-label {
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+        }
+
+        .voice-feedback-card.success .feedback-icon {
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.3), transparent);
+            color: var(--jazer-cyan);
+            border: 4px solid var(--jazer-cyan);
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.6), inset 0 0 30px rgba(0, 212, 255, 0.2);
+            animation: success-pulse 0.8s ease-out;
+        }
+
+        @keyframes success-pulse {
+            0% { transform: scale(0.7); opacity: 0; }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .voice-feedback-card.success .feedback-message {
+            color: var(--jazer-cyan);
+        }
+
+        /* Error State */
+        .voice-feedback-card.error {
+            border-color: rgba(255, 0, 128, 0.5);
+        }
+
+        .voice-feedback-card.error .state-label {
+            color: var(--jazer-pink);
+            border: 1px solid var(--jazer-pink);
+        }
+
+        .voice-feedback-card.error .feedback-icon {
+            background: radial-gradient(circle, rgba(255, 0, 128, 0.3), transparent);
+            color: var(--jazer-pink);
+            border: 4px solid var(--jazer-pink);
+            box-shadow: 0 0 40px rgba(255, 0, 128, 0.6), inset 0 0 30px rgba(255, 0, 128, 0.2);
+            animation: error-shake 0.6s ease-out;
+        }
+
+        @keyframes error-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-15px); }
+            50% { transform: translateX(15px); }
+            75% { transform: translateX(-10px); }
+        }
+
+        .voice-feedback-card.error .feedback-message {
+            color: var(--jazer-pink);
+        }
+
+        /* Processing State */
+        .voice-feedback-card.processing {
+            border-color: rgba(168, 85, 247, 0.5);
+        }
+
+        .voice-feedback-card.processing .state-label {
+            color: var(--jazer-purple);
+            border: 1px solid var(--jazer-purple);
+        }
+
+        .voice-feedback-card.processing .feedback-icon {
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.3), transparent);
+            color: var(--jazer-purple);
+            border: 4px solid var(--jazer-purple);
+            box-shadow: 0 0 40px rgba(168, 85, 247, 0.6), inset 0 0 30px rgba(168, 85, 247, 0.2);
+            animation: processing-spin 1.5s linear infinite;
+        }
+
+        @keyframes processing-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .voice-feedback-card.processing .feedback-message {
+            color: var(--jazer-purple);
+        }
+
+        /* Listening State */
+        .voice-feedback-card.listening {
+            border-color: rgba(0, 255, 136, 0.5);
+        }
+
+        .voice-feedback-card.listening .state-label {
+            color: var(--jazer-neon-green);
+            border: 1px solid var(--jazer-neon-green);
+        }
+
+        .voice-feedback-card.listening .feedback-icon {
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.3), transparent);
+            color: var(--jazer-neon-green);
+            border: 4px solid var(--jazer-neon-green);
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.6), inset 0 0 30px rgba(0, 255, 136, 0.2);
+            animation: listening-pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes listening-pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 40px rgba(0, 255, 136, 0.6);
+            }
+            50% {
+                transform: scale(1.08);
+                box-shadow: 0 0 60px rgba(0, 255, 136, 0.9);
+            }
+        }
+
+        .voice-feedback-card.listening .feedback-message {
+            color: var(--jazer-neon-green);
+        }
+
+        /* Ripple Effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            border: 3px solid;
+            opacity: 0;
+            pointer-events: none;
+            animation: ripple-expand 1s ease-out;
+        }
+
+        @keyframes ripple-expand {
+            0% {
+                width: 60px;
+                height: 60px;
+                top: calc(50% - 30px);
+                left: calc(50% - 30px);
+                opacity: 1;
+            }
+            100% {
+                width: 280px;
+                height: 280px;
+                top: calc(50% - 140px);
+                left: calc(50% - 140px);
+                opacity: 0;
+            }
+        }
+
+        /* Controls Section */
+        .controls-section {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid rgba(168, 85, 247, 0.4);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .controls-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .controls-title {
+            font-size: 1.3rem;
+            color: var(--jazer-purple);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .controls-subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.95rem;
+        }
+
+        .demo-controls {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .demo-btn {
+            padding: 1.2rem 1rem;
+            border-radius: 12px;
+            border: 2px solid;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            font-family: var(--font-primary);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .demo-btn .btn-icon {
+            font-size: 2rem;
+        }
+
+        .demo-btn.success {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        .demo-btn.success:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.6);
+            transform: translateY(-5px);
+        }
+
+        .demo-btn.error {
+            border-color: var(--jazer-pink);
+            color: var(--jazer-pink);
+        }
+
+        .demo-btn.error:hover {
+            background: var(--jazer-pink);
+            color: #000;
+            box-shadow: 0 0 30px rgba(255, 0, 128, 0.6);
+            transform: translateY(-5px);
+        }
+
+        .demo-btn.processing {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+        }
+
+        .demo-btn.processing:hover {
+            background: var(--jazer-purple);
+            color: #000;
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.6);
+            transform: translateY(-5px);
+        }
+
+        .demo-btn.listening {
+            border-color: var(--jazer-neon-green);
+            color: var(--jazer-neon-green);
+        }
+
+        .demo-btn.listening:hover {
+            background: var(--jazer-neon-green);
+            color: #000;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.6);
+            transform: translateY(-5px);
+        }
+
+        .info-panel {
+            background: rgba(255, 0, 128, 0.1);
+            border: 2px solid rgba(255, 0, 128, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+        }
+
+        .info-panel strong {
+            color: var(--jazer-pink);
+            font-weight: 700;
+        }
+
+        @media (max-width: 1024px) {
+            .feedback-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .demo-controls {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .demo-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to AI & Voice Interactions</a>
+
+    <div class="header">
+        <h1>Voice Command Feedback</h1>
+        <p>Visual feedback states for voice interactions with animations</p>
+    </div>
+
+    <div class="demo-container">
+        <div class="feedback-grid">
+            <!-- Success -->
+            <div class="voice-feedback-card success">
+                <span class="state-label">Success</span>
+                <div class="feedback-icon">✓</div>
+                <div class="feedback-message">Command Executed</div>
+                <div class="feedback-command">"Turn on the lights"</div>
+            </div>
+
+            <!-- Error -->
+            <div class="voice-feedback-card error">
+                <span class="state-label">Error</span>
+                <div class="feedback-icon">✗</div>
+                <div class="feedback-message">Command Failed</div>
+                <div class="feedback-command">Command not recognized</div>
+            </div>
+
+            <!-- Processing -->
+            <div class="voice-feedback-card processing">
+                <span class="state-label">Processing</span>
+                <div class="feedback-icon">⟳</div>
+                <div class="feedback-message">Processing Command</div>
+                <div class="feedback-command">Analyzing your request...</div>
+            </div>
+
+            <!-- Listening -->
+            <div class="voice-feedback-card listening">
+                <span class="state-label">Listening</span>
+                <div class="feedback-icon">🎙</div>
+                <div class="feedback-message">Listening...</div>
+                <div class="feedback-command">Speak your command now</div>
+            </div>
+        </div>
+
+        <div class="controls-section">
+            <div class="controls-header">
+                <h2 class="controls-title">Interactive Demo</h2>
+                <p class="controls-subtitle">Click any button to see the feedback animation</p>
+            </div>
+            
+            <div class="demo-controls">
+                <button class="demo-btn success" data-state="success">
+                    <span class="btn-icon">✓</span>
+                    <span>Success</span>
+                </button>
+                <button class="demo-btn error" data-state="error">
+                    <span class="btn-icon">✗</span>
+                    <span>Error</span>
+                </button>
+                <button class="demo-btn processing" data-state="processing">
+                    <span class="btn-icon">⟳</span>
+                    <span>Processing</span>
+                </button>
+                <button class="demo-btn listening" data-state="listening">
+                    <span class="btn-icon">🎙</span>
+                    <span>Listening</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <strong>💡 Voice Command Feedback:</strong> Provides clear visual feedback for voice interactions across four states. Success shows a checkmark with cyan glow and pulse animation. Error displays an X with pink glow and shake effect. Processing shows a rotating spinner with purple accents. Listening displays a microphone with green pulsing to indicate active listening. Each state includes ripple effects and color-coded animations for instant user recognition.
+        </div>
+    </div>
+
+    <script>
+        const cards = document.querySelectorAll('.voice-feedback-card');
+        const buttons = document.querySelectorAll('.demo-btn');
+
+        const stateConfig = {
+            success: {
+                icon: '✓',
+                message: 'Command Executed',
+                command: '"Turn on the lights"',
+                rippleColor: 'rgba(0, 212, 255, 0.8)'
+            },
+            error: {
+                icon: '✗',
+                message: 'Command Failed',
+                command: 'Command not recognized',
+                rippleColor: 'rgba(255, 0, 128, 0.8)'
+            },
+            processing: {
+                icon: '⟳',
+                message: 'Processing Command',
+                command: 'Analyzing your request...'
+            },
+            listening: {
+                icon: '🎙',
+                message: 'Listening...',
+                command: 'Speak your command now'
+            }
+        };
+
+        function animateCard(card, state) {
+            const icon = card.querySelector('.feedback-icon');
+            const message = card.querySelector('.feedback-message');
+            const command = card.querySelector('.feedback-command');
+            const config = stateConfig[state];
+
+            // Clear existing state
+            card.className = 'voice-feedback-card';
+            
+            // Remove old ripples
+            card.querySelectorAll('.ripple').forEach(r => r.remove());
+
+            // Add new state with slight delay for animation
+            setTimeout(() => {
+                card.classList.add(state);
+                icon.textContent = config.icon;
+                message.textContent = config.message;
+                command.textContent = config.command;
+
+                // Add ripple for success/error
+                if (state === 'success' || state === 'error') {
+                    for (let i = 0; i < 3; i++) {
+                        setTimeout(() => {
+                            const ripple = document.createElement('div');
+                            ripple.className = 'ripple';
+                            ripple.style.borderColor = config.rippleColor;
+                            card.appendChild(ripple);
+                        }, i * 250);
+                    }
+                }
+            }, 50);
+        }
+
+        // Button click handlers
+        buttons.forEach(button => {
+            button.addEventListener('click', function() {
+                const state = this.getAttribute('data-state');
+                const targetCard = document.querySelector(`.voice-feedback-card.${state}`);
+                
+                if (targetCard) {
+                    animateCard(targetCard, state);
+                }
+
+                // Highlight button
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 100);
+            });
+        });
+
+        // Initial animation sequence on load
+        window.addEventListener('load', () => {
+            const sequence = ['listening', 'processing', 'success'];
+            let delay = 500;
+
+            sequence.forEach((state, index) => {
+                setTimeout(() => {
+                    const card = document.querySelector(`.voice-feedback-card.${state}`);
+                    if (card) animateCard(card, state);
+                }, delay + (index * 1500));
+            });
+        });
+    </script>
+</body>
+</html>

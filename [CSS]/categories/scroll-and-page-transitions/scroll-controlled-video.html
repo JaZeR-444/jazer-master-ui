@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll Controlled Video - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+            background: #0a0a0a;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            position: relative;
+            z-index: 10;
+            background: linear-gradient(180deg, rgba(10, 10, 10, 0.95) 0%, transparent 100%);
+        }
+
+        .header h1 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 1rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        /* Scroll Hint */
+        .scroll-hint {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan, #00f2ea);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            animation: bounce 2s infinite;
+        }
+
+        .scroll-hint svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+
+        /* Video Section */
+        .video-section {
+            position: relative;
+            height: 400vh;
+        }
+
+        .video-container {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Video Frame */
+        .video-frame {
+            position: relative;
+            width: 90%;
+            max-width: 1000px;
+            aspect-ratio: 16 / 9;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
+        }
+
+        .video-frame::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: var(--gradient-primary, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            border-radius: 18px;
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        /* Simulated Video (Canvas-based animation) */
+        .video-canvas {
+            width: 100%;
+            height: 100%;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated Scene */
+        .scene {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scene-element {
+            position: absolute;
+            transition: all 0.1s ease-out;
+        }
+
+        /* Rotating Ring */
+        .ring {
+            width: 300px;
+            height: 300px;
+            border: 4px solid var(--jazer-cyan, #00f2ea);
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+
+        .ring-1 { transform: rotate(0deg); }
+        .ring-2 { width: 250px; height: 250px; border-color: var(--jazer-purple, #9333ea); }
+        .ring-3 { width: 200px; height: 200px; border-color: var(--jazer-pink, #ff006e); }
+
+        /* Central Element */
+        .central-element {
+            width: 100px;
+            height: 100px;
+            background: var(--gradient-primary, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 2rem;
+            box-shadow: 0 0 60px rgba(0, 242, 234, 0.5);
+        }
+
+        /* Floating Particles */
+        .particle {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan, #00f2ea);
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--jazer-cyan, #00f2ea);
+        }
+
+        .particle:nth-child(2) { background: var(--jazer-purple, #9333ea); box-shadow: 0 0 20px var(--jazer-purple, #9333ea); }
+        .particle:nth-child(3) { background: var(--jazer-pink, #ff006e); box-shadow: 0 0 20px var(--jazer-pink, #ff006e); }
+
+        /* Progress Bar */
+        .video-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .video-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--gradient-primary, linear-gradient(90deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            transition: width 0.1s linear;
+        }
+
+        /* Video Info Panel */
+        .video-info {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            min-width: 180px;
+        }
+
+        .info-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 0.75rem;
+            color: var(--jazer-cyan, #00f2ea);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            margin-bottom: 0.75rem;
+        }
+
+        .info-label {
+            font-size: 0.6875rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-value {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 1.25rem;
+            color: #fff;
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid rgba(147, 51, 234, 0.3);
+            border-radius: 30px;
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+        }
+
+        .control-btn {
+            padding: 0.625rem 1.25rem;
+            background: rgba(147, 51, 234, 0.1);
+            border: 2px solid var(--jazer-purple, #9333ea);
+            color: var(--jazer-purple, #9333ea);
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(147, 51, 234, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .control-btn.active {
+            background: var(--jazer-purple, #9333ea);
+            color: #000;
+        }
+
+        /* Content Section */
+        .content-section {
+            position: relative;
+            z-index: 10;
+            padding: 6rem 2rem;
+            background: linear-gradient(180deg, transparent 0%, #0a0a0a 10%);
+        }
+
+        .content-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .content-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            margin-bottom: 2rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .content-text {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 242, 234, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            border-color: var(--jazer-cyan, #00f2ea);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 242, 234, 0.2);
+        }
+
+        .feature-card h4 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 1rem;
+            color: var(--jazer-cyan, #00f2ea);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            font-size: 0.9375rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .video-info {
+                top: auto;
+                bottom: 6rem;
+                right: 1rem;
+                left: 1rem;
+                min-width: auto;
+                display: flex;
+                justify-content: space-around;
+            }
+
+            .info-item {
+                margin: 0;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .back-button {
+                top: 1rem;
+                left: 1rem;
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .header {
+                padding: 6rem 1rem 3rem;
+            }
+
+            .video-frame {
+                width: 95%;
+                border-radius: 12px;
+            }
+
+            .ring { width: 200px; height: 200px; }
+            .ring-2 { width: 160px; height: 160px; }
+            .ring-3 { width: 120px; height: 120px; }
+
+            .central-element {
+                width: 70px;
+                height: 70px;
+                font-size: 1.5rem;
+            }
+
+            .controls {
+                bottom: 1rem;
+                padding: 0.75rem 1rem;
+                gap: 0.5rem;
+            }
+
+            .control-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.8125rem;
+            }
+
+            .content-section {
+                padding: 4rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Scroll Controlled Video</h1>
+        <p>Control video playback with scroll position - the video advances frame by frame as you scroll, creating an immersive storytelling experience</p>
+        <div class="scroll-hint">
+            <span>Scroll to Play</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Video Info Panel -->
+    <div class="video-info">
+        <div class="info-title">Playback</div>
+        <div class="info-item">
+            <div class="info-label">Frame</div>
+            <div class="info-value" id="frameCount">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Progress</div>
+            <div class="info-value" id="progressValue">0%</div>
+        </div>
+    </div>
+
+    <!-- Video Section -->
+    <div class="video-section">
+        <div class="video-container">
+            <div class="video-frame">
+                <div class="video-canvas">
+                    <div class="scene">
+                        <!-- Rings -->
+                        <div class="scene-element ring ring-1" id="ring1"></div>
+                        <div class="scene-element ring ring-2" id="ring2"></div>
+                        <div class="scene-element ring ring-3" id="ring3"></div>
+
+                        <!-- Particles -->
+                        <div class="scene-element particle" id="particle1"></div>
+                        <div class="scene-element particle" id="particle2"></div>
+                        <div class="scene-element particle" id="particle3"></div>
+
+                        <!-- Central Element -->
+                        <div class="scene-element central-element" id="central">
+                            <span id="frameDisplay">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="video-progress">
+                    <div class="video-progress-fill" id="progressBar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+        <button class="control-btn active" data-mode="smooth">Smooth</button>
+        <button class="control-btn" data-mode="stepped">Stepped</button>
+        <button class="control-btn" data-mode="reverse">Reverse</button>
+    </div>
+
+    <!-- Content Section -->
+    <div class="content-section">
+        <div class="content-wrapper">
+            <h2 class="content-title">How It Works</h2>
+            <p class="content-text">
+                Scroll-controlled video creates an engaging storytelling technique where the video playback is directly tied to the user's scroll position. Instead of traditional autoplay, users control the narrative pace themselves.
+            </p>
+            <p class="content-text">
+                This technique is perfect for product reveals, interactive tutorials, storytelling websites, and any content where you want users to feel in control of the experience.
+            </p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>Scroll Synced</h4>
+                    <p>Video progress directly tied to scroll position for precise control</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Bi-directional</h4>
+                    <p>Scroll up to rewind, scroll down to advance the video</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Frame Perfect</h4>
+                    <p>RequestAnimationFrame ensures smooth frame updates</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Mobile Ready</h4>
+                    <p>Touch-optimized for mobile scrolling experience</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Elements
+        const ring1 = document.getElementById('ring1');
+        const ring2 = document.getElementById('ring2');
+        const ring3 = document.getElementById('ring3');
+        const particle1 = document.getElementById('particle1');
+        const particle2 = document.getElementById('particle2');
+        const particle3 = document.getElementById('particle3');
+        const central = document.getElementById('central');
+        const frameDisplay = document.getElementById('frameDisplay');
+        const frameCount = document.getElementById('frameCount');
+        const progressValue = document.getElementById('progressValue');
+        const progressBar = document.getElementById('progressBar');
+        const modeButtons = document.querySelectorAll('.control-btn');
+
+        // Configuration
+        let mode = 'smooth';
+        const totalFrames = 100;
+
+        // Mode switching
+        modeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                mode = btn.dataset.mode;
+            });
+        });
+
+        // Calculate scroll progress
+        function getScrollProgress() {
+            const videoSection = document.querySelector('.video-section');
+            const rect = videoSection.getBoundingClientRect();
+            const sectionHeight = videoSection.offsetHeight - window.innerHeight;
+            const scrolled = -rect.top;
+            
+            let progress = Math.max(0, Math.min(1, scrolled / sectionHeight));
+            
+            if (mode === 'reverse') {
+                progress = 1 - progress;
+            } else if (mode === 'stepped') {
+                progress = Math.floor(progress * 10) / 10;
+            }
+            
+            return progress;
+        }
+
+        // Update scene based on progress
+        function updateScene(progress) {
+            const frame = Math.floor(progress * totalFrames);
+            const degrees = progress * 360;
+            const scale = 0.8 + (progress * 0.4);
+            const particleRadius = 150 + (progress * 100);
+
+            // Update rings
+            ring1.style.transform = `rotate(${degrees}deg) scale(${scale})`;
+            ring2.style.transform = `rotate(${-degrees * 1.5}deg) scale(${scale})`;
+            ring3.style.transform = `rotate(${degrees * 2}deg) scale(${scale})`;
+
+            // Update particles (orbit around center)
+            const angle1 = progress * Math.PI * 4;
+            const angle2 = progress * Math.PI * 4 + (Math.PI * 2 / 3);
+            const angle3 = progress * Math.PI * 4 + (Math.PI * 4 / 3);
+
+            particle1.style.transform = `translate(${Math.cos(angle1) * particleRadius}px, ${Math.sin(angle1) * particleRadius}px)`;
+            particle2.style.transform = `translate(${Math.cos(angle2) * particleRadius}px, ${Math.sin(angle2) * particleRadius}px)`;
+            particle3.style.transform = `translate(${Math.cos(angle3) * particleRadius}px, ${Math.sin(angle3) * particleRadius}px)`;
+
+            // Update central element
+            central.style.transform = `rotate(${-degrees}deg) scale(${0.9 + progress * 0.3})`;
+            central.style.borderRadius = `${20 + progress * 30}px`;
+
+            // Update displays
+            frameDisplay.textContent = frame;
+            frameCount.textContent = frame;
+            progressValue.textContent = Math.round(progress * 100) + '%';
+            progressBar.style.width = (progress * 100) + '%';
+        }
+
+        // Optimized scroll handler
+        let ticking = false;
+
+        function onScroll() {
+            if (!ticking) {
+                requestAnimationFrame(() => {
+                    const progress = getScrollProgress();
+                    updateScene(progress);
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }
+
+        window.addEventListener('scroll', onScroll);
+
+        // Initialize
+        updateScene(0);
+    </script>
+</body>
+</html>

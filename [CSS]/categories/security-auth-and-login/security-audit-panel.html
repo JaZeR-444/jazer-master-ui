@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Audit Panel - JaZeR Security</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(255, 0, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-size: 1rem;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: rgba(0, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .audit-container {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 800px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.2);
+            animation: fadeIn 0.5s ease;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        h1 {
+            color: var(--jazer-cyan);
+            font-family: var(--font-primary);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .audit-header {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            margin-bottom: 0.25rem;
+            font-family: var(--font-primary);
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+        }
+
+        .audit-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .audit-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .audit-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .audit-item.critical {
+            border-color: #ff3366;
+        }
+
+        .audit-item.warning {
+            border-color: #ffaa00;
+        }
+
+        .audit-item.success {
+            border-color: #39ff14;
+        }
+
+        .audit-item.info {
+            border-color: var(--jazer-cyan);
+        }
+
+        .audit-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .audit-title {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+        }
+
+        .audit-time {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+        }
+
+        .audit-description {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .audit-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+        }
+
+        .meta-item strong {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .severity-badge {
+            padding: 0.3rem 0.7rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .severity-badge.critical {
+            background: rgba(255, 51, 102, 0.2);
+            color: #ff3366;
+            border: 1px solid #ff3366;
+        }
+
+        .severity-badge.warning {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+            border: 1px solid #ffaa00;
+        }
+
+        .severity-badge.success {
+            background: rgba(57, 255, 20, 0.2);
+            color: #39ff14;
+            border: 1px solid #39ff14;
+        }
+
+        .severity-badge.info {
+            background: rgba(0, 255, 255, 0.2);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-body);
+        }
+
+        .filter-btn.active {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            background: rgba(0, 255, 255, 0.1);
+        }
+
+        .filter-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .back-button { top: 1rem; left: 1rem; padding: 0.5rem 1rem; font-size: 0.9rem; }
+            .audit-container { padding: 2rem 1.5rem; max-height: 90vh; }
+            h1 { font-size: 1.5rem; }
+            .audit-header { grid-template-columns: 1fr; }
+            .filter-bar { gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <div class="audit-container">
+        <h1>Security Audit Log</h1>
+        <p class="subtitle">Review security events and system activities</p>
+
+        <div class="audit-header">
+            <div class="stat-card">
+                <div class="stat-value">247</div>
+                <div class="stat-label">Total Events</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Critical Issues</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">12</div>
+                <div class="stat-label">Warnings</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">98.7%</div>
+                <div class="stat-label">Success Rate</div>
+            </div>
+        </div>
+
+        <div class="filter-bar">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="critical">Critical</button>
+            <button class="filter-btn" data-filter="warning">Warning</button>
+            <button class="filter-btn" data-filter="success">Success</button>
+            <button class="filter-btn" data-filter="info">Info</button>
+        </div>
+
+        <div class="audit-section">
+            <div class="section-title">
+                🔍 Recent Activity
+            </div>
+
+            <div class="audit-item critical" data-severity="critical">
+                <div class="audit-header-row">
+                    <div class="audit-title">Multiple Failed Login Attempts</div>
+                    <span class="severity-badge critical">Critical</span>
+                </div>
+                <div class="audit-description">
+                    5 consecutive failed login attempts detected from unknown IP address
+                </div>
+                <div class="audit-meta">
+                    <div class="meta-item"><strong>IP:</strong> 192.168.1.105</div>
+                    <div class="meta-item"><strong>Location:</strong> Unknown</div>
+                    <div class="meta-item"><strong>Time:</strong> 2 minutes ago</div>
+                </div>
+            </div>
+
+            <div class="audit-item warning" data-severity="warning">
+                <div class="audit-header-row">
+                    <div class="audit-title">New Device Login</div>
+                    <span class="severity-badge warning">Warning</span>
+                </div>
+                <div class="audit-description">
+                    Account accessed from unrecognized device
+                </div>
+                <div class="audit-meta">
+                    <div class="meta-item"><strong>Device:</strong> iPhone 14 Pro</div>
+                    <div class="meta-item"><strong>Location:</strong> San Francisco, CA</div>
+                    <div class="meta-item"><strong>Time:</strong> 1 hour ago</div>
+                </div>
+            </div>
+
+            <div class="audit-item success" data-severity="success">
+                <div class="audit-header-row">
+                    <div class="audit-title">Password Changed Successfully</div>
+                    <span class="severity-badge success">Success</span>
+                </div>
+                <div class="audit-description">
+                    Account password updated with strong credentials
+                </div>
+                <div class="audit-meta">
+                    <div class="meta-item"><strong>Method:</strong> Password Reset Flow</div>
+                    <div class="meta-item"><strong>Time:</strong> 3 hours ago</div>
+                </div>
+            </div>
+
+            <div class="audit-item info" data-severity="info">
+                <div class="audit-header-row">
+                    <div class="audit-title">2FA Enabled</div>
+                    <span class="severity-badge info">Info</span>
+                </div>
+                <div class="audit-description">
+                    Two-factor authentication activated for account
+                </div>
+                <div class="audit-meta">
+                    <div class="meta-item"><strong>Method:</strong> Authenticator App</div>
+                    <div class="meta-item"><strong>Time:</strong> 5 hours ago</div>
+                </div>
+            </div>
+
+            <div class="audit-item critical" data-severity="critical">
+                <div class="audit-header-row">
+                    <div class="audit-title">Suspicious API Access</div>
+                    <span class="severity-badge critical">Critical</span>
+                </div>
+                <div class="audit-description">
+                    Unusual API request pattern detected - possible bot activity
+                </div>
+                <div class="audit-meta">
+                    <div class="meta-item"><strong>Endpoint:</strong> /api/user/data</div>
+                    <div class="meta-item"><strong>Requests:</strong> 1,247 in 10 minutes</div>
+                    <div class="meta-item"><strong>Time:</strong> 1 day ago</div>
+                </div>
+            </div>
+
+            <div class="audit-item warning" data-severity="warning">
+                <div class="audit-header-row">
+                    <div class="audit-title">Session Expired</div>
+                    <span class="severity-badge warning">Warning</span>
+                </div>
+                <div class="audit-description">
+                    User session terminated due to inactivity timeout
+                </div>
+                <div class="audit-meta">
+                    <div class="meta-item"><strong>Duration:</strong> 15 minutes inactive</div>
+                    <div class="meta-item"><strong>Time:</strong> 1 day ago</div>
+                </div>
+            </div>
+
+            <div class="audit-item success" data-severity="success">
+                <div class="audit-header-row">
+                    <div class="audit-title">Security Scan Completed</div>
+                    <span class="severity-badge success">Success</span>
+                </div>
+                <div class="audit-description">
+                    Full account security audit completed - no vulnerabilities found
+                </div>
+                <div class="audit-meta">
+                    <div class="meta-item"><strong>Items Scanned:</strong> 156</div>
+                    <div class="meta-item"><strong>Time:</strong> 2 days ago</div>
+                </div>
+            </div>
+
+            <div class="audit-item info" data-severity="info">
+                <div class="audit-header-row">
+                    <div class="audit-title">Email Verified</div>
+                    <span class="severity-badge info">Info</span>
+                </div>
+                <div class="audit-description">
+                    Email address successfully verified
+                </div>
+                <div class="audit-meta">
+                    <div class="meta-item"><strong>Email:</strong> user@example.com</div>
+                    <div class="meta-item"><strong>Time:</strong> 3 days ago</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const auditItems = document.querySelectorAll('.audit-item');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const filter = this.dataset.filter;
+
+                auditItems.forEach(item => {
+                    if (filter === 'all' || item.dataset.severity === filter) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

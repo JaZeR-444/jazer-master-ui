@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Concentric Rings Expand - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="cyan"] { background: var(--jazer-cyan); }
+    .color-btn[data-color="purple"] { background: var(--jazer-purple); }
+    .color-btn[data-color="pink"] { background: var(--jazer-pink); }
+    .color-btn[data-color="rainbow"] { background: conic-gradient(#0ff, #f0f, #ff0, #0ff); }
+    .color-btn[data-color="mono"] { background: #888; }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .rings-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(ellipse at center, #1a0a2e 0%, #0a0a0f 100%);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pulse-center {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      z-index: 5;
+      transition: all 0.3s ease;
+    }
+    .expanding-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 3px solid;
+      pointer-events: none;
+      opacity: 0;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Concentric Rings Expand</h1>
+    <p>Expanding ripple rings emanating from center - radar/sonar effect</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Reset</span>
+      <span class="key-hint"><kbd>B</kbd> Burst</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="cyan" title="Cyan"></button>
+      <button class="color-btn" data-color="purple" title="Purple"></button>
+      <button class="color-btn" data-color="pink" title="Pink"></button>
+      <button class="color-btn" data-color="rainbow" title="Rainbow"></button>
+      <button class="color-btn" data-color="mono" title="Monochrome"></button>
+    </div>
+    <div class="slider-group">
+      <label>Ring Count: <span class="slider-value" id="ringValue">6</span></label>
+      <input type="range" id="ringSlider" min="3" max="12" value="6">
+    </div>
+    <div class="slider-group">
+      <label>Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.3" max="2.5" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Max Size: <span class="slider-value" id="sizeValue">800</span></label>
+      <input type="range" id="sizeSlider" min="400" max="1200" step="50" value="800">
+    </div>
+  </div>
+
+  <div class="rings-container" id="container">
+    <div class="pulse-center" id="pulseCenter"></div>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const container = document.getElementById('container');
+    const pulseCenter = document.getElementById('pulseCenter');
+    const status = document.getElementById('status');
+
+    let config = {
+      ringCount: 6,
+      speed: 1,
+      maxSize: 800,
+      colorScheme: 'cyan',
+      paused: false
+    };
+
+    const colorSchemes = {
+      cyan: {
+        primary: 'rgba(0, 242, 234, 0.9)',
+        secondary: 'rgba(0, 180, 200, 0.7)',
+        glow: '#00f2ea'
+      },
+      purple: {
+        primary: 'rgba(147, 51, 234, 0.9)',
+        secondary: 'rgba(120, 70, 200, 0.7)',
+        glow: '#9333ea'
+      },
+      pink: {
+        primary: 'rgba(255, 0, 110, 0.9)',
+        secondary: 'rgba(200, 50, 100, 0.7)',
+        glow: '#ff006e'
+      },
+      rainbow: {
+        primary: 'rgba(0, 242, 234, 0.9)',
+        secondary: 'rgba(147, 51, 234, 0.9)',
+        tertiary: 'rgba(255, 0, 110, 0.9)',
+        glow: '#00f2ea'
+      },
+      mono: {
+        primary: 'rgba(255, 255, 255, 0.8)',
+        secondary: 'rgba(180, 180, 180, 0.6)',
+        glow: '#ffffff'
+      }
+    };
+
+    let rings = [];
+    let animationId;
+    let time = 0;
+
+    function createRings() {
+      // Remove existing rings
+      document.querySelectorAll('.expanding-ring').forEach(r => r.remove());
+      rings = [];
+      
+      const scheme = colorSchemes[config.colorScheme];
+      const delayInterval = 4000 / config.ringCount;
+
+      for (let i = 0; i < config.ringCount; i++) {
+        const ring = document.createElement('div');
+        ring.className = 'expanding-ring';
+        
+        let color;
+        if (config.colorScheme === 'rainbow') {
+          const colors = [scheme.primary, scheme.secondary, scheme.tertiary];
+          color = colors[i % 3];
+        } else {
+          color = i % 2 === 0 ? scheme.primary : scheme.secondary;
+        }
+        
+        ring.style.borderColor = color;
+        ring.style.boxShadow = `0 0 20px ${color}, inset 0 0 10px ${color}`;
+        container.appendChild(ring);
+        
+        rings.push({
+          element: ring,
+          delay: i * delayInterval,
+          startTime: null
+        });
+      }
+
+      // Update pulse center
+      pulseCenter.style.background = `radial-gradient(circle, ${scheme.glow}, ${scheme.primary})`;
+      pulseCenter.style.boxShadow = `0 0 30px ${scheme.glow}, 0 0 60px ${scheme.glow}`;
+    }
+
+    function animate(timestamp) {
+      if (!animationId) return;
+
+      if (config.paused) {
+        animationId = requestAnimationFrame(animate);
+        return;
+      }
+
+      const duration = 4000 / config.speed;
+
+      rings.forEach((ring, i) => {
+        if (ring.startTime === null) {
+          ring.startTime = timestamp - ring.delay;
+        }
+
+        const elapsed = (timestamp - ring.startTime) % duration;
+        const progress = elapsed / duration;
+
+        const size = progress * config.maxSize;
+        const opacity = 1 - progress;
+        const borderWidth = 3 - (progress * 2);
+
+        ring.element.style.width = `${size}px`;
+        ring.element.style.height = `${size}px`;
+        ring.element.style.opacity = opacity;
+        ring.element.style.borderWidth = `${Math.max(1, borderWidth)}px`;
+        ring.element.style.left = `calc(50% - ${size / 2}px)`;
+        ring.element.style.top = `calc(50% - ${size / 2}px)`;
+      });
+
+      // Animate pulse center
+      const pulseScale = 1 + Math.sin(timestamp / 500 * config.speed) * 0.3;
+      pulseCenter.style.transform = `scale(${pulseScale})`;
+
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function burstEffect() {
+      const scheme = colorSchemes[config.colorScheme];
+      
+      for (let i = 0; i < 5; i++) {
+        setTimeout(() => {
+          const burstRing = document.createElement('div');
+          burstRing.className = 'expanding-ring';
+          burstRing.style.borderColor = scheme.primary;
+          burstRing.style.boxShadow = `0 0 30px ${scheme.glow}`;
+          burstRing.style.borderWidth = '4px';
+          container.appendChild(burstRing);
+
+          let size = 0;
+          const burstAnim = setInterval(() => {
+            size += 30;
+            const opacity = 1 - (size / 600);
+            
+            if (opacity <= 0) {
+              clearInterval(burstAnim);
+              burstRing.remove();
+              return;
+            }
+
+            burstRing.style.width = `${size}px`;
+            burstRing.style.height = `${size}px`;
+            burstRing.style.opacity = opacity;
+            burstRing.style.left = `calc(50% - ${size / 2}px)`;
+            burstRing.style.top = `calc(50% - ${size / 2}px)`;
+          }, 16);
+        }, i * 100);
+      }
+    }
+
+    function updateColors() {
+      const scheme = colorSchemes[config.colorScheme];
+      
+      rings.forEach((ring, i) => {
+        let color;
+        if (config.colorScheme === 'rainbow') {
+          const colors = [scheme.primary, scheme.secondary, scheme.tertiary];
+          color = colors[i % 3];
+        } else {
+          color = i % 2 === 0 ? scheme.primary : scheme.secondary;
+        }
+        ring.element.style.borderColor = color;
+        ring.element.style.boxShadow = `0 0 20px ${color}, inset 0 0 10px ${color}`;
+      });
+
+      pulseCenter.style.background = `radial-gradient(circle, ${scheme.glow}, ${scheme.primary})`;
+      pulseCenter.style.boxShadow = `0 0 30px ${scheme.glow}, 0 0 60px ${scheme.glow}`;
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+        updateColors();
+      });
+    });
+
+    // Sliders
+    document.getElementById('ringSlider').addEventListener('input', e => {
+      config.ringCount = parseInt(e.target.value);
+      document.getElementById('ringValue').textContent = config.ringCount;
+      createRings();
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('sizeSlider').addEventListener('input', e => {
+      config.maxSize = parseInt(e.target.value);
+      document.getElementById('sizeValue').textContent = config.maxSize;
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        rings.forEach(r => r.startTime = null);
+        createRings();
+      }
+      if (e.code === 'KeyB') {
+        burstEffect();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['cyan', 'purple', 'pink', 'rainbow', 'mono'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+        updateColors();
+      }
+    });
+
+    // Initialize
+    createRings();
+    animationId = requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

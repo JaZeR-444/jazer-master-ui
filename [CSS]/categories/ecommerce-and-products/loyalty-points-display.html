@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loyalty Points Display - JaZeR E-commerce Patterns</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-gray);
+            text-decoration: none;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 2px solid var(--border-default);
+            background: var(--bg-card);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 2rem;
+        }
+
+        .back-button:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            transform: translateX(-5px);
+            box-shadow: var(--shadow-cyan);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero p {
+            font-size: 1.125rem;
+            color: var(--text-gray);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .style-btn {
+            padding: 0.625rem 1.25rem;
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .style-btn:hover {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+        }
+
+        .style-btn.active {
+            background: var(--gradient-primary);
+            border-color: transparent;
+            color: white;
+            box-shadow: var(--shadow-cyan);
+        }
+
+        .keyboard-hint {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            opacity: 0.7;
+        }
+
+        .keyboard-hint kbd {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: 4px;
+            padding: 0.2rem 0.5rem;
+            font-family: var(--font-mono);
+            margin: 0 0.25rem;
+        }
+
+        .demo-section {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .demo-container {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 20px;
+            padding: 3rem;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .demo-container:hover {
+            border-color: var(--jazer-cyan);
+        }
+
+        .loyalty-showcase {
+            width: 100%;
+            max-width: 450px;
+        }
+
+        /* ==================== STYLE 1: Classic Card ==================== */
+        .style-classic .loyalty {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .style-classic .loyalty::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(147, 51, 234, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .style-classic .loyalty__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .style-classic .loyalty__brand {
+            font-family: var(--font-primary);
+            font-weight: 800;
+            font-size: 1.25rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .style-classic .loyalty__tier {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            background: rgba(147, 51, 234, 0.2);
+            border: 1px solid var(--jazer-purple);
+            border-radius: 50px;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: var(--jazer-purple);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .style-classic .loyalty__body {
+            position: relative;
+            z-index: 1;
+        }
+
+        .style-classic .loyalty__points-label {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.25rem;
+        }
+
+        .style-classic .loyalty__points {
+            font-family: var(--font-primary);
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--text-light);
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+
+        .style-classic .loyalty__points span {
+            font-size: 1.5rem;
+            color: var(--text-gray);
+            margin-left: 0.25rem;
+        }
+
+        .style-classic .loyalty__progress {
+            margin-bottom: 1rem;
+        }
+
+        .style-classic .loyalty__progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .style-classic .loyalty__progress-fill {
+            height: 100%;
+            width: 65%;
+            background: var(--gradient-primary);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .style-classic .loyalty__progress-text {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        .style-classic .loyalty__progress-text strong {
+            color: var(--jazer-cyan);
+        }
+
+        .style-classic .loyalty__value {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: #00ff88;
+        }
+
+        /* ==================== STYLE 2: Minimal Badge ==================== */
+        .style-minimal .loyalty {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-dark);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+        }
+
+        .style-minimal .loyalty__icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            font-size: 1.5rem;
+        }
+
+        .style-minimal .loyalty__info {
+            flex: 1;
+        }
+
+        .style-minimal .loyalty__label {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            margin-bottom: 0.125rem;
+        }
+
+        .style-minimal .loyalty__points {
+            font-family: var(--font-secondary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .style-minimal .loyalty__points span {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            font-weight: 400;
+        }
+
+        .style-minimal .loyalty__action {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .style-minimal .loyalty__action:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+        }
+
+        /* ==================== STYLE 3: Coin Stack ==================== */
+        .style-coins .loyalty {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .style-coins .loyalty__coins {
+            position: relative;
+            width: 120px;
+            height: 100px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .style-coins .loyalty__coin {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 16px;
+            background: linear-gradient(180deg, #ffd700 0%, #ffb700 50%, #ffa500 100%);
+            border-radius: 50%;
+            box-shadow: 0 4px 0 #cc8400, 0 6px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .style-coins .loyalty__coin:nth-child(1) { bottom: 0; }
+        .style-coins .loyalty__coin:nth-child(2) { bottom: 12px; animation: coin-float 2s ease-in-out infinite; }
+        .style-coins .loyalty__coin:nth-child(3) { bottom: 24px; animation: coin-float 2s ease-in-out infinite 0.2s; }
+        .style-coins .loyalty__coin:nth-child(4) { bottom: 36px; animation: coin-float 2s ease-in-out infinite 0.4s; }
+        .style-coins .loyalty__coin:nth-child(5) { bottom: 48px; animation: coin-float 2s ease-in-out infinite 0.6s; }
+
+        @keyframes coin-float {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-3px); }
+        }
+
+        .style-coins .loyalty__amount {
+            font-family: var(--font-primary);
+            font-size: 3rem;
+            font-weight: 800;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            margin-bottom: 0.25rem;
+        }
+
+        .style-coins .loyalty__label {
+            font-family: var(--font-secondary);
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            margin-bottom: 1rem;
+        }
+
+        .style-coins .loyalty__value {
+            font-size: 0.875rem;
+            color: #00ff88;
+        }
+
+        /* ==================== STYLE 4: Tier Progress ==================== */
+        .style-tier .loyalty {
+            background: var(--bg-dark);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .style-tier .loyalty__current {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .style-tier .loyalty__tier-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #9333ea, #7c3aed);
+            border-radius: 50px;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .style-tier .loyalty__points {
+            font-family: var(--font-primary);
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-light);
+        }
+
+        .style-tier .loyalty__points span {
+            font-size: 1rem;
+            color: var(--text-gray);
+        }
+
+        .style-tier .loyalty__tiers {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .style-tier .loyalty__tiers::before {
+            content: '';
+            position: absolute;
+            top: 16px;
+            left: 20px;
+            right: 20px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        .style-tier .loyalty__tiers::after {
+            content: '';
+            position: absolute;
+            top: 16px;
+            left: 20px;
+            width: 65%;
+            height: 4px;
+            background: var(--gradient-primary);
+            border-radius: 2px;
+        }
+
+        .style-tier .loyalty__tier-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .style-tier .loyalty__tier-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .style-tier .loyalty__tier-item--active .loyalty__tier-dot {
+            border-color: var(--jazer-cyan);
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            box-shadow: 0 0 15px rgba(0, 242, 234, 0.5);
+        }
+
+        .style-tier .loyalty__tier-item--completed .loyalty__tier-dot {
+            border-color: #00ff88;
+            background: #00ff88;
+            color: #000;
+        }
+
+        .style-tier .loyalty__tier-name {
+            font-family: var(--font-secondary);
+            font-size: 0.6875rem;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .style-tier .loyalty__tier-item--active .loyalty__tier-name {
+            color: var(--jazer-cyan);
+        }
+
+        .style-tier .loyalty__next {
+            text-align: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-default);
+            font-size: 0.8125rem;
+            color: var(--text-gray);
+        }
+
+        .style-tier .loyalty__next strong {
+            color: var(--jazer-pink);
+        }
+
+        /* ==================== STYLE 5: Animated Counter ==================== */
+        .style-animated .loyalty {
+            background: var(--bg-dark);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .style-animated .loyalty__header {
+            margin-bottom: 1.5rem;
+        }
+
+        .style-animated .loyalty__icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            animation: icon-bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes icon-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .style-animated .loyalty__title {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .style-animated .loyalty__counter {
+            display: flex;
+            justify-content: center;
+            gap: 0.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .style-animated .loyalty__digit {
+            width: 60px;
+            height: 80px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0a0a14 100%);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            text-shadow: 0 0 20px var(--jazer-cyan);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .style-animated .loyalty__digit::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(147, 51, 234, 0.5);
+        }
+
+        .style-animated .loyalty__separator {
+            font-size: 2.5rem;
+            color: var(--text-gray);
+            display: flex;
+            align-items: center;
+        }
+
+        .style-animated .loyalty__info {
+            display: flex;
+            justify-content: space-around;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-default);
+        }
+
+        .style-animated .loyalty__stat {
+            text-align: center;
+        }
+
+        .style-animated .loyalty__stat-value {
+            font-family: var(--font-secondary);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--jazer-pink);
+        }
+
+        .style-animated .loyalty__stat-label {
+            font-size: 0.6875rem;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ==================== STYLE 6: Reward Card ==================== */
+        .style-reward .loyalty {
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a0a2e 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .style-reward .loyalty::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L60 30L30 60L0 30L30 0z' fill='%239333ea' fill-opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        .style-reward .loyalty__glow {
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 0, 110, 0.3) 0%, transparent 70%);
+            animation: glow-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes glow-pulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .style-reward .loyalty__content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .style-reward .loyalty__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .style-reward .loyalty__logo {
+            font-family: var(--font-primary);
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .style-reward .loyalty__member {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        .style-reward .loyalty__member strong {
+            color: #ffd700;
+        }
+
+        .style-reward .loyalty__balance {
+            margin-bottom: 1.5rem;
+        }
+
+        .style-reward .loyalty__balance-label {
+            font-size: 0.6875rem;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.25rem;
+        }
+
+        .style-reward .loyalty__balance-value {
+            font-family: var(--font-primary);
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #00f2ea, #ff006e);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .style-reward .loyalty__rewards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .style-reward .loyalty__reward {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .style-reward .loyalty__reward:hover {
+            border-color: var(--jazer-cyan);
+            transform: translateY(-3px);
+        }
+
+        .style-reward .loyalty__reward-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .style-reward .loyalty__reward-cost {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.8125rem;
+            color: var(--jazer-cyan);
+        }
+
+        /* ==================== STYLE 7: Glass Panel ==================== */
+        .style-glass .loyalty {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .style-glass .loyalty::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent);
+            pointer-events: none;
+        }
+
+        .style-glass .loyalty__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .style-glass .loyalty__user {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .style-glass .loyalty__avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .style-glass .loyalty__name {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .style-glass .loyalty__tier {
+            font-size: 0.75rem;
+            color: #ffd700;
+        }
+
+        .style-glass .loyalty__menu {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-gray);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .style-glass .loyalty__menu:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-light);
+        }
+
+        .style-glass .loyalty__body {
+            position: relative;
+            z-index: 1;
+        }
+
+        .style-glass .loyalty__points-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 1.5rem;
+        }
+
+        .style-glass .loyalty__points-label {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            margin-bottom: 0.25rem;
+        }
+
+        .style-glass .loyalty__points-value {
+            font-family: var(--font-primary);
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-light);
+            line-height: 1;
+        }
+
+        .style-glass .loyalty__value {
+            text-align: right;
+        }
+
+        .style-glass .loyalty__value-label {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            margin-bottom: 0.25rem;
+        }
+
+        .style-glass .loyalty__value-amount {
+            font-family: var(--font-secondary);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #00ff88;
+        }
+
+        .style-glass .loyalty__progress {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+        }
+
+        .style-glass .loyalty__progress-fill {
+            height: 100%;
+            width: 65%;
+            background: linear-gradient(90deg, var(--jazer-cyan), var(--jazer-pink));
+            border-radius: 3px;
+        }
+
+        .style-glass .loyalty__progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.6875rem;
+            color: var(--text-gray);
+        }
+
+        /* ==================== STYLE 8: Cyberpunk Terminal ==================== */
+        .style-cyberpunk .loyalty {
+            background: #050508;
+            border: 2px solid #00f2ea;
+            padding: 1.5rem;
+            font-family: var(--font-mono, monospace);
+            position: relative;
+        }
+
+        .style-cyberpunk .loyalty::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 242, 234, 0.02) 2px,
+                rgba(0, 242, 234, 0.02) 4px
+            );
+            pointer-events: none;
+        }
+
+        .style-cyberpunk .loyalty__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(0, 242, 234, 0.3);
+            margin-bottom: 1rem;
+        }
+
+        .style-cyberpunk .loyalty__title {
+            color: #00f2ea;
+            font-size: 0.6875rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .style-cyberpunk .loyalty__status {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.6875rem;
+            color: #00ff88;
+        }
+
+        .style-cyberpunk .loyalty__status-dot {
+            width: 6px;
+            height: 6px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: status-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes status-pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.5); }
+            50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(0, 255, 136, 0); }
+        }
+
+        .style-cyberpunk .loyalty__body {
+            margin-bottom: 1rem;
+        }
+
+        .style-cyberpunk .loyalty__line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.8125rem;
+        }
+
+        .style-cyberpunk .loyalty__key {
+            color: var(--text-gray);
+        }
+
+        .style-cyberpunk .loyalty__val {
+            color: var(--text-light);
+        }
+
+        .style-cyberpunk .loyalty__val--highlight {
+            color: #00f2ea;
+            text-shadow: 0 0 10px rgba(0, 242, 234, 0.5);
+        }
+
+        .style-cyberpunk .loyalty__val--gold {
+            color: #ffd700;
+        }
+
+        .style-cyberpunk .loyalty__val--green {
+            color: #00ff88;
+        }
+
+        .style-cyberpunk .loyalty__bar {
+            display: flex;
+            gap: 2px;
+            margin: 1rem 0;
+        }
+
+        .style-cyberpunk .loyalty__bar-segment {
+            flex: 1;
+            height: 16px;
+            background: rgba(0, 242, 234, 0.1);
+        }
+
+        .style-cyberpunk .loyalty__bar-segment--filled {
+            background: linear-gradient(180deg, #00f2ea, #0099aa);
+            box-shadow: 0 0 10px rgba(0, 242, 234, 0.3);
+        }
+
+        .style-cyberpunk .loyalty__footer {
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(0, 242, 234, 0.3);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.625rem;
+            color: rgba(0, 242, 234, 0.6);
+        }
+
+        /* Hide all styles by default */
+        .loyalty-showcase > div { display: none; }
+        .loyalty-showcase > div.active { display: block; }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .hero { padding: 2rem 0; }
+            .hero h1 { font-size: 2rem; }
+            .demo-container { padding: 1.5rem; }
+            .controls { gap: 0.5rem; }
+            .style-btn { padding: 0.5rem 1rem; font-size: 0.75rem; }
+            .style-animated .loyalty__digit { width: 45px; height: 60px; font-size: 1.75rem; }
+            .style-reward .loyalty__rewards { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to E-commerce Patterns</a>
+
+    <section class="hero">
+        <h1>Loyalty Points Display</h1>
+        <p>Engaging loyalty program displays that showcase points balance, tier status, and rewards to drive customer retention.</p>
+        
+        <div class="controls">
+            <button class="style-btn active" data-style="classic">Classic Card</button>
+            <button class="style-btn" data-style="minimal">Minimal</button>
+            <button class="style-btn" data-style="coins">Coin Stack</button>
+            <button class="style-btn" data-style="tier">Tier Progress</button>
+            <button class="style-btn" data-style="animated">Animated</button>
+            <button class="style-btn" data-style="reward">Rewards</button>
+            <button class="style-btn" data-style="glass">Glass</button>
+            <button class="style-btn" data-style="cyberpunk">Cyberpunk</button>
+        </div>
+        <p class="keyboard-hint">Press <kbd>Space</kbd> to cycle styles | <kbd>R</kbd> to reset</p>
+    </section>
+
+    <section class="demo-section">
+        <div class="demo-container">
+            <div class="loyalty-showcase">
+                <!-- Style 1: Classic Card -->
+                <div class="style-classic active">
+                    <div class="loyalty">
+                        <div class="loyalty__header">
+                            <div class="loyalty__brand">JaZeR Rewards</div>
+                            <div class="loyalty__tier">⭐ Gold Member</div>
+                        </div>
+                        <div class="loyalty__body">
+                            <div class="loyalty__points-label">Available Points</div>
+                            <div class="loyalty__points">12,450 <span>pts</span></div>
+                            <div class="loyalty__progress">
+                                <div class="loyalty__progress-bar">
+                                    <div class="loyalty__progress-fill"></div>
+                                </div>
+                                <div class="loyalty__progress-text">
+                                    <strong>2,550 pts</strong> to Platinum tier
+                                </div>
+                            </div>
+                            <div class="loyalty__value">≈ $124.50 value</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 2: Minimal Badge -->
+                <div class="style-minimal">
+                    <div class="loyalty">
+                        <div class="loyalty__icon">💎</div>
+                        <div class="loyalty__info">
+                            <div class="loyalty__label">Reward Points</div>
+                            <div class="loyalty__points">12,450 <span>pts</span></div>
+                        </div>
+                        <button class="loyalty__action">Redeem</button>
+                    </div>
+                </div>
+
+                <!-- Style 3: Coin Stack -->
+                <div class="style-coins">
+                    <div class="loyalty">
+                        <div class="loyalty__coins">
+                            <div class="loyalty__coin"></div>
+                            <div class="loyalty__coin"></div>
+                            <div class="loyalty__coin"></div>
+                            <div class="loyalty__coin"></div>
+                            <div class="loyalty__coin"></div>
+                        </div>
+                        <div class="loyalty__amount">12,450</div>
+                        <div class="loyalty__label">Reward Points</div>
+                        <div class="loyalty__value">Worth $124.50</div>
+                    </div>
+                </div>
+
+                <!-- Style 4: Tier Progress -->
+                <div class="style-tier">
+                    <div class="loyalty">
+                        <div class="loyalty__current">
+                            <div class="loyalty__tier-badge">⭐ Gold Member</div>
+                            <div class="loyalty__points">12,450 <span>points</span></div>
+                        </div>
+                        <div class="loyalty__tiers">
+                            <div class="loyalty__tier-item loyalty__tier-item--completed">
+                                <div class="loyalty__tier-dot">✓</div>
+                                <div class="loyalty__tier-name">Bronze</div>
+                            </div>
+                            <div class="loyalty__tier-item loyalty__tier-item--completed">
+                                <div class="loyalty__tier-dot">✓</div>
+                                <div class="loyalty__tier-name">Silver</div>
+                            </div>
+                            <div class="loyalty__tier-item loyalty__tier-item--active">
+                                <div class="loyalty__tier-dot">⭐</div>
+                                <div class="loyalty__tier-name">Gold</div>
+                            </div>
+                            <div class="loyalty__tier-item">
+                                <div class="loyalty__tier-dot">💎</div>
+                                <div class="loyalty__tier-name">Platinum</div>
+                            </div>
+                        </div>
+                        <div class="loyalty__next">
+                            Earn <strong>2,550 more pts</strong> to unlock Platinum
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 5: Animated Counter -->
+                <div class="style-animated">
+                    <div class="loyalty">
+                        <div class="loyalty__header">
+                            <div class="loyalty__icon">🏆</div>
+                            <div class="loyalty__title">Your Rewards Balance</div>
+                        </div>
+                        <div class="loyalty__counter">
+                            <div class="loyalty__digit">1</div>
+                            <div class="loyalty__digit">2</div>
+                            <div class="loyalty__separator">,</div>
+                            <div class="loyalty__digit">4</div>
+                            <div class="loyalty__digit">5</div>
+                            <div class="loyalty__digit">0</div>
+                        </div>
+                        <div class="loyalty__info">
+                            <div class="loyalty__stat">
+                                <div class="loyalty__stat-value">$124.50</div>
+                                <div class="loyalty__stat-label">Value</div>
+                            </div>
+                            <div class="loyalty__stat">
+                                <div class="loyalty__stat-value">Gold</div>
+                                <div class="loyalty__stat-label">Status</div>
+                            </div>
+                            <div class="loyalty__stat">
+                                <div class="loyalty__stat-value">2,550</div>
+                                <div class="loyalty__stat-label">To Next Tier</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 6: Reward Card -->
+                <div class="style-reward">
+                    <div class="loyalty">
+                        <div class="loyalty__glow"></div>
+                        <div class="loyalty__content">
+                            <div class="loyalty__header">
+                                <div class="loyalty__logo">JaZeR</div>
+                                <div class="loyalty__member"><strong>Gold</strong> Member</div>
+                            </div>
+                            <div class="loyalty__balance">
+                                <div class="loyalty__balance-label">Points Balance</div>
+                                <div class="loyalty__balance-value">12,450</div>
+                            </div>
+                            <div class="loyalty__rewards">
+                                <div class="loyalty__reward">
+                                    <div class="loyalty__reward-icon">☕</div>
+                                    <div class="loyalty__reward-cost">500 pts</div>
+                                </div>
+                                <div class="loyalty__reward">
+                                    <div class="loyalty__reward-icon">🎧</div>
+                                    <div class="loyalty__reward-cost">2,500 pts</div>
+                                </div>
+                                <div class="loyalty__reward">
+                                    <div class="loyalty__reward-icon">🎁</div>
+                                    <div class="loyalty__reward-cost">5,000 pts</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 7: Glass Panel -->
+                <div class="style-glass">
+                    <div class="loyalty">
+                        <div class="loyalty__header">
+                            <div class="loyalty__user">
+                                <div class="loyalty__avatar">👤</div>
+                                <div>
+                                    <div class="loyalty__name">Alex Johnson</div>
+                                    <div class="loyalty__tier">Gold Member</div>
+                                </div>
+                            </div>
+                            <button class="loyalty__menu">⋯</button>
+                        </div>
+                        <div class="loyalty__body">
+                            <div class="loyalty__points-row">
+                                <div>
+                                    <div class="loyalty__points-label">Points Balance</div>
+                                    <div class="loyalty__points-value">12,450</div>
+                                </div>
+                                <div class="loyalty__value">
+                                    <div class="loyalty__value-label">Cash Value</div>
+                                    <div class="loyalty__value-amount">$124.50</div>
+                                </div>
+                            </div>
+                            <div class="loyalty__progress">
+                                <div class="loyalty__progress-fill"></div>
+                            </div>
+                            <div class="loyalty__progress-text">
+                                <span>Gold Tier</span>
+                                <span>2,550 pts to Platinum</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 8: Cyberpunk Terminal -->
+                <div class="style-cyberpunk">
+                    <div class="loyalty">
+                        <div class="loyalty__header">
+                            <span class="loyalty__title">// LOYALTY_PROTOCOL v2.4</span>
+                            <span class="loyalty__status"><span class="loyalty__status-dot"></span>ACTIVE</span>
+                        </div>
+                        <div class="loyalty__body">
+                            <div class="loyalty__line">
+                                <span class="loyalty__key">USER_ID:</span>
+                                <span class="loyalty__val">JZR-7749-GOLD</span>
+                            </div>
+                            <div class="loyalty__line">
+                                <span class="loyalty__key">TIER_STATUS:</span>
+                                <span class="loyalty__val loyalty__val--gold">GOLD_MEMBER</span>
+                            </div>
+                            <div class="loyalty__line">
+                                <span class="loyalty__key">POINTS_BAL:</span>
+                                <span class="loyalty__val loyalty__val--highlight">12,450</span>
+                            </div>
+                            <div class="loyalty__line">
+                                <span class="loyalty__key">CASH_VALUE:</span>
+                                <span class="loyalty__val loyalty__val--green">$124.50</span>
+                            </div>
+                            <div class="loyalty__line">
+                                <span class="loyalty__key">NEXT_TIER:</span>
+                                <span class="loyalty__val">2,550 PTS</span>
+                            </div>
+                        </div>
+                        <div class="loyalty__bar">
+                            <div class="loyalty__bar-segment loyalty__bar-segment--filled"></div>
+                            <div class="loyalty__bar-segment loyalty__bar-segment--filled"></div>
+                            <div class="loyalty__bar-segment loyalty__bar-segment--filled"></div>
+                            <div class="loyalty__bar-segment loyalty__bar-segment--filled"></div>
+                            <div class="loyalty__bar-segment loyalty__bar-segment--filled"></div>
+                            <div class="loyalty__bar-segment loyalty__bar-segment--filled"></div>
+                            <div class="loyalty__bar-segment loyalty__bar-segment--filled"></div>
+                            <div class="loyalty__bar-segment"></div>
+                            <div class="loyalty__bar-segment"></div>
+                            <div class="loyalty__bar-segment"></div>
+                        </div>
+                        <div class="loyalty__footer">
+                            <span>SYS_REF: LYL-2024-7749</span>
+                            <span>SYNC: REAL-TIME</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const styles = ['classic', 'minimal', 'coins', 'tier', 'animated', 'reward', 'glass', 'cyberpunk'];
+        let currentIndex = 0;
+
+        const buttons = document.querySelectorAll('.style-btn');
+        const styleContainers = document.querySelectorAll('.loyalty-showcase > div');
+
+        function setStyle(styleName) {
+            currentIndex = styles.indexOf(styleName);
+            
+            buttons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.style === styleName);
+            });
+
+            styleContainers.forEach(container => {
+                container.classList.toggle('active', container.classList.contains(`style-${styleName}`));
+            });
+        }
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => setStyle(btn.dataset.style));
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                currentIndex = (currentIndex + 1) % styles.length;
+                setStyle(styles[currentIndex]);
+            } else if (e.code === 'KeyR') {
+                e.preventDefault();
+                currentIndex = 0;
+                setStyle(styles[0]);
+            }
+        });
+    </script>
+</body>
+</html>

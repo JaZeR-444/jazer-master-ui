@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Confidence Meter - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            background: rgba(0, 242, 234, 0.1);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        .header {
+            text-align: center;
+            margin: 3rem 0 4rem;
+        }
+
+        .header h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.125rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+        }
+
+        /* Confidence Meter Container */
+        .confidence-meter {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .confidence-meter:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 10px 40px rgba(0, 242, 234, 0.3);
+            transform: scale(1.02);
+        }
+
+        .confidence-meter__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .confidence-meter__title {
+            color: var(--jazer-cyan);
+            font-family: var(--font-primary);
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .confidence-meter__percentage {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-family: var(--font-primary);
+            animation: pulse-number 2s ease-in-out infinite;
+        }
+
+        /* Progress Bar Container */
+        .confidence-bar {
+            position: relative;
+            width: 100%;
+            height: 30px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 20px;
+            overflow: visible;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .confidence-bar__fill {
+            position: relative;
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 20px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.6);
+            overflow: hidden;
+        }
+
+        .confidence-bar__fill::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.3), 
+                transparent
+            );
+            animation: shimmer 2s linear infinite;
+        }
+
+        .confidence-bar__indicator {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-accent);
+            border-radius: 50%;
+            border: 3px solid rgba(10, 10, 10, 0.9);
+            box-shadow: 0 0 20px rgba(255, 0, 110, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 700;
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        /* Confidence Level Labels */
+        .confidence-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .confidence-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .confidence-label__dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .confidence-label__dot--low { background: #ff0080; box-shadow: 0 0 10px #ff0080; }
+        .confidence-label__dot--medium { background: #a855f7; box-shadow: 0 0 10px #a855f7; }
+        .confidence-label__dot--high { background: #00d4ff; box-shadow: 0 0 10px #00d4ff; }
+        .confidence-label__dot--very-high { background: #00ff88; box-shadow: 0 0 10px #00ff88; }
+
+        /* Status Text */
+        .confidence-status {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0, 212, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .confidence-status__label {
+            display: block;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .confidence-status__value {
+            display: block;
+            color: var(--jazer-cyan);
+            font-size: 1.1rem;
+            font-weight: 700;
+            font-family: var(--font-primary);
+        }
+
+        /* Radial Meter Variant */
+        .confidence-radial {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .confidence-radial svg {
+            transform: rotate(-90deg);
+        }
+
+        .confidence-radial__bg {
+            fill: none;
+            stroke: rgba(0, 212, 255, 0.1);
+            stroke-width: 15;
+        }
+
+        .confidence-radial__progress {
+            fill: none;
+            stroke: url(#gradient);
+            stroke-width: 15;
+            stroke-linecap: round;
+            stroke-dasharray: 565.48;
+            stroke-dashoffset: 565.48;
+            transition: stroke-dashoffset 0.5s ease;
+            filter: drop-shadow(0 0 10px var(--jazer-cyan));
+        }
+
+        .confidence-radial__center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .confidence-radial__percentage {
+            font-family: var(--font-primary);
+            font-size: 3rem;
+            font-weight: 700;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        .confidence-radial__label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Animations */
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes pulse-number {
+            0%, 100% { opacity: 0.9; }
+            50% { 
+                opacity: 1; 
+                text-shadow: 0 0 20px rgba(0, 242, 234, 0.6);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .demo-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .confidence-meter {
+                padding: 1.5rem;
+            }
+
+            .confidence-radial {
+                width: 160px;
+                height: 160px;
+            }
+
+            .confidence-radial__percentage {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button" aria-label="Back to AI & Voice Interactions">← Back</a>
+
+    <header class="header">
+        <h1>AI Confidence Meter</h1>
+        <p>Real-time confidence level visualization with progress bars and circular indicators</p>
+    </header>
+
+    <main>
+        <div class="demo-container">
+            
+            <!-- Linear Progress Bar -->
+            <div class="confidence-meter">
+                <div class="confidence-meter__header">
+                    <div class="confidence-meter__title">Confidence Level</div>
+                    <div class="confidence-meter__percentage" id="percentage1">85%</div>
+                </div>
+
+                <div class="confidence-bar">
+                    <div class="confidence-bar__fill" id="confidenceFill1" style="width: 85%;">
+                        <div class="confidence-bar__indicator">✓</div>
+                    </div>
+                </div>
+
+                <div class="confidence-labels">
+                    <div class="confidence-label">
+                        <div class="confidence-label__dot confidence-label__dot--low"></div>
+                        <span>Low</span>
+                    </div>
+                    <div class="confidence-label">
+                        <div class="confidence-label__dot confidence-label__dot--medium"></div>
+                        <span>Medium</span>
+                    </div>
+                    <div class="confidence-label">
+                        <div class="confidence-label__dot confidence-label__dot--high"></div>
+                        <span>High</span>
+                    </div>
+                    <div class="confidence-label">
+                        <div class="confidence-label__dot confidence-label__dot--very-high"></div>
+                        <span>Very High</span>
+                    </div>
+                </div>
+
+                <div class="confidence-status">
+                    <span class="confidence-status__label">AI Assessment</span>
+                    <span class="confidence-status__value" id="statusText1">High Confidence</span>
+                </div>
+            </div>
+
+            <!-- Radial Meter -->
+            <div class="confidence-meter">
+                <div class="confidence-radial">
+                    <svg width="200" height="200">
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color: #00d4ff;" />
+                                <stop offset="50%" style="stop-color: #a855f7;" />
+                                <stop offset="100%" style="stop-color: #ff0080;" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="confidence-radial__bg" cx="100" cy="100" r="90"/>
+                        <circle class="confidence-radial__progress" id="radialProgress" cx="100" cy="100" r="90"/>
+                    </svg>
+                    <div class="confidence-radial__center">
+                        <div class="confidence-radial__percentage" id="radialPercentage">92%</div>
+                        <div class="confidence-radial__label">Confidence</div>
+                    </div>
+                </div>
+
+                <div class="confidence-status">
+                    <span class="confidence-status__label">Prediction Accuracy</span>
+                    <span class="confidence-status__value">Very High Certainty</span>
+                </div>
+            </div>
+
+            <!-- Animated Dynamic Meter -->
+            <div class="confidence-meter">
+                <div class="confidence-meter__header">
+                    <div class="confidence-meter__title">Real-time Analysis</div>
+                    <div class="confidence-meter__percentage" id="percentage3">0%</div>
+                </div>
+
+                <div class="confidence-bar">
+                    <div class="confidence-bar__fill" id="confidenceFill3" style="width: 0%;">
+                        <div class="confidence-bar__indicator">⚡</div>
+                    </div>
+                </div>
+
+                <div class="confidence-labels">
+                    <div class="confidence-label">
+                        <div class="confidence-label__dot confidence-label__dot--low"></div>
+                        <span>0-25%</span>
+                    </div>
+                    <div class="confidence-label">
+                        <div class="confidence-label__dot confidence-label__dot--medium"></div>
+                        <span>25-50%</span>
+                    </div>
+                    <div class="confidence-label">
+                        <div class="confidence-label__dot confidence-label__dot--high"></div>
+                        <span>50-75%</span>
+                    </div>
+                    <div class="confidence-label">
+                        <div class="confidence-label__dot confidence-label__dot--very-high"></div>
+                        <span>75-100%</span>
+                    </div>
+                </div>
+
+                <div class="confidence-status">
+                    <span class="confidence-status__label">Status</span>
+                    <span class="confidence-status__value" id="statusText3">Analyzing...</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Update confidence status based on percentage
+        function getConfidenceStatus(percentage) {
+            if (percentage < 25) return 'Low Confidence';
+            if (percentage < 50) return 'Medium Confidence';
+            if (percentage < 75) return 'High Confidence';
+            return 'Very High Confidence';
+        }
+
+        // Animate radial progress
+        function setRadialProgress(percentage) {
+            const circle = document.getElementById('radialProgress');
+            const circumference = 2 * Math.PI * 90;
+            const offset = circumference - (percentage / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+        }
+
+        // Initialize radial meter
+        setRadialProgress(92);
+
+        // Animate the third meter dynamically
+        let currentConfidence = 0;
+        let increasing = true;
+
+        function animateConfidence() {
+            const fill = document.getElementById('confidenceFill3');
+            const percentage = document.getElementById('percentage3');
+            const status = document.getElementById('statusText3');
+
+            if (increasing) {
+                currentConfidence += 1;
+                if (currentConfidence >= 95) increasing = false;
+            } else {
+                currentConfidence -= 1;
+                if (currentConfidence <= 30) increasing = true;
+            }
+
+            fill.style.width = currentConfidence + '%';
+            percentage.textContent = currentConfidence + '%';
+            status.textContent = getConfidenceStatus(currentConfidence);
+        }
+
+        setInterval(animateConfidence, 50);
+    </script>
+</body>
+</html>

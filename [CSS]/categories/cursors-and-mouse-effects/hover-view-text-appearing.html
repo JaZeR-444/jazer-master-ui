@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hover View Text Appearing - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a, #1a0a2a, #0a1a2a);
+            font-family: var(--font-body);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Custom cursor */
+        .custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease;
+            box-shadow: 0 0 15px var(--jazer-cyan);
+        }
+
+        .custom-cursor.hovering {
+            transform: translate(-50%, -50%) scale(1.5);
+            background: radial-gradient(circle, var(--jazer-pink), var(--jazer-cyan));
+        }
+
+        /* Content area */
+        .content {
+            position: relative;
+            z-index: 1;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+
+        /* Demo area */
+        .demo-area {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-title {
+            font-size: 1.5rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        /* Hover text container */
+        .hover-text-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .hover-trigger {
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 10px;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin: 0.5rem;
+            position: relative;
+        }
+
+        .hover-trigger:hover {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Hover text tooltip */
+        .hover-text {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.9), rgba(255, 0, 255, 0.9));
+            color: #fff;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
+        }
+
+        .hover-text::before {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid rgba(255, 0, 255, 0.9);
+        }
+
+        .hover-trigger:hover .hover-text {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-10px);
+        }
+
+        /* Different positions */
+        .hover-text.top {
+            bottom: calc(100% + 15px);
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .hover-text.top::before {
+            top: auto;
+            bottom: -5px;
+            border-top: 5px solid rgba(255, 0, 255, 0.9);
+            border-bottom: none;
+        }
+
+        .hover-text.bottom {
+            top: calc(100% + 15px);
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .hover-text.bottom::before {
+            top: -5px;
+            bottom: auto;
+            border-bottom: 5px solid rgba(255, 0, 255, 0.9);
+            border-top: none;
+        }
+
+        .hover-text.left {
+            right: calc(100% + 15px);
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .hover-text.left::before {
+            left: auto;
+            right: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-left: 5px solid rgba(255, 0, 255, 0.9);
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-right: none;
+        }
+
+        .hover-text.right {
+            left: calc(100% + 15px);
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .hover-text.right::before {
+            left: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-right: 5px solid rgba(255, 0, 255, 0.9);
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-left: none;
+        }
+
+        /* Interactive demo grid */
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .demo-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .demo-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+        }
+
+        .demo-card h3 {
+            color: var(--jazer-pink);
+            margin-bottom: 1rem;
+        }
+
+        .demo-card p {
+            color: #ccc;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Image hover text */
+        .image-container {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
+            border-radius: 10px;
+            margin: 1rem;
+        }
+
+        .image-container img {
+            width: 200px;
+            height: 150px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .image-container:hover img {
+            transform: scale(1.1);
+        }
+
+        .image-overlay-text {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            color: #fff;
+            padding: 1rem;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .image-container:hover .image-overlay-text {
+            transform: translateY(0);
+        }
+
+        /* Card hover effects */
+        .info-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.2);
+        }
+
+        .info-card-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .info-card-hover-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 3;
+        }
+
+        .info-card:hover .info-card-hover-text {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Controls */
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .controls-title {
+            font-size: 1.3rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-input {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .control-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+        }
+
+        .control-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+            border: none;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            background: linear-gradient(45deg, var(--jazer-purple), var(--jazer-pink));
+            border: none;
+            border-radius: 25px;
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 0, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--jazer-cyan);
+        }
+
+        .btn-secondary:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+        }
+
+        /* Back navigation */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 25px;
+            border: 1px solid var(--jazer-cyan);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back navigation -->
+    <a href="index.html" class="back-button">← Back to Cursors</a>
+
+    <!-- Custom cursor -->
+    <div class="custom-cursor" id="customCursor"></div>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">👁️ Hover View Text Appearing</h1>
+            <p class="subtitle">Contextual text labels that appear on hover with smooth transitions and multiple positioning options</p>
+        </header>
+
+        <!-- Controls -->
+        <div class="controls">
+            <h2 class="controls-title">🎛️ Customize Hover Text</h2>
+            <div class="control-group">
+                <div class="control-item">
+                    <label class="control-label">Animation Speed</label>
+                    <input type="range" class="control-slider" id="animationSpeed" min="100" max="1000" value="300">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Text Size</label>
+                    <input type="range" class="control-slider" id="textSize" min="12" max="24" value="14">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Border Radius</label>
+                    <input type="range" class="control-slider" id="borderRadius" min="0" max="20" value="8">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Background Opacity</label>
+                    <input type="range" class="control-slider" id="bgOpacity" min="50" max="100" value="90">
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Area -->
+        <div class="demo-area">
+            <h2 class="demo-title">🎯 Hover Text Examples</h2>
+            
+            <!-- Basic tooltips -->
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h3 style="color: var(--jazer-pink); margin-bottom: 1.5rem;">Basic Tooltips</h3>
+                <div class="hover-text-container">
+                    <a href="#" class="hover-trigger">
+                        Top Tooltip
+                        <span class="hover-text top">This appears above the element!</span>
+                    </a>
+                </div>
+                <div class="hover-text-container">
+                    <a href="#" class="hover-trigger">
+                        Bottom Tooltip
+                        <span class="hover-text bottom">This appears below the element!</span>
+                    </a>
+                </div>
+                <div class="hover-text-container">
+                    <a href="#" class="hover-trigger">
+                        Left Tooltip
+                        <span class="hover-text left">This appears to the left!</span>
+                    </a>
+                </div>
+                <div class="hover-text-container">
+                    <a href="#" class="hover-trigger">
+                        Right Tooltip
+                        <span class="hover-text right">This appears to the right!</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Interactive cards -->
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <h3>🎨 Design Elements</h3>
+                    <p>Hover over the cards below to see contextual information appear with smooth animations.</p>
+                    
+                    <div class="info-card">
+                        <div class="info-card-content">
+                            <h4 style="color: var(--jazer-cyan);">Color Theory</h4>
+                            <p>Understanding color relationships and harmony</p>
+                        </div>
+                        <div class="info-card-hover-text">
+                            <div>
+                                <h4 style="color: var(--jazer-pink);">🎨 Advanced Concepts</h4>
+                                <p>Learn about complementary colors, triadic schemes, and psychological impact of colors in design.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-card-content">
+                            <h4 style="color: var(--jazer-cyan);">Typography</h4>
+                            <p>The art of arranging type to make written language readable</p>
+                        </div>
+                        <div class="info-card-hover-text">
+                            <div>
+                                <h4 style="color: var(--jazer-pink);">✍️ Pro Tips</h4>
+                                <p>Master font pairing, hierarchy, spacing, and readability for stunning visual communication.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="demo-card">
+                    <h3>🖼️ Image Hover Effects</h3>
+                    <p>Hover over images to reveal additional information and descriptions.</p>
+                    
+                    <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem;">
+                        <div class="image-container">
+                            <img src="https://picsum.photos/seed/abstract1/200/150.jpg" alt="Abstract Art">
+                            <div class="image-overlay-text">
+                                <strong>Abstract Composition</strong><br>
+                                Geometric shapes and vibrant colors
+                            </div>
+                        </div>
+                        
+                        <div class="image-container">
+                            <img src="https://picsum.photos/seed/nature1/200/150.jpg" alt="Nature Scene">
+                            <div class="image-overlay-text">
+                                <strong>Nature Photography</strong><br>
+                                Capturing the beauty of the outdoors
+                            </div>
+                        </div>
+                        
+                        <div class="image-container">
+                            <img src="https://picsum.photos/seed/tech1/200/150.jpg" alt="Technology">
+                            <div class="image-overlay-text">
+                                <strong>Tech Innovation</strong><br>
+                                Cutting-edge technology and design
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="demo-card">
+                    <h3>🔗 Interactive Links</h3>
+                    <p>Enhanced links with contextual hover information for better user experience.</p>
+                    
+                    <div style="text-align: left; max-width: 300px; margin: 0 auto;">
+                        <div class="hover-text-container" style="margin: 1rem 0;">
+                            <a href="#" class="hover-trigger" style="display: block; width: 100%;">
+                                📚 Documentation
+                                <span class="hover-text right">Comprehensive guides and API references</span>
+                            </a>
+                        </div>
+                        
+                        <div class="hover-text-container" style="margin: 1rem 0;">
+                            <a href="#" class="hover-trigger" style="display: block; width: 100%;">
+                                🎮 Examples
+                                <span class="hover-text right">Interactive demos and code samples</span>
+                            </a>
+                        </div>
+                        
+                        <div class="hover-text-container" style="margin: 1rem 0;">
+                            <a href="#" class="hover-trigger" style="display: block; width: 100%;">
+                                💬 Community
+                                <span class="hover-text right">Join our developer community</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+            <button class="btn" id="toggleAnimations">Toggle Animations</button>
+            <button class="btn btn-secondary" id="randomizeColors">Randomize Colors</button>
+            <button class="btn btn-secondary" id="resetSettings">Reset Settings</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        let config = {
+            animationSpeed: 300,
+            textSize: 14,
+            borderRadius: 8,
+            bgOpacity: 90,
+            animationsEnabled: true
+        };
+
+        // Elements
+        const customCursor = document.getElementById('customCursor');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            updateHoverTextStyles();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Mouse movement for custom cursor
+            document.addEventListener('mousemove', (e) => {
+                customCursor.style.left = e.clientX + 'px';
+                customCursor.style.top = e.clientY + 'px';
+            });
+
+            // Hover effects for cursor
+            document.querySelectorAll('.hover-trigger, .info-card, .image-container').forEach(element => {
+                element.addEventListener('mouseenter', () => {
+                    customCursor.classList.add('hovering');
+                });
+                
+                element.addEventListener('mouseleave', () => {
+                    customCursor.classList.remove('hovering');
+                });
+            });
+
+            // Control inputs
+            document.getElementById('animationSpeed').addEventListener('input', (e) => {
+                config.animationSpeed = parseInt(e.target.value);
+                updateHoverTextStyles();
+            });
+            
+            document.getElementById('textSize').addEventListener('input', (e) => {
+                config.textSize = parseInt(e.target.value);
+                updateHoverTextStyles();
+            });
+            
+            document.getElementById('borderRadius').addEventListener('input', (e) => {
+                config.borderRadius = parseInt(e.target.value);
+                updateHoverTextStyles();
+            });
+            
+            document.getElementById('bgOpacity').addEventListener('input', (e) => {
+                config.bgOpacity = parseInt(e.target.value);
+                updateHoverTextStyles();
+            });
+
+            // Action buttons
+            document.getElementById('toggleAnimations').addEventListener('click', toggleAnimations);
+            document.getElementById('randomizeColors').addEventListener('click', randomizeColors);
+            document.getElementById('resetSettings').addEventListener('click', resetSettings);
+        }
+
+        // Update hover text styles
+        function updateHoverTextStyles() {
+            const hoverTexts = document.querySelectorAll('.hover-text');
+            const transitionDuration = config.animationsEnabled ? config.animationSpeed + 'ms' : '0ms';
+            
+            hoverTexts.forEach(hoverText => {
+                hoverText.style.transition = `all ${transitionDuration} ease`;
+                hoverText.style.fontSize = config.textSize + 'px';
+                hoverText.style.borderRadius = config.borderRadius + 'px';
+                hoverText.style.background = `linear-gradient(135deg, rgba(0, 255, 255, ${config.bgOpacity / 100}), rgba(255, 0, 255, ${config.bgOpacity / 100}))`;
+            });
+
+            // Update image overlay text
+            const imageOverlays = document.querySelectorAll('.image-overlay-text');
+            imageOverlays.forEach(overlay => {
+                overlay.style.transition = `transform ${transitionDuration} ease`;
+            });
+
+            // Update info card hover text
+            const infoCardHovers = document.querySelectorAll('.info-card-hover-text');
+            infoCardHovers.forEach(hover => {
+                hover.style.transition = `all ${transitionDuration} ease`;
+            });
+        }
+
+        // Toggle animations
+        function toggleAnimations() {
+            config.animationsEnabled = !config.animationsEnabled;
+            const btn = document.getElementById('toggleAnimations');
+            btn.textContent = config.animationsEnabled ? 'Disable Animations' : 'Enable Animations';
+            updateHoverTextStyles();
+        }
+
+        // Randomize colors
+        function randomizeColors() {
+            const randomColor = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            const color1 = randomColor();
+            const color2 = randomColor();
+            
+            const hoverTexts = document.querySelectorAll('.hover-text');
+            hoverTexts.forEach(hoverText => {
+                hoverText.style.background = `linear-gradient(135deg, ${color1}${Math.floor(config.bgOpacity * 2.55).toString(16)}, ${color2}${Math.floor(config.bgOpacity * 2.55).toString(16)})`;
+            });
+        }
+
+        // Reset settings
+        function resetSettings() {
+            config = {
+                animationSpeed: 300,
+                textSize: 14,
+                borderRadius: 8,
+                bgOpacity: 90,
+                animationsEnabled: true
+            };
+            
+            // Update UI controls
+            document.getElementById('animationSpeed').value = config.animationSpeed;
+            document.getElementById('textSize').value = config.textSize;
+            document.getElementById('borderRadius').value = config.borderRadius;
+            document.getElementById('bgOpacity').value = config.bgOpacity;
+            
+            const btn = document.getElementById('toggleAnimations');
+            btn.textContent = 'Disable Animations';
+            
+            updateHoverTextStyles();
+        }
+
+        // Add smooth scroll behavior
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

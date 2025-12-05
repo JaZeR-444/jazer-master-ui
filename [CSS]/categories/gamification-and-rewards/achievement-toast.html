@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Achievement Toast Sound Wave</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 0.5rem;
+            font-family: var(--font-primary);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .back-button {
+            display: inline-block;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 2px solid var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.1);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--bg-dark);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(6, 182, 212, 0.1));
+            border: 2px solid var(--jazer-purple);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-group label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-group select,
+        .control-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 2px solid var(--jazer-purple);
+            background: rgba(0, 0, 0, 0.4);
+            color: var(--text-light);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-group select:hover,
+        .control-group input:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+
+        /* Demo Area */
+        .demo-area {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(147, 51, 234, 0.1));
+            border: 2px solid var(--jazer-pink);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Toast Container */
+        .toast-container {
+            position: fixed;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .toast-container.top-right {
+            top: 20px;
+            right: 20px;
+        }
+
+        .toast-container.top-left {
+            top: 20px;
+            left: 20px;
+        }
+
+        .toast-container.bottom-right {
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .toast-container.bottom-left {
+            bottom: 20px;
+            left: 20px;
+        }
+
+        .toast-container.top-center {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Toast Base */
+        .achievement-toast {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            pointer-events: auto;
+            position: relative;
+            overflow: hidden;
+            min-width: 320px;
+            max-width: 400px;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .achievement-toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .achievement-toast.hide {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+
+        /* Toast Styles */
+        .achievement-toast[data-style="neon"] {
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.2), rgba(0, 255, 136, 0.1));
+            border: 2px solid var(--jazer-cyan);
+            box-shadow: 0 0 30px rgba(0, 242, 234, 0.3),
+                        inset 0 0 30px rgba(0, 242, 234, 0.05);
+        }
+
+        .achievement-toast[data-style="gold"] {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 140, 0, 0.1));
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3),
+                        inset 0 0 30px rgba(255, 215, 0, 0.05);
+        }
+
+        .achievement-toast[data-style="purple"] {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(255, 0, 110, 0.1));
+            border: 2px solid var(--jazer-purple);
+            box-shadow: 0 0 30px rgba(147, 51, 234, 0.3),
+                        inset 0 0 30px rgba(147, 51, 234, 0.05);
+        }
+
+        .achievement-toast[data-style="fire"] {
+            background: linear-gradient(135deg, rgba(255, 100, 0, 0.2), rgba(255, 50, 0, 0.1));
+            border: 2px solid #ff6400;
+            box-shadow: 0 0 30px rgba(255, 100, 0, 0.3),
+                        inset 0 0 30px rgba(255, 100, 0, 0.05);
+        }
+
+        .achievement-toast[data-style="ice"] {
+            background: linear-gradient(135deg, rgba(100, 200, 255, 0.2), rgba(200, 230, 255, 0.1));
+            border: 2px solid #64c8ff;
+            box-shadow: 0 0 30px rgba(100, 200, 255, 0.3),
+                        inset 0 0 30px rgba(100, 200, 255, 0.05);
+        }
+
+        /* Toast Icon */
+        .toast-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .achievement-toast[data-style="neon"] .toast-icon {
+            background: linear-gradient(135deg, var(--jazer-cyan), #00ff88);
+        }
+
+        .achievement-toast[data-style="gold"] .toast-icon {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+        }
+
+        .achievement-toast[data-style="purple"] .toast-icon {
+            background: linear-gradient(135deg, var(--jazer-purple), var(--jazer-pink));
+        }
+
+        .achievement-toast[data-style="fire"] .toast-icon {
+            background: linear-gradient(135deg, #ff6400, #ff0000);
+        }
+
+        .achievement-toast[data-style="ice"] .toast-icon {
+            background: linear-gradient(135deg, #64c8ff, #c8e6ff);
+        }
+
+        /* Icon Animation */
+        .toast-icon::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transform: translateX(-100%);
+            animation: iconShine 2s ease-in-out infinite;
+        }
+
+        @keyframes iconShine {
+            0%, 100% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+        }
+
+        /* Toast Content */
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.7;
+            margin-bottom: 0.25rem;
+        }
+
+        .toast-title {
+            font-family: var(--font-primary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .toast-description {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .toast-xp {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #00ff88;
+            margin-top: 0.25rem;
+        }
+
+        /* Sound Wave Effect */
+        .sound-wave {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 3px;
+            align-items: center;
+            height: 30px;
+        }
+
+        .wave-bar {
+            width: 4px;
+            background: currentColor;
+            border-radius: 2px;
+            animation: waveAnim 0.8s ease-in-out infinite;
+        }
+
+        .wave-bar:nth-child(1) { animation-delay: 0s; height: 30%; }
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; height: 60%; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; height: 100%; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; height: 60%; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; height: 30%; }
+
+        @keyframes waveAnim {
+            0%, 100% { transform: scaleY(0.5); }
+            50% { transform: scaleY(1); }
+        }
+
+        /* Progress Bar */
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: currentColor;
+            border-radius: 0 0 16px 16px;
+            animation: progressShrink var(--toast-duration, 5s) linear forwards;
+        }
+
+        @keyframes progressShrink {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        /* Close Button */
+        .toast-close {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        .achievement-toast:hover .toast-close {
+            opacity: 1;
+        }
+
+        .toast-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* Trigger Button */
+        .trigger-btn {
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 25px rgba(6, 182, 212, 0.4);
+        }
+
+        .trigger-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(6, 182, 212, 0.6);
+        }
+
+        /* Info Panel */
+        .info-panel {
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.1), rgba(147, 51, 234, 0.1));
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--jazer-pink);
+        }
+
+        /* Achievement Preview */
+        .achievement-preview {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 2rem;
+        }
+
+        .preview-toast {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Showcase */
+        .showcase {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .showcase h3 {
+            text-align: center;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .achievement-card {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--jazer-cyan);
+        }
+
+        .achievement-card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .achievement-card-content {
+            flex: 1;
+        }
+
+        .achievement-card-title {
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .achievement-card-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .control-panel { grid-template-columns: 1fr 1fr; }
+            .achievement-toast {
+                min-width: 280px;
+                max-width: 320px;
+            }
+            .toast-container.top-center {
+                width: 95%;
+                left: 2.5%;
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+
+    <div class="header">
+        <h1>Achievement Toast Sound Wave</h1>
+        <p class="subtitle">Animated achievement notifications with sound wave effects</p>
+    </div>
+
+    <div class="control-panel">
+        <div class="control-group">
+            <label>Style</label>
+            <select id="toastStyle">
+                <option value="neon" selected>Neon Cyan</option>
+                <option value="gold">Golden</option>
+                <option value="purple">Purple</option>
+                <option value="fire">Fire</option>
+                <option value="ice">Ice</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Position</label>
+            <select id="toastPosition">
+                <option value="top-right" selected>Top Right</option>
+                <option value="top-left">Top Left</option>
+                <option value="top-center">Top Center</option>
+                <option value="bottom-right">Bottom Right</option>
+                <option value="bottom-left">Bottom Left</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Duration (sec)</label>
+            <input type="number" id="toastDuration" value="5" min="2" max="15">
+        </div>
+        <div class="control-group">
+            <label>Sound Wave</label>
+            <select id="showWave">
+                <option value="true" selected>Show</option>
+                <option value="false">Hide</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <div class="info-item">
+            <div class="info-label">Toasts Shown</div>
+            <div class="info-value" id="toastCount">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Total XP</div>
+            <div class="info-value" id="totalXP">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Active</div>
+            <div class="info-value" id="activeCount">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Style</div>
+            <div class="info-value" id="styleDisplay">Neon</div>
+        </div>
+    </div>
+
+    <div class="demo-area">
+        <div class="achievement-preview">
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1rem;">
+                Click the button or press Space to trigger achievements
+            </p>
+        </div>
+        <button class="trigger-btn" id="triggerBtn">Unlock Achievement</button>
+    </div>
+
+    <div class="showcase">
+        <h3>Achievement Types</h3>
+        <div class="achievement-grid">
+            <div class="achievement-card" onclick="triggerSpecific('first-blood', 'First Blood', 'Score your first point', 100, 'neon')">
+                <div class="achievement-card-icon" style="background: linear-gradient(135deg, var(--jazer-cyan), #00ff88);">&#9876;</div>
+                <div class="achievement-card-content">
+                    <div class="achievement-card-title">First Blood</div>
+                    <div class="achievement-card-desc">Score your first point</div>
+                </div>
+            </div>
+            <div class="achievement-card" onclick="triggerSpecific('collector', 'Collector', 'Gather 100 items', 250, 'gold')">
+                <div class="achievement-card-icon" style="background: linear-gradient(135deg, #ffd700, #ff8c00);">&#128176;</div>
+                <div class="achievement-card-content">
+                    <div class="achievement-card-title">Collector</div>
+                    <div class="achievement-card-desc">Gather 100 items</div>
+                </div>
+            </div>
+            <div class="achievement-card" onclick="triggerSpecific('speedster', 'Speedster', 'Complete in under 60 seconds', 500, 'fire')">
+                <div class="achievement-card-icon" style="background: linear-gradient(135deg, #ff6400, #ff0000);">&#9889;</div>
+                <div class="achievement-card-content">
+                    <div class="achievement-card-title">Speedster</div>
+                    <div class="achievement-card-desc">Complete in under 60 seconds</div>
+                </div>
+            </div>
+            <div class="achievement-card" onclick="triggerSpecific('perfectionist', 'Perfectionist', 'Achieve 100% completion', 1000, 'purple')">
+                <div class="achievement-card-icon" style="background: linear-gradient(135deg, var(--jazer-purple), var(--jazer-pink));">&#11088;</div>
+                <div class="achievement-card-content">
+                    <div class="achievement-card-title">Perfectionist</div>
+                    <div class="achievement-card-desc">Achieve 100% completion</div>
+                </div>
+            </div>
+            <div class="achievement-card" onclick="triggerSpecific('survivor', 'Survivor', 'Survive for 10 minutes', 300, 'ice')">
+                <div class="achievement-card-icon" style="background: linear-gradient(135deg, #64c8ff, #c8e6ff);">&#10052;</div>
+                <div class="achievement-card-content">
+                    <div class="achievement-card-title">Survivor</div>
+                    <div class="achievement-card-desc">Survive for 10 minutes</div>
+                </div>
+            </div>
+            <div class="achievement-card" onclick="triggerSpecific('legend', 'Legend', 'Reach max level', 2000, 'gold')">
+                <div class="achievement-card-icon" style="background: linear-gradient(135deg, #ffd700, #ff8c00);">&#127942;</div>
+                <div class="achievement-card-content">
+                    <div class="achievement-card-title">Legend</div>
+                    <div class="achievement-card-desc">Reach max level</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container top-right" id="toastContainer"></div>
+
+    <script>
+        // Achievement data
+        const achievements = [
+            { id: 'first-win', icon: '&#127942;', title: 'First Victory', desc: 'Win your first game', xp: 100 },
+            { id: 'streak-3', icon: '&#128293;', title: 'On Fire', desc: 'Win 3 games in a row', xp: 250 },
+            { id: 'explorer', icon: '&#127758;', title: 'Explorer', desc: 'Visit all areas', xp: 150 },
+            { id: 'master', icon: '&#11088;', title: 'Master', desc: 'Reach level 50', xp: 500 },
+            { id: 'social', icon: '&#129309;', title: 'Social Butterfly', desc: 'Add 10 friends', xp: 200 },
+            { id: 'collector', icon: '&#128142;', title: 'Gem Collector', desc: 'Collect 1000 gems', xp: 300 }
+        ];
+
+        let toastCount = 0;
+        let totalXP = 0;
+        let activeToasts = 0;
+
+        // DOM Elements
+        const toastContainer = document.getElementById('toastContainer');
+        const toastStyleSelect = document.getElementById('toastStyle');
+        const toastPositionSelect = document.getElementById('toastPosition');
+        const toastDurationInput = document.getElementById('toastDuration');
+        const showWaveSelect = document.getElementById('showWave');
+        const triggerBtn = document.getElementById('triggerBtn');
+
+        // Create toast
+        function createToast(achievement, style) {
+            const toast = document.createElement('div');
+            toast.className = 'achievement-toast';
+            toast.dataset.style = style || toastStyleSelect.value;
+            
+            const duration = parseInt(toastDurationInput.value);
+            toast.style.setProperty('--toast-duration', duration + 's');
+
+            const showWave = showWaveSelect.value === 'true';
+            const waveHTML = showWave ? `
+                <div class="sound-wave">
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                </div>
+            ` : '';
+
+            toast.innerHTML = `
+                <button class="toast-close" onclick="closeToast(this.parentElement)">&times;</button>
+                <div class="toast-icon">${achievement.icon}</div>
+                <div class="toast-content">
+                    <div class="toast-label">Achievement Unlocked</div>
+                    <div class="toast-title">${achievement.title}</div>
+                    <div class="toast-description">${achievement.desc}</div>
+                    <div class="toast-xp">+${achievement.xp} XP</div>
+                </div>
+                ${waveHTML}
+                <div class="toast-progress"></div>
+            `;
+
+            toastContainer.appendChild(toast);
+            activeToasts++;
+            updateDisplay();
+
+            // Trigger animation
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+
+            // Auto remove
+            setTimeout(() => {
+                closeToast(toast);
+            }, duration * 1000);
+
+            return toast;
+        }
+
+        // Close toast
+        function closeToast(toast) {
+            if (!toast || toast.classList.contains('hide')) return;
+            
+            toast.classList.remove('show');
+            toast.classList.add('hide');
+            activeToasts = Math.max(0, activeToasts - 1);
+            updateDisplay();
+
+            setTimeout(() => {
+                toast.remove();
+            }, 500);
+        }
+
+        // Trigger random achievement
+        function triggerAchievement() {
+            const achievement = achievements[Math.floor(Math.random() * achievements.length)];
+            createToast(achievement);
+            
+            toastCount++;
+            totalXP += achievement.xp;
+            updateDisplay();
+        }
+
+        // Trigger specific achievement
+        function triggerSpecific(id, title, desc, xp, style) {
+            const icons = {
+                'first-blood': '&#9876;',
+                'collector': '&#128176;',
+                'speedster': '&#9889;',
+                'perfectionist': '&#11088;',
+                'survivor': '&#10052;',
+                'legend': '&#127942;'
+            };
+
+            createToast({
+                id: id,
+                icon: icons[id] || '&#127942;',
+                title: title,
+                desc: desc,
+                xp: xp
+            }, style);
+
+            toastCount++;
+            totalXP += xp;
+            updateDisplay();
+        }
+
+        // Update display
+        function updateDisplay() {
+            document.getElementById('toastCount').textContent = toastCount;
+            document.getElementById('totalXP').textContent = totalXP.toLocaleString();
+            document.getElementById('activeCount').textContent = activeToasts;
+            document.getElementById('styleDisplay').textContent = 
+                toastStyleSelect.options[toastStyleSelect.selectedIndex].text;
+        }
+
+        // Update position
+        function updatePosition() {
+            const position = toastPositionSelect.value;
+            toastContainer.className = 'toast-container ' + position;
+        }
+
+        // Event listeners
+        triggerBtn.addEventListener('click', triggerAchievement);
+        toastPositionSelect.addEventListener('change', updatePosition);
+        toastStyleSelect.addEventListener('change', updateDisplay);
+
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                triggerAchievement();
+            }
+        });
+
+        // Initialize
+        updateDisplay();
+    </script>
+</body>
+</html>

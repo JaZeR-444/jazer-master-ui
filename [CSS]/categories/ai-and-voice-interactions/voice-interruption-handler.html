@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Interruption Handler - AI & Voice Interactions</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.1rem;
+        }
+
+        .demo-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 3rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .interruption-banner {
+            background: linear-gradient(135deg, rgba(255, 68, 68, 0.2), rgba(204, 0, 0, 0.2));
+            border: 2px solid #ff4444;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            text-align: center;
+            animation: banner-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes banner-pulse {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(255, 68, 68, 0.6);
+            }
+        }
+
+        .banner-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .banner-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ff4444;
+            margin-bottom: 0.5rem;
+        }
+
+        .banner-message {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .scenario-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(6, 182, 212, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--jazer-cyan);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);
+        }
+
+        .scenario-card.warning {
+            border-color: rgba(255, 193, 7, 0.5);
+        }
+
+        .scenario-card.error {
+            border-color: rgba(255, 68, 68, 0.5);
+        }
+
+        .scenario-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1rem;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+        }
+
+        .scenario-card.warning .scenario-icon {
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
+        }
+
+        .scenario-card.error .scenario-icon {
+            background: linear-gradient(135deg, #ff4444, #cc0000);
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
+        }
+
+        .scenario-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .scenario-description {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-align: center;
+        }
+
+        .handler-controls {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(6, 182, 212, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+        }
+
+        .controls-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .control-button {
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient-primary);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+        }
+
+        .control-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.6);
+        }
+
+        .control-button.resume {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-neon-green));
+        }
+
+        .control-button.cancel {
+            background: linear-gradient(135deg, #ff4444, #cc0000);
+            border-color: #ff4444;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            background: #ffc107;
+            border-radius: 50%;
+            animation: status-blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes status-blink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .status-text {
+            color: #ffc107;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    
+    <div class="header">
+        <h1>Voice Interruption Handler</h1>
+        <p>Manage and handle voice input interruptions gracefully</p>
+    </div>
+
+    <div class="demo-container">
+        <div class="interruption-banner">
+            <div class="banner-icon">⚠️</div>
+            <div class="banner-title">Voice Input Interrupted</div>
+            <div class="banner-message">An interruption was detected. Choose how to proceed.</div>
+        </div>
+
+        <div class="scenarios-grid">
+            <div class="scenario-card">
+                <div class="scenario-icon">📢</div>
+                <div class="scenario-title">Background Noise</div>
+                <div class="scenario-description">External sounds detected</div>
+            </div>
+
+            <div class="scenario-card warning">
+                <div class="scenario-icon">🔊</div>
+                <div class="scenario-title">Volume Spike</div>
+                <div class="scenario-description">Sudden volume change</div>
+            </div>
+
+            <div class="scenario-card error">
+                <div class="scenario-icon">🚫</div>
+                <div class="scenario-title">Signal Lost</div>
+                <div class="scenario-description">Input connection dropped</div>
+            </div>
+
+            <div class="scenario-card warning">
+                <div class="scenario-icon">⏸️</div>
+                <div class="scenario-title">User Paused</div>
+                <div class="scenario-description">Extended silence detected</div>
+            </div>
+        </div>
+
+        <div class="handler-controls">
+            <div class="controls-title">Interruption Actions</div>
+            <div class="control-buttons">
+                <button class="control-button resume">Resume Recording</button>
+                <button class="control-button">Retry</button>
+                <button class="control-button cancel">Cancel</button>
+            </div>
+
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <div class="status-text">Waiting for user input...</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

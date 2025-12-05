@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Status Dashboard - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%); 
+            min-height: 100vh; 
+            padding: 2rem; 
+            color: white; 
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        /* Header */
+        .back-button { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            padding: 0.75rem 1.5rem; 
+            border: 2px solid var(--jazer-cyan); 
+            border-radius: 12px; 
+            background: rgba(0, 255, 255, 0.1); 
+            transition: all 0.3s ease; 
+            margin-bottom: 2rem; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: #0a0a0a; 
+            transform: translateX(-5px); 
+        }
+        
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 3rem 2rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.1) 0%, rgba(147, 51, 234, 0.1) 50%, rgba(0, 255, 136, 0.1) 100%);
+            border-radius: 24px;
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--jazer-cyan), var(--jazer-purple), #00ff88, transparent);
+        }
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            background: linear-gradient(135deg, #00f2ea, #9333ea, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 60px rgba(0, 242, 234, 0.5);
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+        .control-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            background: rgba(0, 242, 234, 0.1);
+            color: var(--jazer-cyan);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-secondary);
+        }
+        .control-btn:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 242, 234, 0.3);
+        }
+        .control-btn.active {
+            background: #00ff88;
+            border-color: #00ff88;
+            color: #0a0a0a;
+        }
+        
+        /* Grid Layout */
+        .styles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+        
+        /* Style Card */
+        .style-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 20px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .style-card:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 40px rgba(0, 242, 234, 0.2);
+            transform: translateY(-5px);
+        }
+        .style-label {
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: var(--jazer-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .style-label::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--jazer-cyan);
+        }
+        
+        .demo-area {
+            min-height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Status Colors */
+        :root {
+            --status-operational: #00ff88;
+            --status-degraded: #ffaa00;
+            --status-outage: #ff006e;
+            --status-maintenance: #9333ea;
+        }
+
+        /* ==================== STYLE 1: Service Grid ==================== */
+        .status-grid {
+            width: 100%;
+        }
+        .status-grid__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .status-grid__title {
+            font-weight: 600;
+            color: white;
+        }
+        .status-grid__badge {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.75rem;
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid var(--status-operational);
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: var(--status-operational);
+        }
+        .status-grid__badge-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--status-operational);
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .status-grid__items {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        .status-grid__item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .status-grid__dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .status-grid__dot--operational { background: var(--status-operational); box-shadow: 0 0 10px var(--status-operational); }
+        .status-grid__dot--degraded { background: var(--status-degraded); box-shadow: 0 0 10px var(--status-degraded); }
+        .status-grid__dot--outage { background: var(--status-outage); box-shadow: 0 0 10px var(--status-outage); }
+        .status-grid__name {
+            flex: 1;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .status-grid__uptime {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* ==================== STYLE 2: Status List ==================== */
+        .status-list {
+            width: 100%;
+        }
+        .status-list__header {
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 0.75rem;
+        }
+        .status-list__title {
+            font-size: 0.9rem;
+            color: white;
+            font-weight: 600;
+        }
+        .status-list__time {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .status-list__items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .status-list__item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem;
+            border-radius: 6px;
+            transition: background 0.3s ease;
+        }
+        .status-list__item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .status-list__icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+        .status-list__icon--operational { background: rgba(0, 255, 136, 0.2); color: var(--status-operational); }
+        .status-list__icon--degraded { background: rgba(255, 170, 0, 0.2); color: var(--status-degraded); }
+        .status-list__icon--outage { background: rgba(255, 0, 110, 0.2); color: var(--status-outage); }
+        .status-list__name {
+            flex: 1;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .status-list__status {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-list__status--operational { background: rgba(0, 255, 136, 0.15); color: var(--status-operational); }
+        .status-list__status--degraded { background: rgba(255, 170, 0, 0.15); color: var(--status-degraded); }
+        .status-list__status--outage { background: rgba(255, 0, 110, 0.15); color: var(--status-outage); }
+
+        /* ==================== STYLE 3: Uptime Bars ==================== */
+        .status-uptime {
+            width: 100%;
+        }
+        .status-uptime__header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .status-uptime__title {
+            font-size: 0.9rem;
+            color: white;
+            font-weight: 600;
+        }
+        .status-uptime__percent {
+            font-size: 0.85rem;
+            color: var(--status-operational);
+            font-family: var(--font-secondary);
+        }
+        .status-uptime__items {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .status-uptime__item {
+        }
+        .status-uptime__item-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.4rem;
+        }
+        .status-uptime__name {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .status-uptime__value {
+            font-size: 0.75rem;
+            color: var(--status-operational);
+            font-family: var(--font-secondary);
+        }
+        .status-uptime__bar {
+            display: flex;
+            gap: 2px;
+            height: 20px;
+        }
+        .status-uptime__segment {
+            flex: 1;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        .status-uptime__segment--operational { background: var(--status-operational); }
+        .status-uptime__segment--degraded { background: var(--status-degraded); }
+        .status-uptime__segment--outage { background: var(--status-outage); }
+        .status-uptime__segment:hover {
+            transform: scaleY(1.2);
+        }
+
+        /* ==================== STYLE 4: Metrics Cards ==================== */
+        .status-metrics {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        .status-metrics__card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+        .status-metrics__icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .status-metrics__value {
+            font-family: var(--font-primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        .status-metrics__value--good { color: var(--status-operational); }
+        .status-metrics__value--warning { color: var(--status-degraded); }
+        .status-metrics__value--bad { color: var(--status-outage); }
+        .status-metrics__label {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ==================== STYLE 5: Timeline Events ==================== */
+        .status-timeline {
+            width: 100%;
+        }
+        .status-timeline__header {
+            font-size: 0.9rem;
+            color: white;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .status-timeline__events {
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        .status-timeline__events::before {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .status-timeline__event {
+            position: relative;
+            padding-bottom: 1rem;
+        }
+        .status-timeline__event:last-child { padding-bottom: 0; }
+        .status-timeline__dot {
+            position: absolute;
+            left: -1.5rem;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid;
+        }
+        .status-timeline__dot--operational { 
+            background: var(--status-operational); 
+            border-color: var(--status-operational); 
+        }
+        .status-timeline__dot--degraded { 
+            background: var(--status-degraded); 
+            border-color: var(--status-degraded); 
+        }
+        .status-timeline__dot--outage { 
+            background: var(--status-outage); 
+            border-color: var(--status-outage); 
+        }
+        .status-timeline__content {
+        }
+        .status-timeline__title {
+            font-size: 0.85rem;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+        .status-timeline__time {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* ==================== STYLE 6: Compact Status ==================== */
+        .status-compact {
+            width: 100%;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.05) 0%, rgba(0, 50, 30, 0.3) 100%);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        .status-compact__main {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .status-compact__indicator {
+            width: 50px;
+            height: 50px;
+            background: var(--status-operational);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+            animation: pulse-glow 2s infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 136, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(0, 255, 136, 0.6); }
+        }
+        .status-compact__info {
+            flex: 1;
+        }
+        .status-compact__title {
+            font-size: 1.1rem;
+            color: var(--status-operational);
+            font-weight: 600;
+        }
+        .status-compact__subtitle {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .status-compact__details {
+            display: flex;
+            gap: 1rem;
+        }
+        .status-compact__detail {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .status-compact__detail span {
+            color: var(--status-operational);
+            font-weight: 600;
+        }
+
+        /* ==================== STYLE 7: Multi-Region ==================== */
+        .status-regions {
+            width: 100%;
+        }
+        .status-regions__header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .status-regions__title {
+            font-size: 0.9rem;
+            color: white;
+            font-weight: 600;
+        }
+        .status-regions__legend {
+            display: flex;
+            gap: 0.75rem;
+        }
+        .status-regions__legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .status-regions__legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .status-regions__grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+        .status-regions__region {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .status-regions__region:hover {
+            transform: translateY(-2px);
+            border-color: rgba(0, 242, 234, 0.3);
+        }
+        .status-regions__flag {
+            font-size: 1.2rem;
+            margin-bottom: 0.25rem;
+        }
+        .status-regions__name {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.25rem;
+        }
+        .status-regions__status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin: 0 auto;
+        }
+
+        /* ==================== STYLE 8: Cyberpunk Dashboard ==================== */
+        .status-cyberpunk {
+            width: 100%;
+            background: linear-gradient(135deg, rgba(0, 10, 20, 0.9) 0%, rgba(20, 0, 40, 0.9) 100%);
+            border: 1px solid var(--jazer-cyan);
+            position: relative;
+            padding: 1rem;
+        }
+        .status-cyberpunk::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--jazer-cyan), var(--jazer-purple), transparent);
+        }
+        .status-cyberpunk__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(0, 242, 234, 0.2);
+        }
+        .status-cyberpunk__title {
+            font-family: var(--font-secondary);
+            font-size: 0.7rem;
+            color: var(--jazer-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .status-cyberpunk__live {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.65rem;
+            color: var(--status-operational);
+        }
+        .status-cyberpunk__live-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--status-operational);
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+        .status-cyberpunk__grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .status-cyberpunk__metric {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.75rem;
+            border-left: 2px solid var(--jazer-cyan);
+        }
+        .status-cyberpunk__metric-label {
+            font-size: 0.6rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.25rem;
+        }
+        .status-cyberpunk__metric-value {
+            font-family: var(--font-primary);
+            font-size: 1.2rem;
+            color: var(--jazer-cyan);
+        }
+        .status-cyberpunk__console {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            color: rgba(0, 242, 234, 0.7);
+            max-height: 60px;
+            overflow: hidden;
+        }
+        .status-cyberpunk__log {
+            margin-bottom: 0.25rem;
+        }
+        .status-cyberpunk__log-time {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        .status-cyberpunk__log--success { color: var(--status-operational); }
+        .status-cyberpunk__log--warning { color: var(--status-degraded); }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            margin-top: 3rem;
+            border-top: 1px solid rgba(0, 242, 234, 0.2);
+        }
+        footer p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+        .keyboard-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--jazer-cyan);
+        }
+        .keyboard-hint kbd {
+            background: rgba(0, 242, 234, 0.2);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .styles-grid { grid-template-columns: 1fr; }
+            .hero { padding: 2rem 1rem; }
+            .hero h1 { font-size: 2rem; }
+            .controls { gap: 0.5rem; }
+            .control-btn { padding: 0.5rem 1rem; font-size: 0.85rem; }
+            .status-grid__items { grid-template-columns: 1fr; }
+            .status-metrics { grid-template-columns: 1fr; }
+            .status-regions__grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back</a>
+        
+        <div class="hero">
+            <h1>System Status Dashboard</h1>
+            <p>8 stylish system status and health monitoring dashboards</p>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn active" onclick="setAllOperational()">All Operational</button>
+            <button class="control-btn" onclick="simulateIssue()">Simulate Issue</button>
+            <button class="control-btn" onclick="refreshStatus()">Refresh</button>
+        </div>
+
+        <div class="styles-grid">
+            <!-- Style 1: Service Grid -->
+            <div class="style-card">
+                <div class="style-label">Service Grid</div>
+                <div class="demo-area">
+                    <div class="status-grid">
+                        <div class="status-grid__header">
+                            <span class="status-grid__title">Service Status</span>
+                            <div class="status-grid__badge">
+                                <div class="status-grid__badge-dot"></div>
+                                All Systems Operational
+                            </div>
+                        </div>
+                        <div class="status-grid__items">
+                            <div class="status-grid__item">
+                                <div class="status-grid__dot status-grid__dot--operational"></div>
+                                <span class="status-grid__name">API Server</span>
+                                <span class="status-grid__uptime">99.9%</span>
+                            </div>
+                            <div class="status-grid__item">
+                                <div class="status-grid__dot status-grid__dot--operational"></div>
+                                <span class="status-grid__name">Database</span>
+                                <span class="status-grid__uptime">99.8%</span>
+                            </div>
+                            <div class="status-grid__item">
+                                <div class="status-grid__dot status-grid__dot--operational"></div>
+                                <span class="status-grid__name">CDN</span>
+                                <span class="status-grid__uptime">100%</span>
+                            </div>
+                            <div class="status-grid__item">
+                                <div class="status-grid__dot status-grid__dot--operational" id="auth-dot"></div>
+                                <span class="status-grid__name">Auth Service</span>
+                                <span class="status-grid__uptime">99.7%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 2: Status List -->
+            <div class="style-card">
+                <div class="style-label">Status List</div>
+                <div class="demo-area">
+                    <div class="status-list">
+                        <div class="status-list__header">
+                            <span class="status-list__title">Current Status</span>
+                            <span class="status-list__time">Updated 30s ago</span>
+                        </div>
+                        <div class="status-list__items">
+                            <div class="status-list__item">
+                                <div class="status-list__icon status-list__icon--operational">✓</div>
+                                <span class="status-list__name">Web Application</span>
+                                <span class="status-list__status status-list__status--operational">Operational</span>
+                            </div>
+                            <div class="status-list__item">
+                                <div class="status-list__icon status-list__icon--operational">✓</div>
+                                <span class="status-list__name">API Endpoints</span>
+                                <span class="status-list__status status-list__status--operational">Operational</span>
+                            </div>
+                            <div class="status-list__item" id="storage-item">
+                                <div class="status-list__icon status-list__icon--operational" id="storage-icon">✓</div>
+                                <span class="status-list__name">Storage Service</span>
+                                <span class="status-list__status status-list__status--operational" id="storage-status">Operational</span>
+                            </div>
+                            <div class="status-list__item">
+                                <div class="status-list__icon status-list__icon--operational">✓</div>
+                                <span class="status-list__name">Background Jobs</span>
+                                <span class="status-list__status status-list__status--operational">Operational</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 3: Uptime Bars -->
+            <div class="style-card">
+                <div class="style-label">Uptime History</div>
+                <div class="demo-area">
+                    <div class="status-uptime">
+                        <div class="status-uptime__header">
+                            <span class="status-uptime__title">90-Day Uptime</span>
+                            <span class="status-uptime__percent">99.95%</span>
+                        </div>
+                        <div class="status-uptime__items">
+                            <div class="status-uptime__item">
+                                <div class="status-uptime__item-header">
+                                    <span class="status-uptime__name">API Server</span>
+                                    <span class="status-uptime__value">99.98%</span>
+                                </div>
+                                <div class="status-uptime__bar" id="api-bar">
+                                    <!-- Segments generated by JS -->
+                                </div>
+                            </div>
+                            <div class="status-uptime__item">
+                                <div class="status-uptime__item-header">
+                                    <span class="status-uptime__name">Database</span>
+                                    <span class="status-uptime__value">99.92%</span>
+                                </div>
+                                <div class="status-uptime__bar" id="db-bar">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 4: Metrics Cards -->
+            <div class="style-card">
+                <div class="style-label">Metrics Cards</div>
+                <div class="demo-area">
+                    <div class="status-metrics">
+                        <div class="status-metrics__card">
+                            <div class="status-metrics__icon">⚡</div>
+                            <div class="status-metrics__value status-metrics__value--good" id="response-time">42ms</div>
+                            <div class="status-metrics__label">Response Time</div>
+                        </div>
+                        <div class="status-metrics__card">
+                            <div class="status-metrics__icon">📊</div>
+                            <div class="status-metrics__value status-metrics__value--good">99.9%</div>
+                            <div class="status-metrics__label">Uptime</div>
+                        </div>
+                        <div class="status-metrics__card">
+                            <div class="status-metrics__icon">🔄</div>
+                            <div class="status-metrics__value status-metrics__value--good" id="requests">12.4K</div>
+                            <div class="status-metrics__label">Requests/min</div>
+                        </div>
+                        <div class="status-metrics__card">
+                            <div class="status-metrics__icon">❌</div>
+                            <div class="status-metrics__value status-metrics__value--good" id="error-rate">0.01%</div>
+                            <div class="status-metrics__label">Error Rate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 5: Timeline Events -->
+            <div class="style-card">
+                <div class="style-label">Incident Timeline</div>
+                <div class="demo-area">
+                    <div class="status-timeline">
+                        <div class="status-timeline__header">Recent Events</div>
+                        <div class="status-timeline__events">
+                            <div class="status-timeline__event">
+                                <div class="status-timeline__dot status-timeline__dot--operational"></div>
+                                <div class="status-timeline__content">
+                                    <div class="status-timeline__title">All systems operational</div>
+                                    <div class="status-timeline__time">Today, 2:30 PM</div>
+                                </div>
+                            </div>
+                            <div class="status-timeline__event">
+                                <div class="status-timeline__dot status-timeline__dot--operational"></div>
+                                <div class="status-timeline__content">
+                                    <div class="status-timeline__title">Scheduled maintenance completed</div>
+                                    <div class="status-timeline__time">Yesterday, 4:00 AM</div>
+                                </div>
+                            </div>
+                            <div class="status-timeline__event">
+                                <div class="status-timeline__dot status-timeline__dot--degraded"></div>
+                                <div class="status-timeline__content">
+                                    <div class="status-timeline__title">Brief API latency spike resolved</div>
+                                    <div class="status-timeline__time">2 days ago</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 6: Compact Status -->
+            <div class="style-card">
+                <div class="style-label">Compact Overview</div>
+                <div class="demo-area">
+                    <div class="status-compact" id="compact-status">
+                        <div class="status-compact__main">
+                            <div class="status-compact__indicator" id="compact-indicator">✓</div>
+                            <div class="status-compact__info">
+                                <div class="status-compact__title" id="compact-title">All Systems Operational</div>
+                                <div class="status-compact__subtitle">No incidents reported</div>
+                            </div>
+                        </div>
+                        <div class="status-compact__details">
+                            <div class="status-compact__detail">Uptime: <span>99.99%</span></div>
+                            <div class="status-compact__detail">Services: <span>8/8</span></div>
+                            <div class="status-compact__detail">Last check: <span>5s ago</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 7: Multi-Region -->
+            <div class="style-card">
+                <div class="style-label">Multi-Region</div>
+                <div class="demo-area">
+                    <div class="status-regions">
+                        <div class="status-regions__header">
+                            <span class="status-regions__title">Regional Status</span>
+                            <div class="status-regions__legend">
+                                <div class="status-regions__legend-item">
+                                    <div class="status-regions__legend-dot" style="background: var(--status-operational)"></div>
+                                    OK
+                                </div>
+                                <div class="status-regions__legend-item">
+                                    <div class="status-regions__legend-dot" style="background: var(--status-degraded)"></div>
+                                    Degraded
+                                </div>
+                            </div>
+                        </div>
+                        <div class="status-regions__grid">
+                            <div class="status-regions__region">
+                                <div class="status-regions__flag">🇺🇸</div>
+                                <div class="status-regions__name">US East</div>
+                                <div class="status-regions__status-dot" style="background: var(--status-operational)"></div>
+                            </div>
+                            <div class="status-regions__region">
+                                <div class="status-regions__flag">🇺🇸</div>
+                                <div class="status-regions__name">US West</div>
+                                <div class="status-regions__status-dot" style="background: var(--status-operational)"></div>
+                            </div>
+                            <div class="status-regions__region">
+                                <div class="status-regions__flag">🇪🇺</div>
+                                <div class="status-regions__name">EU West</div>
+                                <div class="status-regions__status-dot" id="eu-status" style="background: var(--status-operational)"></div>
+                            </div>
+                            <div class="status-regions__region">
+                                <div class="status-regions__flag">🇸🇬</div>
+                                <div class="status-regions__name">Asia</div>
+                                <div class="status-regions__status-dot" style="background: var(--status-operational)"></div>
+                            </div>
+                            <div class="status-regions__region">
+                                <div class="status-regions__flag">🇦🇺</div>
+                                <div class="status-regions__name">Australia</div>
+                                <div class="status-regions__status-dot" style="background: var(--status-operational)"></div>
+                            </div>
+                            <div class="status-regions__region">
+                                <div class="status-regions__flag">🇧🇷</div>
+                                <div class="status-regions__name">South Am.</div>
+                                <div class="status-regions__status-dot" style="background: var(--status-operational)"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 8: Cyberpunk Dashboard -->
+            <div class="style-card">
+                <div class="style-label">Cyberpunk</div>
+                <div class="demo-area">
+                    <div class="status-cyberpunk">
+                        <div class="status-cyberpunk__header">
+                            <span class="status-cyberpunk__title">System Monitor</span>
+                            <div class="status-cyberpunk__live">
+                                <div class="status-cyberpunk__live-dot"></div>
+                                LIVE
+                            </div>
+                        </div>
+                        <div class="status-cyberpunk__grid">
+                            <div class="status-cyberpunk__metric">
+                                <div class="status-cyberpunk__metric-label">CPU</div>
+                                <div class="status-cyberpunk__metric-value" id="cyber-cpu">23%</div>
+                            </div>
+                            <div class="status-cyberpunk__metric">
+                                <div class="status-cyberpunk__metric-label">Memory</div>
+                                <div class="status-cyberpunk__metric-value" id="cyber-mem">67%</div>
+                            </div>
+                            <div class="status-cyberpunk__metric">
+                                <div class="status-cyberpunk__metric-label">Network</div>
+                                <div class="status-cyberpunk__metric-value">1.2Gb/s</div>
+                            </div>
+                            <div class="status-cyberpunk__metric">
+                                <div class="status-cyberpunk__metric-label">Disk I/O</div>
+                                <div class="status-cyberpunk__metric-value">340MB/s</div>
+                            </div>
+                        </div>
+                        <div class="status-cyberpunk__console">
+                            <div class="status-cyberpunk__log status-cyberpunk__log--success">
+                                <span class="status-cyberpunk__log-time">[14:32:01]</span> SYS_CHECK :: ALL_NOMINAL
+                            </div>
+                            <div class="status-cyberpunk__log status-cyberpunk__log--success">
+                                <span class="status-cyberpunk__log-time">[14:32:00]</span> NET_SCAN :: SECURE
+                            </div>
+                            <div class="status-cyberpunk__log status-cyberpunk__log--warning" id="cyber-log">
+                                <span class="status-cyberpunk__log-time">[14:31:58]</span> CACHE_HIT :: 98.2%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>System Status Dashboard Components - JaZeR UI Library</p>
+            <div class="keyboard-hint">
+                <kbd>Space</kbd> to simulate issue
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Generate uptime bar segments
+        function generateUptimeBar(containerId, degradedIndexes = [], outageIndexes = []) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            for (let i = 0; i < 30; i++) {
+                const segment = document.createElement('div');
+                segment.className = 'status-uptime__segment';
+                if (outageIndexes.includes(i)) {
+                    segment.classList.add('status-uptime__segment--outage');
+                } else if (degradedIndexes.includes(i)) {
+                    segment.classList.add('status-uptime__segment--degraded');
+                } else {
+                    segment.classList.add('status-uptime__segment--operational');
+                }
+                container.appendChild(segment);
+            }
+        }
+
+        // Initialize uptime bars
+        generateUptimeBar('api-bar', [12], []);
+        generateUptimeBar('db-bar', [8, 20], [15]);
+
+        function setAllOperational() {
+            // Reset all status indicators
+            document.getElementById('auth-dot').className = 'status-grid__dot status-grid__dot--operational';
+            
+            document.getElementById('storage-icon').className = 'status-list__icon status-list__icon--operational';
+            document.getElementById('storage-icon').textContent = '✓';
+            document.getElementById('storage-status').className = 'status-list__status status-list__status--operational';
+            document.getElementById('storage-status').textContent = 'Operational';
+            
+            document.getElementById('eu-status').style.background = 'var(--status-operational)';
+            
+            document.getElementById('compact-indicator').style.background = 'var(--status-operational)';
+            document.getElementById('compact-title').textContent = 'All Systems Operational';
+            document.getElementById('compact-title').style.color = 'var(--status-operational)';
+            
+            document.getElementById('response-time').textContent = '42ms';
+            document.getElementById('response-time').className = 'status-metrics__value status-metrics__value--good';
+            document.getElementById('error-rate').textContent = '0.01%';
+            document.getElementById('error-rate').className = 'status-metrics__value status-metrics__value--good';
+            
+            updateActiveButton(0);
+        }
+
+        function simulateIssue() {
+            // Simulate degraded status on various elements
+            document.getElementById('auth-dot').className = 'status-grid__dot status-grid__dot--degraded';
+            
+            document.getElementById('storage-icon').className = 'status-list__icon status-list__icon--degraded';
+            document.getElementById('storage-icon').textContent = '⚠';
+            document.getElementById('storage-status').className = 'status-list__status status-list__status--degraded';
+            document.getElementById('storage-status').textContent = 'Degraded';
+            
+            document.getElementById('eu-status').style.background = 'var(--status-degraded)';
+            
+            document.getElementById('compact-indicator').style.background = 'var(--status-degraded)';
+            document.getElementById('compact-title').textContent = 'Partial System Degradation';
+            document.getElementById('compact-title').style.color = 'var(--status-degraded)';
+            
+            document.getElementById('response-time').textContent = '284ms';
+            document.getElementById('response-time').className = 'status-metrics__value status-metrics__value--warning';
+            document.getElementById('error-rate').textContent = '2.3%';
+            document.getElementById('error-rate').className = 'status-metrics__value status-metrics__value--warning';
+            
+            updateActiveButton(1);
+        }
+
+        function refreshStatus() {
+            // Animate refresh
+            const cards = document.querySelectorAll('.style-card');
+            cards.forEach(card => {
+                card.style.opacity = '0.5';
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                }, 300);
+            });
+            
+            // Randomize some metrics
+            const cpu = Math.floor(Math.random() * 40) + 15;
+            const mem = Math.floor(Math.random() * 30) + 50;
+            document.getElementById('cyber-cpu').textContent = cpu + '%';
+            document.getElementById('cyber-mem').textContent = mem + '%';
+            
+            const requests = (Math.random() * 5 + 10).toFixed(1);
+            document.getElementById('requests').textContent = requests + 'K';
+            
+            updateActiveButton(2);
+        }
+
+        function updateActiveButton(index) {
+            document.querySelectorAll('.control-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+        }
+
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && e.target === document.body) {
+                e.preventDefault();
+                simulateIssue();
+            }
+        });
+
+        // Animate metrics periodically
+        setInterval(() => {
+            const cpu = Math.floor(Math.random() * 15) + 20;
+            document.getElementById('cyber-cpu').textContent = cpu + '%';
+        }, 3000);
+    </script>
+</body>
+</html>

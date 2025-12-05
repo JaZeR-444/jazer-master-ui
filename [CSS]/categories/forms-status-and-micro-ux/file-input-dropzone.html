@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Input Dropzone - JaZeR Component Library</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            color: #ffffff;
+        }
+        
+        :root {
+            --jazer-cyan: #00d9ff;
+            --jazer-purple: #b100ff;
+            --success: #39ff14;
+            --danger: #ff3366;
+        }
+        
+        .back-button {
+            align-self: flex-start;
+            padding: 0.75rem 1.5rem;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px var(--jazer-cyan);
+        }
+        
+        .container { max-width: 800px; width: 100%; }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+        
+        .description {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .demo-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 217, 255, 0.1);
+        }
+        
+        .card-title {
+            color: var(--jazer-cyan);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .dropzone {
+            border: 3px dashed rgba(0, 217, 255, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .dropzone.dragover {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 217, 255, 0.1);
+            box-shadow: 0 0 30px rgba(0, 217, 255, 0.3);
+        }
+        
+        .dropzone.has-files {
+            border-color: var(--success);
+            background: rgba(57, 255, 20, 0.05);
+        }
+        
+        .dropzone-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .dropzone-text {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .dropzone-hint {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.875rem;
+        }
+        
+        .file-input { display: none; }
+        
+        .file-preview {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 12px;
+            display: none;
+        }
+        
+        .file-preview.show {
+            display: block;
+        }
+        
+        .preview-header {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .preview-content {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.875rem;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+        
+        /* Compact style */
+        .dropzone-compact {
+            min-height: 120px;
+            padding: 1.5rem;
+        }
+        
+        .dropzone-compact .dropzone-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Image style with preview grid */
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .image-item {
+            position: relative;
+            width: 100%;
+            padding-bottom: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .image-item img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .remove-image {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: var(--danger);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            h1 { font-size: 2rem; }
+            .demo-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+    
+    <div class="container">
+        <h1>File Input Dropzone</h1>
+        <p class="description">Multiple dropzone styles with different preview modes</p>
+        
+        <div class="demo-grid">
+            <!-- Standard Dropzone -->
+            <div class="demo-card">
+                <div class="card-title">Standard Dropzone</div>
+                <div class="dropzone" id="dropzone1">
+                    <div class="dropzone-icon">📄</div>
+                    <div class="dropzone-text">Drop file here</div>
+                    <div class="dropzone-hint">or click to browse</div>
+                </div>
+                <input type="file" id="fileInput1" class="file-input">
+                <div class="file-preview" id="preview1">
+                    <div class="preview-header">Selected File:</div>
+                    <div class="preview-content" id="previewText1"></div>
+                </div>
+            </div>
+            
+            <!-- Compact Dropzone -->
+            <div class="demo-card">
+                <div class="card-title">Compact Style</div>
+                <div class="dropzone dropzone-compact" id="dropzone2">
+                    <div class="dropzone-icon">📎</div>
+                    <div class="dropzone-text">Attach file</div>
+                </div>
+                <input type="file" id="fileInput2" class="file-input">
+                <div class="file-preview" id="preview2">
+                    <div class="preview-content" id="previewText2"></div>
+                </div>
+            </div>
+            
+            <!-- Image Dropzone with Grid -->
+            <div class="demo-card">
+                <div class="card-title">Image Gallery</div>
+                <div class="dropzone" id="dropzone3">
+                    <div class="dropzone-icon">🖼️</div>
+                    <div class="dropzone-text">Drop images here</div>
+                    <div class="dropzone-hint">Multiple files allowed</div>
+                </div>
+                <input type="file" id="fileInput3" class="file-input" accept="image/*" multiple>
+                <div class="image-grid" id="imageGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Standard Dropzone
+        setupDropzone('dropzone1', 'fileInput1', 'preview1', 'previewText1', false);
+        
+        // Compact Dropzone
+        setupDropzone('dropzone2', 'fileInput2', 'preview2', 'previewText2', false);
+        
+        // Image Gallery Dropzone
+        setupImageDropzone('dropzone3', 'fileInput3', 'imageGrid');
+
+        function setupDropzone(dropzoneId, inputId, previewId, textId, multiple) {
+            const dropzone = document.getElementById(dropzoneId);
+            const fileInput = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            const previewText = document.getElementById(textId);
+
+            dropzone.addEventListener('click', () => fileInput.click());
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, () => {
+                    dropzone.classList.add('dragover');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, () => {
+                    dropzone.classList.remove('dragover');
+                });
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    handleFile(files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFile(e.target.files[0]);
+                }
+            });
+
+            function handleFile(file) {
+                dropzone.classList.add('has-files');
+                preview.classList.add('show');
+                
+                const size = formatFileSize(file.size);
+                previewText.innerHTML = `<strong>${file.name}</strong><br>Size: ${size}<br>Type: ${file.type || 'Unknown'}`;
+
+                // Show image preview if it's an image
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'preview-image';
+                        previewText.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        function setupImageDropzone(dropzoneId, inputId, gridId) {
+            const dropzone = document.getElementById(dropzoneId);
+            const fileInput = document.getElementById(inputId);
+            const imageGrid = document.getElementById(gridId);
+            let imageFiles = [];
+
+            dropzone.addEventListener('click', () => fileInput.click());
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, () => {
+                    dropzone.classList.add('dragover');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, () => {
+                    dropzone.classList.remove('dragover');
+                });
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                handleFiles(files);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const files = Array.from(e.target.files).filter(f => f.type.startsWith('image/'));
+                handleFiles(files);
+            });
+
+            function handleFiles(files) {
+                imageFiles = [...imageFiles, ...files];
+                dropzone.classList.add('has-files');
+                updateImageGrid();
+            }
+
+            function updateImageGrid() {
+                imageGrid.innerHTML = '';
+                imageFiles.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const item = document.createElement('div');
+                        item.className = 'image-item';
+                        item.innerHTML = `
+                            <img src="${e.target.result}" alt="${file.name}">
+                            <button class="remove-image" onclick="removeImage${dropzoneId}(${index})">×</button>
+                        `;
+                        imageGrid.appendChild(item);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            window[`removeImage${dropzoneId}`] = function(index) {
+                imageFiles.splice(index, 1);
+                updateImageGrid();
+                if (imageFiles.length === 0) {
+                    dropzone.classList.remove('has-files');
+                }
+            };
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+    </script>
+</body>
+</html>

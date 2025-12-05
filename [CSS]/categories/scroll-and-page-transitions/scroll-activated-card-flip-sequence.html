@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll-Activated Card Flip Sequence - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+        }
+
+        .header h1 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 1rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Cards Container */
+        .cards-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 3rem;
+            margin-bottom: 4rem;
+        }
+
+        /* Card Wrapper */
+        .flip-card-wrapper {
+            perspective: 1000px;
+            height: 400px;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .flip-card-wrapper.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Stagger delays */
+        .flip-card-wrapper:nth-child(1) { transition-delay: 0s; }
+        .flip-card-wrapper:nth-child(2) { transition-delay: 0.1s; }
+        .flip-card-wrapper:nth-child(3) { transition-delay: 0.2s; }
+        .flip-card-wrapper:nth-child(4) { transition-delay: 0.3s; }
+        .flip-card-wrapper:nth-child(5) { transition-delay: 0.4s; }
+        .flip-card-wrapper:nth-child(6) { transition-delay: 0.5s; }
+        .flip-card-wrapper:nth-child(7) { transition-delay: 0.6s; }
+        .flip-card-wrapper:nth-child(8) { transition-delay: 0.7s; }
+        .flip-card-wrapper:nth-child(9) { transition-delay: 0.8s; }
+
+        /* Card Inner Container */
+        .flip-card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .flip-card-wrapper.flipped .flip-card {
+            transform: rotateY(180deg);
+        }
+
+        /* Card Sides */
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Front Face */
+        .card-front {
+            background: linear-gradient(135deg, 
+                        rgba(0, 242, 234, 0.1) 0%, 
+                        rgba(147, 51, 234, 0.1) 100%);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            transition: all 0.4s ease;
+        }
+
+        .flip-card-wrapper:hover .card-front {
+            border-color: var(--jazer-cyan, #00f2ea);
+            box-shadow: 0 20px 60px rgba(0, 242, 234, 0.3);
+        }
+
+        .card-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 0 20px rgba(0, 242, 234, 0.6));
+        }
+
+        .card-front h3 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 1.75rem;
+            color: var(--jazer-cyan, #00f2ea);
+            margin-bottom: 0.75rem;
+            text-align: center;
+        }
+
+        .card-front p {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .flip-hint {
+            position: absolute;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8125rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Back Face */
+        .card-back {
+            background: linear-gradient(135deg, 
+                        rgba(147, 51, 234, 0.2) 0%, 
+                        rgba(255, 0, 110, 0.2) 100%);
+            border: 2px solid rgba(147, 51, 234, 0.4);
+            backdrop-filter: blur(20px);
+            transform: rotateY(180deg);
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card-back h4 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 1.5rem;
+            color: var(--jazer-purple, #9333ea);
+            margin-bottom: 1rem;
+        }
+
+        .card-back p {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-features {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-features li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9375rem;
+        }
+
+        .card-features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--jazer-cyan, #00f2ea);
+            font-weight: 700;
+        }
+
+        .card-action {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .card-action:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .control-btn {
+            padding: 0.875rem 1.75rem;
+            background: rgba(147, 51, 234, 0.1);
+            border: 2px solid var(--jazer-purple, #9333ea);
+            color: var(--jazer-purple, #9333ea);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .control-btn:hover {
+            background: rgba(147, 51, 234, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(147, 51, 234, 0.4);
+        }
+
+        /* Stats */
+        .stats-panel {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            z-index: 100;
+            min-width: 180px;
+        }
+
+        .stats-panel h4 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 0.875rem;
+            color: var(--jazer-cyan, #00f2ea);
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: var(--jazer-cyan, #00f2ea);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .stats-panel {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .back-button {
+                top: 1rem;
+                left: 1rem;
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .header {
+                padding: 6rem 1rem 3rem;
+            }
+
+            .controls {
+                padding: 1rem;
+                gap: 0.75rem;
+            }
+
+            .control-btn {
+                padding: 0.75rem 1.25rem;
+                font-size: 0.875rem;
+            }
+
+            .cards-container {
+                padding: 1rem;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .flip-card-wrapper {
+                height: 350px;
+            }
+
+            .card-front,
+            .card-back {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <div class="header">
+        <h1>Scroll-Activated Card Flip</h1>
+        <p>Cards that flip to reveal detailed information as you scroll, creating an engaging and interactive experience</p>
+    </div>
+
+    <div class="controls">
+        <button class="control-btn" id="flipAllBtn">Flip All Cards</button>
+        <button class="control-btn" id="resetAllBtn">Reset All Cards</button>
+        <button class="control-btn" id="sequenceBtn">Sequential Flip</button>
+    </div>
+
+    <div class="stats-panel">
+        <h4>Card Stats</h4>
+        <div class="stat-item">
+            <span class="stat-label">Visible:</span>
+            <span class="stat-value" id="visibleCount">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Flipped:</span>
+            <span class="stat-value" id="flippedCount">0</span>
+        </div>
+    </div>
+
+    <div class="cards-container">
+        <div class="cards-grid">
+            <!-- Card 1 -->
+            <div class="flip-card-wrapper">
+                <div class="flip-card">
+                    <div class="card-face card-front">
+                        <div class="card-icon">🚀</div>
+                        <h3>Performance</h3>
+                        <p>Lightning-fast animations with GPU acceleration</p>
+                        <div class="flip-hint">Scroll to flip</div>
+                    </div>
+                    <div class="card-face card-back">
+                        <h4>High Performance</h4>
+                        <p>Optimized for smooth 60fps animations using CSS3 transforms and hardware acceleration.</p>
+                        <ul class="card-features">
+                            <li>GPU-accelerated transforms</li>
+                            <li>Minimal reflow/repaint</li>
+                            <li>Efficient scroll detection</li>
+                        </ul>
+                        <a href="#" class="card-action">Learn More</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="flip-card-wrapper">
+                <div class="flip-card">
+                    <div class="card-face card-front">
+                        <div class="card-icon">🎨</div>
+                        <h3>Beautiful Design</h3>
+                        <p>Carefully crafted visual effects</p>
+                        <div class="flip-hint">Scroll to flip</div>
+                    </div>
+                    <div class="card-face card-back">
+                        <h4>Visual Excellence</h4>
+                        <p>Every detail designed to create a polished, professional appearance that users love.</p>
+                        <ul class="card-features">
+                            <li>Smooth transitions</li>
+                            <li>Vibrant gradients</li>
+                            <li>Glassmorphism effects</li>
+                        </ul>
+                        <a href="#" class="card-action">View Gallery</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="flip-card-wrapper">
+                <div class="flip-card">
+                    <div class="card-face card-front">
+                        <div class="card-icon">📱</div>
+                        <h3>Responsive</h3>
+                        <p>Perfect on all devices and screen sizes</p>
+                        <div class="flip-hint">Scroll to flip</div>
+                    </div>
+                    <div class="card-face card-back">
+                        <h4>Mobile Ready</h4>
+                        <p>Seamless experience across desktop, tablet, and mobile devices with touch support.</p>
+                        <ul class="card-features">
+                            <li>Touch-optimized</li>
+                            <li>Flexible grid layout</li>
+                            <li>Adaptive sizing</li>
+                        </ul>
+                        <a href="#" class="card-action">Test It</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="flip-card-wrapper">
+                <div class="flip-card">
+                    <div class="card-face card-front">
+                        <div class="card-icon">🔧</div>
+                        <h3>Customizable</h3>
+                        <p>Easy to adapt to your needs</p>
+                        <div class="flip-hint">Scroll to flip</div>
+                    </div>
+                    <div class="card-face card-back">
+                        <h4>Flexible Config</h4>
+                        <p>Customize colors, timing, and behavior to perfectly match your brand and style.</p>
+                        <ul class="card-features">
+                            <li>Theme support</li>
+                            <li>Timing controls</li>
+                            <li>Event hooks</li>
+                        </ul>
+                        <a href="#" class="card-action">Documentation</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 5 -->
+            <div class="flip-card-wrapper">
+                <div class="flip-card">
+                    <div class="card-face card-front">
+                        <div class="card-icon">⚡</div>
+                        <h3>Lightweight</h3>
+                        <p>Zero dependencies, pure vanilla JS</p>
+                        <div class="flip-hint">Scroll to flip</div>
+                    </div>
+                    <div class="card-face card-back">
+                        <h4>Minimal Footprint</h4>
+                        <p>No external libraries required. Just clean, efficient JavaScript and CSS.</p>
+                        <ul class="card-features">
+                            <li>No jQuery needed</li>
+                            <li>Small file size</li>
+                            <li>Fast load times</li>
+                        </ul>
+                        <a href="#" class="card-action">Get Code</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 6 -->
+            <div class="flip-card-wrapper">
+                <div class="flip-card">
+                    <div class="card-face card-front">
+                        <div class="card-icon">♿</div>
+                        <h3>Accessible</h3>
+                        <p>Built with accessibility in mind</p>
+                        <div class="flip-hint">Scroll to flip</div>
+                    </div>
+                    <div class="card-face card-back">
+                        <h4>WCAG Compliant</h4>
+                        <p>Keyboard navigation, screen reader support, and reduced motion preferences respected.</p>
+                        <ul class="card-features">
+                            <li>Keyboard support</li>
+                            <li>ARIA labels</li>
+                            <li>Motion preferences</li>
+                        </ul>
+                        <a href="#" class="card-action">A11y Guide</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 7 -->
+            <div class="flip-card-wrapper">
+                <div class="flip-card">
+                    <div class="card-face card-front">
+                        <div class="card-icon">🌐</div>
+                        <h3>Cross-Browser</h3>
+                        <p>Works everywhere, reliably</p>
+                        <div class="flip-hint">Scroll to flip</div>
+                    </div>
+                    <div class="card-face card-back">
+                        <h4>Universal Support</h4>
+                        <p>Tested and working perfectly across all modern browsers and platforms.</p>
+                        <ul class="card-features">
+                            <li>Chrome, Firefox, Safari</li>
+                            <li>Edge compatibility</li>
+                            <li>Graceful fallbacks</li>
+                        </ul>
+                        <a href="#" class="card-action">Compatibility</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 8 -->
+            <div class="flip-card-wrapper">
+                <div class="flip-card">
+                    <div class="card-face card-front">
+                        <div class="card-icon">💡</div>
+                        <h3>Interactive</h3>
+                        <p>Engaging user experiences</p>
+                        <div class="flip-hint">Scroll to flip</div>
+                    </div>
+                    <div class="card-face card-back">
+                        <h4>User Engagement</h4>
+                        <p>Interactive elements that encourage exploration and keep users interested in your content.</p>
+                        <ul class="card-features">
+                            <li>Scroll-triggered</li>
+                            <li>Manual control</li>
+                            <li>Smooth animations</li>
+                        </ul>
+                        <a href="#" class="card-action">Examples</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 9 -->
+            <div class="flip-card-wrapper">
+                <div class="flip-card">
+                    <div class="card-face card-front">
+                        <div class="card-icon">🚢</div>
+                        <h3>Production Ready</h3>
+                        <p>Battle-tested and reliable</p>
+                        <div class="flip-hint">Scroll to flip</div>
+                    </div>
+                    <div class="card-face card-back">
+                        <h4>Enterprise Quality</h4>
+                        <p>Used in production by companies worldwide. Thoroughly tested and proven reliable.</p>
+                        <ul class="card-features">
+                            <li>Well documented</li>
+                            <li>Active support</li>
+                            <li>Regular updates</li>
+                        </ul>
+                        <a href="#" class="card-action">Case Studies</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cardWrappers = document.querySelectorAll('.flip-card-wrapper');
+        const flipAllBtn = document.getElementById('flipAllBtn');
+        const resetAllBtn = document.getElementById('resetAllBtn');
+        const sequenceBtn = document.getElementById('sequenceBtn');
+        const visibleCountEl = document.getElementById('visibleCount');
+        const flippedCountEl = document.getElementById('flippedCount');
+
+        let visibleCount = 0;
+        let flippedCount = 0;
+
+        // Intersection Observer for visibility
+        const observerOptions = {
+            root: null,
+            rootMargin: '-10% 0px',
+            threshold: 0.2
+        };
+
+        const cardObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
+                    entry.target.classList.add('visible');
+                    visibleCount++;
+                    updateStats();
+                    
+                    // Auto-flip after visibility animation
+                    setTimeout(() => {
+                        if (!entry.target.classList.contains('flipped')) {
+                            entry.target.classList.add('flipped');
+                            flippedCount++;
+                            updateStats();
+                        }
+                    }, 800);
+                }
+            });
+        }, observerOptions);
+
+        // Observe all card wrappers
+        cardWrappers.forEach(wrapper => {
+            cardObserver.observe(wrapper);
+            
+            // Manual click to flip
+            wrapper.addEventListener('click', () => {
+                const wasFlipped = wrapper.classList.contains('flipped');
+                wrapper.classList.toggle('flipped');
+                
+                if (wasFlipped) {
+                    flippedCount--;
+                } else {
+                    flippedCount++;
+                }
+                updateStats();
+            });
+        });
+
+        // Update stats display
+        function updateStats() {
+            visibleCountEl.textContent = visibleCount;
+            flippedCountEl.textContent = flippedCount;
+        }
+
+        // Flip all cards
+        flipAllBtn.addEventListener('click', () => {
+            cardWrappers.forEach(wrapper => {
+                if (!wrapper.classList.contains('flipped')) {
+                    wrapper.classList.add('flipped');
+                    flippedCount++;
+                }
+            });
+            updateStats();
+        });
+
+        // Reset all cards
+        resetAllBtn.addEventListener('click', () => {
+            cardWrappers.forEach(wrapper => {
+                wrapper.classList.remove('flipped');
+            });
+            flippedCount = 0;
+            updateStats();
+        });
+
+        // Sequential flip
+        sequenceBtn.addEventListener('click', () => {
+            // Reset all first
+            cardWrappers.forEach(wrapper => {
+                wrapper.classList.remove('flipped');
+            });
+            flippedCount = 0;
+            
+            // Flip sequentially
+            cardWrappers.forEach((wrapper, index) => {
+                setTimeout(() => {
+                    wrapper.classList.add('flipped');
+                    flippedCount++;
+                    updateStats();
+                }, index * 200);
+            });
+        });
+
+        // Initial stats
+        updateStats();
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'f' || e.key === 'F') {
+                flipAllBtn.click();
+            } else if (e.key === 'r' || e.key === 'R') {
+                resetAllBtn.click();
+            } else if (e.key === 's' || e.key === 'S') {
+                sequenceBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>

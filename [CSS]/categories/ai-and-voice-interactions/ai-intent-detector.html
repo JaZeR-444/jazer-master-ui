@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Intent Detector - AI & Voice Interactions</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.1rem;
+        }
+
+        .demo-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 3rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .detector-display {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .input-section {
+            margin-bottom: 2rem;
+        }
+
+        .input-label {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
+        .user-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(6, 182, 212, 0.3);
+            border-radius: 10px;
+            color: var(--text-light);
+            font-size: 1.1rem;
+            font-family: var(--font-body);
+            transition: all 0.3s ease;
+        }
+
+        .user-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+        }
+
+        .detection-result {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(144, 238, 144, 0.1));
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .detected-intent {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .confidence-score {
+            padding: 0.5rem 1rem;
+            background: rgba(144, 238, 144, 0.2);
+            border: 1px solid var(--jazer-neon-green);
+            border-radius: 20px;
+            color: var(--jazer-neon-green);
+            font-weight: 600;
+        }
+
+        .intent-breakdown {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .intent-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .intent-name {
+            flex: 0 0 150px;
+            font-size: 0.95rem;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .intent-bar {
+            flex: 1;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .intent-fill {
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 0.8rem;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+        }
+
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .example-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(6, 182, 212, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .example-card:hover {
+            border-color: var(--jazer-cyan);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);
+        }
+
+        .example-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+        }
+
+        .example-intent {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--jazer-cyan);
+            margin-bottom: 0.5rem;
+        }
+
+        .example-text {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-style: italic;
+            margin-bottom: 0.8rem;
+        }
+
+        .example-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 0.3rem 0.7rem;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 15px;
+            font-size: 0.75rem;
+            color: var(--jazer-cyan);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    
+    <div class="header">
+        <h1>AI Intent Detector</h1>
+        <p>Intelligent classification of user intentions from natural language</p>
+    </div>
+
+    <div class="demo-container">
+        <div class="detector-display">
+            <div class="input-section">
+                <label class="input-label">Enter your message:</label>
+                <input type="text" class="user-input" placeholder="Type something like 'Book a flight to Paris next week'" value="I want to order pizza for dinner tonight">
+            </div>
+
+            <div class="detection-result">
+                <div class="result-header">
+                    <div class="detected-intent">🍕 Food Order</div>
+                    <div class="confidence-score">94% Confident</div>
+                </div>
+
+                <div class="intent-breakdown">
+                    <div class="intent-item">
+                        <div class="intent-name">Food Order</div>
+                        <div class="intent-bar">
+                            <div class="intent-fill" style="width: 94%;">94%</div>
+                        </div>
+                    </div>
+
+                    <div class="intent-item">
+                        <div class="intent-name">Restaurant Search</div>
+                        <div class="intent-bar">
+                            <div class="intent-fill" style="width: 68%;">68%</div>
+                        </div>
+                    </div>
+
+                    <div class="intent-item">
+                        <div class="intent-name">Reservation</div>
+                        <div class="intent-bar">
+                            <div class="intent-fill" style="width: 45%;">45%</div>
+                        </div>
+                    </div>
+
+                    <div class="intent-item">
+                        <div class="intent-name">Recipe Search</div>
+                        <div class="intent-bar">
+                            <div class="intent-fill" style="width: 23%;">23%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">
+            💡 Intent Examples
+        </div>
+
+        <div class="examples-grid">
+            <div class="example-card">
+                <div class="example-icon">✈️</div>
+                <div class="example-intent">Travel Booking</div>
+                <div class="example-text">"Book a flight to Paris next week"</div>
+                <div class="example-tags">
+                    <span class="tag">Booking</span>
+                    <span class="tag">Travel</span>
+                </div>
+            </div>
+
+            <div class="example-card">
+                <div class="example-icon">🎵</div>
+                <div class="example-intent">Music Control</div>
+                <div class="example-text">"Play some jazz music"</div>
+                <div class="example-tags">
+                    <span class="tag">Media</span>
+                    <span class="tag">Entertainment</span>
+                </div>
+            </div>
+
+            <div class="example-card">
+                <div class="example-icon">🌤️</div>
+                <div class="example-intent">Weather Query</div>
+                <div class="example-text">"What's the weather like today?"</div>
+                <div class="example-tags">
+                    <span class="tag">Information</span>
+                    <span class="tag">Weather</span>
+                </div>
+            </div>
+
+            <div class="example-card">
+                <div class="example-icon">📧</div>
+                <div class="example-intent">Email Action</div>
+                <div class="example-text">"Send an email to my manager"</div>
+                <div class="example-tags">
+                    <span class="tag">Communication</span>
+                    <span class="tag">Productivity</span>
+                </div>
+            </div>
+
+            <div class="example-card">
+                <div class="example-icon">⏰</div>
+                <div class="example-intent">Reminder/Timer</div>
+                <div class="example-text">"Set an alarm for 7 AM"</div>
+                <div class="example-tags">
+                    <span class="tag">Time</span>
+                    <span class="tag">Reminder</span>
+                </div>
+            </div>
+
+            <div class="example-card">
+                <div class="example-icon">🔍</div>
+                <div class="example-intent">Web Search</div>
+                <div class="example-text">"Search for the best restaurants nearby"</div>
+                <div class="example-tags">
+                    <span class="tag">Search</span>
+                    <span class="tag">Information</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

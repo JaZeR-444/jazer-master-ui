@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blob Cursor That Morphs Shape</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0b2e 100%);
+            color: var(--jazer-cyan);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            cursor: none;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container, .controls, .shape-indicator, .back-button {
+            position: relative;
+            z-index: 1;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            font-size: 0.9rem;
+            border: 1px solid var(--jazer-cyan);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--gradient-primary);
+            box-shadow: 0 0 20px var(--jazer-cyan);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: var(--font-primary);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .blob-cursor {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: none;
+        }
+
+        .blob-cursor svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 20px var(--jazer-cyan));
+        }
+
+        .blob-cursor .blob-path {
+            fill: var(--jazer-cyan);
+            opacity: 0.8;
+        }
+
+        .demo-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .demo-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-section h2 {
+            font-family: var(--font-primary);
+            margin-bottom: 1rem;
+            color: var(--jazer-purple);
+        }
+
+        .morph-zone {
+            width: 100%;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px dashed var(--jazer-pink);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1rem 0;
+            position: relative;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        .morph-zone::before {
+            content: 'Move cursor to morph';
+            color: var(--jazer-pink);
+            font-family: var(--font-secondary);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .controls {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            min-width: 250px;
+            z-index: 1001;
+        }
+
+        .control-group {
+            margin: 1rem 0;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--jazer-purple);
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 0.25rem;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 0.25rem;
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 0.25rem;
+        }
+
+        .shape-indicator {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .current-shape {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--jazer-pink);
+        }
+
+        .trail-blob {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0.3;
+            animation: fadeOut 1s ease-out forwards;
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+        }
+
+        .interactive-element {
+            padding: 0.5rem 1rem;
+            background: var(--gradient-accent);
+            color: white;
+            border-radius: 0.5rem;
+            font-family: var(--font-primary);
+            margin: 0.5rem;
+            display: inline-block;
+            cursor: none;
+            transition: transform 0.3s ease;
+        }
+
+        .interactive-element:hover {
+            transform: scale(1.1);
+        }
+
+        .instructions {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 2rem;
+            border-left: 4px solid var(--jazer-purple);
+        }
+
+        .instructions h3 {
+            font-family: var(--font-primary);
+            color: var(--jazer-purple);
+            margin-top: 0;
+        }
+
+        .instructions ul {
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .instructions li {
+            margin: 0.5rem 0;
+        }
+
+        .speed-test {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .speed-bar {
+            width: 200px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .speed-fill {
+            height: 100%;
+            background: var(--gradient-accent);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pulsing {
+            animation: pulse 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to Buttons & Controls</a>
+
+    <div class="controls">
+        <h3 style="margin-top: 0; color: var(--jazer-cyan);">Blob Controls</h3>
+        
+        <div class="control-group">
+            <label for="blobSize">Blob Size: <span id="sizeValue">40px</span></label>
+            <input type="range" id="blobSize" min="20" max="80" step="5" value="40">
+        </div>
+        
+        <div class="control-group">
+            <label for="morphSpeed">Morph Speed: <span id="speedValue">0.1</span></label>
+            <input type="range" id="morphSpeed" min="0.05" max="0.3" step="0.05" value="0.1">
+        </div>
+        
+        <div class="control-group">
+            <label for="blobColor">Blob Color:</label>
+            <select id="blobColor">
+                <option value="var(--jazer-cyan)">Cyan</option>
+                <option value="var(--jazer-purple)">Purple</option>
+                <option value="var(--jazer-pink)">Pink</option>
+                <option value="white">White</option>
+                <option value="var(--gradient-accent)">Gradient</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="trailEffect">Trail Effect:</label>
+            <select id="trailEffect">
+                <option value="none">None</option>
+                <option value="blobs">Blobs</option>
+                <option value="particles">Particles</option>
+                <option value="lines">Lines</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="shape-indicator">
+        <span>🔮</span>
+        <span>Shape: <span class="current-shape">Circle</span></span>
+    </div>
+
+    <div class="container">
+        <h1>Morphing Blob Cursor</h1>
+        <p class="description">
+            Dynamic blob cursor that morphs its shape based on movement speed, direction, and interactions. 
+            The blob smoothly transitions between different forms creating an organic, fluid experience.
+        </p>
+
+        <div class="demo-area">
+            <div class="demo-section">
+                <h2>Speed Morphing</h2>
+                <div class="morph-zone" id="speedZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary);">
+                        Move at different speeds!
+                    </div>
+                </div>
+                <div class="speed-test">
+                    <span>Speed:</span>
+                    <div class="speed-bar">
+                        <div class="speed-fill" id="speedFill"></div>
+                    </div>
+                    <span id="speedText">0</span>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Interactive Elements</h2>
+                <div class="morph-zone" id="interactiveZone">
+                    <div>
+                        <div class="interactive-element">Hover me!</div>
+                        <div class="interactive-element">And me!</div>
+                        <div class="interactive-element pulsing">Click me!</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Direction Morphing</h2>
+                <div class="morph-zone" id="directionZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary);">
+                        Move in different directions
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Free Morph</h2>
+                <div class="morph-zone" id="freeZone">
+                    <div style="color: var(--jazer-pink); font-family: var(--font-secondary);">
+                        Experiment freely!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>How It Works:</h3>
+            <ul>
+                <li>Blob morphs based on cursor movement speed and direction</li>
+                <li>Hover over interactive elements for special morphs</li>
+                <li>Click to create explosion effects</li>
+                <li>Adjust size, speed, color, and trail effects</li>
+                <li>Shape changes from circle to ellipse to star forms</li>
+                <li>Smooth transitions using SVG path animations</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="blob-cursor" id="blobCursor">
+        <svg viewBox="0 0 100 100">
+            <path class="blob-path" id="blobPath" d="M50,50 Q60,40 70,50 T90,50 Q80,60 70,50 T50,50 Q40,40 30,50 T10,50 Q20,60 30,50 T50,50"/>
+        </svg>
+    </div>
+
+    <script>
+        class MorphingBlobCursor {
+            constructor() {
+                this.cursor = document.getElementById('blobCursor');
+                this.blobPath = document.getElementById('blobPath');
+                this.sizeInput = document.getElementById('blobSize');
+                this.speedInput = document.getElementById('morphSpeed');
+                this.colorInput = document.getElementById('blobColor');
+                this.trailInput = document.getElementById('trailEffect');
+                this.sizeValueDisplay = document.getElementById('sizeValue');
+                this.speedValueDisplay = document.getElementById('speedValue');
+                this.shapeDisplay = document.querySelector('.current-shape');
+                this.speedFill = document.getElementById('speedFill');
+                this.speedText = document.getElementById('speedText');
+                
+                this.currentX = 0;
+                this.currentY = 0;
+                this.previousX = 0;
+                this.previousY = 0;
+                this.velocityX = 0;
+                this.velocityY = 0;
+                this.speed = 0;
+                this.angle = 0;
+                this.blobSize = 40;
+                this.morphSpeed = 0.1;
+                this.currentShape = 'circle';
+                this.targetShape = 'circle';
+                this.morphProgress = 0;
+                this.trailEffect = 'none';
+                
+                this.shapes = {
+                    circle: 'M50,50 Q60,40 70,50 T90,50 Q80,60 70,50 T50,50 Q40,40 30,50 T10,50 Q20,60 30,50 T50,50',
+                    ellipse: 'M50,30 Q70,30 80,50 T70,70 Q50,70 30,70 T20,50 Q30,30 50,30',
+                    star: 'M50,20 L60,40 L80,40 L65,55 L70,75 L50,65 L30,75 L35,55 L20,40 L40,40 Z',
+                    heart: 'M50,25 C30,0 0,15 0,40 C0,60 50,90 50,90 C50,90 100,60 100,40 C100,15 70,0 50,25 Z',
+                    diamond: 'M50,20 L70,50 L50,80 L30,50 Z',
+                    triangle: 'M50,20 L80,70 L20,70 Z'
+                };
+                
+                this.init();
+            }
+
+            init() {
+                document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                document.addEventListener('mouseenter', () => this.showCursor());
+                document.addEventListener('mouseleave', () => this.hideCursor());
+                document.addEventListener('click', (e) => this.handleClick(e));
+                
+                // Control event listeners
+                this.sizeInput.addEventListener('input', (e) => this.updateBlobSize(e.target.value));
+                this.speedInput.addEventListener('input', (e) => this.updateMorphSpeed(e.target.value));
+                this.colorInput.addEventListener('change', (e) => this.updateBlobColor(e.target.value));
+                this.trailInput.addEventListener('change', (e) => this.updateTrailEffect(e.target.value));
+                
+                // Hide default cursor
+                document.body.style.cursor = 'none';
+                
+                // Set up interactive elements
+                this.setupInteractiveElements();
+                
+                // Start animation loop
+                this.animate();
+            }
+
+            setupInteractiveElements() {
+                const interactiveElements = document.querySelectorAll('.interactive-element');
+                interactiveElements.forEach(element => {
+                    element.addEventListener('mouseenter', () => {
+                        this.targetShape = 'star';
+                        this.createExplosion(element);
+                    });
+                    
+                    element.addEventListener('mouseleave', () => {
+                        this.targetShape = 'circle';
+                    });
+                    
+                    element.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.createExplosion(element, true);
+                    });
+                });
+            }
+
+            handleMouseMove(e) {
+                this.previousX = this.currentX;
+                this.previousY = this.currentY;
+                this.currentX = e.clientX;
+                this.currentY = e.clientY;
+                
+                // Calculate velocity
+                this.velocityX = this.currentX - this.previousX;
+                this.velocityY = this.currentY - this.previousY;
+                this.speed = Math.sqrt(this.velocityX ** 2 + this.velocityY ** 2);
+                this.angle = Math.atan2(this.velocityY, this.velocityX);
+                
+                // Update speed display
+                this.updateSpeedDisplay();
+                
+                // Determine shape based on speed and zone
+                this.updateTargetShape(e);
+                
+                // Create trail
+                this.createTrail();
+                
+                // Update cursor position
+                this.cursor.style.left = this.currentX + 'px';
+                this.cursor.style.top = this.currentY + 'px';
+            }
+
+            updateTargetShape(e) {
+                const element = e.target;
+                const zone = element.closest('.morph-zone');
+                
+                if (zone) {
+                    if (zone.id === 'speedZone') {
+                        // Shape based on speed
+                        if (this.speed > 30) {
+                            this.targetShape = 'star';
+                        } else if (this.speed > 15) {
+                            this.targetShape = 'ellipse';
+                        } else {
+                            this.targetShape = 'circle';
+                        }
+                    } else if (zone.id === 'directionZone') {
+                        // Shape based on direction
+                        const normalizedAngle = ((this.angle * 180 / Math.PI) % 360 + 360) % 360;
+                        if (normalizedAngle >= 315 || normalizedAngle < 45) {
+                            this.targetShape = 'diamond'; // Right
+                        } else if (normalizedAngle >= 45 && normalizedAngle < 135) {
+                            this.targetShape = 'triangle'; // Down
+                        } else if (normalizedAngle >= 135 && normalizedAngle < 225) {
+                            this.targetShape = 'diamond'; // Left
+                        } else {
+                            this.targetShape = 'triangle'; // Up
+                        }
+                    } else if (zone.id === 'interactiveZone') {
+                        // Already handled by interactive elements
+                    } else {
+                        // Free zone - morph based on both speed and direction
+                        if (this.speed > 20) {
+                            this.targetShape = 'heart';
+                        } else if (this.speed > 10) {
+                            this.targetShape = 'star';
+                        } else {
+                            this.targetShape = 'circle';
+                        }
+                    }
+                } else {
+                    this.targetShape = 'circle';
+                }
+            }
+
+            updateSpeedDisplay() {
+                const displaySpeed = Math.min(100, Math.round(this.speed * 2));
+                this.speedFill.style.width = displaySpeed + '%';
+                this.speedText.textContent = displaySpeed;
+            }
+
+            createTrail() {
+                if (this.trailEffect === 'none' || this.speed < 2) return;
+                
+                if (this.trailEffect === 'blobs') {
+                    const blob = document.createElement('div');
+                    blob.className = 'trail-blob';
+                    blob.style.left = this.currentX + 'px';
+                    blob.style.top = this.currentY + 'px';
+                    blob.style.width = this.blobSize + 'px';
+                    blob.style.height = this.blobSize + 'px';
+                    blob.style.background = this.blobPath.getAttribute('fill');
+                    blob.style.borderRadius = '50%';
+                    blob.style.transform = 'translate(-50%, -50%)';
+                    
+                    document.body.appendChild(blob);
+                    setTimeout(() => blob.remove(), 1000);
+                } else if (this.trailEffect === 'particles') {
+                    for (let i = 0; i < 3; i++) {
+                        const particle = document.createElement('div');
+                        particle.className = 'trail-blob';
+                        particle.style.left = (this.currentX + (Math.random() - 0.5) * 20) + 'px';
+                        particle.style.top = (this.currentY + (Math.random() - 0.5) * 20) + 'px';
+                        particle.style.width = '8px';
+                        particle.style.height = '8px';
+                        particle.style.background = this.blobPath.getAttribute('fill');
+                        particle.style.borderRadius = '50%';
+                        particle.style.transform = 'translate(-50%, -50%)';
+                        
+                        document.body.appendChild(particle);
+                        setTimeout(() => particle.remove(), 1000);
+                    }
+                }
+            }
+
+            createExplosion(element, isClick = false) {
+                const rect = element.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                const particleCount = isClick ? 12 : 6;
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'trail-blob';
+                    particle.style.left = centerX + 'px';
+                    particle.style.top = centerY + 'px';
+                    particle.style.width = '12px';
+                    particle.style.height = '12px';
+                    particle.style.background = this.blobPath.getAttribute('fill');
+                    particle.style.borderRadius = '50%';
+                    particle.style.transform = 'translate(-50%, -50%)';
+                    
+                    const angle = (i / particleCount) * Math.PI * 2;
+                    const velocity = isClick ? 150 : 80;
+                    const vx = Math.cos(angle) * velocity;
+                    const vy = Math.sin(angle) * velocity;
+                    
+                    document.body.appendChild(particle);
+                    
+                    // Animate particle
+                    let x = 0;
+                    let y = 0;
+                    const animate = () => {
+                        x += vx * 0.02;
+                        y += vy * 0.02;
+                        particle.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+                        particle.style.opacity = parseFloat(particle.style.opacity || 0.8) - 0.02;
+                        
+                        if (parseFloat(particle.style.opacity) > 0) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            particle.remove();
+                        }
+                    };
+                    requestAnimationFrame(animate);
+                }
+            }
+
+            animate() {
+                // Smooth morphing between shapes
+                if (this.currentShape !== this.targetShape) {
+                    this.morphProgress += this.morphSpeed;
+                    if (this.morphProgress >= 1) {
+                        this.currentShape = this.targetShape;
+                        this.morphProgress = 0;
+                        this.shapeDisplay.textContent = this.capitalizeFirst(this.currentShape);
+                    }
+                    
+                    // Interpolate between shapes
+                    const currentPath = this.shapes[this.currentShape];
+                    const targetPath = this.shapes[this.targetShape];
+                    const interpolatedPath = this.interpolatePath(currentPath, targetPath, this.morphProgress);
+                    this.blobPath.setAttribute('d', interpolatedPath);
+                }
+                
+                // Add some organic movement
+                const time = Date.now() * 0.001;
+                const wobble = Math.sin(time * 3) * 2;
+                const scale = 1 + Math.sin(time * 2) * 0.05;
+                
+                this.cursor.style.transform = `translate(-50%, -50%) scale(${scale}) rotate(${wobble}deg)`;
+                
+                requestAnimationFrame(() => this.animate());
+            }
+
+            interpolatePath(path1, path2, progress) {
+                // Simple path interpolation - in a real implementation, you'd want more sophisticated path morphing
+                if (progress < 0.5) {
+                    return path1;
+                } else {
+                    return path2;
+                }
+            }
+
+            updateBlobSize(value) {
+                this.blobSize = parseInt(value);
+                this.sizeValueDisplay.textContent = this.blobSize + 'px';
+                this.cursor.style.width = this.blobSize + 'px';
+                this.cursor.style.height = this.blobSize + 'px';
+            }
+
+            updateMorphSpeed(value) {
+                this.morphSpeed = parseFloat(value);
+                this.speedValueDisplay.textContent = this.morphSpeed;
+            }
+
+            updateBlobColor(value) {
+                if (value === 'var(--gradient-accent)') {
+                    this.blobPath.style.fill = 'url(#gradient)';
+                    // Add gradient definition if not exists
+                    if (!document.querySelector('#gradient')) {
+                        const svg = this.cursor.querySelector('svg');
+                        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                        const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+                        gradient.id = 'gradient';
+                        
+                        const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+                        stop1.setAttribute('offset', '0%');
+                        stop1.setAttribute('stop-color', 'var(--jazer-cyan)');
+                        
+                        const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+                        stop2.setAttribute('offset', '100%');
+                        stop2.setAttribute('stop-color', 'var(--jazer-pink)');
+                        
+                        gradient.appendChild(stop1);
+                        gradient.appendChild(stop2);
+                        defs.appendChild(gradient);
+                        svg.insertBefore(defs, svg.firstChild);
+                    }
+                } else {
+                    this.blobPath.style.fill = value;
+                }
+            }
+
+            updateTrailEffect(value) {
+                this.trailEffect = value;
+            }
+
+            handleClick(e) {
+                // Create explosion at click point
+                this.createExplosionAt(e.clientX, e.clientY);
+            }
+
+            createExplosionAt(x, y) {
+                const particleCount = 8;
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'trail-blob';
+                    particle.style.left = x + 'px';
+                    particle.style.top = y + 'px';
+                    particle.style.width = '10px';
+                    particle.style.height = '10px';
+                    particle.style.background = this.blobPath.getAttribute('fill') || 'var(--jazer-cyan)';
+                    particle.style.borderRadius = '50%';
+                    particle.style.transform = 'translate(-50%, -50%)';
+                    
+                    const angle = (i / particleCount) * Math.PI * 2;
+                    const velocity = 100;
+                    const vx = Math.cos(angle) * velocity;
+                    const vy = Math.sin(angle) * velocity;
+                    
+                    document.body.appendChild(particle);
+                    
+                    // Animate particle
+                    let px = 0;
+                    let py = 0;
+                    const animate = () => {
+                        px += vx * 0.02;
+                        py += vy * 0.02;
+                        particle.style.transform = `translate(calc(-50% + ${px}px), calc(-50% + ${py}px))`;
+                        particle.style.opacity = parseFloat(particle.style.opacity || 0.8) - 0.03;
+                        
+                        if (parseFloat(particle.style.opacity) > 0) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            particle.remove();
+                        }
+                    };
+                    requestAnimationFrame(animate);
+                }
+            }
+
+            capitalizeFirst(str) {
+                return str.charAt(0).toUpperCase() + str.slice(1);
+            }
+
+            showCursor() {
+                this.cursor.style.display = 'block';
+            }
+
+            hideCursor() {
+                this.cursor.style.display = 'none';
+            }
+        }
+
+        // Initialize the morphing blob cursor
+        const blobCursor = new MorphingBlobCursor();
+    </script>
+</body>
+</html>

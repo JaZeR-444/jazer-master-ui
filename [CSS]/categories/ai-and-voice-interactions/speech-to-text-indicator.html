@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech-to-Text Indicator - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            background: rgba(0, 242, 234, 0.1);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        .header {
+            text-align: center;
+            margin: 3rem 0 4rem;
+        }
+
+        .header h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.125rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .demo-container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        /* Speech-to-Text Card */
+        .stt-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 20px;
+            padding: 2.5rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .stt-card:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 10px 40px rgba(0, 242, 234, 0.3);
+        }
+
+        .stt-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .mic-visual {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            animation: micPulse 2s ease-in-out infinite;
+            box-shadow: 0 0 30px rgba(0, 242, 234, 0.5);
+            position: relative;
+        }
+
+        .mic-visual::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid var(--jazer-cyan);
+            animation: ripple 2s ease-out infinite;
+        }
+
+        @keyframes micPulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 30px rgba(0, 242, 234, 0.5);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 45px rgba(0, 242, 234, 0.7);
+            }
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .stt-status {
+            flex: 1;
+        }
+
+        .stt-title {
+            font-family: var(--font-primary);
+            font-size: 1.5rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 0.5rem;
+        }
+
+        .stt-state {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+        }
+
+        .live-indicator {
+            width: 10px;
+            height: 10px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: blink 1.5s ease-in-out infinite;
+            box-shadow: 0 0 15px #00ff88;
+        }
+
+        @keyframes blink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        /* Transcription Display */
+        .transcription-box {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 242, 234, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            min-height: 150px;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .transcription-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+            animation: loadingBar 2s ease-in-out infinite;
+        }
+
+        @keyframes loadingBar {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .transcription-text {
+            font-size: 1.125rem;
+            line-height: 1.8;
+            color: #ffffff;
+        }
+
+        .text-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em;
+            background: var(--jazer-cyan);
+            margin-left: 2px;
+            animation: cursorBlink 1s step-end infinite;
+            vertical-align: text-bottom;
+        }
+
+        @keyframes cursorBlink {
+            0%, 50% {
+                opacity: 1;
+            }
+            51%, 100% {
+                opacity: 0;
+            }
+        }
+
+        /* Animated Words */
+        .word {
+            display: inline-block;
+            animation: wordAppear 0.3s ease-out;
+            margin-right: 0.3em;
+        }
+
+        @keyframes wordAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Confidence Meter */
+        .confidence-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            background: rgba(0, 242, 234, 0.05);
+            border: 1px solid rgba(0, 242, 234, 0.2);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .confidence-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            min-width: 90px;
+        }
+
+        .confidence-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(0, 242, 234, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            width: 92%;
+            background: var(--gradient-primary);
+            border-radius: 4px;
+            box-shadow: 0 0 15px rgba(0, 242, 234, 0.5);
+            animation: fillPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes fillPulse {
+            0%, 100% {
+                box-shadow: 0 0 15px rgba(0, 242, 234, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 25px rgba(0, 242, 234, 0.8);
+            }
+        }
+
+        .confidence-value {
+            font-family: var(--font-primary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            min-width: 50px;
+            text-align: right;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-item {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            border-color: var(--jazer-cyan);
+            transform: translateY(-2px);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-family: var(--font-primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+        }
+
+        /* Compact Variant */
+        .stt-compact {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+        }
+
+        .compact-mic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gradient-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            animation: compactPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes compactPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .compact-text {
+            flex: 1;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .compact-indicator {
+            display: flex;
+            gap: 3px;
+        }
+
+        .compact-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            animation: dotWave 1.4s ease-in-out infinite;
+        }
+
+        .compact-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .compact-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes dotWave {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stt-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .transcription-box {
+                min-height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button" aria-label="Back to AI & Voice Interactions">← Back</a>
+
+    <header class="header">
+        <h1>Speech-to-Text Indicator</h1>
+        <p>Live transcription indicator with animated text display and confidence visualization</p>
+    </header>
+
+    <main>
+        <div class="demo-container">
+            <!-- Full Speech-to-Text Display -->
+            <div class="stt-card">
+                <div class="stt-header">
+                    <div class="mic-visual">🎤</div>
+                    <div class="stt-status">
+                        <h3 class="stt-title">Live Transcription</h3>
+                        <div class="stt-state">
+                            <div class="live-indicator"></div>
+                            <span>Recording in progress...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="transcription-box">
+                    <div class="transcription-text">
+                        <span class="word">Hello,</span>
+                        <span class="word">this</span>
+                        <span class="word">is</span>
+                        <span class="word">a</span>
+                        <span class="word">demonstration</span>
+                        <span class="word">of</span>
+                        <span class="word">real-time</span>
+                        <span class="word">speech-to-text</span>
+                        <span class="word">conversion</span>
+                        <span class="word">with</span>
+                        <span class="word">cyberpunk</span>
+                        <span class="word">styling</span><span class="text-cursor"></span>
+                    </div>
+                </div>
+
+                <div class="confidence-section">
+                    <span class="confidence-label">Confidence:</span>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill"></div>
+                    </div>
+                    <span class="confidence-value">92%</span>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Words</div>
+                        <div class="stat-value">127</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Duration</div>
+                        <div class="stat-value">1:24</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Language</div>
+                        <div class="stat-value">EN</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compact Variant -->
+            <div class="stt-card">
+                <h3 class="stt-title" style="margin-bottom: 1.5rem;">Compact Indicator</h3>
+                <div class="stt-compact">
+                    <div class="compact-mic">🎙️</div>
+                    <div class="compact-text">Transcribing audio...</div>
+                    <div class="compact-indicator">
+                        <div class="compact-dot"></div>
+                        <div class="compact-dot"></div>
+                        <div class="compact-dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

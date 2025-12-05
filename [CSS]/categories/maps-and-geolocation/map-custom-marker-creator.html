@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Custom Marker Creator - JaZeR CSS Patterns</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 1.5rem;
+            line-height: 1.6;
+        }
+
+        /* Layout */
+        .page-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Back Button */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-gray);
+            text-decoration: none;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            border: 2px solid var(--border-default);
+            background: var(--bg-card);
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+
+        .back-button:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            transform: translateX(-5px);
+            box-shadow: var(--shadow-cyan);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(147, 51, 234, 0.08) 50%, rgba(236, 72, 153, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main Content Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Preview Area */
+        .preview-section {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .preview-title {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: var(--jazer-cyan);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .preview-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .preview-actions button {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-default);
+            background: var(--bg-card);
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+        }
+
+        .preview-actions button:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        /* Map Canvas */
+        .map-canvas {
+            width: 100%;
+            height: 400px;
+            background: 
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(135deg, rgba(6, 182, 212, 0.05) 0%, rgba(147, 51, 234, 0.05) 100%);
+            background-size: 40px 40px, 40px 40px, 100% 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border-default);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Austin Location Labels */
+        .location-label {
+            position: absolute;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            letter-spacing: 0.5px;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        /* Marker Styles */
+        .marker {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            z-index: 10;
+        }
+
+        .marker:hover {
+            transform: scale(1.15);
+            z-index: 20;
+        }
+
+        .marker-inner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        /* Marker Shapes */
+        .shape-circle .marker-inner {
+            border-radius: 50%;
+        }
+
+        .shape-pin .marker-inner {
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+        }
+
+        .shape-pin .marker-icon {
+            transform: rotate(45deg);
+        }
+
+        .shape-diamond .marker-inner {
+            border-radius: 4px;
+            transform: rotate(45deg);
+        }
+
+        .shape-diamond .marker-icon {
+            transform: rotate(-45deg);
+        }
+
+        .shape-square .marker-inner {
+            border-radius: 6px;
+        }
+
+        .shape-star .marker-inner {
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            border-radius: 0;
+        }
+
+        .shape-hexagon .marker-inner {
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            border-radius: 0;
+        }
+
+        /* Marker Animations */
+        .anim-none .marker-inner {
+            animation: none;
+        }
+
+        .anim-bounce .marker-inner {
+            animation: markerBounce 1s ease-in-out infinite;
+        }
+
+        .anim-pulse .marker-inner {
+            animation: markerPulse 1.5s ease-in-out infinite;
+        }
+
+        .anim-glow .marker-inner {
+            animation: markerGlow 2s ease-in-out infinite;
+        }
+
+        .anim-drop .marker-inner {
+            animation: markerDrop 0.5s ease-out;
+        }
+
+        @keyframes markerBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @keyframes markerPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        @keyframes markerGlow {
+            0%, 100% { filter: drop-shadow(0 0 4px currentColor); }
+            50% { filter: drop-shadow(0 0 12px currentColor); }
+        }
+
+        @keyframes markerDrop {
+            0% { transform: translateY(-50px); opacity: 0; }
+            60% { transform: translateY(5px); }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Pin shape bounce fix */
+        .shape-pin.anim-bounce .marker-inner {
+            animation: markerBouncePinned 1s ease-in-out infinite;
+        }
+
+        @keyframes markerBouncePinned {
+            0%, 100% { transform: rotate(-45deg) translateY(0); }
+            50% { transform: rotate(-45deg) translateY(-8px); }
+        }
+
+        /* Diamond shape bounce fix */
+        .shape-diamond.anim-bounce .marker-inner {
+            animation: markerBounceDiamond 1s ease-in-out infinite;
+        }
+
+        @keyframes markerBounceDiamond {
+            0%, 100% { transform: rotate(45deg) translateY(0); }
+            50% { transform: rotate(45deg) translateY(-8px); }
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        /* Accordion Details */
+        details {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: border-color 0.3s ease;
+        }
+
+        details[open] {
+            border-color: var(--jazer-cyan);
+        }
+
+        details summary {
+            padding: 0.875rem 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-light);
+            transition: all 0.2s ease;
+            list-style: none;
+        }
+
+        details summary::-webkit-details-marker {
+            display: none;
+        }
+
+        details summary::after {
+            content: '+';
+            font-size: 1.25rem;
+            color: var(--jazer-cyan);
+            transition: transform 0.2s ease;
+        }
+
+        details[open] summary::after {
+            transform: rotate(45deg);
+        }
+
+        details summary:hover {
+            background: rgba(6, 182, 212, 0.05);
+        }
+
+        .details-content {
+            padding: 0 1rem 1rem;
+        }
+
+        /* Shape Grid */
+        .shape-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        .shape-btn {
+            aspect-ratio: 1;
+            border: 2px solid var(--border-default);
+            border-radius: 10px;
+            background: var(--bg-card);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            transition: all 0.2s ease;
+            padding: 0.5rem;
+        }
+
+        .shape-btn:hover {
+            border-color: var(--jazer-purple);
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .shape-btn.active {
+            border-color: var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.15);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+        }
+
+        .shape-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-gray);
+            transition: fill 0.2s ease;
+        }
+
+        .shape-btn.active svg {
+            fill: var(--jazer-cyan);
+        }
+
+        .shape-btn span {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+        }
+
+        /* Color Controls */
+        .color-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .color-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .color-label {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            min-width: 50px;
+            font-family: var(--font-secondary);
+        }
+
+        .color-input-wrap {
+            position: relative;
+            width: 36px;
+            height: 36px;
+        }
+
+        .color-input-wrap input[type="color"] {
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 2px;
+            background: var(--bg-dark);
+        }
+
+        .color-input-wrap input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        .color-input-wrap input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 4px;
+        }
+
+        .color-presets {
+            display: flex;
+            gap: 0.35rem;
+            flex: 1;
+        }
+
+        .color-preset {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .color-preset:hover {
+            transform: scale(1.1);
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .color-preset.active {
+            border-color: white;
+            box-shadow: 0 0 8px rgba(255,255,255,0.4);
+        }
+
+        /* Slider Controls */
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .slider-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .slider-label {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            min-width: 60px;
+            font-family: var(--font-secondary);
+        }
+
+        .slider-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: var(--border-default);
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--gradient-accent);
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid var(--bg-dark);
+            box-shadow: 0 0 8px rgba(255, 0, 110, 0.4);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: var(--gradient-accent);
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid var(--bg-dark);
+        }
+
+        .slider-value {
+            font-size: 0.75rem;
+            color: var(--jazer-cyan);
+            min-width: 35px;
+            text-align: right;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+        }
+
+        /* Icon Grid */
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.4rem;
+        }
+
+        .icon-btn {
+            aspect-ratio: 1;
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            background: var(--bg-card);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover {
+            border-color: var(--jazer-purple);
+            background: rgba(147, 51, 234, 0.1);
+            transform: scale(1.05);
+        }
+
+        .icon-btn.active {
+            border-color: var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.15);
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+        }
+
+        .icon-btn.none-icon {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+        }
+
+        /* Animation Select */
+        .animation-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-default);
+            border-radius: 10px;
+            background: var(--bg-card);
+            color: var(--text-light);
+            font-family: var(--font-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .animation-select:hover,
+        .animation-select:focus {
+            border-color: var(--jazer-cyan);
+            outline: none;
+        }
+
+        .animation-select option {
+            background: var(--bg-dark);
+            color: var(--text-light);
+            padding: 0.5rem;
+        }
+
+        /* Presets Section */
+        .presets-section {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.25rem;
+        }
+
+        .presets-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .presets-title {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: var(--jazer-pink);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .presets-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .presets-scroll {
+            display: flex;
+            gap: 0.75rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            scroll-snap-type: x mandatory;
+        }
+
+        .presets-scroll::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .presets-scroll::-webkit-scrollbar-track {
+            background: var(--border-default);
+            border-radius: 3px;
+        }
+
+        .presets-scroll::-webkit-scrollbar-thumb {
+            background: var(--gradient-accent);
+            border-radius: 3px;
+        }
+
+        .preset-card {
+            flex: 0 0 auto;
+            width: 120px;
+            padding: 1rem 0.75rem;
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            background: rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            scroll-snap-align: start;
+        }
+
+        .preset-card:hover {
+            border-color: var(--jazer-purple);
+            transform: translateY(-3px);
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .preset-card.active {
+            border-color: var(--jazer-pink);
+            box-shadow: 0 0 15px rgba(255, 0, 110, 0.3);
+        }
+
+        .preset-marker {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preset-name {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--jazer-cyan);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--jazer-cyan); }
+            50% { opacity: 0.5; box-shadow: 0 0 8px var(--jazer-cyan); }
+        }
+
+        /* Toggle Switch for Glow */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+        }
+
+        .toggle-label {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--border-default);
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider::before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: var(--text-gray);
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: var(--gradient-accent);
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+            background: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .shape-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .icon-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .preset-card {
+                width: 100px;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .map-canvas {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Back Button -->
+        <a href="index.html" class="back-button">← Back to Maps & Geolocation</a>
+
+        <!-- Hero Section -->
+        <header class="hero">
+            <h1>Map Custom Marker Creator</h1>
+            <p class="hero-description">Design custom map markers with shapes, colors, icons, and animations. Preview your markers on Austin, TX locations.</p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-grid">
+            <!-- Preview Section -->
+            <section class="preview-section">
+                <div class="preview-header">
+                    <span class="preview-title">Live Preview</span>
+                    <div class="preview-actions">
+                        <button id="resetBtn">Reset</button>
+                        <button id="randomBtn">Randomize</button>
+                    </div>
+                </div>
+                <div class="map-canvas" id="mapCanvas">
+                    <!-- Location Labels -->
+                    <span class="location-label" style="top: 8%; left: 45%;">Texas State Capitol</span>
+                    <span class="location-label" style="top: 70%; left: 20%;">Zilker Park</span>
+                    <span class="location-label" style="top: 55%; left: 65%;">South Congress</span>
+                    <span class="location-label" style="top: 15%; left: 75%;">The Domain</span>
+                    <span class="location-label" style="top: 45%; left: 10%;">Barton Springs</span>
+                    <span class="location-label" style="top: 35%; left: 55%;">Lady Bird Lake</span>
+                    <span class="location-label" style="top: 25%; left: 25%;">6th Street</span>
+                    <span class="location-label" style="top: 85%; left: 70%;">Austin-Bergstrom</span>
+
+                    <!-- Markers will be injected here -->
+                </div>
+            </section>
+
+            <!-- Controls Panel -->
+            <aside class="controls-panel">
+                <!-- Shape Selection -->
+                <details open>
+                    <summary>Shape</summary>
+                    <div class="details-content">
+                        <div class="shape-grid" id="shapeGrid">
+                            <button class="shape-btn active" data-shape="circle" title="Circle">
+                                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+                                <span>Circle</span>
+                            </button>
+                            <button class="shape-btn" data-shape="pin" title="Pin">
+                                <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+                                <span>Pin</span>
+                            </button>
+                            <button class="shape-btn" data-shape="diamond" title="Diamond">
+                                <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" transform="rotate(45 12 12)"/></svg>
+                                <span>Diamond</span>
+                            </button>
+                            <button class="shape-btn" data-shape="square" title="Square">
+                                <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+                                <span>Square</span>
+                            </button>
+                            <button class="shape-btn" data-shape="star" title="Star">
+                                <svg viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 17,14 19,22 12,17 5,22 7,14 2,9 9,9"/></svg>
+                                <span>Star</span>
+                            </button>
+                            <button class="shape-btn" data-shape="hexagon" title="Hexagon">
+                                <svg viewBox="0 0 24 24"><polygon points="12,2 22,7 22,17 12,22 2,17 2,7"/></svg>
+                                <span>Hexagon</span>
+                            </button>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Color Controls -->
+                <details>
+                    <summary>Colors</summary>
+                    <div class="details-content">
+                        <div class="color-row">
+                            <span class="color-label">Fill</span>
+                            <div class="color-input-wrap">
+                                <input type="color" id="fillColor" value="#00f2ea">
+                            </div>
+                            <div class="color-presets" id="fillPresets">
+                                <div class="color-preset active" data-color="#00f2ea" style="background: #00f2ea;" title="Cyan"></div>
+                                <div class="color-preset" data-color="#9333ea" style="background: #9333ea;" title="Purple"></div>
+                                <div class="color-preset" data-color="#ff006e" style="background: #ff006e;" title="Pink"></div>
+                                <div class="color-preset" data-color="#ffbe0b" style="background: #ffbe0b;" title="Yellow"></div>
+                                <div class="color-preset" data-color="#ff8800" style="background: #ff8800;" title="Orange"></div>
+                            </div>
+                        </div>
+                        <div class="color-row">
+                            <span class="color-label">Border</span>
+                            <div class="color-input-wrap">
+                                <input type="color" id="borderColor" value="#ffffff">
+                            </div>
+                            <div class="color-presets" id="borderPresets">
+                                <div class="color-preset active" data-color="#ffffff" style="background: #ffffff;" title="White"></div>
+                                <div class="color-preset" data-color="#000000" style="background: #000000; border: 1px solid #333;" title="Black"></div>
+                                <div class="color-preset" data-color="#00f2ea" style="background: #00f2ea;" title="Cyan"></div>
+                                <div class="color-preset" data-color="#9333ea" style="background: #9333ea;" title="Purple"></div>
+                                <div class="color-preset" data-color="#ff006e" style="background: #ff006e;" title="Pink"></div>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Size & Style -->
+                <details>
+                    <summary>Size & Style</summary>
+                    <div class="details-content">
+                        <div class="slider-row">
+                            <span class="slider-label">Size</span>
+                            <div class="slider-wrap">
+                                <input type="range" id="sizeSlider" min="24" max="64" value="40">
+                                <span class="slider-value" id="sizeValue">40px</span>
+                            </div>
+                        </div>
+                        <div class="slider-row">
+                            <span class="slider-label">Border</span>
+                            <div class="slider-wrap">
+                                <input type="range" id="borderSlider" min="0" max="6" value="3">
+                                <span class="slider-value" id="borderValue">3px</span>
+                            </div>
+                        </div>
+                        <div class="slider-row">
+                            <span class="slider-label">Opacity</span>
+                            <div class="slider-wrap">
+                                <input type="range" id="opacitySlider" min="50" max="100" value="100">
+                                <span class="slider-value" id="opacityValue">100%</span>
+                            </div>
+                        </div>
+                        <div class="toggle-row">
+                            <span class="toggle-label">Neon Glow Effect</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="glowToggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Icon Selection -->
+                <details>
+                    <summary>Icon</summary>
+                    <div class="details-content">
+                        <div class="icon-grid" id="iconGrid">
+                            <button class="icon-btn none-icon active" data-icon="">NONE</button>
+                            <button class="icon-btn" data-icon="📍">📍</button>
+                            <button class="icon-btn" data-icon="🏛️">🏛️</button>
+                            <button class="icon-btn" data-icon="🌳">🌳</button>
+                            <button class="icon-btn" data-icon="🛍️">🛍️</button>
+                            <button class="icon-btn" data-icon="🏊">🏊</button>
+                            <button class="icon-btn" data-icon="🚣">🚣</button>
+                            <button class="icon-btn" data-icon="🎸">🎸</button>
+                            <button class="icon-btn" data-icon="✈️">✈️</button>
+                            <button class="icon-btn" data-icon="🍔">🍔</button>
+                            <button class="icon-btn" data-icon="☕">☕</button>
+                            <button class="icon-btn" data-icon="🏨">🏨</button>
+                            <button class="icon-btn" data-icon="⛽">⛽</button>
+                            <button class="icon-btn" data-icon="🏥">🏥</button>
+                            <button class="icon-btn" data-icon="🎭">🎭</button>
+                            <button class="icon-btn" data-icon="🎵">🎵</button>
+                            <button class="icon-btn" data-icon="🌮">🌮</button>
+                            <button class="icon-btn" data-icon="🍺">🍺</button>
+                            <button class="icon-btn" data-icon="⭐">⭐</button>
+                            <button class="icon-btn" data-icon="❤️">❤️</button>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Animation -->
+                <details>
+                    <summary>Animation</summary>
+                    <div class="details-content">
+                        <select class="animation-select" id="animationSelect">
+                            <option value="none">None - Static marker</option>
+                            <option value="bounce">Bounce - Up and down</option>
+                            <option value="pulse" selected>Pulse - Scale in/out</option>
+                            <option value="glow">Glow - Neon shimmer</option>
+                            <option value="drop">Drop - Entry animation</option>
+                        </select>
+                    </div>
+                </details>
+            </aside>
+        </div>
+
+        <!-- Presets Section -->
+        <section class="presets-section">
+            <div class="presets-header">
+                <span class="presets-title">Austin Location Presets</span>
+                <span class="presets-subtitle">Click to apply style</span>
+            </div>
+            <div class="presets-scroll" id="presetsScroll">
+                <!-- Presets will be generated by JS -->
+            </div>
+        </section>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Shape:</span>
+                    <span id="statusShape">Circle</span>
+                </div>
+                <div class="status-item">
+                    <span>Size:</span>
+                    <span id="statusSize">40px</span>
+                </div>
+                <div class="status-item">
+                    <span>Color:</span>
+                    <span id="statusColor">#00f2ea</span>
+                </div>
+                <div class="status-item">
+                    <span>Animation:</span>
+                    <span id="statusAnim">Pulse</span>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Marker Ready</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Marker State
+        const state = {
+            shape: 'circle',
+            fillColor: '#00f2ea',
+            borderColor: '#ffffff',
+            size: 40,
+            borderWidth: 3,
+            opacity: 100,
+            glow: true,
+            icon: '',
+            animation: 'pulse'
+        };
+
+        // Austin marker positions (percentage-based)
+        const markerPositions = [
+            { top: 12, left: 50, label: 'Capitol' },
+            { top: 75, left: 25, label: 'Zilker' },
+            { top: 60, left: 70, label: 'SoCo' },
+            { top: 20, left: 80, label: 'Domain' },
+            { top: 50, left: 15, label: 'Barton' },
+            { top: 40, left: 60, label: 'Lady Bird' },
+            { top: 30, left: 30, label: '6th St' },
+            { top: 90, left: 75, label: 'Airport' }
+        ];
+
+        // Preset configurations
+        const presets = [
+            { name: 'State Capitol', shape: 'pin', fillColor: '#9333ea', icon: '🏛️', animation: 'pulse' },
+            { name: 'Zilker Park', shape: 'circle', fillColor: '#00f2ea', icon: '🌳', animation: 'bounce' },
+            { name: 'South Congress', shape: 'diamond', fillColor: '#ff006e', icon: '🛍️', animation: 'glow' },
+            { name: 'The Domain', shape: 'square', fillColor: '#ffbe0b', icon: '🛍️', animation: 'pulse' },
+            { name: 'Barton Springs', shape: 'circle', fillColor: '#00f2ea', icon: '🏊', animation: 'bounce' },
+            { name: 'Lady Bird Lake', shape: 'hexagon', fillColor: '#4facfe', icon: '🚣', animation: 'glow' },
+            { name: '6th Street', shape: 'star', fillColor: '#ff006e', icon: '🎸', animation: 'pulse' },
+            { name: 'Airport', shape: 'pin', fillColor: '#ff8800', icon: '✈️', animation: 'none' }
+        ];
+
+        // DOM Elements
+        const mapCanvas = document.getElementById('mapCanvas');
+        const shapeGrid = document.getElementById('shapeGrid');
+        const fillColorInput = document.getElementById('fillColor');
+        const borderColorInput = document.getElementById('borderColor');
+        const sizeSlider = document.getElementById('sizeSlider');
+        const borderSlider = document.getElementById('borderSlider');
+        const opacitySlider = document.getElementById('opacitySlider');
+        const glowToggle = document.getElementById('glowToggle');
+        const iconGrid = document.getElementById('iconGrid');
+        const animationSelect = document.getElementById('animationSelect');
+        const presetsScroll = document.getElementById('presetsScroll');
+
+        // Status elements
+        const statusShape = document.getElementById('statusShape');
+        const statusSize = document.getElementById('statusSize');
+        const statusColor = document.getElementById('statusColor');
+        const statusAnim = document.getElementById('statusAnim');
+
+        // Value display elements
+        const sizeValue = document.getElementById('sizeValue');
+        const borderValue = document.getElementById('borderValue');
+        const opacityValue = document.getElementById('opacityValue');
+
+        // Generate marker HTML
+        function createMarkerHTML(pos, index) {
+            const glowStyle = state.glow 
+                ? `filter: drop-shadow(0 0 ${state.size / 6}px ${state.fillColor});` 
+                : '';
+            
+            const innerStyle = `
+                width: ${state.size}px;
+                height: ${state.size}px;
+                background: ${state.fillColor};
+                border: ${state.borderWidth}px solid ${state.borderColor};
+                opacity: ${state.opacity / 100};
+                ${glowStyle}
+                color: ${state.fillColor};
+            `;
+
+            return `
+                <div class="marker shape-${state.shape} anim-${state.animation}" 
+                     style="top: ${pos.top}%; left: ${pos.left}%; transform: translate(-50%, -50%);"
+                     data-index="${index}">
+                    <div class="marker-inner" style="${innerStyle}">
+                        <span class="marker-icon">${state.icon}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render all markers
+        function renderMarkers() {
+            // Remove existing markers
+            const existingMarkers = mapCanvas.querySelectorAll('.marker');
+            existingMarkers.forEach(m => m.remove());
+
+            // Add new markers
+            markerPositions.forEach((pos, index) => {
+                mapCanvas.insertAdjacentHTML('beforeend', createMarkerHTML(pos, index));
+            });
+
+            // Update status
+            updateStatus();
+        }
+
+        // Update status bar
+        function updateStatus() {
+            statusShape.textContent = state.shape.charAt(0).toUpperCase() + state.shape.slice(1);
+            statusSize.textContent = state.size + 'px';
+            statusColor.textContent = state.fillColor;
+            statusAnim.textContent = state.animation.charAt(0).toUpperCase() + state.animation.slice(1);
+        }
+
+        // Shape selection
+        shapeGrid.addEventListener('click', (e) => {
+            const btn = e.target.closest('.shape-btn');
+            if (!btn) return;
+
+            shapeGrid.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            state.shape = btn.dataset.shape;
+            renderMarkers();
+        });
+
+        // Fill color
+        fillColorInput.addEventListener('input', (e) => {
+            state.fillColor = e.target.value;
+            updateFillPresets();
+            renderMarkers();
+        });
+
+        function updateFillPresets() {
+            document.querySelectorAll('#fillPresets .color-preset').forEach(p => {
+                p.classList.toggle('active', p.dataset.color.toLowerCase() === state.fillColor.toLowerCase());
+            });
+        }
+
+        document.getElementById('fillPresets').addEventListener('click', (e) => {
+            const preset = e.target.closest('.color-preset');
+            if (!preset) return;
+            state.fillColor = preset.dataset.color;
+            fillColorInput.value = preset.dataset.color;
+            updateFillPresets();
+            renderMarkers();
+        });
+
+        // Border color
+        borderColorInput.addEventListener('input', (e) => {
+            state.borderColor = e.target.value;
+            updateBorderPresets();
+            renderMarkers();
+        });
+
+        function updateBorderPresets() {
+            document.querySelectorAll('#borderPresets .color-preset').forEach(p => {
+                p.classList.toggle('active', p.dataset.color.toLowerCase() === state.borderColor.toLowerCase());
+            });
+        }
+
+        document.getElementById('borderPresets').addEventListener('click', (e) => {
+            const preset = e.target.closest('.color-preset');
+            if (!preset) return;
+            state.borderColor = preset.dataset.color;
+            borderColorInput.value = preset.dataset.color;
+            updateBorderPresets();
+            renderMarkers();
+        });
+
+        // Size slider
+        sizeSlider.addEventListener('input', (e) => {
+            state.size = parseInt(e.target.value);
+            sizeValue.textContent = state.size + 'px';
+            renderMarkers();
+        });
+
+        // Border slider
+        borderSlider.addEventListener('input', (e) => {
+            state.borderWidth = parseInt(e.target.value);
+            borderValue.textContent = state.borderWidth + 'px';
+            renderMarkers();
+        });
+
+        // Opacity slider
+        opacitySlider.addEventListener('input', (e) => {
+            state.opacity = parseInt(e.target.value);
+            opacityValue.textContent = state.opacity + '%';
+            renderMarkers();
+        });
+
+        // Glow toggle
+        glowToggle.addEventListener('change', (e) => {
+            state.glow = e.target.checked;
+            renderMarkers();
+        });
+
+        // Icon selection
+        iconGrid.addEventListener('click', (e) => {
+            const btn = e.target.closest('.icon-btn');
+            if (!btn) return;
+
+            iconGrid.querySelectorAll('.icon-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            state.icon = btn.dataset.icon;
+            renderMarkers();
+        });
+
+        // Animation selection
+        animationSelect.addEventListener('change', (e) => {
+            state.animation = e.target.value;
+            renderMarkers();
+        });
+
+        // Generate preset cards
+        function generatePresets() {
+            presetsScroll.innerHTML = presets.map((preset, index) => {
+                const presetMarkerStyle = `
+                    width: 36px;
+                    height: 36px;
+                    background: ${preset.fillColor};
+                    border: 2px solid white;
+                    border-radius: ${preset.shape === 'circle' ? '50%' : preset.shape === 'square' ? '6px' : '50% 50% 50% 0'};
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1rem;
+                    ${preset.shape === 'pin' ? 'transform: rotate(-45deg);' : ''}
+                    ${preset.shape === 'diamond' ? 'transform: rotate(45deg);' : ''}
+                    box-shadow: 0 0 10px ${preset.fillColor}40;
+                `;
+                const iconStyle = preset.shape === 'pin' ? 'transform: rotate(45deg);' : 
+                                  preset.shape === 'diamond' ? 'transform: rotate(-45deg);' : '';
+                
+                return `
+                    <div class="preset-card" data-preset="${index}">
+                        <div class="preset-marker">
+                            <div style="${presetMarkerStyle}">
+                                <span style="${iconStyle}">${preset.icon}</span>
+                            </div>
+                        </div>
+                        <div class="preset-name">${preset.name}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Preset selection
+        presetsScroll.addEventListener('click', (e) => {
+            const card = e.target.closest('.preset-card');
+            if (!card) return;
+
+            const presetIndex = parseInt(card.dataset.preset);
+            const preset = presets[presetIndex];
+
+            // Update state
+            state.shape = preset.shape;
+            state.fillColor = preset.fillColor;
+            state.icon = preset.icon;
+            state.animation = preset.animation;
+
+            // Update UI
+            shapeGrid.querySelectorAll('.shape-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.shape === state.shape);
+            });
+            fillColorInput.value = state.fillColor;
+            updateFillPresets();
+            iconGrid.querySelectorAll('.icon-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.icon === state.icon);
+            });
+            animationSelect.value = state.animation;
+
+            // Highlight preset
+            presetsScroll.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+
+            renderMarkers();
+        });
+
+        // Reset button
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            // Reset state
+            state.shape = 'circle';
+            state.fillColor = '#00f2ea';
+            state.borderColor = '#ffffff';
+            state.size = 40;
+            state.borderWidth = 3;
+            state.opacity = 100;
+            state.glow = true;
+            state.icon = '';
+            state.animation = 'pulse';
+
+            // Reset UI
+            shapeGrid.querySelectorAll('.shape-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.shape === 'circle');
+            });
+            fillColorInput.value = '#00f2ea';
+            borderColorInput.value = '#ffffff';
+            sizeSlider.value = 40;
+            sizeValue.textContent = '40px';
+            borderSlider.value = 3;
+            borderValue.textContent = '3px';
+            opacitySlider.value = 100;
+            opacityValue.textContent = '100%';
+            glowToggle.checked = true;
+            iconGrid.querySelectorAll('.icon-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.icon === '');
+            });
+            animationSelect.value = 'pulse';
+            updateFillPresets();
+            updateBorderPresets();
+            presetsScroll.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+
+            renderMarkers();
+        });
+
+        // Randomize button
+        document.getElementById('randomBtn').addEventListener('click', () => {
+            const shapes = ['circle', 'pin', 'diamond', 'square', 'star', 'hexagon'];
+            const colors = ['#00f2ea', '#9333ea', '#ff006e', '#ffbe0b', '#ff8800', '#4facfe'];
+            const icons = ['', '📍', '🏛️', '🌳', '🛍️', '🏊', '🚣', '🎸', '✈️', '🍔', '☕', '⭐', '❤️'];
+            const animations = ['none', 'bounce', 'pulse', 'glow', 'drop'];
+
+            state.shape = shapes[Math.floor(Math.random() * shapes.length)];
+            state.fillColor = colors[Math.floor(Math.random() * colors.length)];
+            state.icon = icons[Math.floor(Math.random() * icons.length)];
+            state.animation = animations[Math.floor(Math.random() * animations.length)];
+            state.size = Math.floor(Math.random() * 40) + 24;
+            state.borderWidth = Math.floor(Math.random() * 6);
+
+            // Update UI
+            shapeGrid.querySelectorAll('.shape-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.shape === state.shape);
+            });
+            fillColorInput.value = state.fillColor;
+            updateFillPresets();
+            iconGrid.querySelectorAll('.icon-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.icon === state.icon);
+            });
+            animationSelect.value = state.animation;
+            sizeSlider.value = state.size;
+            sizeValue.textContent = state.size + 'px';
+            borderSlider.value = state.borderWidth;
+            borderValue.textContent = state.borderWidth + 'px';
+            presetsScroll.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+
+            renderMarkers();
+        });
+
+        // Initialize
+        generatePresets();
+        renderMarkers();
+    </script>
+</body>
+</html>

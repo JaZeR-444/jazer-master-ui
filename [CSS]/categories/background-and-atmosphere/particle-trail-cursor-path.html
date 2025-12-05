@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Particle Trail Cursor Path - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="cyan"] { background: var(--jazer-cyan); }
+    .color-btn[data-color="purple"] { background: var(--jazer-purple); }
+    .color-btn[data-color="pink"] { background: var(--jazer-pink); }
+    .color-btn[data-color="rainbow"] { background: conic-gradient(#0ff, #f0f, #ff0, #0ff); }
+    .color-btn[data-color="mono"] { background: #888; }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .trail-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #000000 0%, #0a0514 50%, #000000 100%);
+      overflow: hidden;
+      cursor: none;
+    }
+    #trailCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .custom-cursor {
+      position: fixed;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--jazer-cyan);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 200;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 20px var(--jazer-cyan);
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .stats {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      gap: 1rem;
+    }
+    .stat-value { color: var(--jazer-cyan); }
+    .instruction {
+      position: fixed;
+      bottom: 50%;
+      left: 50%;
+      transform: translate(-50%, 50%);
+      z-index: 50;
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      color: var(--jazer-cyan);
+      text-shadow: 0 0 20px var(--jazer-cyan);
+      opacity: 0.6;
+      pointer-events: none;
+      transition: opacity 0.5s;
+    }
+    @media (max-width: 768px) {
+      .hero { left: 1rem; right: 1rem; transform: none; padding: 0.75rem 1rem; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero-keys { gap: 0.5rem; }
+      .controls { top: auto; bottom: 4rem; right: 1rem; left: 1rem; min-width: auto; }
+      .instruction { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Particle Trail Cursor Path</h1>
+    <p>Interactive particle trails following your cursor movement</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>R</kbd> Clear</span>
+      <span class="key-hint"><kbd>B</kbd> Burst</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="cyan" title="Cyan"></button>
+      <button class="color-btn" data-color="purple" title="Purple"></button>
+      <button class="color-btn" data-color="pink" title="Pink"></button>
+      <button class="color-btn" data-color="rainbow" title="Rainbow"></button>
+      <button class="color-btn" data-color="mono" title="Monochrome"></button>
+    </div>
+    <div class="slider-group">
+      <label>Trail Length: <span class="slider-value" id="trailValue">60</span></label>
+      <input type="range" id="trailSlider" min="20" max="120" value="60">
+    </div>
+    <div class="slider-group">
+      <label>Spawn Rate: <span class="slider-value" id="spawnValue">3</span></label>
+      <input type="range" id="spawnSlider" min="1" max="8" value="3">
+    </div>
+    <div class="slider-group">
+      <label>Size: <span class="slider-value" id="sizeValue">3</span></label>
+      <input type="range" id="sizeSlider" min="1" max="8" value="3">
+    </div>
+  </div>
+
+  <div class="trail-container">
+    <canvas id="trailCanvas"></canvas>
+    <div class="instruction" id="instruction">Move your cursor to create trails</div>
+  </div>
+
+  <div class="custom-cursor" id="cursor"></div>
+
+  <div class="status" id="status">Active</div>
+  <div class="stats">
+    <span>Particles: <span class="stat-value" id="particleCount">0</span></span>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('trailCanvas');
+    const ctx = canvas.getContext('2d');
+    const cursor = document.getElementById('cursor');
+    const instruction = document.getElementById('instruction');
+
+    let config = {
+      particleLife: 60,
+      spawnRate: 3,
+      particleSize: 3,
+      colorScheme: 'cyan',
+      gravity: 0.05,
+      drift: 0.5,
+      maxParticles: 400
+    };
+
+    const colorSchemes = {
+      cyan: ['#00f2ea', '#00d4cf', '#00b8b0'],
+      purple: ['#9333ea', '#8b5cf6', '#a855f7'],
+      pink: ['#ff006e', '#ff4d94', '#ec4899'],
+      rainbow: ['#00f2ea', '#9333ea', '#ff006e', '#ffcc00'],
+      mono: ['#ffffff', '#cccccc', '#999999']
+    };
+
+    let particles = [];
+    let mouse = { x: 0, y: 0, active: false };
+    let lastSpawn = { x: 0, y: 0 };
+    let hasInteracted = false;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    function getColor() {
+      const colors = colorSchemes[config.colorScheme];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function spawnParticle(x, y) {
+      if (particles.length >= config.maxParticles) return;
+
+      const color = getColor();
+      particles.push({
+        x: x + (Math.random() - 0.5) * 10,
+        y: y + (Math.random() - 0.5) * 10,
+        vx: (Math.random() - 0.5) * config.drift,
+        vy: (Math.random() - 0.5) * config.drift - 1,
+        life: config.particleLife + Math.random() * 30,
+        maxLife: config.particleLife,
+        color: color,
+        size: config.particleSize + Math.random() * 2
+      });
+    }
+
+    function burstParticles() {
+      for (let i = 0; i < 50; i++) {
+        const angle = (i / 50) * Math.PI * 2;
+        const speed = 2 + Math.random() * 3;
+        const color = getColor();
+        particles.push({
+          x: mouse.x,
+          y: mouse.y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: config.particleLife,
+          maxLife: config.particleLife,
+          color: color,
+          size: config.particleSize + Math.random() * 2
+        });
+      }
+    }
+
+    function animate() {
+      // Clear with fade effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Update and draw particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+
+        // Update physics
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += config.gravity;
+        p.vx *= 0.98;
+        p.life--;
+
+        // Remove dead particles
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        // Draw particle with glow
+        const opacity = p.life / p.maxLife;
+        const size = p.size * opacity;
+
+        ctx.shadowBlur = 15 * opacity;
+        ctx.shadowColor = p.color;
+
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = opacity;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Inner bright core
+        ctx.fillStyle = '#ffffff';
+        ctx.globalAlpha = opacity * 0.5;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, size * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+
+      // Update stats
+      document.getElementById('particleCount').textContent = particles.length;
+
+      requestAnimationFrame(animate);
+    }
+
+    function updateCursorColor() {
+      const colors = colorSchemes[config.colorScheme];
+      const color = colors[0];
+      cursor.style.borderColor = color;
+      cursor.style.boxShadow = `0 0 20px ${color}`;
+    }
+
+    // Mouse tracking
+    document.addEventListener('mousemove', e => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      mouse.active = true;
+
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top = e.clientY + 'px';
+      cursor.style.display = 'block';
+
+      if (!hasInteracted) {
+        hasInteracted = true;
+        instruction.style.opacity = '0';
+      }
+
+      // Calculate distance moved
+      const dx = mouse.x - lastSpawn.x;
+      const dy = mouse.y - lastSpawn.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      // Spawn more particles if moving fast
+      const spawnMultiplier = Math.min(Math.floor(distance / 10) + 1, 5);
+
+      for (let i = 0; i < config.spawnRate * spawnMultiplier; i++) {
+        spawnParticle(mouse.x, mouse.y);
+      }
+
+      lastSpawn.x = mouse.x;
+      lastSpawn.y = mouse.y;
+    });
+
+    document.addEventListener('mouseleave', () => {
+      cursor.style.display = 'none';
+    });
+
+    document.addEventListener('mouseenter', () => {
+      cursor.style.display = 'block';
+    });
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+        updateCursorColor();
+      });
+    });
+
+    // Sliders
+    document.getElementById('trailSlider').addEventListener('input', e => {
+      config.particleLife = parseInt(e.target.value);
+      document.getElementById('trailValue').textContent = config.particleLife;
+    });
+
+    document.getElementById('spawnSlider').addEventListener('input', e => {
+      config.spawnRate = parseInt(e.target.value);
+      document.getElementById('spawnValue').textContent = config.spawnRate;
+    });
+
+    document.getElementById('sizeSlider').addEventListener('input', e => {
+      config.particleSize = parseInt(e.target.value);
+      document.getElementById('sizeValue').textContent = config.particleSize;
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'KeyR') {
+        particles = [];
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      if (e.code === 'KeyB') {
+        burstParticles();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['cyan', 'purple', 'pink', 'rainbow', 'mono'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+        updateCursorColor();
+      }
+    });
+
+    // Initialize
+    updateCursorColor();
+    animate();
+  </script>
+</body>
+</html>

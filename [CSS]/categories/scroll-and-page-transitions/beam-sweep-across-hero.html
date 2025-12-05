@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beam Sweep Across Hero - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+            background: #0a0a0a;
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 2rem;
+            max-width: 1000px;
+        }
+
+        .hero-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            margin-bottom: 1.5rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fade-in-up 1s ease-out 0.2s both;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.125rem, 3vw, 1.5rem);
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 2rem;
+            animation: fade-in-up 1s ease-out 0.4s both;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            animation: fade-in-up 1s ease-out 0.6s both;
+        }
+
+        .cta-button {
+            padding: 1rem 2.5rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.125rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .cta-button:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 242, 234, 0.4);
+        }
+
+        .cta-button.secondary {
+            border-color: var(--jazer-purple, #9333ea);
+            color: var(--jazer-purple, #9333ea);
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .cta-button.secondary:hover {
+            background: rgba(147, 51, 234, 0.2);
+            box-shadow: 0 10px 30px rgba(147, 51, 234, 0.4);
+        }
+
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Beam Sweep Container */
+        .beam-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        /* Horizontal Beam */
+        .beam {
+            position: absolute;
+            height: 3px;
+            width: 0;
+            background: linear-gradient(90deg, 
+                        transparent 0%, 
+                        var(--jazer-cyan, #00f2ea) 50%, 
+                        transparent 100%);
+            box-shadow: 0 0 20px var(--jazer-cyan, #00f2ea),
+                        0 0 40px var(--jazer-cyan, #00f2ea);
+            opacity: 0;
+            will-change: transform, opacity, width;
+        }
+
+        /* Vertical Beam */
+        .beam.vertical {
+            width: 3px;
+            height: 0;
+            background: linear-gradient(180deg, 
+                        transparent 0%, 
+                        var(--jazer-purple, #9333ea) 50%, 
+                        transparent 100%);
+            box-shadow: 0 0 20px var(--jazer-purple, #9333ea),
+                        0 0 40px var(--jazer-purple, #9333ea);
+        }
+
+        /* Diagonal Beam */
+        .beam.diagonal {
+            width: 3px;
+            height: 0;
+            background: linear-gradient(180deg, 
+                        transparent 0%, 
+                        var(--jazer-pink, #ff006e) 50%, 
+                        transparent 100%);
+            box-shadow: 0 0 20px var(--jazer-pink, #ff006e),
+                        0 0 40px var(--jazer-pink, #ff006e);
+            transform-origin: top left;
+        }
+
+        /* Beam Animations */
+        .beam.sweep-right {
+            animation: sweep-horizontal-right 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .beam.sweep-left {
+            animation: sweep-horizontal-left 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .beam.sweep-down {
+            animation: sweep-vertical-down 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .beam.sweep-up {
+            animation: sweep-vertical-up 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .beam.sweep-diagonal-tl-br {
+            animation: sweep-diagonal-tl-br 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .beam.sweep-diagonal-tr-bl {
+            animation: sweep-diagonal-tr-bl 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        /* Horizontal Right Sweep */
+        @keyframes sweep-horizontal-right {
+            0% {
+                left: 0;
+                width: 0;
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            50% {
+                width: 100%;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                left: 100%;
+                width: 0;
+                opacity: 0;
+            }
+        }
+
+        /* Horizontal Left Sweep */
+        @keyframes sweep-horizontal-left {
+            0% {
+                right: 0;
+                width: 0;
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            50% {
+                width: 100%;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                right: 100%;
+                width: 0;
+                opacity: 0;
+            }
+        }
+
+        /* Vertical Down Sweep */
+        @keyframes sweep-vertical-down {
+            0% {
+                top: 0;
+                height: 0;
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            50% {
+                height: 100%;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                top: 100%;
+                height: 0;
+                opacity: 0;
+            }
+        }
+
+        /* Vertical Up Sweep */
+        @keyframes sweep-vertical-up {
+            0% {
+                bottom: 0;
+                height: 0;
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            50% {
+                height: 100%;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                bottom: 100%;
+                height: 0;
+                opacity: 0;
+            }
+        }
+
+        /* Diagonal Top-Left to Bottom-Right */
+        @keyframes sweep-diagonal-tl-br {
+            0% {
+                top: 0;
+                left: 0;
+                height: 0;
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            50% {
+                height: 141.42%;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                top: 100%;
+                left: 100%;
+                height: 0;
+                opacity: 0;
+            }
+        }
+
+        /* Diagonal Top-Right to Bottom-Left */
+        @keyframes sweep-diagonal-tr-bl {
+            0% {
+                top: 0;
+                right: 0;
+                height: 0;
+                opacity: 0;
+                transform: rotate(-45deg);
+            }
+            10% {
+                opacity: 1;
+            }
+            50% {
+                height: 141.42%;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                top: 100%;
+                right: 100%;
+                height: 0;
+                opacity: 0;
+            }
+        }
+
+        /* Grid Pattern Background */
+        .grid-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            background-image: 
+                linear-gradient(rgba(0, 242, 234, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 242, 234, 0.3) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 1;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            z-index: 100;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 90vw;
+        }
+
+        .control-btn {
+            padding: 0.75rem 1.5rem;
+            background: rgba(147, 51, 234, 0.1);
+            border: 2px solid var(--jazer-purple, #9333ea);
+            color: var(--jazer-purple, #9333ea);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            white-space: nowrap;
+        }
+
+        .control-btn:hover {
+            background: rgba(147, 51, 234, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(147, 51, 234, 0.4);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Info Panel */
+        .info-panel {
+            position: fixed;
+            top: 50%;
+            right: 2rem;
+            transform: translateY(-50%);
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            max-width: 250px;
+            z-index: 100;
+        }
+
+        .info-panel h3 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 1rem;
+            color: var(--jazer-cyan, #00f2ea);
+            margin-bottom: 0.75rem;
+        }
+
+        .info-panel p {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+        }
+
+        .info-panel__status {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background: rgba(0, 242, 234, 0.1);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--jazer-cyan, #00f2ea);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .info-panel {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .back-button {
+                top: 1rem;
+                left: 1rem;
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .control-panel {
+                bottom: 1rem;
+                padding: 1rem;
+                gap: 0.5rem;
+            }
+
+            .control-btn {
+                padding: 0.625rem 1.25rem;
+                font-size: 0.75rem;
+            }
+
+            .hero-content {
+                padding: 1rem;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .cta-button {
+                padding: 0.875rem 2rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <section class="hero">
+        <div class="grid-pattern"></div>
+        <div class="beam-container" id="beamContainer"></div>
+        
+        <div class="hero-content">
+            <h1 class="hero-title">Beam Sweep Effects</h1>
+            <p class="hero-subtitle">Dynamic light beams that sweep across the hero section, creating cinematic visual impact and drawing attention to your content</p>
+            <div class="hero-cta">
+                <a href="#" class="cta-button">Get Started</a>
+                <a href="#" class="cta-button secondary">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="control-panel">
+        <button class="control-btn" data-sweep="horizontal-right">→ Sweep Right</button>
+        <button class="control-btn" data-sweep="horizontal-left">← Sweep Left</button>
+        <button class="control-btn" data-sweep="vertical-down">↓ Sweep Down</button>
+        <button class="control-btn" data-sweep="vertical-up">↑ Sweep Up</button>
+        <button class="control-btn" data-sweep="diagonal-tl-br">↘ Diagonal TL-BR</button>
+        <button class="control-btn" data-sweep="diagonal-tr-bl">↙ Diagonal TR-BL</button>
+        <button class="control-btn" data-sweep="multi-beam">✦ Multi-Beam</button>
+        <button class="control-btn" data-sweep="cross-sweep">✕ Cross Sweep</button>
+        <button class="control-btn" data-sweep="random">⚡ Random</button>
+    </div>
+
+    <div class="info-panel">
+        <h3>Beam Sweep Info</h3>
+        <p>Click any button below to trigger different beam sweep patterns. Each animation is GPU-accelerated for smooth 60fps performance.</p>
+        <div class="info-panel__status" id="statusText">Ready</div>
+    </div>
+
+    <script>
+        const beamContainer = document.getElementById('beamContainer');
+        const controlButtons = document.querySelectorAll('.control-btn');
+        const statusText = document.getElementById('statusText');
+        let animationInProgress = false;
+
+        // Beam configurations
+        const beamTypes = {
+            'horizontal-right': {
+                positions: [
+                    { top: '20%', type: 'horizontal', animation: 'sweep-right', color: 'cyan' },
+                ]
+            },
+            'horizontal-left': {
+                positions: [
+                    { top: '50%', type: 'horizontal', animation: 'sweep-left', color: 'cyan' },
+                ]
+            },
+            'vertical-down': {
+                positions: [
+                    { left: '30%', type: 'vertical', animation: 'sweep-down', color: 'purple' },
+                ]
+            },
+            'vertical-up': {
+                positions: [
+                    { left: '60%', type: 'vertical', animation: 'sweep-up', color: 'purple' },
+                ]
+            },
+            'diagonal-tl-br': {
+                positions: [
+                    { top: '0', left: '0', type: 'diagonal', animation: 'sweep-diagonal-tl-br', color: 'pink', rotate: 45 },
+                ]
+            },
+            'diagonal-tr-bl': {
+                positions: [
+                    { top: '0', right: '0', type: 'diagonal', animation: 'sweep-diagonal-tr-bl', color: 'pink', rotate: -45 },
+                ]
+            },
+            'multi-beam': {
+                positions: [
+                    { top: '25%', type: 'horizontal', animation: 'sweep-right', color: 'cyan', delay: 0 },
+                    { top: '50%', type: 'horizontal', animation: 'sweep-right', color: 'purple', delay: 0.2 },
+                    { top: '75%', type: 'horizontal', animation: 'sweep-right', color: 'pink', delay: 0.4 },
+                ]
+            },
+            'cross-sweep': {
+                positions: [
+                    { top: '50%', type: 'horizontal', animation: 'sweep-right', color: 'cyan', delay: 0 },
+                    { left: '50%', type: 'vertical', animation: 'sweep-down', color: 'purple', delay: 0.3 },
+                ]
+            }
+        };
+
+        // Create beam element
+        function createBeam(config) {
+            const beam = document.createElement('div');
+            beam.className = `beam ${config.type} ${config.animation}`;
+            
+            // Apply position
+            if (config.top) beam.style.top = config.top;
+            if (config.left) beam.style.left = config.left;
+            if (config.right) beam.style.right = config.right;
+            if (config.bottom) beam.style.bottom = config.bottom;
+            
+            // Apply rotation for diagonal
+            if (config.rotate) {
+                beam.style.transform = `rotate(${config.rotate}deg)`;
+            }
+            
+            // Apply delay
+            if (config.delay) {
+                beam.style.animationDelay = `${config.delay}s`;
+            }
+
+            // Apply color
+            if (config.color === 'cyan') {
+                beam.style.background = 'linear-gradient(90deg, transparent 0%, #00f2ea 50%, transparent 100%)';
+                beam.style.boxShadow = '0 0 20px #00f2ea, 0 0 40px #00f2ea';
+            } else if (config.color === 'purple') {
+                beam.style.background = 'linear-gradient(90deg, transparent 0%, #9333ea 50%, transparent 100%)';
+                beam.style.boxShadow = '0 0 20px #9333ea, 0 0 40px #9333ea';
+            } else if (config.color === 'pink') {
+                beam.style.background = 'linear-gradient(90deg, transparent 0%, #ff006e 50%, transparent 100%)';
+                beam.style.boxShadow = '0 0 20px #ff006e, 0 0 40px #ff006e';
+            }
+
+            // Adjust gradient direction for vertical beams
+            if (config.type === 'vertical' || config.type === 'diagonal') {
+                if (config.color === 'cyan') {
+                    beam.style.background = 'linear-gradient(180deg, transparent 0%, #00f2ea 50%, transparent 100%)';
+                } else if (config.color === 'purple') {
+                    beam.style.background = 'linear-gradient(180deg, transparent 0%, #9333ea 50%, transparent 100%)';
+                } else if (config.color === 'pink') {
+                    beam.style.background = 'linear-gradient(180deg, transparent 0%, #ff006e 50%, transparent 100%)';
+                }
+            }
+
+            return beam;
+        }
+
+        // Trigger beam sweep
+        function triggerBeamSweep(type) {
+            if (animationInProgress) return;
+            
+            animationInProgress = true;
+            statusText.textContent = `Playing: ${type}`;
+
+            // Clear existing beams
+            beamContainer.innerHTML = '';
+
+            // Handle random
+            if (type === 'random') {
+                const types = Object.keys(beamTypes);
+                type = types[Math.floor(Math.random() * types.length)];
+            }
+
+            // Get beam configuration
+            const config = beamTypes[type];
+            if (!config) return;
+
+            // Create and add beams
+            config.positions.forEach(position => {
+                const beam = createBeam(position);
+                beamContainer.appendChild(beam);
+            });
+
+            // Calculate max duration (including delays)
+            let maxDuration = 2500; // Base duration
+            config.positions.forEach(pos => {
+                if (pos.delay) {
+                    maxDuration = Math.max(maxDuration, 2500 + (pos.delay * 1000));
+                }
+            });
+
+            // Reset after animation completes
+            setTimeout(() => {
+                beamContainer.innerHTML = '';
+                animationInProgress = false;
+                statusText.textContent = 'Ready';
+            }, maxDuration);
+        }
+
+        // Add event listeners to control buttons
+        controlButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const sweepType = button.getAttribute('data-sweep');
+                triggerBeamSweep(sweepType);
+            });
+        });
+
+        // Auto-play on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                triggerBeamSweep('multi-beam');
+            }, 1000);
+        });
+
+        // Trigger random beam every 8 seconds (optional auto-play)
+        let autoPlayInterval = setInterval(() => {
+            if (!animationInProgress && document.visibilityState === 'visible') {
+                triggerBeamSweep('random');
+            }
+        }, 8000);
+
+        // Pause auto-play when tab is not visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                clearInterval(autoPlayInterval);
+            } else {
+                autoPlayInterval = setInterval(() => {
+                    if (!animationInProgress) {
+                        triggerBeamSweep('random');
+                    }
+                }, 8000);
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (animationInProgress) return;
+
+            const keyMap = {
+                'ArrowRight': 'horizontal-right',
+                'ArrowLeft': 'horizontal-left',
+                'ArrowDown': 'vertical-down',
+                'ArrowUp': 'vertical-up',
+                ' ': 'random'
+            };
+
+            if (keyMap[e.key]) {
+                e.preventDefault();
+                triggerBeamSweep(keyMap[e.key]);
+            }
+        });
+    </script>
+</body>
+</html>

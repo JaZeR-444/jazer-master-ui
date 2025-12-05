@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sortable Columns Table</title>
+  <style>
+    /* ==================== RESET ==================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f5f5f5;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 2rem;
+    }
+
+    p {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: #555;
+    }
+
+    /* ==================== SORTABLE TABLE ==================== */
+    .table-wrapper {
+      overflow-x: auto;
+      margin-top: 1.5rem;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+    }
+
+    .sortable-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px; /* Ensure table is scrollable on smaller screens */
+    }
+
+    .sortable-table th,
+    .sortable-table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .sortable-table thead th {
+      background-color: #f8f8f8;
+      color: #555;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .sortable-table tbody tr:hover {
+      background-color: #f2f2f2;
+    }
+
+    /* Sortable column styling */
+    .sortable-table th.sortable {
+      cursor: pointer;
+      position: relative;
+    }
+
+    .sortable-table th.sortable:hover {
+      background-color: #e6e6e6;
+    }
+
+    /* Sort indicator arrows */
+    .sortable-table th.sortable::after {
+      content: '';
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 4px solid transparent;
+      opacity: 0.4;
+      transition: opacity 0.2s;
+    }
+
+    .sortable-table th.sortable:hover::after {
+      opacity: 0.7;
+    }
+
+    .sortable-table th.sortable.asc::after {
+      border-bottom-color: #555;
+      opacity: 1;
+    }
+
+    .sortable-table th.sortable.desc::after {
+      border-top-color: #555;
+      opacity: 1;
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../jazer-brand.css">
+  </head>
+<body>
+
+  <div class="container">
+    <h1>Sortable Columns Table</h1>
+    <p>Click on the table headers to sort the data.</p>
+
+    <div class="table-wrapper">
+      <table class="sortable-table" id="data-table">
+        <thead>
+          <tr>
+            <th class="sortable" data-column="id" data-type="number">ID</th>
+            <th class="sortable" data-column="name" data-type="string">Name</th>
+            <th class="sortable" data-column="city" data-type="string">City</th>
+            <th class="sortable" data-column="age" data-type="number">Age</th>
+            <th class="sortable" data-column="score" data-type="number">Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data will be rendered here by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const table = document.getElementById('data-table');
+      const tbody = table.querySelector('tbody');
+      const headers = table.querySelectorAll('th.sortable');
+
+      let currentSortColumn = null;
+      let currentSortDirection = 'asc'; // 'asc' or 'desc'
+
+      const initialData = [
+        { id: 1, name: 'Alice', city: 'New York', age: 30, score: 95 },
+        { id: 2, name: 'Bob', city: 'London', age: 24, score: 88 },
+        { id: 3, name: 'Charlie', city: 'Paris', age: 35, score: 72 },
+        { id: 4, name: 'Diana', city: 'Berlin', age: 28, score: 91 },
+        { id: 5, name: 'Eve', city: 'Tokyo', age: 22, score: 79 },
+        { id: 6, name: 'Frank', city: 'Rome', age: 40, score: 65 },
+        { id: 7, name: 'Grace', city: 'Sydney', age: 29, score: 93 },
+        { id: 8, name: 'Harry', city: 'Madrid', age: 31, score: 87 },
+        { id: 9, name: 'Ivy', city: 'Moscow', age: 26, score: 81 },
+        { id: 10, name: 'Jack', city: 'Dubai', age: 33, score: 98 },
+        { id: 11, name: 'Karen', city: 'Cairo', age: 27, score: 70 },
+        { id: 12, name: 'Liam', city: 'Beijing', age: 25, score: 84 },
+        { id: 13, name: 'Mia', city: 'Seoul', age: 30, score: 90 },
+        { id: 14, name: 'Noah', city: 'Rio', age: 38, score: 75 },
+        { id: 15, name: 'Olivia', city: 'Mexico City', age: 23, score: 82 },
+      ];
+
+      let tableData = [...initialData]; // Working copy of data
+
+      /**
+       * Renders the table body with the current sorted data.
+       */
+      function renderTable() {
+        tbody.innerHTML = ''; // Clear existing rows
+        tableData.forEach(item => {
+          const row = tbody.insertRow();
+          for (const key in item) {
+            const cell = row.insertCell();
+            cell.textContent = item[key];
+          }
+        });
+      }
+
+      /**
+       * Sorts the table data based on column and direction.
+       * @param {string} column - The data-column attribute of the clicked header.
+       * @param {string} type - The data-type attribute (e.g., 'number', 'string').
+       */
+      function sortTable(column, type) {
+        // If clicking the same column, toggle direction
+        if (currentSortColumn === column) {
+          currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+          // If clicking a new column, reset to asc
+          currentSortColumn = column;
+          currentSortDirection = 'asc';
+        }
+
+        // Remove sort classes from all headers
+        headers.forEach(header => {
+          header.classList.remove('asc', 'desc');
+        });
+
+        // Add sort class to the currently sorted header
+        const activeHeader = table.querySelector(`th[data-column="${column}"]`);
+        if (activeHeader) {
+          activeHeader.classList.add(currentSortDirection);
+        }
+
+        tableData.sort((a, b) => {
+          let valA = a[column];
+          let valB = b[column];
+
+          if (type === 'number') {
+            valA = parseFloat(valA);
+            valB = parseFloat(valB);
+          } else {
+            valA = String(valA).toLowerCase();
+            valB = String(valB).toLowerCase();
+          }
+
+          if (valA < valB) {
+            return currentSortDirection === 'asc' ? -1 : 1;
+          }
+          if (valA > valB) {
+            return currentSortDirection === 'asc' ? 1 : -1;
+          }
+          return 0;
+        });
+
+        renderTable();
+      }
+
+      // Add event listeners to sortable headers
+      headers.forEach(header => {
+        header.addEventListener('click', () => {
+          const column = header.dataset.column;
+          const type = header.dataset.type || 'string'; // Default to string sort
+          sortTable(column, type);
+        });
+      });
+
+      // Initial render of the table
+      renderTable();
+    });
+  </script>
+
+</body>
+</html>

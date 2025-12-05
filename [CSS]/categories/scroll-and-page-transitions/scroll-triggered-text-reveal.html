@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll-Triggered Text Reveal - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+        }
+
+        .header h1 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 1rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        /* Control Panel */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .control-btn.active {
+            background: var(--jazer-cyan, #00f2ea);
+            border-color: var(--jazer-cyan, #00f2ea);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Content Sections */
+        .demo-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+        }
+
+        .text-container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        /* Text Reveal Base Styles */
+        .reveal-text {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .reveal-paragraph {
+            font-size: 1.25rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .reveal-quote {
+            font-size: 1.5rem;
+            font-style: italic;
+            line-height: 1.6;
+            padding: 2rem;
+            border-left: 4px solid var(--jazer-cyan, #00f2ea);
+            margin: 2rem 0;
+            background: rgba(0, 242, 234, 0.05);
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Animation: Fade Slide Up */
+        .style-fade-slide .reveal-text,
+        .style-fade-slide .reveal-paragraph,
+        .style-fade-slide .reveal-quote {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .style-fade-slide .reveal-text.visible,
+        .style-fade-slide .reveal-paragraph.visible,
+        .style-fade-slide .reveal-quote.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Animation: Letter by Letter */
+        .style-letter-by-letter .reveal-text,
+        .style-letter-by-letter .reveal-paragraph,
+        .style-letter-by-letter .reveal-quote {
+            opacity: 0;
+        }
+
+        .style-letter-by-letter .reveal-text.visible,
+        .style-letter-by-letter .reveal-paragraph.visible,
+        .style-letter-by-letter .reveal-quote.visible {
+            opacity: 1;
+        }
+
+        .style-letter-by-letter .letter {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: letterReveal 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes letterReveal {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Animation: Clip Path Wipe */
+        .style-clip-wipe .reveal-text,
+        .style-clip-wipe .reveal-paragraph,
+        .style-clip-wipe .reveal-quote {
+            clip-path: inset(0 100% 0 0);
+            transition: clip-path 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .style-clip-wipe .reveal-text.visible,
+        .style-clip-wipe .reveal-paragraph.visible,
+        .style-clip-wipe .reveal-quote.visible {
+            clip-path: inset(0 0 0 0);
+        }
+
+        /* Animation: Split Text */
+        .style-split .reveal-text,
+        .style-split .reveal-paragraph,
+        .style-split .reveal-quote {
+            opacity: 0;
+        }
+
+        .style-split .reveal-text.visible,
+        .style-split .reveal-paragraph.visible,
+        .style-split .reveal-quote.visible {
+            opacity: 1;
+        }
+
+        .style-split .word {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(30px) rotateX(-90deg);
+            transform-origin: bottom;
+            animation: wordFlip 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes wordFlip {
+            to {
+                opacity: 1;
+                transform: translateY(0) rotateX(0);
+            }
+        }
+
+        /* Animation: Glitch Effect */
+        .style-glitch .reveal-text,
+        .style-glitch .reveal-paragraph,
+        .style-glitch .reveal-quote {
+            opacity: 0;
+            position: relative;
+        }
+
+        .style-glitch .reveal-text.visible,
+        .style-glitch .reveal-paragraph.visible,
+        .style-glitch .reveal-quote.visible {
+            animation: glitchReveal 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes glitchReveal {
+            0% {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            10% {
+                opacity: 0.3;
+                transform: translateX(10px);
+            }
+            20% {
+                opacity: 0.6;
+                transform: translateX(-5px);
+            }
+            30% {
+                opacity: 0.8;
+                transform: translateX(5px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Animation: Scale Fade */
+        .style-scale-fade .reveal-text,
+        .style-scale-fade .reveal-paragraph,
+        .style-scale-fade .reveal-quote {
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .style-scale-fade .reveal-text.visible,
+        .style-scale-fade .reveal-paragraph.visible,
+        .style-scale-fade .reveal-quote.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Gradient Text */
+        .gradient-text {
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Spacer */
+        .spacer {
+            height: 50vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.3);
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 6rem 1rem 3rem;
+            }
+
+            .controls {
+                padding: 1rem;
+            }
+
+            .control-group {
+                width: 100%;
+            }
+
+            .button-group {
+                justify-content: center;
+            }
+
+            .demo-section {
+                min-height: 80vh;
+                padding: 3rem 1rem;
+            }
+
+            .reveal-text {
+                font-size: clamp(1.5rem, 8vw, 2.5rem);
+            }
+
+            .reveal-paragraph {
+                font-size: 1rem;
+            }
+
+            .reveal-quote {
+                font-size: 1.125rem;
+                padding: 1.5rem;
+            }
+
+            .back-button {
+                top: 1rem;
+                left: 1rem;
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <div class="header">
+        <h1>Scroll-Triggered Text Reveal</h1>
+        <p>Text elements that reveal themselves with stunning animations as you scroll. Choose from various reveal styles including letter-by-letter, clip-path wipes, and glitch effects.</p>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Reveal Animation Style</label>
+            <div class="button-group">
+                <button class="control-btn style-btn active" data-style="fade-slide">Fade Slide</button>
+                <button class="control-btn style-btn" data-style="letter-by-letter">Letter by Letter</button>
+                <button class="control-btn style-btn" data-style="clip-wipe">Clip Wipe</button>
+                <button class="control-btn style-btn" data-style="split">Split Flip</button>
+                <button class="control-btn style-btn" data-style="glitch">Glitch</button>
+                <button class="control-btn style-btn" data-style="scale-fade">Scale Fade</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="spacer">↓ Scroll down to see text reveals ↓</div>
+
+    <div class="content-wrapper style-fade-slide">
+        <section class="demo-section">
+            <div class="text-container">
+                <h2 class="reveal-text gradient-text">Welcome to the Future</h2>
+                <p class="reveal-paragraph">Experience cutting-edge scroll animations that bring your text to life. Each word, each letter, carefully choreographed to create an unforgettable reading experience.</p>
+            </div>
+        </section>
+
+        <section class="demo-section">
+            <div class="text-container">
+                <h2 class="reveal-text">Smooth Transitions</h2>
+                <p class="reveal-paragraph">GPU-accelerated animations ensure 60fps performance on all devices. Your content deserves to be seen in motion, revealing itself at just the right moment.</p>
+                <blockquote class="reveal-quote">"The best animations are the ones you don't notice until they're gone."</blockquote>
+            </div>
+        </section>
+
+        <section class="demo-section">
+            <div class="text-container">
+                <h2 class="reveal-text gradient-text">Customizable Effects</h2>
+                <p class="reveal-paragraph">Choose from six different reveal styles, each bringing its own personality to your content. From subtle fades to dramatic glitch effects.</p>
+            </div>
+        </section>
+
+        <section class="demo-section">
+            <div class="text-container">
+                <h2 class="reveal-text">Performance First</h2>
+                <p class="reveal-paragraph">Built with the Intersection Observer API for efficient scroll detection. No janky scroll listeners, just smooth, buttery animations that respect your users' devices.</p>
+                <blockquote class="reveal-quote">"Great design is invisible. Great animation makes it memorable."</blockquote>
+            </div>
+        </section>
+
+        <section class="demo-section">
+            <div class="text-container">
+                <h2 class="reveal-text gradient-text">Mobile Optimized</h2>
+                <p class="reveal-paragraph">Every animation adapts to different screen sizes, maintaining visual impact without sacrificing performance on mobile devices.</p>
+            </div>
+        </section>
+
+        <section class="demo-section">
+            <div class="text-container">
+                <h2 class="reveal-text">Production Ready</h2>
+                <p class="reveal-paragraph">Battle-tested across all modern browsers. Chrome, Firefox, Safari, Edge—your text will reveal beautifully everywhere.</p>
+                <blockquote class="reveal-quote">"In the world of web animation, timing is everything."</blockquote>
+            </div>
+        </section>
+    </div>
+
+    <div class="spacer">End of demo</div>
+
+    <script>
+        let currentStyle = 'fade-slide';
+        let observer = null;
+
+        // Initialize
+        function init() {
+            createObserver();
+            setupControls();
+        }
+
+        // Create Intersection Observer
+        function createObserver() {
+            if (observer) {
+                observer.disconnect();
+            }
+
+            const options = {
+                threshold: 0.3,
+                rootMargin: '0px'
+            };
+
+            observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        revealElement(entry.target);
+                    }
+                });
+            }, options);
+
+            // Observe all reveal elements
+            const elements = document.querySelectorAll('.reveal-text, .reveal-paragraph, .reveal-quote');
+            elements.forEach(el => observer.observe(el));
+        }
+
+        // Reveal element based on current style
+        function revealElement(element) {
+            if (currentStyle === 'letter-by-letter') {
+                revealLetterByLetter(element);
+            } else if (currentStyle === 'split') {
+                revealWordByWord(element);
+            } else {
+                element.classList.add('visible');
+            }
+        }
+
+        // Letter by letter animation
+        function revealLetterByLetter(element) {
+            if (element.dataset.processed === 'true') {
+                element.classList.add('visible');
+                return;
+            }
+
+            const text = element.textContent;
+            element.textContent = '';
+            element.classList.add('visible');
+            
+            text.split('').forEach((char, index) => {
+                const span = document.createElement('span');
+                span.className = 'letter';
+                span.textContent = char;
+                span.style.animationDelay = `${index * 0.03}s`;
+                element.appendChild(span);
+            });
+
+            element.dataset.processed = 'true';
+        }
+
+        // Word by word animation
+        function revealWordByWord(element) {
+            if (element.dataset.processed === 'true') {
+                element.classList.add('visible');
+                return;
+            }
+
+            const text = element.textContent;
+            element.textContent = '';
+            element.classList.add('visible');
+            
+            text.split(' ').forEach((word, index) => {
+                const span = document.createElement('span');
+                span.className = 'word';
+                span.textContent = word + ' ';
+                span.style.animationDelay = `${index * 0.1}s`;
+                element.appendChild(span);
+            });
+
+            element.dataset.processed = 'true';
+        }
+
+        // Setup control buttons
+        function setupControls() {
+            const styleBtns = document.querySelectorAll('.style-btn');
+            styleBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    styleBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentStyle = btn.dataset.style;
+                    updateStyle();
+                });
+            });
+        }
+
+        // Update animation style
+        function updateStyle() {
+            const wrapper = document.querySelector('.content-wrapper');
+            
+            // Remove all style classes
+            wrapper.classList.remove(
+                'style-fade-slide',
+                'style-letter-by-letter',
+                'style-clip-wipe',
+                'style-split',
+                'style-glitch',
+                'style-scale-fade'
+            );
+
+            // Add current style
+            wrapper.classList.add(`style-${currentStyle}`);
+
+            // Reset all elements
+            const elements = document.querySelectorAll('.reveal-text, .reveal-paragraph, .reveal-quote');
+            elements.forEach(el => {
+                el.classList.remove('visible');
+                
+                // Reset processed elements for letter/word animations
+                if (el.dataset.processed === 'true') {
+                    const originalText = Array.from(el.children).map(child => child.textContent).join('');
+                    el.textContent = originalText;
+                    el.dataset.processed = 'false';
+                }
+            });
+
+            // Recreate observer
+            createObserver();
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

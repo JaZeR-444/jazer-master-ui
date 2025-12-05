@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Multimodal Input - JaZeR Components</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Back Button */
+        .back-button {
+            align-self: flex-start;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 10px;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--bg-dark);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.5);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-family: var(--font-secondary);
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-gray);
+            font-size: 1rem;
+        }
+
+        /* Container */
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        /* Multimodal Input Card */
+        .multimodal-input {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--border-default);
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .multimodal-input::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(0, 242, 234, 0.08) 0%, transparent 70%);
+            animation: floatGlow 15s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes floatGlow {
+            0%, 100% { transform: translate(0, 0); }
+            33% { transform: translate(30%, 30%); }
+            66% { transform: translate(-30%, 30%); }
+        }
+
+        .multimodal-input:focus-within {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 40px rgba(0, 242, 234, 0.3);
+        }
+
+        /* Mode Tabs */
+        .mode-tabs {
+            display: flex;
+            gap: 0.75rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 0.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .mode-tab {
+            flex: 1;
+            padding: 0.875rem 1.5rem;
+            border-radius: 10px;
+            background: transparent;
+            border: 2px solid transparent;
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.9375rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .mode-tab:hover {
+            background: rgba(0, 242, 234, 0.1);
+            color: var(--jazer-cyan);
+            border-color: var(--border-cyan);
+        }
+
+        .mode-tab.active {
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.2), rgba(255, 0, 110, 0.1));
+            color: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.3);
+        }
+
+        .mode-icon {
+            font-size: 1.25rem;
+        }
+
+        /* Input Panels */
+        .input-panels {
+            position: relative;
+            min-height: 300px;
+            z-index: 1;
+        }
+
+        .input-panel {
+            display: none;
+            animation: fadeSlideIn 0.4s ease;
+        }
+
+        .input-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Text Input Panel */
+        .text-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .text-input {
+            width: 100%;
+            background: rgba(0, 242, 234, 0.05);
+            border: 2px solid var(--border-cyan);
+            border-radius: 12px;
+            padding: 1.25rem;
+            color: var(--text-light);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            min-height: 200px;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 30px rgba(0, 242, 234, 0.4);
+            background: rgba(0, 242, 234, 0.08);
+        }
+
+        .text-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .char-counter {
+            text-align: right;
+            font-size: 0.8125rem;
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+        }
+
+        /* Voice Input Panel */
+        .voice-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            min-height: 300px;
+        }
+
+        .voice-button {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--gradient-accent);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(255, 0, 110, 0.4);
+        }
+
+        .voice-button::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid var(--jazer-pink);
+            opacity: 0;
+            animation: ripple 2s ease-out infinite;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .voice-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 50px rgba(255, 0, 110, 0.6);
+        }
+
+        .voice-button.recording {
+            animation: recordPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes recordPulse {
+            0%, 100% {
+                box-shadow: 0 10px 40px rgba(255, 0, 110, 0.4);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 15px 60px rgba(255, 0, 110, 0.8), 0 0 80px rgba(0, 242, 234, 0.5);
+                transform: scale(1.1);
+            }
+        }
+
+        .voice-status {
+            font-family: var(--font-secondary);
+            font-size: 1.125rem;
+            color: var(--text-gray);
+            text-align: center;
+        }
+
+        .voice-status.recording {
+            color: var(--jazer-pink);
+            font-weight: 700;
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .waveform {
+            display: none;
+            align-items: center;
+            gap: 4px;
+            height: 60px;
+        }
+
+        .waveform.active {
+            display: flex;
+        }
+
+        .wave-bar {
+            width: 6px;
+            background: var(--gradient-accent);
+            border-radius: 3px;
+            animation: wave 1s ease-in-out infinite;
+        }
+
+        .wave-bar:nth-child(1) { animation-delay: 0s; height: 30%; }
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; height: 50%; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; height: 70%; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; height: 90%; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; height: 100%; }
+        .wave-bar:nth-child(6) { animation-delay: 0.5s; height: 90%; }
+        .wave-bar:nth-child(7) { animation-delay: 0.6s; height: 70%; }
+        .wave-bar:nth-child(8) { animation-delay: 0.7s; height: 50%; }
+        .wave-bar:nth-child(9) { animation-delay: 0.8s; height: 30%; }
+
+        @keyframes wave {
+            0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
+            50% { transform: scaleY(1); opacity: 1; }
+        }
+
+        /* Image Upload Panel */
+        .image-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .drop-zone {
+            border: 3px dashed var(--border-cyan);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0, 242, 234, 0.03);
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 242, 234, 0.08);
+            box-shadow: 0 0 30px rgba(0, 242, 234, 0.2);
+        }
+
+        .drop-zone.dragover {
+            border-color: var(--jazer-pink);
+            background: rgba(255, 0, 110, 0.1);
+            box-shadow: 0 0 40px rgba(255, 0, 110, 0.4);
+            transform: scale(1.02);
+        }
+
+        .drop-icon {
+            font-size: 4rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .drop-text {
+            font-family: var(--font-secondary);
+            font-size: 1.125rem;
+            color: var(--text-gray);
+        }
+
+        .drop-text strong {
+            color: var(--jazer-cyan);
+            font-weight: 700;
+        }
+
+        .drop-hint {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .image-preview-grid {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .image-preview-grid.active {
+            display: grid;
+        }
+
+        .preview-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid var(--border-cyan);
+            transition: all 0.3s ease;
+        }
+
+        .preview-item:hover {
+            border-color: var(--jazer-cyan);
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 242, 234, 0.3);
+        }
+
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--jazer-pink);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        .preview-item:hover .remove-btn {
+            opacity: 1;
+        }
+
+        .remove-btn:hover {
+            background: var(--jazer-purple);
+            transform: scale(1.15) rotate(90deg);
+        }
+
+        /* Action Bar */
+        .action-bar {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            border: 2px solid;
+            background: transparent;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .action-btn.primary {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        .action-btn.primary:hover {
+            background: var(--jazer-cyan);
+            color: var(--bg-dark);
+            box-shadow: 0 5px 30px rgba(0, 242, 234, 0.5);
+            transform: translateY(-3px);
+        }
+
+        .action-btn.secondary {
+            border-color: var(--jazer-pink);
+            color: var(--jazer-pink);
+        }
+
+        .action-btn.secondary:hover {
+            background: var(--jazer-pink);
+            color: var(--bg-dark);
+            box-shadow: 0 5px 30px rgba(255, 0, 110, 0.5);
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 768px) {
+            .mode-tabs {
+                flex-direction: column;
+            }
+
+            .action-bar {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to AI & Voice Interactions</a>
+    
+    <div class="header">
+        <h1>AI Multimodal Input</h1>
+        <p>Support text, voice, and image inputs seamlessly</p>
+    </div>
+
+    <div class="container">
+        <div class="multimodal-input">
+            <div class="mode-tabs">
+                <button class="mode-tab active" data-mode="text">
+                    <span class="mode-icon">✍️</span>
+                    <span>Text</span>
+                </button>
+                <button class="mode-tab" data-mode="voice">
+                    <span class="mode-icon">🎤</span>
+                    <span>Voice</span>
+                </button>
+                <button class="mode-tab" data-mode="image">
+                    <span class="mode-icon">🖼️</span>
+                    <span>Image</span>
+                </button>
+            </div>
+
+            <div class="input-panels">
+                <!-- Text Input Panel -->
+                <div class="input-panel text-panel active" data-panel="text">
+                    <textarea class="text-input" placeholder="Type your message here... Ask anything you'd like!" id="textInput"></textarea>
+                    <div class="char-counter"><span id="charCount">0</span> / 2000 characters</div>
+                </div>
+
+                <!-- Voice Input Panel -->
+                <div class="input-panel voice-panel" data-panel="voice">
+                    <button class="voice-button" id="voiceBtn">
+                        <span id="voiceIcon">🎤</span>
+                    </button>
+                    <div class="voice-status" id="voiceStatus">Click to start recording</div>
+                    <div class="waveform" id="waveform">
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                    </div>
+                </div>
+
+                <!-- Image Upload Panel -->
+                <div class="input-panel image-panel" data-panel="image">
+                    <div class="drop-zone" id="dropZone">
+                        <div class="drop-icon">📸</div>
+                        <div class="drop-text">
+                            <strong>Click to upload</strong> or drag and drop
+                        </div>
+                        <div class="drop-hint">PNG, JPG, GIF up to 10MB</div>
+                        <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+                    </div>
+                    <div class="image-preview-grid" id="imagePreview"></div>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <button class="action-btn secondary" id="clearBtn">
+                    <span>🗑️</span>
+                    <span>Clear</span>
+                </button>
+                <button class="action-btn primary" id="sendBtn">
+                    <span>✨</span>
+                    <span>Send Message</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mode tab switching
+        const modeTabs = document.querySelectorAll('.mode-tab');
+        const inputPanels = document.querySelectorAll('.input-panel');
+
+        modeTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const mode = tab.dataset.mode;
+
+                modeTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                inputPanels.forEach(panel => {
+                    panel.classList.remove('active');
+                    if (panel.dataset.panel === mode) {
+                        panel.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // Text input character counter
+        const textInput = document.getElementById('textInput');
+        const charCount = document.getElementById('charCount');
+
+        textInput.addEventListener('input', () => {
+            charCount.textContent = textInput.value.length;
+        });
+
+        // Voice recording
+        const voiceBtn = document.getElementById('voiceBtn');
+        const voiceStatus = document.getElementById('voiceStatus');
+        const voiceIcon = document.getElementById('voiceIcon');
+        const waveform = document.getElementById('waveform');
+        let isRecording = false;
+
+        voiceBtn.addEventListener('click', () => {
+            isRecording = !isRecording;
+
+            if (isRecording) {
+                voiceBtn.classList.add('recording');
+                voiceStatus.classList.add('recording');
+                voiceStatus.textContent = '🔴 Recording... Click to stop';
+                voiceIcon.textContent = '⏹️';
+                waveform.classList.add('active');
+            } else {
+                voiceBtn.classList.remove('recording');
+                voiceStatus.classList.remove('recording');
+                voiceStatus.textContent = 'Processing audio...';
+                voiceIcon.textContent = '⏳';
+                waveform.classList.remove('active');
+
+                setTimeout(() => {
+                    voiceStatus.textContent = 'Click to start recording';
+                    voiceIcon.textContent = '🎤';
+                }, 2000);
+            }
+        });
+
+        // Image upload
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const imagePreview = document.getElementById('imagePreview');
+        let uploadedFiles = [];
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            Array.from(files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    uploadedFiles.push(file);
+                    displayImage(file);
+                }
+            });
+        }
+
+        function displayImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                previewItem.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview">
+                    <button class="remove-btn" onclick="removeImage(this)">×</button>
+                `;
+                imagePreview.appendChild(previewItem);
+                imagePreview.classList.add('active');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage(btn) {
+            const previewItem = btn.closest('.preview-item');
+            const index = Array.from(imagePreview.children).indexOf(previewItem);
+            uploadedFiles.splice(index, 1);
+            previewItem.remove();
+
+            if (uploadedFiles.length === 0) {
+                imagePreview.classList.remove('active');
+            }
+        }
+
+        // Clear button
+        const clearBtn = document.getElementById('clearBtn');
+        clearBtn.addEventListener('click', () => {
+            textInput.value = '';
+            charCount.textContent = '0';
+            uploadedFiles = [];
+            imagePreview.innerHTML = '';
+            imagePreview.classList.remove('active');
+            fileInput.value = '';
+        });
+
+        // Send button
+        const sendBtn = document.getElementById('sendBtn');
+        sendBtn.addEventListener('click', () => {
+            // Simulate sending
+            sendBtn.textContent = '✓ Sent!';
+            sendBtn.style.background = 'var(--jazer-cyan)';
+            sendBtn.style.color = 'var(--bg-dark)';
+
+            setTimeout(() => {
+                sendBtn.innerHTML = '<span>✨</span><span>Send Message</span>';
+                sendBtn.style.background = '';
+                sendBtn.style.color = '';
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parallax Layer Drift on Scroll - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+            background: #0a0a0a;
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Header */
+        .header {
+            position: relative;
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            z-index: 10;
+        }
+
+        .header h1 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 1rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        /* Control Panel */
+        .controls {
+            position: relative;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            padding: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            z-index: 10;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .control-btn.active {
+            background: var(--jazer-cyan, #00f2ea);
+            border-color: var(--jazer-cyan, #00f2ea);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Parallax Container */
+        .parallax-scene {
+            position: relative;
+            height: 300vh;
+            overflow: hidden;
+        }
+
+        .parallax-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            will-change: transform;
+        }
+
+        /* Layer 0: Background Stars */
+        .layer-0 {
+            z-index: 0;
+        }
+
+        .stars {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(2px 2px at 20% 30%, white, transparent),
+                radial-gradient(2px 2px at 60% 70%, white, transparent),
+                radial-gradient(1px 1px at 50% 50%, white, transparent),
+                radial-gradient(1px 1px at 80% 10%, white, transparent),
+                radial-gradient(2px 2px at 90% 60%, white, transparent),
+                radial-gradient(1px 1px at 33% 70%, white, transparent),
+                radial-gradient(1px 1px at 79% 80%, white, transparent);
+            background-size: 200% 200%;
+            background-position: 0% 0%;
+            opacity: 0.4;
+        }
+
+        /* Layer 1: Deep Background */
+        .layer-1 {
+            z-index: 1;
+        }
+
+        .layer-1-content {
+            font-size: 8rem;
+            opacity: 0.1;
+            color: var(--jazer-purple, #9333ea);
+        }
+
+        /* Layer 2: Mid Background */
+        .layer-2 {
+            z-index: 2;
+        }
+
+        .floating-shapes {
+            position: absolute;
+            inset: 0;
+        }
+
+        .shape {
+            position: absolute;
+            border: 2px solid rgba(0, 242, 234, 0.2);
+            border-radius: 50%;
+        }
+
+        .shape-1 { width: 200px; height: 200px; top: 20%; left: 10%; }
+        .shape-2 { width: 150px; height: 150px; top: 60%; right: 15%; border-radius: 10px; }
+        .shape-3 { width: 100px; height: 100px; top: 40%; left: 70%; }
+        .shape-4 { width: 180px; height: 180px; bottom: 20%; left: 30%; }
+
+        /* Layer 3: Content Layer */
+        .layer-3 {
+            z-index: 3;
+        }
+
+        .content-card {
+            max-width: 600px;
+            padding: 3rem;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .content-card h2 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #00f2ea 0%, #9333ea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .content-card p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.8;
+        }
+
+        /* Layer 4: Floating Icons */
+        .layer-4 {
+            z-index: 4;
+        }
+
+        .floating-icons {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .icon {
+            position: absolute;
+            font-size: 3rem;
+            opacity: 0.3;
+        }
+
+        .icon-1 { top: 15%; left: 15%; }
+        .icon-2 { top: 25%; right: 20%; }
+        .icon-3 { bottom: 30%; left: 25%; }
+        .icon-4 { bottom: 20%; right: 15%; }
+
+        /* Layer 5: Foreground Grid */
+        .layer-5 {
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .grid-overlay {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(0, 242, 234, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 242, 234, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.2;
+        }
+
+        /* Depth Indicator */
+        .depth-indicator {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .depth-indicator strong {
+            color: var(--jazer-cyan, #00f2ea);
+        }
+
+        /* Multiple Sections */
+        .section-spacer {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            background: linear-gradient(180deg, transparent 0%, #0a0a0a 20%, #0a0a0a 80%, transparent 100%);
+        }
+
+        .section-content {
+            max-width: 800px;
+            padding: 3rem;
+            text-align: center;
+        }
+
+        .section-content h3 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--jazer-purple, #9333ea);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 6rem 1rem 3rem;
+            }
+
+            .controls {
+                padding: 1rem;
+            }
+
+            .control-group {
+                width: 100%;
+            }
+
+            .button-group {
+                justify-content: center;
+            }
+
+            .content-card {
+                padding: 2rem;
+            }
+
+            .content-card h2 {
+                font-size: 1.75rem;
+            }
+
+            .layer-1-content {
+                font-size: 4rem;
+            }
+
+            .shape {
+                transform: scale(0.6);
+            }
+
+            .icon {
+                font-size: 2rem;
+            }
+
+            .depth-indicator {
+                bottom: 1rem;
+                right: 1rem;
+                padding: 0.75rem 1rem;
+                font-size: 0.75rem;
+            }
+
+            .back-button {
+                top: 1rem;
+                left: 1rem;
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <div class="header">
+        <h1>Parallax Layer Drift on Scroll</h1>
+        <p>Multiple layers that move at different speeds creating depth and dimension. Customize the intensity, direction, and behavior of the parallax effect.</p>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Parallax Intensity</label>
+            <div class="button-group">
+                <button class="control-btn intensity-btn" data-intensity="0.3">Subtle</button>
+                <button class="control-btn intensity-btn active" data-intensity="0.5">Medium</button>
+                <button class="control-btn intensity-btn" data-intensity="0.8">Extreme</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Direction</label>
+            <div class="button-group">
+                <button class="control-btn direction-btn active" data-direction="vertical">Vertical</button>
+                <button class="control-btn direction-btn" data-direction="horizontal">Horizontal</button>
+                <button class="control-btn direction-btn" data-direction="diagonal">Diagonal</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Show Depth</label>
+            <div class="button-group">
+                <button class="control-btn depth-btn active" data-depth="on">On</button>
+                <button class="control-btn depth-btn" data-depth="off">Off</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="parallax-scene" id="scene1">
+        <div class="parallax-layer layer-0" data-speed="0.1">
+            <div class="stars"></div>
+        </div>
+
+        <div class="parallax-layer layer-1" data-speed="0.2">
+            <div class="layer-1-content">∞</div>
+        </div>
+
+        <div class="parallax-layer layer-2" data-speed="0.35">
+            <div class="floating-shapes">
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+                <div class="shape shape-3"></div>
+                <div class="shape shape-4"></div>
+            </div>
+        </div>
+
+        <div class="parallax-layer layer-3" data-speed="0.5">
+            <div class="content-card">
+                <h2>Depth Through Motion</h2>
+                <p>Each layer moves at its own pace, creating a sense of depth and dimension. The further back a layer is, the slower it moves, mimicking natural parallax effects.</p>
+            </div>
+        </div>
+
+        <div class="parallax-layer layer-4" data-speed="0.7">
+            <div class="floating-icons">
+                <div class="icon icon-1">⚡</div>
+                <div class="icon icon-2">🌟</div>
+                <div class="icon icon-3">🎨</div>
+                <div class="icon icon-4">🚀</div>
+            </div>
+        </div>
+
+        <div class="parallax-layer layer-5" data-speed="0.9">
+            <div class="grid-overlay"></div>
+        </div>
+    </div>
+
+    <div class="section-spacer">
+        <div class="section-content">
+            <h3>Smooth Scrolling Experience</h3>
+            <p>Keep scrolling to see how the layers continue to drift at different speeds, creating an immersive and engaging user experience.</p>
+        </div>
+    </div>
+
+    <div class="parallax-scene" id="scene2">
+        <div class="parallax-layer layer-0" data-speed="0.15">
+            <div class="stars"></div>
+        </div>
+
+        <div class="parallax-layer layer-2" data-speed="0.3">
+            <div class="floating-shapes">
+                <div class="shape shape-1" style="top: 30%; left: 60%;"></div>
+                <div class="shape shape-2" style="top: 70%; left: 20%;"></div>
+                <div class="shape shape-3" style="top: 15%; right: 10%;"></div>
+            </div>
+        </div>
+
+        <div class="parallax-layer layer-3" data-speed="0.55">
+            <div class="content-card">
+                <h2>Performance Optimized</h2>
+                <p>GPU-accelerated transforms ensure smooth 60fps animations without impacting page performance, even with multiple parallax layers active simultaneously.</p>
+            </div>
+        </div>
+
+        <div class="parallax-layer layer-5" data-speed="0.85">
+            <div class="grid-overlay"></div>
+        </div>
+    </div>
+
+    <div class="section-spacer">
+        <div class="section-content">
+            <h3>Fully Customizable</h3>
+            <p>Control intensity, direction, and which layers are active. Perfect for hero sections, feature showcases, and immersive storytelling.</p>
+        </div>
+    </div>
+
+    <div class="depth-indicator" id="depthIndicator">
+        Scroll: <strong id="scrollPercent">0%</strong> | 
+        Layers: <strong>6</strong>
+    </div>
+
+    <script>
+        let intensity = 0.5;
+        let direction = 'vertical';
+        let showDepth = true;
+
+        // Initialize
+        function init() {
+            setupControls();
+            window.addEventListener('scroll', handleScroll);
+            handleScroll(); // Initial call
+        }
+
+        // Handle scroll event
+        function handleScroll() {
+            const scrolled = window.pageYOffset;
+            const layers = document.querySelectorAll('.parallax-layer');
+
+            layers.forEach(layer => {
+                const speed = parseFloat(layer.dataset.speed) * intensity;
+                let transform = '';
+
+                if (direction === 'vertical') {
+                    transform = `translateY(${scrolled * speed}px)`;
+                } else if (direction === 'horizontal') {
+                    transform = `translateX(${scrolled * speed * 0.5}px)`;
+                } else if (direction === 'diagonal') {
+                    transform = `translate(${scrolled * speed * 0.3}px, ${scrolled * speed}px)`;
+                }
+
+                layer.style.transform = transform;
+            });
+
+            // Update depth indicator
+            if (showDepth) {
+                const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+                const scrollPercent = Math.round((scrolled / maxScroll) * 100);
+                document.getElementById('scrollPercent').textContent = scrollPercent + '%';
+            }
+        }
+
+        // Setup control buttons
+        function setupControls() {
+            // Intensity controls
+            const intensityBtns = document.querySelectorAll('.intensity-btn');
+            intensityBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    intensityBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    intensity = parseFloat(btn.dataset.intensity);
+                    handleScroll();
+                });
+            });
+
+            // Direction controls
+            const directionBtns = document.querySelectorAll('.direction-btn');
+            directionBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    directionBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    direction = btn.dataset.direction;
+                    handleScroll();
+                });
+            });
+
+            // Depth indicator controls
+            const depthBtns = document.querySelectorAll('.depth-btn');
+            depthBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    depthBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    showDepth = btn.dataset.depth === 'on';
+                    document.getElementById('depthIndicator').style.display = showDepth ? 'block' : 'none';
+                });
+            });
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Optimize scroll performance
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    handleScroll();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        });
+    </script>
+</body>
+</html>

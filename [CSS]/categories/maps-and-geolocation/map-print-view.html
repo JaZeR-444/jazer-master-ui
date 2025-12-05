@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Map Print View - JaZeR Maps Patterns</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:var(--font-body);background:var(--bg-dark);color:var(--text-light);margin:0;padding:1.25rem}
+    .back-button{display:inline-flex;align-items:center;gap:.5rem;color:var(--text-gray);text-decoration:none;font-family:var(--font-secondary);font-weight:600;padding:.5rem 1rem;border-radius:8px;border:1px solid var(--border-default);background:var(--bg-card)}
+    .back-button:hover{border-color:var(--jazer-cyan);color:var(--jazer-cyan)}
+
+    .hero{text-align:center;margin:1rem 0}
+    .hero h1{font-size:clamp(1.75rem,3.5vw,2.5rem);background:var(--gradient-text);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .hero p{color:var(--text-gray);max-width:760px;margin:.4rem auto}
+
+    .layout{max-width:1200px;margin:0 auto;display:grid;grid-template-columns: 1fr 380px;gap:1rem}
+    @media (max-width:900px){.layout{grid-template-columns:1fr}}
+
+    .panel{background:var(--bg-card);border-radius:12px;padding:1rem;border:2px solid var(--border-default);box-shadow:var(--shadow-card)}
+    .map-area{background:linear-gradient(90deg,rgba(0,0,0,0.35),rgba(0,0,0,0.45));border-radius:12px;padding:0;border:1px solid var(--border-default);height:640px;position:relative;overflow:hidden}
+    .map-canvas{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-gray)}
+
+    .controls{display:flex;flex-direction:column;gap:.6rem}
+    .btn{padding:.45rem .7rem;border-radius:8px;border:none;background:var(--gradient-accent);color:var(--text-light);font-weight:700;cursor:pointer}
+    .btn-ghost{padding:.4rem .6rem;border-radius:8px;border:1px solid var(--border-default);background:transparent;color:var(--text-light)}
+
+    .checkbox{display:flex;align-items:center;gap:.5rem}
+    .small{font-size:.85rem;color:var(--text-gray)}
+
+    .legend{background:rgba(255,255,255,0.02);padding:.5rem;border-radius:8px;border:1px solid var(--border-default)}
+
+    @media print{ body{background:#fff;color:#000;} .controls, .back-button, .hero { display:none } .map-area{height:auto;border:none;box-shadow:none} }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to Maps & Geolocation</a>
+  <header class="hero">
+    <h1>Map Print View</h1>
+    <p>Print-friendly map layouts with legend, scale, and page size options. Toggle features for export or on-demand printing.</p>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem"><div style="font-weight:700">Preview</div><div class="small muted">Letter / A4</div></div>
+      <div class="map-area">
+        <div class="map-canvas" id="mapCanvas">Map preview (print preview arcade)</div>
+        <div id="scaleBar" style="position:absolute;right:12px;bottom:12px;background:rgba(0,0,0,0.4);padding:.3rem .5rem;border-radius:6px;border:1px solid var(--border-default);font-weight:700">200 m</div>
+      </div>
+      <div style="margin-top:.6rem;display:flex;gap:.5rem;justify-content:flex-end"><button id="printBtn" class="btn">Print</button></div>
+    </section>
+
+    <aside class="panel">
+      <div style="font-weight:700;margin-bottom:.6rem">Print Options</div>
+      <div class="controls">
+        <div class="small">Page Size</div>
+        <select id="pageSize" class="btn-ghost" aria-label="Page size"><option value="letter">Letter</option><option value="a4" selected>A4</option><option value="a3">A3</option></select>
+
+        <div class="small">Include</div>
+        <label class="checkbox"><input id="includeLegend" type="checkbox" checked> Include legend</label>
+        <label class="checkbox"><input id="includeScale" type="checkbox" checked> Include scale bar</label>
+        <label class="checkbox"><input id="includeMarkers" type="checkbox" checked> Include markers</label>
+        <label class="checkbox"><input id="showGrid" type="checkbox"> Show grid overlay</label>
+
+        <div class="small">Legend style</div>
+        <select id="legendStyle" class="btn-ghost"><option value="compact">Compact</option><option value="detailed">Detailed</option></select>
+
+        <div class="small">Orientation</div>
+        <select id="orientation" class="btn-ghost"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select>
+
+      </div>
+
+      <div style="margin-top:.6rem">
+        <div class="small">Legend Preview</div>
+        <div class="legend" id="legendPreview"><div class="small">● Park</div><div class="small">● food</div><div class="small">● Hotel</div></div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    const printBtn = document.getElementById('printBtn'); const mapCanvas = document.getElementById('mapCanvas'); const legendPreview = document.getElementById('legendPreview');
+    printBtn.addEventListener('click', ()=>{ window.print(); });
+
+    function updatePreview(){ const page = document.getElementById('pageSize').value; const lg = document.getElementById('includeLegend').checked; const sc = document.getElementById('includeScale').checked; const mk = document.getElementById('includeMarkers').checked; const grid = document.getElementById('showGrid').checked; mapCanvas.innerHTML = `<div style='display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%'><div style='font-weight:700;margin-bottom:.5rem'>${page.toUpperCase()} Preview</div><div class='small muted'>Markers: ${mk ? 'Yes' : 'No'} • Legend: ${lg ? 'Yes' : 'No'} • Scale: ${sc ? 'Yes' : 'No'}</div></div>`; document.getElementById('scaleBar').style.display = sc ? 'block' : 'none'; legendPreview.style.display = lg ? 'block' : 'none'; }
+
+    document.getElementById('pageSize').addEventListener('change', updatePreview); document.getElementById('includeLegend').addEventListener('change', updatePreview); document.getElementById('includeScale').addEventListener('change', updatePreview); document.getElementById('includeMarkers').addEventListener('change', updatePreview); document.getElementById('showGrid').addEventListener('change', updatePreview);
+
+    updatePreview();
+  </script>
+</body>
+</html>

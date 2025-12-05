@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Card Input Mask - Forms, Status & Micro UX - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%); min-height: 100vh; padding: 2rem; color: #ffffff; }
+        .back-button { display: inline-block; margin-bottom: 2rem; padding: 0.75rem 1.5rem; background: transparent; color: var(--jazer-cyan); text-decoration: none; border: 2px solid var(--jazer-cyan); border-radius: 8px; font-weight: 600; transition: all 0.3s ease; }
+        .back-button:hover { background: var(--jazer-cyan); color: #0a0a0a; transform: translateX(-5px); box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); }
+        .container { max-width: 600px; margin: 0 auto; }
+        h1 { font-family: var(--font-primary); font-size: 2.5rem; margin-bottom: 1rem; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .description { color: #a0a0a0; margin-bottom: 2rem; line-height: 1.6; }
+        .demo-card { background: rgba(10, 10, 10, 0.8); border: 2px solid var(--jazer-cyan); border-radius: 20px; padding: 2rem; backdrop-filter: blur(10px); }
+        .card-preview { background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple)); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+        .card-chip { width: 50px; height: 40px; background: linear-gradient(135deg, #ffd700, #ffaa00); border-radius: 6px; margin-bottom: 2rem; }
+        .card-number { font-size: 1.5rem; font-family: monospace; letter-spacing: 0.2em; color: #0a0a0a; font-weight: bold; margin-bottom: 1.5rem; }
+        .card-info { display: flex; justify-content: space-between; }
+        .card-holder, .card-expiry { color: #0a0a0a; }
+        .card-label { font-size: 0.7rem; opacity: 0.7; margin-bottom: 0.25rem; }
+        .card-value { font-size: 1rem; font-weight: 600; }
+        .input-group { margin-bottom: 1.5rem; }
+        .input-label { display: block; font-weight: 600; color: var(--jazer-cyan); margin-bottom: 0.5rem; }
+        .card-input { width: 100%; padding: 1rem; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(0, 255, 255, 0.3); border-radius: 12px; color: #ffffff; font-size: 1rem; font-family: monospace; transition: all 0.3s ease; }
+        .card-input:focus { outline: none; border-color: var(--jazer-cyan); box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); }
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .card-type { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.5rem; }
+        .input-wrapper { position: relative; }
+        @media (max-width: 768px) { h1 { font-size: 2rem; } .input-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-button">← Back</a>
+        <h1>Credit Card Input Mask</h1>
+        <p class="description">Auto-formatting credit card inputs with type detection and validation. Supports Visa, Mastercard, Amex, and more.</p>
+        <div class="demo-card">
+            <div class="card-preview">
+                <div class="card-chip"></div>
+                <div class="card-number" id="previewNumber">#### #### #### ####</div>
+                <div class="card-info">
+                    <div class="card-holder">
+                        <div class="card-label">CARD HOLDER</div>
+                        <div class="card-value" id="previewName">YOUR NAME</div>
+                    </div>
+                    <div class="card-expiry">
+                        <div class="card-label">EXPIRES</div>
+                        <div class="card-value" id="previewExpiry">MM/YY</div>
+                    </div>
+                </div>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Card Number</label>
+                <div class="input-wrapper">
+                    <input type="text" class="card-input" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                    <span class="card-type" id="cardType"></span>
+                </div>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Cardholder Name</label>
+                <input type="text" class="card-input" id="cardName" placeholder="John Doe" style="text-transform: uppercase;">
+            </div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label class="input-label">Expiry Date</label>
+                    <input type="text" class="card-input" id="cardExpiry" placeholder="MM/YY" maxlength="5">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">CVV</label>
+                    <input type="text" class="card-input" id="cardCVV" placeholder="123" maxlength="4">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const cardNumber = document.getElementById('cardNumber');
+        const cardName = document.getElementById('cardName');
+        const cardExpiry = document.getElementById('cardExpiry');
+        const cardCVV = document.getElementById('cardCVV');
+        const previewNumber = document.getElementById('previewNumber');
+        const previewName = document.getElementById('previewName');
+        const previewExpiry = document.getElementById('previewExpiry');
+        const cardType = document.getElementById('cardType');
+
+        function detectCardType(number) {
+            const patterns = {
+                visa: /^4/, mastercard: /^5[1-5]/, amex: /^3[47]/, discover: /^6(?:011|5)/
+            };
+            for (const [type, pattern] of Object.entries(patterns)) {
+                if (pattern.test(number)) return type;
+            }
+            return null;
+        }
+
+        function getCardIcon(type) {
+            const icons = { visa: '💳', mastercard: '💳', amex: '💳', discover: '💳' };
+            return icons[type] || '💳';
+        }
+
+        cardNumber.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\s/g, '');
+            let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formatted;
+            
+            previewNumber.textContent = formatted || '#### #### #### ####';
+            const type = detectCardType(value);
+            cardType.textContent = type ? getCardIcon(type) : '';
+        });
+
+        cardName.addEventListener('input', (e) => {
+            previewName.textContent = e.target.value.toUpperCase() || 'YOUR NAME';
+        });
+
+        cardExpiry.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.slice(0, 2) + '/' + value.slice(2, 4);
+            }
+            e.target.value = value;
+            previewExpiry.textContent = value || 'MM/YY';
+        });
+
+        cardCVV.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+    </script>
+</body>
+</html>

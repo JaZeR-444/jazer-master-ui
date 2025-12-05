@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Achievement Unlock Popup</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 0.5rem;
+            font-family: var(--font-primary);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .back-button {
+            display: inline-block;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 2px solid var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.1);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--bg-dark);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(6, 182, 212, 0.1));
+            border: 2px solid var(--jazer-purple);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-group label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 2px solid var(--jazer-purple);
+            background: rgba(0, 0, 0, 0.4);
+            color: var(--text-light);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-group select:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+
+        /* Demo Area */
+        .demo-area {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(147, 51, 234, 0.1));
+            border: 2px solid var(--jazer-pink);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Popup Overlay */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .popup-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Popup Card */
+        .popup-card {
+            position: relative;
+            padding: 3rem;
+            border-radius: 24px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            transform: scale(0.5) rotateX(20deg);
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .popup-overlay.active .popup-card {
+            transform: scale(1) rotateX(0);
+            opacity: 1;
+        }
+
+        /* Popup Styles */
+        .popup-card[data-style="epic"] {
+            background: linear-gradient(135deg, #1a0030, #0d001a);
+            border: 3px solid var(--jazer-purple);
+            box-shadow: 0 0 60px rgba(147, 51, 234, 0.5),
+                        0 0 120px rgba(147, 51, 234, 0.3),
+                        inset 0 0 60px rgba(147, 51, 234, 0.1);
+        }
+
+        .popup-card[data-style="legendary"] {
+            background: linear-gradient(135deg, #2a1800, #1a0f00);
+            border: 3px solid #ffd700;
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.5),
+                        0 0 120px rgba(255, 215, 0, 0.3),
+                        inset 0 0 60px rgba(255, 215, 0, 0.1);
+        }
+
+        .popup-card[data-style="rare"] {
+            background: linear-gradient(135deg, #001a2a, #000d1a);
+            border: 3px solid var(--jazer-cyan);
+            box-shadow: 0 0 60px rgba(0, 242, 234, 0.5),
+                        0 0 120px rgba(0, 242, 234, 0.3),
+                        inset 0 0 60px rgba(0, 242, 234, 0.1);
+        }
+
+        .popup-card[data-style="mythic"] {
+            background: linear-gradient(135deg, #1a0020, #2a0015);
+            border: 3px solid var(--jazer-pink);
+            box-shadow: 0 0 60px rgba(255, 0, 110, 0.5),
+                        0 0 120px rgba(255, 0, 110, 0.3),
+                        inset 0 0 60px rgba(255, 0, 110, 0.1);
+        }
+
+        /* Rarity Badge */
+        .rarity-badge {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.5rem 2rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .popup-card[data-style="epic"] .rarity-badge {
+            background: linear-gradient(135deg, var(--jazer-purple), #6b21a8);
+            color: white;
+        }
+
+        .popup-card[data-style="legendary"] .rarity-badge {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a0f00;
+        }
+
+        .popup-card[data-style="rare"] .rarity-badge {
+            background: linear-gradient(135deg, var(--jazer-cyan), #0891b2);
+            color: #001a2a;
+        }
+
+        .popup-card[data-style="mythic"] .rarity-badge {
+            background: linear-gradient(135deg, var(--jazer-pink), #be185d);
+            color: white;
+        }
+
+        /* Achievement Icon */
+        .achievement-icon-wrapper {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            margin: 1.5rem auto;
+        }
+
+        .icon-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            animation: glowPulse 2s ease-in-out infinite;
+        }
+
+        .popup-card[data-style="epic"] .icon-glow {
+            background: radial-gradient(circle, rgba(147, 51, 234, 0.6), transparent 70%);
+        }
+
+        .popup-card[data-style="legendary"] .icon-glow {
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.6), transparent 70%);
+        }
+
+        .popup-card[data-style="rare"] .icon-glow {
+            background: radial-gradient(circle, rgba(0, 242, 234, 0.6), transparent 70%);
+        }
+
+        .popup-card[data-style="mythic"] .icon-glow {
+            background: radial-gradient(circle, rgba(255, 0, 110, 0.6), transparent 70%);
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+
+        .achievement-icon {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            z-index: 1;
+        }
+
+        .popup-card[data-style="epic"] .achievement-icon {
+            background: linear-gradient(135deg, var(--jazer-purple), #6b21a8);
+            box-shadow: 0 10px 40px rgba(147, 51, 234, 0.5);
+        }
+
+        .popup-card[data-style="legendary"] .achievement-icon {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.5);
+        }
+
+        .popup-card[data-style="rare"] .achievement-icon {
+            background: linear-gradient(135deg, var(--jazer-cyan), #0891b2);
+            box-shadow: 0 10px 40px rgba(0, 242, 234, 0.5);
+        }
+
+        .popup-card[data-style="mythic"] .achievement-icon {
+            background: linear-gradient(135deg, var(--jazer-pink), #be185d);
+            box-shadow: 0 10px 40px rgba(255, 0, 110, 0.5);
+        }
+
+        /* Shine Effect */
+        .achievement-icon::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3), transparent 50%);
+        }
+
+        /* Content */
+        .popup-title-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            opacity: 0.7;
+            margin-bottom: 0.5rem;
+        }
+
+        .popup-title {
+            font-family: var(--font-primary);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .popup-card[data-style="epic"] .popup-title { color: var(--jazer-purple); }
+        .popup-card[data-style="legendary"] .popup-title { color: #ffd700; }
+        .popup-card[data-style="rare"] .popup-title { color: var(--jazer-cyan); }
+        .popup-card[data-style="mythic"] .popup-title { color: var(--jazer-pink); }
+
+        .popup-description {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        /* Rewards */
+        .popup-rewards {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .reward-item {
+            text-align: center;
+        }
+
+        .reward-value {
+            font-family: var(--font-primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #00ff88;
+        }
+
+        .reward-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Claim Button */
+        .claim-btn {
+            padding: 1rem 3rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .popup-card[data-style="epic"] .claim-btn {
+            background: linear-gradient(135deg, var(--jazer-purple), #6b21a8);
+            color: white;
+            box-shadow: 0 5px 30px rgba(147, 51, 234, 0.5);
+        }
+
+        .popup-card[data-style="legendary"] .claim-btn {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a0f00;
+            box-shadow: 0 5px 30px rgba(255, 215, 0, 0.5);
+        }
+
+        .popup-card[data-style="rare"] .claim-btn {
+            background: linear-gradient(135deg, var(--jazer-cyan), #0891b2);
+            color: #001a2a;
+            box-shadow: 0 5px 30px rgba(0, 242, 234, 0.5);
+        }
+
+        .popup-card[data-style="mythic"] .claim-btn {
+            background: linear-gradient(135deg, var(--jazer-pink), #be185d);
+            color: white;
+            box-shadow: 0 5px 30px rgba(255, 0, 110, 0.5);
+        }
+
+        .claim-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+        }
+
+        /* Particles */
+        .particle-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* Trigger Button */
+        .trigger-btn {
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 25px rgba(6, 182, 212, 0.4);
+        }
+
+        .trigger-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(6, 182, 212, 0.6);
+        }
+
+        /* Info Panel */
+        .info-panel {
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.1), rgba(147, 51, 234, 0.1));
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--jazer-pink);
+        }
+
+        /* Showcase */
+        .showcase {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .showcase h3 {
+            text-align: center;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .rarity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .rarity-card {
+            padding: 1.5rem;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .rarity-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .rarity-card[data-rarity="rare"] {
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.1), transparent);
+            border: 2px solid var(--jazer-cyan);
+        }
+
+        .rarity-card[data-rarity="epic"] {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), transparent);
+            border: 2px solid var(--jazer-purple);
+        }
+
+        .rarity-card[data-rarity="legendary"] {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), transparent);
+            border: 2px solid #ffd700;
+        }
+
+        .rarity-card[data-rarity="mythic"] {
+            background: linear-gradient(135deg, rgba(255, 0, 110, 0.1), transparent);
+            border: 2px solid var(--jazer-pink);
+        }
+
+        .rarity-card-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .rarity-card-name {
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .rarity-card[data-rarity="rare"] .rarity-card-name { color: var(--jazer-cyan); }
+        .rarity-card[data-rarity="epic"] .rarity-card-name { color: var(--jazer-purple); }
+        .rarity-card[data-rarity="legendary"] .rarity-card-name { color: #ffd700; }
+        .rarity-card[data-rarity="mythic"] .rarity-card-name { color: var(--jazer-pink); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .control-panel { grid-template-columns: 1fr 1fr; }
+            .popup-card { padding: 2rem; }
+            .achievement-icon-wrapper { width: 100px; height: 100px; }
+            .achievement-icon { font-size: 3rem; }
+            .popup-title { font-size: 1.5rem; }
+            .popup-rewards { gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+
+    <div class="header">
+        <h1>Achievement Unlock Popup</h1>
+        <p class="subtitle">Fullscreen achievement popups with rarity-based styling</p>
+    </div>
+
+    <div class="control-panel">
+        <div class="control-group">
+            <label>Rarity</label>
+            <select id="rarityStyle">
+                <option value="rare">Rare</option>
+                <option value="epic" selected>Epic</option>
+                <option value="legendary">Legendary</option>
+                <option value="mythic">Mythic</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Animation</label>
+            <select id="animStyle">
+                <option value="scale" selected>Scale Pop</option>
+                <option value="flip">3D Flip</option>
+                <option value="slide">Slide Up</option>
+                <option value="fade">Fade In</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Particles</label>
+            <select id="particleStyle">
+                <option value="burst" selected>Burst</option>
+                <option value="rain">Rain</option>
+                <option value="spiral">Spiral</option>
+                <option value="none">None</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Auto Close</label>
+            <select id="autoClose">
+                <option value="true">Yes</option>
+                <option value="false" selected>No</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <div class="info-item">
+            <div class="info-label">Unlocked</div>
+            <div class="info-value" id="unlockCount">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Total XP</div>
+            <div class="info-value" id="totalXP">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Rarity</div>
+            <div class="info-value" id="rarityDisplay">Epic</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Coins</div>
+            <div class="info-value" id="totalCoins">0</div>
+        </div>
+    </div>
+
+    <div class="demo-area">
+        <p style="color: var(--text-muted); margin-bottom: 2rem; text-align: center;">
+            Click the button or press Space to unlock a random achievement
+        </p>
+        <button class="trigger-btn" id="triggerBtn">Unlock Achievement</button>
+    </div>
+
+    <div class="showcase">
+        <h3>Rarity Types</h3>
+        <div class="rarity-grid">
+            <div class="rarity-card" data-rarity="rare" onclick="triggerSpecificRarity('rare')">
+                <div class="rarity-card-icon">&#128142;</div>
+                <div class="rarity-card-name">Rare</div>
+            </div>
+            <div class="rarity-card" data-rarity="epic" onclick="triggerSpecificRarity('epic')">
+                <div class="rarity-card-icon">&#11088;</div>
+                <div class="rarity-card-name">Epic</div>
+            </div>
+            <div class="rarity-card" data-rarity="legendary" onclick="triggerSpecificRarity('legendary')">
+                <div class="rarity-card-icon">&#127942;</div>
+                <div class="rarity-card-name">Legendary</div>
+            </div>
+            <div class="rarity-card" data-rarity="mythic" onclick="triggerSpecificRarity('mythic')">
+                <div class="rarity-card-icon">&#128293;</div>
+                <div class="rarity-card-name">Mythic</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup Overlay -->
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="particle-container" id="particleContainer"></div>
+        <div class="popup-card" id="popupCard" data-style="epic">
+            <div class="rarity-badge" id="rarityBadge">Epic</div>
+            <div class="achievement-icon-wrapper">
+                <div class="icon-glow"></div>
+                <div class="achievement-icon" id="achievementIcon">&#11088;</div>
+            </div>
+            <div class="popup-title-label">Achievement Unlocked</div>
+            <div class="popup-title" id="popupTitle">Master Explorer</div>
+            <div class="popup-description" id="popupDescription">
+                You've discovered all hidden areas in the game world.
+            </div>
+            <div class="popup-rewards">
+                <div class="reward-item">
+                    <div class="reward-value" id="xpReward">+500</div>
+                    <div class="reward-label">XP</div>
+                </div>
+                <div class="reward-item">
+                    <div class="reward-value" id="coinReward">+250</div>
+                    <div class="reward-label">Coins</div>
+                </div>
+            </div>
+            <button class="claim-btn" onclick="claimReward()">Claim Reward</button>
+        </div>
+    </div>
+
+    <script>
+        // Achievement data by rarity
+        const achievements = {
+            rare: [
+                { icon: '&#128142;', title: 'Gem Hunter', desc: 'Collect 50 gems', xp: 200, coins: 100 },
+                { icon: '&#127919;', title: 'Sharp Shooter', desc: 'Hit 10 targets in a row', xp: 150, coins: 75 },
+                { icon: '&#128640;', title: 'Quick Start', desc: 'Complete tutorial in 2 minutes', xp: 100, coins: 50 }
+            ],
+            epic: [
+                { icon: '&#11088;', title: 'Master Explorer', desc: 'Discover all hidden areas', xp: 500, coins: 250 },
+                { icon: '&#9889;', title: 'Speed Demon', desc: 'Finish a level in under 30 seconds', xp: 400, coins: 200 },
+                { icon: '&#128170;', title: 'Powerhouse', desc: 'Defeat 100 enemies', xp: 450, coins: 225 }
+            ],
+            legendary: [
+                { icon: '&#127942;', title: 'Champion', desc: 'Win 50 matches in a row', xp: 1000, coins: 500 },
+                { icon: '&#128081;', title: 'Royalty', desc: 'Reach the highest rank', xp: 1200, coins: 600 },
+                { icon: '&#127775;', title: 'Stardom', desc: 'Get featured on leaderboard', xp: 800, coins: 400 }
+            ],
+            mythic: [
+                { icon: '&#128293;', title: 'Inferno', desc: 'Complete all challenges on hardest difficulty', xp: 2000, coins: 1000 },
+                { icon: '&#127752;', title: 'Rainbow Master', desc: 'Unlock all achievements', xp: 2500, coins: 1250 },
+                { icon: '&#9971;', title: 'Godlike', desc: 'Achieve a perfect score', xp: 3000, coins: 1500 }
+            ]
+        };
+
+        let unlockCount = 0;
+        let totalXP = 0;
+        let totalCoins = 0;
+        let currentReward = { xp: 0, coins: 0 };
+
+        // DOM Elements
+        const popupOverlay = document.getElementById('popupOverlay');
+        const popupCard = document.getElementById('popupCard');
+        const particleContainer = document.getElementById('particleContainer');
+        const rarityStyleSelect = document.getElementById('rarityStyle');
+        const animStyleSelect = document.getElementById('animStyle');
+        const particleStyleSelect = document.getElementById('particleStyle');
+        const autoCloseSelect = document.getElementById('autoClose');
+        const triggerBtn = document.getElementById('triggerBtn');
+
+        // Get rarity color
+        function getRarityColor(rarity) {
+            const colors = {
+                rare: '#00f2ea',
+                epic: '#9333ea',
+                legendary: '#ffd700',
+                mythic: '#ff006e'
+            };
+            return colors[rarity];
+        }
+
+        // Create particles
+        function createParticles(rarity) {
+            particleContainer.innerHTML = '';
+            const style = particleStyleSelect.value;
+            if (style === 'none') return;
+
+            const color = getRarityColor(rarity);
+            const count = 50;
+
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.width = Math.random() * 10 + 5 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.background = color;
+                particle.style.boxShadow = `0 0 10px ${color}`;
+
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+
+                if (style === 'burst') {
+                    particle.style.left = centerX + 'px';
+                    particle.style.top = centerY + 'px';
+
+                    const angle = (Math.PI * 2 / count) * i;
+                    const velocity = 200 + Math.random() * 300;
+
+                    particle.animate([
+                        { transform: 'translate(-50%, -50%) scale(0)', opacity: 1 },
+                        { transform: `translate(calc(-50% + ${Math.cos(angle) * velocity}px), calc(-50% + ${Math.sin(angle) * velocity}px)) scale(1)`, opacity: 0 }
+                    ], {
+                        duration: 1500,
+                        easing: 'cubic-bezier(0, 0.5, 0.5, 1)'
+                    });
+                } else if (style === 'rain') {
+                    particle.style.left = Math.random() * window.innerWidth + 'px';
+                    particle.style.top = '-20px';
+
+                    particle.animate([
+                        { transform: 'translateY(0)', opacity: 1 },
+                        { transform: `translateY(${window.innerHeight + 40}px)`, opacity: 0 }
+                    ], {
+                        duration: 2000 + Math.random() * 1000,
+                        delay: Math.random() * 500,
+                        easing: 'ease-in'
+                    });
+                } else if (style === 'spiral') {
+                    particle.style.left = centerX + 'px';
+                    particle.style.top = centerY + 'px';
+
+                    const angle = (Math.PI * 8 / count) * i;
+                    const radius = 50 + i * 5;
+
+                    particle.animate([
+                        { transform: 'translate(-50%, -50%) scale(0)', opacity: 1 },
+                        { transform: `translate(calc(-50% + ${Math.cos(angle) * radius}px), calc(-50% + ${Math.sin(angle) * radius}px)) scale(1)`, opacity: 0 }
+                    ], {
+                        duration: 2000,
+                        delay: i * 30,
+                        easing: 'ease-out'
+                    });
+                }
+
+                particleContainer.appendChild(particle);
+            }
+        }
+
+        // Show popup
+        function showPopup(achievement, rarity) {
+            popupCard.dataset.style = rarity;
+            document.getElementById('rarityBadge').textContent = rarity.charAt(0).toUpperCase() + rarity.slice(1);
+            document.getElementById('achievementIcon').innerHTML = achievement.icon;
+            document.getElementById('popupTitle').textContent = achievement.title;
+            document.getElementById('popupDescription').textContent = achievement.desc;
+            document.getElementById('xpReward').textContent = '+' + achievement.xp;
+            document.getElementById('coinReward').textContent = '+' + achievement.coins;
+
+            currentReward = { xp: achievement.xp, coins: achievement.coins };
+
+            popupOverlay.classList.add('active');
+            createParticles(rarity);
+
+            if (autoCloseSelect.value === 'true') {
+                setTimeout(claimReward, 3000);
+            }
+        }
+
+        // Claim reward
+        function claimReward() {
+            totalXP += currentReward.xp;
+            totalCoins += currentReward.coins;
+            unlockCount++;
+
+            updateDisplay();
+            popupOverlay.classList.remove('active');
+        }
+
+        // Trigger achievement
+        function triggerAchievement() {
+            const rarity = rarityStyleSelect.value;
+            const achievementList = achievements[rarity];
+            const achievement = achievementList[Math.floor(Math.random() * achievementList.length)];
+            showPopup(achievement, rarity);
+        }
+
+        // Trigger specific rarity
+        function triggerSpecificRarity(rarity) {
+            rarityStyleSelect.value = rarity;
+            const achievementList = achievements[rarity];
+            const achievement = achievementList[Math.floor(Math.random() * achievementList.length)];
+            showPopup(achievement, rarity);
+        }
+
+        // Update display
+        function updateDisplay() {
+            document.getElementById('unlockCount').textContent = unlockCount;
+            document.getElementById('totalXP').textContent = totalXP.toLocaleString();
+            document.getElementById('totalCoins').textContent = totalCoins.toLocaleString();
+            document.getElementById('rarityDisplay').textContent = 
+                rarityStyleSelect.options[rarityStyleSelect.selectedIndex].text;
+        }
+
+        // Event listeners
+        triggerBtn.addEventListener('click', triggerAchievement);
+        rarityStyleSelect.addEventListener('change', updateDisplay);
+
+        // Click overlay to close
+        popupOverlay.addEventListener('click', (e) => {
+            if (e.target === popupOverlay) {
+                claimReward();
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !popupOverlay.classList.contains('active')) {
+                e.preventDefault();
+                triggerAchievement();
+            }
+            if (e.code === 'Enter' && popupOverlay.classList.contains('active')) {
+                claimReward();
+            }
+            if (e.code === 'Escape' && popupOverlay.classList.contains('active')) {
+                claimReward();
+            }
+        });
+
+        // Initialize
+        updateDisplay();
+    </script>
+</body>
+</html>

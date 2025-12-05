@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Comparison Widget - JaZeR E-commerce Patterns</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-body); background: var(--bg-dark); color: var(--text-light); line-height: 1.6; padding: 1.5rem; min-height: 100vh; }
+    .back-button { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-gray); text-decoration: none; font-family: var(--font-secondary); font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 12px; border: 2px solid var(--border-default); background: var(--bg-card); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-bottom: 1.5rem; }
+    .back-button:hover { border-color: var(--jazer-cyan); color: var(--jazer-cyan); transform: translateX(-5px); box-shadow: var(--shadow-cyan); }
+    h1 { font-family: var(--font-primary); font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; background: var(--gradient-text); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .description { color: var(--text-gray); font-size: 1.1rem; margin-bottom: 1.5rem; max-width: 700px; }
+    .hero-keys { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .key-hint { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-gray); font-size: 0.875rem; }
+    .key-hint kbd { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 6px; padding: 0.25rem 0.5rem; font-family: var(--font-secondary); font-size: 0.75rem; color: var(--jazer-cyan); }
+    .style-selector { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 2rem; }
+    .style-btn { padding: 0.625rem 1.25rem; font-family: var(--font-secondary); font-weight: 600; font-size: 0.875rem; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px; border: 2px solid var(--border-default); background: var(--bg-card); color: var(--text-gray); }
+    .style-btn:hover { border-color: var(--jazer-cyan); color: var(--jazer-cyan); transform: translateY(-2px); }
+    .style-btn.active { background: var(--gradient-primary); border-color: var(--jazer-cyan); color: var(--text-light); box-shadow: var(--shadow-cyan); }
+    .demo-container { padding: 3rem; background: var(--bg-card); border: 2px solid var(--border-default); border-radius: 16px; min-height: 500px; overflow-x: auto; }
+
+    /* Comparison Widget Base Styles */
+    .comparison-widget { width: 100%; }
+    .comparison-table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    .comparison-table th, .comparison-table td { padding: 1rem; text-align: center; vertical-align: middle; }
+    .comparison-table th:first-child, .comparison-table td:first-child { text-align: left; font-weight: 600; }
+    .product-header { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+    .product-icon { font-size: 3rem; }
+    .product-name { font-family: var(--font-secondary); font-weight: 700; font-size: 1rem; }
+    .product-price { font-weight: 600; }
+    .check { color: #22c55e; font-size: 1.25rem; }
+    .cross { color: #ef4444; font-size: 1.25rem; }
+    .highlight { font-weight: 700; }
+
+    /* Style 1: Neon */
+    .style-neon .comparison-table th { background: rgba(6, 182, 212, 0.1); border-bottom: 2px solid var(--jazer-cyan); color: var(--jazer-cyan); }
+    .style-neon .comparison-table td { border-bottom: 1px solid var(--border-default); }
+    .style-neon .comparison-table tr:hover td { background: rgba(6, 182, 212, 0.05); }
+    .style-neon .product-price { color: var(--jazer-pink); }
+    .style-neon .highlight { color: var(--jazer-cyan); text-shadow: 0 0 10px rgba(6, 182, 212, 0.5); }
+
+    /* Style 2: Gradient */
+    .style-gradient .comparison-table th { background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(240, 147, 251, 0.2)); border-bottom: 2px solid #a78bfa; color: #e0e7ff; }
+    .style-gradient .comparison-table td { border-bottom: 1px solid rgba(167, 139, 250, 0.2); }
+    .style-gradient .comparison-table tr:hover td { background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(240, 147, 251, 0.1)); }
+    .style-gradient .product-price { background: linear-gradient(90deg, #f093fb, #667eea); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .style-gradient .highlight { background: linear-gradient(90deg, #667eea, #f093fb); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* Style 3: Minimal */
+    .style-minimal .comparison-table th { background: #1a1a2e; border-bottom: 1px solid #333; color: #888; font-weight: 500; }
+    .style-minimal .comparison-table td { border-bottom: 1px solid #222; color: #aaa; }
+    .style-minimal .comparison-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
+    .style-minimal .product-price { color: #666; }
+    .style-minimal .highlight { color: #ccc; }
+
+    /* Style 4: Neumorphic */
+    .style-neumorphic .comparison-table { border-spacing: 0 8px; border-collapse: separate; }
+    .style-neumorphic .comparison-table th { background: #2d2d3a; border-radius: 12px; box-shadow: 4px 4px 8px #1a1a24, -4px -4px 8px #404050; color: #a0a0b0; }
+    .style-neumorphic .comparison-table td { background: #2d2d3a; }
+    .style-neumorphic .comparison-table tr td:first-child { border-radius: 12px 0 0 12px; }
+    .style-neumorphic .comparison-table tr td:last-child { border-radius: 0 12px 12px 0; }
+    .style-neumorphic .product-price { color: #8b5cf6; }
+    .style-neumorphic .highlight { color: #8b5cf6; }
+
+    /* Style 5: Outline */
+    .style-outline .comparison-table th { background: transparent; border: 2px solid var(--jazer-pink); color: var(--jazer-pink); }
+    .style-outline .comparison-table td { border: 1px solid var(--border-default); }
+    .style-outline .comparison-table tr:hover td { border-color: var(--jazer-cyan); }
+    .style-outline .product-price { color: var(--jazer-cyan); }
+    .style-outline .highlight { color: var(--jazer-pink); }
+
+    /* Style 6: Retro */
+    .style-retro .comparison-table th { background: #2a1f4e; border: 3px solid #ff6b6b; color: #feca57; font-family: var(--font-primary); }
+    .style-retro .comparison-table td { border: 2px solid #5f27cd; background: #1a1333; }
+    .style-retro .comparison-table tr:hover td { background: #2a1f4e; }
+    .style-retro .product-price { color: #ff6b6b; }
+    .style-retro .highlight { color: #feca57; }
+    .style-retro .check { color: #feca57; }
+    .style-retro .cross { color: #ff6b6b; }
+
+    /* Style 7: Glass */
+    .style-glass .comparison-table th { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.9); }
+    .style-glass .comparison-table td { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(5px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    .style-glass .comparison-table tr:hover td { background: rgba(255, 255, 255, 0.08); }
+    .style-glass .product-price { color: rgba(6, 182, 212, 0.9); }
+    .style-glass .highlight { color: rgba(255, 255, 255, 0.95); }
+
+    /* Style 8: Cyberpunk */
+    .style-cyberpunk .comparison-table th { background: linear-gradient(90deg, rgba(255, 0, 255, 0.2), rgba(0, 255, 255, 0.2)); border-bottom: 2px solid #ff00ff; color: #00ffff; text-shadow: 0 0 10px #00ffff; font-family: var(--font-primary); }
+    .style-cyberpunk .comparison-table td { border-bottom: 1px solid rgba(255, 0, 255, 0.3); }
+    .style-cyberpunk .comparison-table tr:hover td { background: rgba(255, 0, 255, 0.1); box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.1); }
+    .style-cyberpunk .product-price { color: #ff00ff; text-shadow: 0 0 10px #ff00ff; }
+    .style-cyberpunk .highlight { color: #ffff00; text-shadow: 0 0 10px #ffff00; }
+    .style-cyberpunk .check { color: #00ff00; text-shadow: 0 0 10px #00ff00; }
+    .style-cyberpunk .cross { color: #ff0000; text-shadow: 0 0 10px #ff0000; }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to E-commerce Patterns</a>
+  <h1>Product Comparison Widget</h1>
+  <p class="description">Side-by-side product comparison table with feature highlights and visual indicators for easy decision making.</p>
+  <div class="hero-keys">
+    <span class="key-hint"><kbd>Space</kbd> Toggle highlight</span>
+    <span class="key-hint"><kbd>R</kbd> Reset view</span>
+  </div>
+
+  <div class="style-selector">
+    <button class="style-btn active" data-style="neon">Neon</button>
+    <button class="style-btn" data-style="gradient">Gradient</button>
+    <button class="style-btn" data-style="minimal">Minimal</button>
+    <button class="style-btn" data-style="neumorphic">Neumorphic</button>
+    <button class="style-btn" data-style="outline">Outline</button>
+    <button class="style-btn" data-style="retro">Retro</button>
+    <button class="style-btn" data-style="glass">Glass</button>
+    <button class="style-btn" data-style="cyberpunk">Cyberpunk</button>
+  </div>
+
+  <div class="demo-container">
+    <div id="demoContent"></div>
+  </div>
+
+  <script>
+    let currentStyle = 'neon';
+    let highlightBest = true;
+
+    const products = [
+      { name: 'Basic', icon: '📦', price: '$99', storage: '16GB', battery: '8hr', water: false, wireless: false },
+      { name: 'Pro', icon: '⭐', price: '$199', storage: '64GB', battery: '12hr', water: true, wireless: false },
+      { name: 'Elite', icon: '👑', price: '$299', storage: '128GB', battery: '24hr', water: true, wireless: true }
+    ];
+
+    const templates = {
+      neon: () => renderTable('style-neon'),
+      gradient: () => renderTable('style-gradient'),
+      minimal: () => renderTable('style-minimal'),
+      neumorphic: () => renderTable('style-neumorphic'),
+      outline: () => renderTable('style-outline'),
+      retro: () => renderTable('style-retro'),
+      glass: () => renderTable('style-glass'),
+      cyberpunk: () => renderTable('style-cyberpunk')
+    };
+
+    function renderTable(styleClass) {
+      const headerCells = products.map(p => `
+        <th>
+          <div class="product-header">
+            <span class="product-icon">${p.icon}</span>
+            <span class="product-name">${p.name}</span>
+            <span class="product-price">${p.price}</span>
+          </div>
+        </th>
+      `).join('');
+
+      const rows = [
+        { label: 'Storage', values: products.map(p => `<span class="${highlightBest && p.storage === '128GB' ? 'highlight' : ''}">${p.storage}</span>`) },
+        { label: 'Battery Life', values: products.map(p => `<span class="${highlightBest && p.battery === '24hr' ? 'highlight' : ''}">${p.battery}</span>`) },
+        { label: 'Water Resistant', values: products.map(p => p.water ? '<span class="check">✓</span>' : '<span class="cross">✗</span>') },
+        { label: 'Wireless Charging', values: products.map(p => p.wireless ? '<span class="check">✓</span>' : '<span class="cross">✗</span>') }
+      ];
+
+      const rowsHTML = rows.map(row => `
+        <tr>
+          <td>${row.label}</td>
+          ${row.values.map(v => `<td>${v}</td>`).join('')}
+        </tr>
+      `).join('');
+
+      return `
+        <div class="comparison-widget ${styleClass}">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Features</th>
+                ${headerCells}
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHTML}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function render() {
+      document.getElementById('demoContent').innerHTML = templates[currentStyle]();
+    }
+
+    function toggleHighlight() {
+      highlightBest = !highlightBest;
+      render();
+    }
+
+    function resetView() {
+      highlightBest = true;
+      render();
+    }
+
+    // Style selector
+    document.querySelectorAll('.style-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentStyle = btn.dataset.style;
+        render();
+      });
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        toggleHighlight();
+      } else if (e.code === 'KeyR') {
+        resetView();
+      }
+    });
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>

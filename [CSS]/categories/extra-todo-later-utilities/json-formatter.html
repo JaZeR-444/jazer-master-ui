@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Formatter</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            background: rgba(0, 217, 255, 0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateX(-5px);
+        }
+        h1 {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 217, 255, 0.5);
+        }
+        textarea {
+            width: 100%;
+            min-height: 400px;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 0.9rem;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+        }
+        .error {
+            background: rgba(255, 51, 102, 0.1);
+            border: 2px solid #ff3366;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            color: #ff3366;
+        }
+        .stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(0, 217, 255, 0.05);
+            border-radius: 8px;
+        }
+        .stat {
+            color: var(--jazer-cyan);
+            font-size: 0.9rem;
+        }
+        .stat span {
+            color: white;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    
+    <div class="container">
+        <h1>📋 JSON Formatter & Validator</h1>
+        
+        <div class="controls">
+            <button onclick="formatJSON()">Format (Prettify)</button>
+            <button onclick="minifyJSON()">Minify</button>
+            <button onclick="validateJSON()">Validate</button>
+            <button onclick="clearJSON()">Clear</button>
+            <button onclick="copyJSON()">Copy</button>
+        </div>
+        
+        <textarea id="jsonInput" placeholder='Paste JSON here... e.g., {"name":"John","age":30}'></textarea>
+        
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <div class="stats">
+            <div class="stat">Size: <span id="size">0 bytes</span></div>
+            <div class="stat">Lines: <span id="lines">0</span></div>
+            <div class="stat">Valid: <span id="valid">Unknown</span></div>
+        </div>
+    </div>
+    
+    <script>
+        const jsonInput = document.getElementById('jsonInput');
+        const errorDiv = document.getElementById('error');
+        
+        // Sample JSON
+        jsonInput.value = '{"name":"John Doe","age":30,"email":"john@example.com","active":true,"roles":["admin","user"],"address":{"street":"123 Main St","city":"New York","zip":"10001"},"metadata":{"created":"2024-01-01","updated":"2024-01-15"}}';
+        
+        function formatJSON() {
+            try {
+                const obj = JSON.parse(jsonInput.value);
+                jsonInput.value = JSON.stringify(obj, null, 2);
+                hideError();
+                updateStats();
+            } catch (e) {
+                showError('Invalid JSON: ' + e.message);
+            }
+        }
+        
+        function minifyJSON() {
+            try {
+                const obj = JSON.parse(jsonInput.value);
+                jsonInput.value = JSON.stringify(obj);
+                hideError();
+                updateStats();
+            } catch (e) {
+                showError('Invalid JSON: ' + e.message);
+            }
+        }
+        
+        function validateJSON() {
+            try {
+                JSON.parse(jsonInput.value);
+                hideError();
+                showError('✓ Valid JSON', 'success');
+                updateStats();
+            } catch (e) {
+                showError('✗ Invalid JSON: ' + e.message);
+            }
+        }
+        
+        function clearJSON() {
+            jsonInput.value = '';
+            hideError();
+            updateStats();
+        }
+        
+        function copyJSON() {
+            jsonInput.select();
+            document.execCommand('copy');
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = originalText, 2000);
+        }
+        
+        function showError(message, type = 'error') {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            if (type === 'success') {
+                errorDiv.style.borderColor = '#39ff14';
+                errorDiv.style.color = '#39ff14';
+                errorDiv.style.background = 'rgba(57, 255, 20, 0.1)';
+            } else {
+                errorDiv.style.borderColor = '#ff3366';
+                errorDiv.style.color = '#ff3366';
+                errorDiv.style.background = 'rgba(255, 51, 102, 0.1)';
+            }
+        }
+        
+        function hideError() {
+            errorDiv.style.display = 'none';
+        }
+        
+        function updateStats() {
+            const text = jsonInput.value;
+            document.getElementById('size').textContent = new Blob([text]).size + ' bytes';
+            document.getElementById('lines').textContent = (text.match(/\n/g) || []).length + 1;
+            
+            try {
+                JSON.parse(text);
+                document.getElementById('valid').textContent = '✓ Yes';
+                document.getElementById('valid').style.color = '#39ff14';
+            } catch {
+                document.getElementById('valid').textContent = '✗ No';
+                document.getElementById('valid').style.color = '#ff3366';
+            }
+        }
+        
+        jsonInput.addEventListener('input', updateStats);
+        formatJSON();
+    </script>
+</body>
+</html>

@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Bar Depletion Shake</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        .hero-section {
+            text-align: center;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+        
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .back-button { 
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(0, 242, 234, 0.1); 
+            margin-bottom: 2rem; 
+            transition: all 0.3s ease; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 30px rgba(0, 242, 234, 0.5); 
+        }
+        
+        /* Main Demo Area */
+        .demo-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            padding: 3rem;
+            background: linear-gradient(135deg, rgba(255, 0, 110, 0.05), rgba(147, 51, 234, 0.05));
+            border-radius: 24px;
+            border: 2px solid rgba(255, 0, 110, 0.2);
+            margin-bottom: 3rem;
+        }
+        
+        /* Character Display */
+        .character-display {
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+        }
+        
+        .character {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.1), rgba(147, 51, 234, 0.1));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            border: 4px solid var(--jazer-cyan);
+            box-shadow: 0 0 30px rgba(0, 242, 234, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .character.damaged {
+            animation: characterHit 0.5s ease-out;
+        }
+        
+        @keyframes characterHit {
+            0%, 100% { transform: translateX(0); }
+            10% { transform: translateX(-15px) rotate(-5deg); }
+            20% { transform: translateX(15px) rotate(5deg); }
+            30% { transform: translateX(-10px) rotate(-3deg); }
+            40% { transform: translateX(10px) rotate(3deg); }
+            50% { transform: translateX(-5px); }
+        }
+        
+        .character.critical {
+            border-color: #ff4444;
+            animation: criticalPulse 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes criticalPulse {
+            0%, 100% { 
+                box-shadow: 0 0 30px rgba(255, 68, 68, 0.5);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 50px rgba(255, 68, 68, 0.8);
+                transform: scale(1.02);
+            }
+        }
+        
+        .character.dead {
+            filter: grayscale(1) brightness(0.5);
+            border-color: #444;
+            animation: none;
+        }
+        
+        /* Health Bar Container */
+        .health-container {
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .health-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .health-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ff4444;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .health-value {
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+        
+        .health-value .current {
+            color: #ff4444;
+            transition: color 0.3s ease;
+        }
+        
+        .health-value .max {
+            color: var(--text-muted);
+        }
+        
+        /* Health Bar */
+        .health-bar-wrapper {
+            position: relative;
+            width: 100%;
+            height: 35px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            overflow: visible;
+            border: 3px solid rgba(255, 68, 68, 0.3);
+            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .health-bar-wrapper.shake {
+            animation: barShake 0.4s ease-out;
+        }
+        
+        @keyframes barShake {
+            0%, 100% { transform: translateX(0); }
+            10% { transform: translateX(-8px); }
+            20% { transform: translateX(8px); }
+            30% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            50% { transform: translateX(-4px); }
+            60% { transform: translateX(4px); }
+            70% { transform: translateX(-2px); }
+            80% { transform: translateX(2px); }
+        }
+        
+        .health-bar-wrapper.heavy-shake {
+            animation: heavyShake 0.6s ease-out;
+        }
+        
+        @keyframes heavyShake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-15px, -5px) rotate(-2deg); }
+            20% { transform: translate(15px, 5px) rotate(2deg); }
+            30% { transform: translate(-12px, -3px) rotate(-1.5deg); }
+            40% { transform: translate(12px, 3px) rotate(1.5deg); }
+            50% { transform: translate(-8px, -2px) rotate(-1deg); }
+            60% { transform: translate(8px, 2px) rotate(1deg); }
+            70% { transform: translate(-4px, -1px) rotate(-0.5deg); }
+            80% { transform: translate(4px, 1px) rotate(0.5deg); }
+        }
+        
+        .health-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ff6b6b);
+            border-radius: 17px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.5);
+        }
+        
+        .health-fill::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), transparent);
+            border-radius: 17px 17px 0 0;
+        }
+        
+        /* Health States */
+        .health-fill.healthy {
+            background: linear-gradient(90deg, #00ff88, #00cc6a);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+        
+        .health-fill.moderate {
+            background: linear-gradient(90deg, #ffaa00, #ff8800);
+            box-shadow: 0 0 15px rgba(255, 170, 0, 0.5);
+        }
+        
+        .health-fill.low {
+            background: linear-gradient(90deg, #ff6600, #ff4400);
+            box-shadow: 0 0 15px rgba(255, 102, 0, 0.5);
+        }
+        
+        .health-fill.critical {
+            background: linear-gradient(90deg, #ff4444, #cc0000);
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.8);
+            animation: criticalFill 0.3s ease-in-out infinite;
+        }
+        
+        @keyframes criticalFill {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* Damage Number */
+        .damage-number {
+            position: absolute;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #ff4444;
+            text-shadow: 
+                2px 2px 0 #000,
+                -2px -2px 0 #000,
+                2px -2px 0 #000,
+                -2px 2px 0 #000;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        @keyframes damageFloat {
+            0% {
+                transform: translateY(0) scale(0.5);
+                opacity: 0;
+            }
+            20% {
+                transform: translateY(-20px) scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-80px) scale(0.8);
+                opacity: 0;
+            }
+        }
+        
+        .damage-number.critical-hit {
+            font-size: 3rem;
+            color: #ff0000;
+            animation: criticalDamage 1s ease-out forwards;
+        }
+        
+        @keyframes criticalDamage {
+            0% {
+                transform: translateY(0) scale(0) rotate(-20deg);
+                opacity: 0;
+            }
+            20% {
+                transform: translateY(-30px) scale(1.5) rotate(10deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(0.6) rotate(0deg);
+                opacity: 0;
+            }
+        }
+        
+        /* Blood Splatter */
+        .blood-splatter {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #ff4444, transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+        }
+        
+        /* Heartbeat Line */
+        .heartbeat-container {
+            width: 100%;
+            max-width: 400px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            margin-top: 1rem;
+        }
+        
+        .heartbeat-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 200%;
+            height: 2px;
+            background: #ff4444;
+            transform: translateY(-50%);
+            animation: heartbeatMove 2s linear infinite;
+        }
+        
+        @keyframes heartbeatMove {
+            0% { transform: translateX(0) translateY(-50%); }
+            100% { transform: translateX(-50%) translateY(-50%); }
+        }
+        
+        .heartbeat-line::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 25%;
+            width: 50px;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%,
+                #ff4444 10%,
+                #ff4444 10%,
+                transparent 10%,
+                transparent 20%,
+                #ff4444 20%,
+                #ff4444 25%,
+                transparent 25%,
+                transparent 30%,
+                #ff4444 30%,
+                #ff4444 30%,
+                transparent 30%,
+                transparent 35%,
+                #ff4444 35%,
+                #ff4444 50%,
+                transparent 50%
+            );
+            transform: scaleY(30);
+        }
+        
+        .heartbeat-container.critical .heartbeat-line {
+            animation-duration: 0.5s;
+        }
+        
+        .heartbeat-container.dead .heartbeat-line {
+            animation: none;
+            background: #444;
+        }
+        
+        .heartbeat-container.dead .heartbeat-line::before {
+            display: none;
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-body);
+        }
+        
+        .btn-damage {
+            background: linear-gradient(135deg, #ff4444, #cc0000);
+            color: white;
+            box-shadow: 0 5px 20px rgba(255, 68, 68, 0.3);
+        }
+        
+        .btn-damage:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 68, 68, 0.5);
+        }
+        
+        .btn-critical {
+            background: linear-gradient(135deg, #ff0000, #990000);
+            color: white;
+        }
+        
+        .btn-heal {
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            color: #000;
+        }
+        
+        .btn-heal:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.5);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: var(--jazer-cyan);
+        }
+        
+        /* Damage Type Selector */
+        .damage-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .damage-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+        }
+        
+        .damage-btn:hover {
+            border-color: var(--jazer-cyan);
+        }
+        
+        .damage-btn.active {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            border-color: transparent;
+        }
+        
+        /* Gallery */
+        .gallery-section {
+            margin-bottom: 3rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--jazer-pink);
+            text-align: center;
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .gallery-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .gallery-item:hover {
+            border-color: var(--jazer-cyan);
+        }
+        
+        .gallery-item h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--jazer-cyan);
+        }
+        
+        /* Mini Health Bars */
+        .mini-health-bar {
+            position: relative;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+        }
+        
+        .mini-health-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        /* Status Display */
+        .status-display {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            margin-top: 1rem;
+        }
+        
+        .status-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+        
+        .status-text.dead {
+            color: #666;
+        }
+        
+        /* Keyboard hint */
+        .keyboard-hint {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        .keyboard-hint kbd {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-family: var(--font-body);
+            margin: 0 0.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Screen Flash */
+        .screen-flash {
+            position: fixed;
+            inset: 0;
+            background: #ff0000;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        
+        .screen-flash.flash {
+            animation: screenFlash 0.3s ease-out;
+        }
+        
+        @keyframes screenFlash {
+            0% { opacity: 0.5; }
+            100% { opacity: 0; }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .demo-area { padding: 1.5rem; }
+            .character-display { flex-direction: column; gap: 1.5rem; }
+            .character { width: 100px; height: 100px; font-size: 3rem; }
+            .gallery { grid-template-columns: 1fr; }
+            .controls { flex-direction: column; }
+            .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    
+    <div class="hero-section">
+        <h1>Health Bar Depletion Shake</h1>
+        <p class="subtitle">Dynamic health bar with shake effects, damage numbers, and visual feedback for taking damage</p>
+    </div>
+    
+    <!-- Screen Flash -->
+    <div class="screen-flash" id="screenFlash"></div>
+    
+    <!-- Main Demo -->
+    <div class="demo-area">
+        <div class="character-display">
+            <div class="character" id="character">🧙</div>
+            
+            <div class="health-container">
+                <div class="health-label">
+                    <span class="health-title">
+                        <span>❤️</span>
+                        HEALTH
+                    </span>
+                    <span class="health-value">
+                        <span class="current" id="healthValue">100</span><span class="max">/100</span>
+                    </span>
+                </div>
+                <div class="health-bar-wrapper" id="healthBarWrapper">
+                    <div class="health-fill healthy" id="healthFill" style="width: 100%;"></div>
+                </div>
+                <div class="heartbeat-container" id="heartbeatContainer">
+                    <div class="heartbeat-line"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-display">
+            <div class="status-text" id="statusText">Status: Healthy</div>
+        </div>
+        
+        <div class="damage-selector">
+            <button class="damage-btn active" data-amount="10">10 DMG</button>
+            <button class="damage-btn" data-amount="25">25 DMG</button>
+            <button class="damage-btn" data-amount="50">50 DMG</button>
+            <button class="damage-btn" data-amount="75">75 DMG</button>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-damage" id="damageBtn">Take Damage</button>
+            <button class="btn btn-critical" id="criticalBtn">Critical Hit!</button>
+            <button class="btn btn-heal" id="healBtn">Heal +25</button>
+            <button class="btn btn-secondary" id="resetBtn">Reset Health</button>
+        </div>
+        
+        <div class="keyboard-hint">
+            Press <kbd>Space</kbd> to take damage | <kbd>C</kbd> for critical | <kbd>H</kbd> to heal | <kbd>R</kbd> to reset
+        </div>
+    </div>
+    
+    <!-- Gallery -->
+    <div class="gallery-section">
+        <h2 class="section-title">Shake Intensity Examples</h2>
+        <div class="gallery">
+            <div class="gallery-item">
+                <h3>Light Damage (1-20)</h3>
+                <div class="mini-health-bar">
+                    <div class="mini-health-fill" style="width: 90%; background: linear-gradient(90deg, #00ff88, #00cc6a);"></div>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Subtle shake, minor visual feedback</p>
+            </div>
+            
+            <div class="gallery-item">
+                <h3>Medium Damage (21-50)</h3>
+                <div class="mini-health-bar">
+                    <div class="mini-health-fill" style="width: 60%; background: linear-gradient(90deg, #ffaa00, #ff8800);"></div>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Moderate shake with screen tint</p>
+            </div>
+            
+            <div class="gallery-item">
+                <h3>Heavy Damage (51-75)</h3>
+                <div class="mini-health-bar">
+                    <div class="mini-health-fill" style="width: 30%; background: linear-gradient(90deg, #ff6600, #ff4400);"></div>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Heavy shake with screen flash</p>
+            </div>
+            
+            <div class="gallery-item">
+                <h3>Critical Damage (76+)</h3>
+                <div class="mini-health-bar">
+                    <div class="mini-health-fill" style="width: 10%; background: linear-gradient(90deg, #ff4444, #cc0000); animation: criticalFill 0.3s ease-in-out infinite;"></div>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Violent shake, pulsing bar, screen flash</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // State
+        let health = 100;
+        const maxHealth = 100;
+        let damageAmount = 10;
+        let isDead = false;
+        
+        // DOM Elements
+        const character = document.getElementById('character');
+        const healthBarWrapper = document.getElementById('healthBarWrapper');
+        const healthFill = document.getElementById('healthFill');
+        const healthValue = document.getElementById('healthValue');
+        const heartbeatContainer = document.getElementById('heartbeatContainer');
+        const screenFlash = document.getElementById('screenFlash');
+        const statusText = document.getElementById('statusText');
+        
+        // Update Health Bar
+        function updateHealthBar() {
+            const percentage = (health / maxHealth) * 100;
+            healthFill.style.width = `${percentage}%`;
+            healthValue.textContent = Math.max(0, Math.round(health));
+            
+            // Update color based on health
+            healthFill.classList.remove('healthy', 'moderate', 'low', 'critical');
+            character.classList.remove('critical', 'dead');
+            heartbeatContainer.classList.remove('critical', 'dead');
+            
+            if (health <= 0) {
+                isDead = true;
+                character.classList.add('dead');
+                heartbeatContainer.classList.add('dead');
+                statusText.textContent = 'Status: DEFEATED';
+                statusText.classList.add('dead');
+            } else if (health <= 20) {
+                healthFill.classList.add('critical');
+                character.classList.add('critical');
+                heartbeatContainer.classList.add('critical');
+                statusText.textContent = 'Status: CRITICAL!';
+                statusText.style.color = '#ff4444';
+            } else if (health <= 40) {
+                healthFill.classList.add('low');
+                statusText.textContent = 'Status: Low Health';
+                statusText.style.color = '#ff6600';
+            } else if (health <= 70) {
+                healthFill.classList.add('moderate');
+                statusText.textContent = 'Status: Injured';
+                statusText.style.color = '#ffaa00';
+            } else {
+                healthFill.classList.add('healthy');
+                statusText.textContent = 'Status: Healthy';
+                statusText.style.color = '#00ff88';
+            }
+            
+            // Update health value color
+            document.querySelector('.health-value .current').style.color = 
+                health <= 20 ? '#ff4444' : 
+                health <= 40 ? '#ff6600' : 
+                health <= 70 ? '#ffaa00' : '#00ff88';
+        }
+        
+        // Create Damage Number
+        function createDamageNumber(amount, isCritical = false) {
+            const dmgNum = document.createElement('div');
+            dmgNum.className = `damage-number ${isCritical ? 'critical-hit' : ''}`;
+            dmgNum.textContent = `-${amount}`;
+            
+            const rect = healthBarWrapper.getBoundingClientRect();
+            dmgNum.style.left = `${rect.left + rect.width / 2 + (Math.random() - 0.5) * 50}px`;
+            dmgNum.style.top = `${rect.top}px`;
+            dmgNum.style.animation = `${isCritical ? 'criticalDamage' : 'damageFloat'} 1s ease-out forwards`;
+            
+            document.body.appendChild(dmgNum);
+            
+            setTimeout(() => dmgNum.remove(), 1000);
+        }
+        
+        // Trigger Shake
+        function triggerShake(intensity = 'normal') {
+            healthBarWrapper.classList.remove('shake', 'heavy-shake');
+            void healthBarWrapper.offsetWidth;
+            
+            if (intensity === 'heavy') {
+                healthBarWrapper.classList.add('heavy-shake');
+            } else {
+                healthBarWrapper.classList.add('shake');
+            }
+            
+            // Character hit animation
+            character.classList.remove('damaged');
+            void character.offsetWidth;
+            character.classList.add('damaged');
+        }
+        
+        // Screen Flash
+        function triggerScreenFlash() {
+            screenFlash.classList.remove('flash');
+            void screenFlash.offsetWidth;
+            screenFlash.classList.add('flash');
+        }
+        
+        // Take Damage
+        function takeDamage(amount, isCritical = false) {
+            if (isDead) return;
+            
+            const actualDamage = isCritical ? amount * 2 : amount;
+            health = Math.max(0, health - actualDamage);
+            
+            createDamageNumber(actualDamage, isCritical);
+            
+            // Determine shake intensity
+            if (actualDamage >= 50 || isCritical) {
+                triggerShake('heavy');
+                triggerScreenFlash();
+            } else {
+                triggerShake('normal');
+                if (actualDamage >= 25) {
+                    triggerScreenFlash();
+                }
+            }
+            
+            updateHealthBar();
+        }
+        
+        // Heal
+        function heal(amount) {
+            if (isDead) {
+                isDead = false;
+                statusText.classList.remove('dead');
+            }
+            
+            health = Math.min(maxHealth, health + amount);
+            updateHealthBar();
+            
+            // Create heal number
+            const healNum = document.createElement('div');
+            healNum.className = 'damage-number';
+            healNum.textContent = `+${amount}`;
+            healNum.style.color = '#00ff88';
+            
+            const rect = healthBarWrapper.getBoundingClientRect();
+            healNum.style.left = `${rect.left + rect.width / 2}px`;
+            healNum.style.top = `${rect.top}px`;
+            healNum.style.animation = 'damageFloat 1s ease-out forwards';
+            
+            document.body.appendChild(healNum);
+            setTimeout(() => healNum.remove(), 1000);
+        }
+        
+        // Reset
+        function resetHealth() {
+            isDead = false;
+            health = maxHealth;
+            statusText.classList.remove('dead');
+            updateHealthBar();
+        }
+        
+        // Event Listeners
+        document.getElementById('damageBtn').addEventListener('click', () => takeDamage(damageAmount));
+        document.getElementById('criticalBtn').addEventListener('click', () => takeDamage(damageAmount, true));
+        document.getElementById('healBtn').addEventListener('click', () => heal(25));
+        document.getElementById('resetBtn').addEventListener('click', resetHealth);
+        
+        // Damage amount selector
+        document.querySelectorAll('.damage-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.damage-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                damageAmount = parseInt(btn.dataset.amount);
+            });
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                takeDamage(damageAmount);
+            } else if (e.code === 'KeyC') {
+                takeDamage(damageAmount, true);
+            } else if (e.code === 'KeyH') {
+                heal(25);
+            } else if (e.code === 'KeyR') {
+                resetHealth();
+            }
+        });
+        
+        // Initialize
+        updateHealthBar();
+    </script>
+</body>
+</html>

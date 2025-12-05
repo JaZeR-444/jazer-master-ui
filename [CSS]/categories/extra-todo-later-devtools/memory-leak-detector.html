@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Leak Detector - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: #0a0a0a;
+            min-height: 100vh; 
+            color: #00ff00;
+            padding: 0;
+        }
+        .devtools-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .devtools-header {
+            background: #1a1a1a;
+            border-bottom: 2px solid var(--jazer-cyan);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .devtools-title {
+            font-size: 1.2rem;
+            color: var(--jazer-cyan);
+            font-weight: 700;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 6px;
+            background: rgba(0, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+        }
+        .devtools-toolbar {
+            background: #151515;
+            border-bottom: 1px solid #333;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+        .toolbar-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 4px;
+            color: var(--jazer-cyan);
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        .toolbar-btn:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+        }
+        .toolbar-btn.active {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+        }
+        .devtools-main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        .devtools-sidebar {
+            width: 250px;
+            background: #0f0f0f;
+            border-right: 1px solid #333;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        .sidebar-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .sidebar-item:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: var(--jazer-cyan);
+        }
+        .devtools-content {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            background: #0a0a0a;
+        }
+        .log-entry {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: rgba(0, 255, 255, 0.05);
+            border-left: 3px solid var(--jazer-cyan);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            border-radius: 4px;
+        }
+        .log-entry.error {
+            border-left-color: #ff3366;
+            color: #ff3366;
+        }
+        .log-entry.warning {
+            border-left-color: #ffa500;
+            color: #ffa500;
+        }
+        .log-entry.success {
+            border-left-color: #39ff14;
+            color: #39ff14;
+        }
+        .timestamp {
+            color: #666;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+        }
+        .code-block {
+            background: #0f0f0f;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+        .metric-card {
+            background: rgba(0, 255, 255, 0.05);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .metric-value {
+            font-size: 2rem;
+            color: var(--jazer-cyan);
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+        .metric-label {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .devtools-sidebar { width: 200px; }
+            .devtools-toolbar { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="devtools-container">
+        <div class="devtools-header">
+            <div class="devtools-title">Memory Leak Detector</div>
+            <a href="index.html" class="back-button">← Back</a>
+        </div>
+        
+        <div class="devtools-toolbar">
+            <button class="toolbar-btn active" onclick="switchTab('logs')">Logs</button>
+            <button class="toolbar-btn" onclick="switchTab('network')">Network</button>
+            <button class="toolbar-btn" onclick="switchTab('performance')">Performance</button>
+            <button class="toolbar-btn" onclick="clearLogs()">Clear</button>
+        </div>
+        
+        <div class="devtools-main">
+            <div class="devtools-sidebar">
+                <div class="sidebar-item">All Messages</div>
+                <div class="sidebar-item">Errors (0)</div>
+                <div class="sidebar-item">Warnings (0)</div>
+                <div class="sidebar-item">Info (0)</div>
+            </div>
+            
+            <div class="devtools-content" id="content">
+                <div class="metric-card">
+                    <div class="metric-label">Memory usage analysis tool</div>
+                    <div class="metric-value">Active</div>
+                </div>
+                
+                <div class="log-entry">
+                    <span class="timestamp">[12:34:56.789]</span>
+                    <span>DevTools initialized successfully</span>
+                </div>
+                
+                <div class="log-entry success">
+                    <span class="timestamp">[12:34:57.123]</span>
+                    <span>Connection established</span>
+                </div>
+                
+                <div class="log-entry warning">
+                    <span class="timestamp">[12:34:58.456]</span>
+                    <span>Warning: Deprecated API usage detected</span>
+                </div>
+                
+                <div class="code-block">
+<pre style="color: #00ff00; margin: 0;">
+{
+  "status": "running",
+  "environment": "development",
+  "version": "1.0.0"
+}
+</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function switchTab(tab) {
+            const buttons = document.querySelectorAll('.toolbar-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="metric-card">
+                    <div class="metric-label">Viewing: ${tab.toUpperCase()}</div>
+                    <div class="metric-value">Ready</div>
+                </div>
+                <div class="log-entry">
+                    <span class="timestamp">[${new Date().toLocaleTimeString()}]</span>
+                    <span>Switched to ${tab} view</span>
+                </div>
+            `;
+        }
+        
+        function clearLogs() {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="log-entry">
+                    <span class="timestamp">[${new Date().toLocaleTimeString()}]</span>
+                    <span>Logs cleared</span>
+                </div>
+            `;
+        }
+        
+        // Simulate real-time logs
+        setInterval(() => {
+            const content = document.getElementById('content');
+            const types = ['', 'success', 'warning', 'error'];
+            const messages = [
+                'Network request completed',
+                'Component rendered',
+                'State updated',
+                'API call successful',
+                'Cache hit'
+            ];
+            
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+            
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${randomType}`;
+            entry.innerHTML = `
+                <span class="timestamp">[${new Date().toLocaleTimeString()}]</span>
+                <span>${randomMsg}</span>
+            `;
+            
+            content.appendChild(entry);
+            
+            // Keep only last 20 entries
+            const entries = content.querySelectorAll('.log-entry');
+            if (entries.length > 20) {
+                entries[0].remove();
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

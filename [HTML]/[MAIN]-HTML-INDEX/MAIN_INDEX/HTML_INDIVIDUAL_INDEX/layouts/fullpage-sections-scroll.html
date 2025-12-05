@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full-Page Sections Scroll - JaZeR CSS Patterns</title>
+    <link rel="stylesheet" href="../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            overflow: hidden;
+        }
+
+        /* ==================== BACK BUTTON ==================== */
+        .back-button {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.6rem 1.2rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-light);
+            text-decoration: none;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            box-shadow: var(--shadow-cyan);
+        }
+
+        /* ==================== LAYOUT ==================== */
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .demo-section {
+            position: relative;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .controls-section {
+            position: fixed;
+            top: 0;
+            right: -380px;
+            width: 380px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            border-left: 2px solid var(--border-default);
+            padding: 1.5rem;
+            overflow-y: auto;
+            z-index: 9999;
+            transition: right 0.3s ease;
+            backdrop-filter: blur(20px);
+        }
+
+        .controls-section.open {
+            right: 0;
+        }
+
+        .controls-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.6rem 1.2rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 10001;
+            backdrop-filter: blur(10px);
+        }
+
+        .controls-toggle:hover {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+            box-shadow: var(--shadow-purple);
+        }
+
+        /* ==================== HERO SECTION ==================== */
+        .hero {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(147, 51, 234, 0.08) 50%, rgba(236, 72, 153, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ==================== SCROLL CONTAINER ==================== */
+        .scroll-container {
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            transition: scroll-behavior 0.3s ease;
+        }
+
+        .scroll-container.snap-none {
+            scroll-snap-type: none;
+        }
+
+        .scroll-container.behavior-auto {
+            scroll-behavior: auto;
+        }
+
+        /* ==================== FULLPAGE SECTIONS ==================== */
+        .fullpage-section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem 2rem;
+            scroll-snap-align: start;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .fullpage-section.height-auto {
+            min-height: auto;
+            padding: 5rem 2rem;
+        }
+
+        .fullpage-section.height-fixed {
+            height: 600px;
+            min-height: 600px;
+        }
+
+        .section-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            opacity: 0.15;
+        }
+
+        .section-content {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            text-align: center;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-title {
+            font-family: var(--font-primary);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            font-size: clamp(1rem, 2vw, 1.3rem);
+            color: var(--text-gray);
+            margin-bottom: 2rem;
+            line-height: 1.8;
+        }
+
+        .section-cta {
+            display: inline-block;
+            padding: 0.8rem 2rem;
+            background: var(--gradient-accent);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+        }
+
+        .section-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.5);
+        }
+
+        /* Section-specific backgrounds */
+        .section-1 {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(0, 0, 0, 0.9) 100%);
+        }
+
+        .section-2 {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1) 0%, rgba(0, 0, 0, 0.9) 100%);
+        }
+
+        .section-3 {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(0, 0, 0, 0.9) 100%);
+        }
+
+        .section-4 {
+            background: linear-gradient(135deg, rgba(255, 190, 11, 0.1) 0%, rgba(0, 0, 0, 0.9) 100%);
+        }
+
+        .section-5 {
+            background: linear-gradient(135deg, rgba(255, 136, 0, 0.1) 0%, rgba(0, 0, 0, 0.9) 100%);
+        }
+
+        .section-6 {
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.1) 0%, rgba(147, 51, 234, 0.1) 50%, rgba(236, 72, 153, 0.1) 100%);
+        }
+
+        /* ==================== NAVIGATION DOTS ==================== */
+        .scroll-navigation {
+            position: fixed;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .scroll-navigation.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid var(--border-default);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-dot:hover {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 8px var(--jazer-cyan);
+        }
+
+        .nav-dot.active {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 12px var(--jazer-cyan);
+            transform: scale(1.3);
+        }
+
+        /* ==================== NAVIGATION ARROWS ==================== */
+        .scroll-arrows {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 1rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .scroll-arrows.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .arrow-btn {
+            width: 50px;
+            height: 50px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-light);
+            font-size: 1.5rem;
+        }
+
+        .arrow-btn:hover {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+            box-shadow: var(--shadow-purple);
+            transform: scale(1.1);
+        }
+
+        .arrow-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* ==================== SCROLL INDICATOR ==================== */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+            color: var(--jazer-cyan);
+            font-size: 2rem;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            50% {
+                transform: translateX(-50%) translateY(-10px);
+            }
+        }
+
+        /* ==================== FEATURE GRID ==================== */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .feature-card:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: var(--shadow-cyan);
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 0 8px currentColor);
+        }
+
+        .feature-title {
+            font-family: var(--font-secondary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-description {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+        }
+
+        /* ==================== CONTROLS PANEL ==================== */
+        .controls-title {
+            font-family: var(--font-primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        details {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        details:hover {
+            border-color: var(--jazer-cyan);
+        }
+
+        details[open] {
+            border-color: var(--jazer-cyan);
+        }
+
+        summary {
+            padding: 1rem;
+            cursor: pointer;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        summary::after {
+            content: '▼';
+            font-size: 0.7rem;
+            color: var(--jazer-cyan);
+            transition: transform 0.2s ease;
+        }
+
+        details[open] summary::after {
+            transform: rotate(180deg);
+        }
+
+        .details-content {
+            padding: 0 1rem 1rem 1rem;
+        }
+
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .control-label {
+            display: block;
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.6rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-family: var(--font-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        select:hover,
+        select:focus {
+            border-color: var(--jazer-cyan);
+            outline: none;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--jazer-cyan);
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 12px var(--jazer-cyan);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: var(--jazer-cyan);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--jazer-cyan);
+        }
+
+        .range-value {
+            display: inline-block;
+            margin-left: 0.5rem;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* ==================== PRESETS ==================== */
+        .presets-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .preset-btn {
+            padding: 0.8rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+            box-shadow: var(--shadow-purple);
+        }
+
+        .preset-btn.active {
+            border-color: var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--jazer-cyan);
+            box-shadow: var(--shadow-cyan);
+        }
+
+        /* ==================== STATUS BAR ==================== */
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            border-top: 2px solid var(--border-default);
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            z-index: 9998;
+            backdrop-filter: blur(20px);
+        }
+
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% {
+                opacity: 1;
+                box-shadow: 0 0 4px var(--jazer-cyan);
+            }
+            50% {
+                opacity: 0.5;
+                box-shadow: 0 0 8px var(--jazer-cyan);
+            }
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 768px) {
+            .controls-section {
+                width: 100%;
+                right: -100%;
+            }
+
+            .scroll-navigation {
+                right: 1rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .presets-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .status-bar {
+                padding: 0.75rem 1rem;
+            }
+
+            .status-info {
+                gap: 1rem;
+            }
+
+            .fullpage-section {
+                padding: 2rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back to Layouts</a>
+
+    <button class="controls-toggle" id="controlsToggle">⚙ Controls</button>
+
+    <div class="app-container">
+        <!-- Demo Section -->
+        <div class="demo-section">
+            <div class="scroll-container" id="scrollContainer">
+                <!-- Section 1: Neural Welcome -->
+                <section class="fullpage-section section-1" data-section="1">
+                    <div class="section-content">
+                        <h1 class="section-title">Neural Welcome</h1>
+                        <p class="section-subtitle">
+                            Enter the cyberpunk realm of full-page scroll experiences. Each section snaps perfectly into view as you navigate through the digital matrix.
+                        </p>
+                        <a href="#" class="section-cta">Explore System</a>
+                    </div>
+                    <div class="scroll-indicator">↓</div>
+                </section>
+
+                <!-- Section 2: Quantum Features -->
+                <section class="fullpage-section section-2" data-section="2">
+                    <div class="section-content">
+                        <h2 class="section-title">Quantum Features</h2>
+                        <p class="section-subtitle">
+                            Powered by cutting-edge scroll-snap technology
+                        </p>
+                        <div class="features-grid">
+                            <div class="feature-card">
+                                <div class="feature-icon" style="color: var(--jazer-cyan);">⚡</div>
+                                <h3 class="feature-title">Snap Precision</h3>
+                                <p class="feature-description">Perfect alignment every time</p>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon" style="color: var(--jazer-purple);">🎯</div>
+                                <h3 class="feature-title">Smart Navigation</h3>
+                                <p class="feature-description">Dots and arrows for control</p>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon" style="color: var(--jazer-pink);">🌊</div>
+                                <h3 class="feature-title">Smooth Behavior</h3>
+                                <p class="feature-description">Fluid scrolling animations</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 3: Cyber Gallery -->
+                <section class="fullpage-section section-3" data-section="3">
+                    <div class="section-content">
+                        <h2 class="section-title">Cyber Gallery</h2>
+                        <p class="section-subtitle">
+                            Immersive visual storytelling with full-page sections. Perfect for portfolios, presentations, and digital narratives.
+                        </p>
+                        <a href="#" class="section-cta">View Gallery</a>
+                    </div>
+                </section>
+
+                <!-- Section 4: Contact Matrix -->
+                <section class="fullpage-section section-4" data-section="4">
+                    <div class="section-content">
+                        <h2 class="section-title">Contact Matrix</h2>
+                        <p class="section-subtitle">
+                            Ready to integrate this pattern into your project? Connect with us through the neural network and start building immersive experiences today.
+                        </p>
+                        <a href="#" class="section-cta">Initialize Contact</a>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Navigation Dots -->
+            <div class="scroll-navigation" id="scrollNav"></div>
+
+            <!-- Navigation Arrows -->
+            <div class="scroll-arrows" id="scrollArrows">
+                <button class="arrow-btn" id="prevBtn" title="Previous Section">↑</button>
+                <button class="arrow-btn" id="nextBtn" title="Next Section">↓</button>
+            </div>
+        </div>
+
+        <!-- Controls Section -->
+        <aside class="controls-section" id="controlsSection">
+            <div class="hero">
+                <h1>Full-Page Scroll</h1>
+                <p class="hero-description">Customize scroll-snap behavior and navigation</p>
+            </div>
+
+            <details open>
+                <summary>Layout Settings</summary>
+                <div class="details-content">
+                    <div class="control-group">
+                        <label class="control-label">Section Count</label>
+                        <input type="range" id="sectionCount" min="3" max="6" value="4" step="1">
+                        <span class="range-value" id="sectionCountValue">4</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Section Height</label>
+                        <select id="sectionHeight">
+                            <option value="viewport">Viewport (100vh)</option>
+                            <option value="auto">Auto Height</option>
+                            <option value="fixed">Fixed (600px)</option>
+                        </select>
+                    </div>
+                </div>
+            </details>
+
+            <details open>
+                <summary>Scroll Behavior</summary>
+                <div class="details-content">
+                    <div class="control-group">
+                        <label class="control-label">Scroll Type</label>
+                        <select id="scrollBehavior">
+                            <option value="smooth">Smooth</option>
+                            <option value="auto">Auto (Instant)</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Snap Behavior</label>
+                        <select id="snapBehavior">
+                            <option value="mandatory">Snap Always</option>
+                            <option value="none">No Snap</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Transition Speed (ms)</label>
+                        <input type="range" id="transitionSpeed" min="200" max="1000" value="500" step="100">
+                        <span class="range-value" id="transitionSpeedValue">500ms</span>
+                    </div>
+                </div>
+            </details>
+
+            <details open>
+                <summary>Navigation Style</summary>
+                <div class="details-content">
+                    <div class="control-group">
+                        <label class="control-label">Navigation Type</label>
+                        <select id="navStyle">
+                            <option value="dots">Dots (Side)</option>
+                            <option value="arrows">Arrows (Bottom)</option>
+                            <option value="both">Both</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                </div>
+            </details>
+
+            <details>
+                <summary>Presets</summary>
+                <div class="details-content">
+                    <div class="presets-grid">
+                        <button class="preset-btn" data-preset="portfolio">Portfolio</button>
+                        <button class="preset-btn" data-preset="presentation">Presentation</button>
+                        <button class="preset-btn" data-preset="story">Story</button>
+                        <button class="preset-btn" data-preset="product">Product Tour</button>
+                        <button class="preset-btn" data-preset="landing">Landing Page</button>
+                        <button class="preset-btn" data-preset="minimal">Minimal</button>
+                    </div>
+                </div>
+            </details>
+        </aside>
+    </div>
+
+    <!-- Status Bar -->
+    <footer class="status-bar">
+        <div class="status-info">
+            <div class="status-item">
+                <span>Sections:</span>
+                <span id="statusSections">4</span>
+            </div>
+            <div class="status-item">
+                <span>Current:</span>
+                <span id="statusCurrent">1</span>
+            </div>
+            <div class="status-item">
+                <span>Behavior:</span>
+                <span id="statusBehavior">Smooth</span>
+            </div>
+            <div class="status-item">
+                <span>Navigation:</span>
+                <span id="statusNav">Dots</span>
+            </div>
+        </div>
+        <div class="status-indicator">
+            <span class="status-dot"></span>
+            <span>Scroll Ready</span>
+        </div>
+    </footer>
+
+    <script>
+        // State management
+        const state = {
+            sectionCount: 4,
+            sectionHeight: 'viewport',
+            scrollBehavior: 'smooth',
+            snapBehavior: 'mandatory',
+            navStyle: 'dots',
+            transitionSpeed: 500,
+            currentSection: 1
+        };
+
+        // DOM references
+        const scrollContainer = document.getElementById('scrollContainer');
+        const scrollNav = document.getElementById('scrollNav');
+        const scrollArrows = document.getElementById('scrollArrows');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const controlsToggle = document.getElementById('controlsToggle');
+        const controlsSection = document.getElementById('controlsSection');
+
+        // Control inputs
+        const sectionCountInput = document.getElementById('sectionCount');
+        const sectionCountValue = document.getElementById('sectionCountValue');
+        const sectionHeightSelect = document.getElementById('sectionHeight');
+        const scrollBehaviorSelect = document.getElementById('scrollBehavior');
+        const snapBehaviorSelect = document.getElementById('snapBehavior');
+        const navStyleSelect = document.getElementById('navStyle');
+        const transitionSpeedInput = document.getElementById('transitionSpeed');
+        const transitionSpeedValue = document.getElementById('transitionSpeedValue');
+
+        // Status elements
+        const statusSections = document.getElementById('statusSections');
+        const statusCurrent = document.getElementById('statusCurrent');
+        const statusBehavior = document.getElementById('statusBehavior');
+        const statusNav = document.getElementById('statusNav');
+
+        // Initialize
+        function init() {
+            updateSections();
+            updateNavigation();
+            updateStatus();
+            setupEventListeners();
+        }
+
+        // Event listeners
+        function setupEventListeners() {
+            // Controls toggle
+            controlsToggle.addEventListener('click', () => {
+                controlsSection.classList.toggle('open');
+            });
+
+            // Section count
+            sectionCountInput.addEventListener('input', (e) => {
+                state.sectionCount = parseInt(e.target.value);
+                sectionCountValue.textContent = state.sectionCount;
+                updateSections();
+                render();
+            });
+
+            // Section height
+            sectionHeightSelect.addEventListener('change', (e) => {
+                state.sectionHeight = e.target.value;
+                render();
+            });
+
+            // Scroll behavior
+            scrollBehaviorSelect.addEventListener('change', (e) => {
+                state.scrollBehavior = e.target.value;
+                render();
+            });
+
+            // Snap behavior
+            snapBehaviorSelect.addEventListener('change', (e) => {
+                state.snapBehavior = e.target.value;
+                render();
+            });
+
+            // Navigation style
+            navStyleSelect.addEventListener('change', (e) => {
+                state.navStyle = e.target.value;
+                updateNavigation();
+                render();
+            });
+
+            // Transition speed
+            transitionSpeedInput.addEventListener('input', (e) => {
+                state.transitionSpeed = parseInt(e.target.value);
+                transitionSpeedValue.textContent = state.transitionSpeed + 'ms';
+                render();
+            });
+
+            // Navigation buttons
+            prevBtn.addEventListener('click', () => scrollToSection(state.currentSection - 1));
+            nextBtn.addEventListener('click', () => scrollToSection(state.currentSection + 1));
+
+            // Scroll tracking
+            scrollContainer.addEventListener('scroll', () => {
+                updateCurrentSection();
+                updateNavigationState();
+            });
+
+            // Presets
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    applyPreset(btn.dataset.preset);
+                    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+            });
+        }
+
+        // Update sections based on count
+        function updateSections() {
+            const sections = scrollContainer.querySelectorAll('.fullpage-section');
+            sections.forEach((section, index) => {
+                section.style.display = index < state.sectionCount ? 'flex' : 'none';
+            });
+            updateNavigation();
+        }
+
+        // Update navigation (dots/arrows)
+        function updateNavigation() {
+            // Clear existing dots
+            scrollNav.innerHTML = '';
+
+            // Create dots based on section count
+            for (let i = 1; i <= state.sectionCount; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'nav-dot';
+                if (i === state.currentSection) dot.classList.add('active');
+                dot.addEventListener('click', () => scrollToSection(i));
+                scrollNav.appendChild(dot);
+            }
+
+            // Update visibility
+            scrollNav.classList.remove('visible');
+            scrollArrows.classList.remove('visible');
+
+            if (state.navStyle === 'dots' || state.navStyle === 'both') {
+                scrollNav.classList.add('visible');
+            }
+            if (state.navStyle === 'arrows' || state.navStyle === 'both') {
+                scrollArrows.classList.add('visible');
+            }
+        }
+
+        // Update current section based on scroll position
+        function updateCurrentSection() {
+            const sections = Array.from(scrollContainer.querySelectorAll('.fullpage-section')).filter(s => s.style.display !== 'none');
+            const scrollPos = scrollContainer.scrollTop + window.innerHeight / 2;
+
+            sections.forEach((section, index) => {
+                const sectionTop = section.offsetTop;
+                const sectionBottom = sectionTop + section.offsetHeight;
+
+                if (scrollPos >= sectionTop && scrollPos < sectionBottom) {
+                    state.currentSection = index + 1;
+                }
+            });
+
+            updateNavigationState();
+            updateStatus();
+        }
+
+        // Update navigation state (active dot, disabled arrows)
+        function updateNavigationState() {
+            // Update dots
+            const dots = scrollNav.querySelectorAll('.nav-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index + 1 === state.currentSection);
+            });
+
+            // Update arrows
+            prevBtn.disabled = state.currentSection === 1;
+            nextBtn.disabled = state.currentSection === state.sectionCount;
+        }
+
+        // Scroll to specific section
+        function scrollToSection(sectionNum) {
+            if (sectionNum < 1 || sectionNum > state.sectionCount) return;
+
+            const sections = Array.from(scrollContainer.querySelectorAll('.fullpage-section')).filter(s => s.style.display !== 'none');
+            const targetSection = sections[sectionNum - 1];
+
+            if (targetSection) {
+                targetSection.scrollIntoView({ behavior: state.scrollBehavior, block: 'start' });
+                state.currentSection = sectionNum;
+                updateNavigationState();
+                updateStatus();
+            }
+        }
+
+        // Apply preset configurations
+        function applyPreset(preset) {
+            const presets = {
+                portfolio: {
+                    sectionCount: 5,
+                    sectionHeight: 'viewport',
+                    scrollBehavior: 'smooth',
+                    snapBehavior: 'mandatory',
+                    navStyle: 'dots',
+                    transitionSpeed: 500
+                },
+                presentation: {
+                    sectionCount: 6,
+                    sectionHeight: 'viewport',
+                    scrollBehavior: 'auto',
+                    snapBehavior: 'mandatory',
+                    navStyle: 'arrows',
+                    transitionSpeed: 300
+                },
+                story: {
+                    sectionCount: 4,
+                    sectionHeight: 'auto',
+                    scrollBehavior: 'smooth',
+                    snapBehavior: 'none',
+                    navStyle: 'none',
+                    transitionSpeed: 700
+                },
+                product: {
+                    sectionCount: 5,
+                    sectionHeight: 'viewport',
+                    scrollBehavior: 'smooth',
+                    snapBehavior: 'mandatory',
+                    navStyle: 'both',
+                    transitionSpeed: 500
+                },
+                landing: {
+                    sectionCount: 4,
+                    sectionHeight: 'viewport',
+                    scrollBehavior: 'smooth',
+                    snapBehavior: 'mandatory',
+                    navStyle: 'dots',
+                    transitionSpeed: 600
+                },
+                minimal: {
+                    sectionCount: 3,
+                    sectionHeight: 'viewport',
+                    scrollBehavior: 'smooth',
+                    snapBehavior: 'mandatory',
+                    navStyle: 'none',
+                    transitionSpeed: 400
+                }
+            };
+
+            const config = presets[preset];
+            if (config) {
+                state.sectionCount = config.sectionCount;
+                state.sectionHeight = config.sectionHeight;
+                state.scrollBehavior = config.scrollBehavior;
+                state.snapBehavior = config.snapBehavior;
+                state.navStyle = config.navStyle;
+                state.transitionSpeed = config.transitionSpeed;
+
+                // Update UI
+                sectionCountInput.value = config.sectionCount;
+                sectionCountValue.textContent = config.sectionCount;
+                sectionHeightSelect.value = config.sectionHeight;
+                scrollBehaviorSelect.value = config.scrollBehavior;
+                snapBehaviorSelect.value = config.snapBehavior;
+                navStyleSelect.value = config.navStyle;
+                transitionSpeedInput.value = config.transitionSpeed;
+                transitionSpeedValue.textContent = config.transitionSpeed + 'ms';
+
+                updateSections();
+                render();
+            }
+        }
+
+        // Render function
+        function render() {
+            const sections = scrollContainer.querySelectorAll('.fullpage-section');
+
+            // Apply scroll behavior
+            if (state.scrollBehavior === 'auto') {
+                scrollContainer.classList.add('behavior-auto');
+            } else {
+                scrollContainer.classList.remove('behavior-auto');
+            }
+
+            // Apply snap behavior
+            if (state.snapBehavior === 'none') {
+                scrollContainer.classList.add('snap-none');
+            } else {
+                scrollContainer.classList.remove('snap-none');
+            }
+
+            // Apply section height
+            sections.forEach(section => {
+                section.classList.remove('height-auto', 'height-fixed');
+                if (state.sectionHeight === 'auto') {
+                    section.classList.add('height-auto');
+                } else if (state.sectionHeight === 'fixed') {
+                    section.classList.add('height-fixed');
+                }
+            });
+
+            updateNavigation();
+            updateStatus();
+        }
+
+        // Update status bar
+        function updateStatus() {
+            statusSections.textContent = state.sectionCount;
+            statusCurrent.textContent = state.currentSection;
+            statusBehavior.textContent = state.scrollBehavior.charAt(0).toUpperCase() + state.scrollBehavior.slice(1);
+            statusNav.textContent = state.navStyle.charAt(0).toUpperCase() + state.navStyle.slice(1);
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

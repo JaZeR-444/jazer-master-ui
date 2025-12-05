@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin Collection Trail</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 0.5rem;
+            font-family: var(--font-primary);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .back-button {
+            display: inline-block;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 2px solid var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.1);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: var(--bg-dark);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+        }
+
+        .control-panel {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(6, 182, 212, 0.1));
+            border: 2px solid var(--jazer-purple);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-group label {
+            display: block;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-group select,
+        .control-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 2px solid var(--jazer-purple);
+            background: rgba(0, 0, 0, 0.4);
+            color: var(--text-light);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .info-panel {
+            background: linear-gradient(135deg, rgba(0, 242, 234, 0.1), rgba(147, 51, 234, 0.1));
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--jazer-pink);
+        }
+
+        .demo-area {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(147, 51, 234, 0.1));
+            border: 2px solid var(--jazer-pink);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            min-height: 500px;
+            position: relative;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        /* Coin Styles */
+        .coin {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            z-index: 10;
+        }
+
+        .coin:hover {
+            transform: scale(1.2);
+        }
+
+        .coin[data-style="gold"] {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border: 3px solid #b8860b;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5),
+                        inset 0 -5px 15px rgba(0, 0, 0, 0.3),
+                        inset 0 5px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .coin[data-style="silver"] {
+            background: linear-gradient(135deg, #e0e0e0, #a0a0a0);
+            border: 3px solid #808080;
+            box-shadow: 0 0 20px rgba(192, 192, 192, 0.5),
+                        inset 0 -5px 15px rgba(0, 0, 0, 0.3),
+                        inset 0 5px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .coin[data-style="gem"] {
+            background: linear-gradient(135deg, #00f2ea, #9333ea);
+            border: 3px solid #6366f1;
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.5),
+                        inset 0 -5px 15px rgba(0, 0, 0, 0.3),
+                        inset 0 5px 15px rgba(255, 255, 255, 0.3);
+            clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+            border-radius: 0;
+        }
+
+        .coin-value {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: rgba(0, 0, 0, 0.6);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        .coin[data-style="gem"] .coin-value {
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Collection Animation */
+        .coin.collecting {
+            animation: coinCollect 0.5s ease-out forwards;
+        }
+
+        @keyframes coinCollect {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { 
+                transform: scale(0) translateY(-100px);
+                opacity: 0;
+            }
+        }
+
+        /* Trail Particle */
+        .trail-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .trail-particle[data-style="gold"] {
+            background: #ffd700;
+            box-shadow: 0 0 10px #ffd700;
+        }
+
+        .trail-particle[data-style="silver"] {
+            background: #c0c0c0;
+            box-shadow: 0 0 10px #c0c0c0;
+        }
+
+        .trail-particle[data-style="gem"] {
+            background: #00f2ea;
+            box-shadow: 0 0 10px #00f2ea;
+        }
+
+        /* Wallet Display */
+        .wallet-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .wallet-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.25rem;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .wallet-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .wallet-icon.gold {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+        }
+
+        .wallet-icon.silver {
+            background: linear-gradient(135deg, #e0e0e0, #a0a0a0);
+        }
+
+        .wallet-icon.gem {
+            background: linear-gradient(135deg, #00f2ea, #9333ea);
+        }
+
+        .wallet-value {
+            font-family: var(--font-primary);
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        /* Plus indicator */
+        .plus-indicator {
+            position: absolute;
+            font-family: var(--font-primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            pointer-events: none;
+            animation: plusFloat 0.8s ease-out forwards;
+        }
+
+        .plus-indicator[data-style="gold"] { color: #ffd700; }
+        .plus-indicator[data-style="silver"] { color: #c0c0c0; }
+        .plus-indicator[data-style="gem"] { color: #00f2ea; }
+
+        @keyframes plusFloat {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+        }
+
+        /* Spawn Zone */
+        .spawn-zone {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 2rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px dashed var(--jazer-cyan);
+            border-radius: 12px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .trigger-btn {
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 25px rgba(6, 182, 212, 0.4);
+            margin-top: 1rem;
+        }
+
+        .trigger-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(6, 182, 212, 0.6);
+        }
+
+        .controls-footer {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .control-panel { grid-template-columns: 1fr 1fr; }
+            .wallet-display { 
+                position: relative; 
+                top: auto; 
+                right: auto;
+                flex-direction: row;
+                justify-content: center;
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+
+    <div class="header">
+        <h1>Coin Collection Trail</h1>
+        <p class="subtitle">Interactive coin collection with trail effects and wallet animations</p>
+    </div>
+
+    <div class="control-panel">
+        <div class="control-group">
+            <label>Coin Type</label>
+            <select id="coinType">
+                <option value="gold" selected>Gold Coins</option>
+                <option value="silver">Silver Coins</option>
+                <option value="gem">Gems</option>
+                <option value="mixed">Mixed</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Trail Effect</label>
+            <select id="trailEffect">
+                <option value="sparkle" selected>Sparkle</option>
+                <option value="streak">Streak</option>
+                <option value="none">None</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Coin Value</label>
+            <select id="coinValue">
+                <option value="1">1</option>
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Auto Spawn</label>
+            <select id="autoSpawn">
+                <option value="true">On</option>
+                <option value="false" selected>Off</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <div class="info-item">
+            <div class="info-label">Gold</div>
+            <div class="info-value" id="goldCount">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Silver</div>
+            <div class="info-value" id="silverCount">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Gems</div>
+            <div class="info-value" id="gemCount">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Collected</div>
+            <div class="info-value" id="collectCount">0</div>
+        </div>
+    </div>
+
+    <div class="demo-area" id="demoArea">
+        <div class="wallet-display">
+            <div class="wallet-item">
+                <div class="wallet-icon gold">$</div>
+                <div class="wallet-value" id="goldWallet">0</div>
+            </div>
+            <div class="wallet-item">
+                <div class="wallet-icon silver">$</div>
+                <div class="wallet-value" id="silverWallet">0</div>
+            </div>
+            <div class="wallet-item">
+                <div class="wallet-icon gem">&#9830;</div>
+                <div class="wallet-value" id="gemWallet">0</div>
+            </div>
+        </div>
+        <div class="spawn-zone">Click anywhere or press Space to spawn coins</div>
+    </div>
+
+    <div class="controls-footer">
+        <button class="trigger-btn" id="spawnBtn">Spawn Coins</button>
+        <button class="trigger-btn" id="collectAllBtn" style="background: linear-gradient(135deg, #ffd700, #ff8c00);">Collect All</button>
+    </div>
+
+    <script>
+        let goldTotal = 0;
+        let silverTotal = 0;
+        let gemTotal = 0;
+        let collectCount = 0;
+        let autoSpawnInterval = null;
+
+        const demoArea = document.getElementById('demoArea');
+        const coinTypeSelect = document.getElementById('coinType');
+        const trailEffectSelect = document.getElementById('trailEffect');
+        const coinValueSelect = document.getElementById('coinValue');
+        const autoSpawnSelect = document.getElementById('autoSpawn');
+
+        function getRandomCoinType() {
+            const type = coinTypeSelect.value;
+            if (type === 'mixed') {
+                const types = ['gold', 'silver', 'gem'];
+                return types[Math.floor(Math.random() * types.length)];
+            }
+            return type;
+        }
+
+        function createCoin(x, y) {
+            const coin = document.createElement('div');
+            coin.className = 'coin';
+            const style = getRandomCoinType();
+            coin.dataset.style = style;
+            coin.dataset.value = coinValueSelect.value;
+            
+            const rect = demoArea.getBoundingClientRect();
+            const coinX = x ? x - rect.left - 25 : Math.random() * (rect.width - 100) + 25;
+            const coinY = y ? y - rect.top - 25 : Math.random() * (rect.height - 200) + 50;
+            
+            coin.style.left = coinX + 'px';
+            coin.style.top = coinY + 'px';
+
+            const valueDisplay = document.createElement('div');
+            valueDisplay.className = 'coin-value';
+            valueDisplay.textContent = style === 'gem' ? '&#9830;' : '$';
+            coin.appendChild(valueDisplay);
+
+            coin.addEventListener('click', (e) => collectCoin(coin, e));
+            
+            demoArea.appendChild(coin);
+
+            // Entry animation
+            coin.animate([
+                { transform: 'scale(0) rotate(-180deg)', opacity: 0 },
+                { transform: 'scale(1) rotate(0deg)', opacity: 1 }
+            ], {
+                duration: 300,
+                easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
+            });
+
+            return coin;
+        }
+
+        function createTrailParticle(x, y, style) {
+            if (trailEffectSelect.value === 'none') return;
+
+            const particle = document.createElement('div');
+            particle.className = 'trail-particle';
+            particle.dataset.style = style;
+            
+            const rect = demoArea.getBoundingClientRect();
+            particle.style.left = (x - rect.left) + 'px';
+            particle.style.top = (y - rect.top) + 'px';
+
+            demoArea.appendChild(particle);
+
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 20 + Math.random() * 30;
+
+            particle.animate([
+                { transform: 'scale(1)', opacity: 1 },
+                { 
+                    transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0)`,
+                    opacity: 0
+                }
+            ], {
+                duration: 500,
+                easing: 'ease-out'
+            }).onfinish = () => particle.remove();
+        }
+
+        function showPlusIndicator(x, y, value, style) {
+            const plus = document.createElement('div');
+            plus.className = 'plus-indicator';
+            plus.dataset.style = style;
+            plus.textContent = '+' + value;
+            
+            const rect = demoArea.getBoundingClientRect();
+            plus.style.left = (x - rect.left) + 'px';
+            plus.style.top = (y - rect.top) + 'px';
+
+            demoArea.appendChild(plus);
+            setTimeout(() => plus.remove(), 800);
+        }
+
+        function collectCoin(coin, e) {
+            if (coin.classList.contains('collecting')) return;
+
+            const style = coin.dataset.style;
+            const value = parseInt(coin.dataset.value);
+            const rect = coin.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            // Create trail particles
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => createTrailParticle(centerX, centerY, style), i * 30);
+            }
+
+            // Show plus indicator
+            showPlusIndicator(centerX, centerY, value, style);
+
+            // Update totals
+            if (style === 'gold') goldTotal += value;
+            else if (style === 'silver') silverTotal += value;
+            else if (style === 'gem') gemTotal += value;
+            collectCount++;
+
+            updateDisplay();
+
+            // Collect animation
+            coin.classList.add('collecting');
+            setTimeout(() => coin.remove(), 500);
+        }
+
+        function collectAllCoins() {
+            const coins = demoArea.querySelectorAll('.coin:not(.collecting)');
+            coins.forEach((coin, i) => {
+                setTimeout(() => {
+                    const rect = coin.getBoundingClientRect();
+                    collectCoin(coin, { clientX: rect.left, clientY: rect.top });
+                }, i * 100);
+            });
+        }
+
+        function spawnMultipleCoins() {
+            const count = 5 + Math.floor(Math.random() * 6);
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => createCoin(), i * 100);
+            }
+        }
+
+        function updateDisplay() {
+            document.getElementById('goldCount').textContent = goldTotal;
+            document.getElementById('silverCount').textContent = silverTotal;
+            document.getElementById('gemCount').textContent = gemTotal;
+            document.getElementById('collectCount').textContent = collectCount;
+            document.getElementById('goldWallet').textContent = goldTotal;
+            document.getElementById('silverWallet').textContent = silverTotal;
+            document.getElementById('gemWallet').textContent = gemTotal;
+        }
+
+        // Event listeners
+        document.getElementById('spawnBtn').addEventListener('click', spawnMultipleCoins);
+        document.getElementById('collectAllBtn').addEventListener('click', collectAllCoins);
+
+        demoArea.addEventListener('click', (e) => {
+            if (e.target === demoArea || e.target.classList.contains('spawn-zone')) {
+                createCoin(e.clientX, e.clientY);
+            }
+        });
+
+        autoSpawnSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'true') {
+                autoSpawnInterval = setInterval(() => createCoin(), 1000);
+            } else {
+                clearInterval(autoSpawnInterval);
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                spawnMultipleCoins();
+            }
+            if (e.code === 'KeyC') {
+                collectAllCoins();
+            }
+        });
+
+        // Initial coins
+        for (let i = 0; i < 8; i++) {
+            setTimeout(() => createCoin(), i * 150);
+        }
+    </script>
+</body>
+</html>

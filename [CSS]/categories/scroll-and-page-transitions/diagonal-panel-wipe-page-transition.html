@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagonal Panel Wipe Page Transition - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body, 'Inter', sans-serif);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, color 0.3s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+            color: var(--jazer-purple, #9333ea);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .component-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .component-description {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            line-height: 1.6;
+        }
+
+        /* Demo Grid */
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .demo-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 242, 234, 0.2);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .demo-card:hover {
+            border-color: rgba(0, 242, 234, 0.4);
+            transform: translateY(-5px);
+        }
+
+        .demo-title {
+            font-family: var(--font-secondary, 'Rajdhani', sans-serif);
+            font-size: 1.2rem;
+            color: var(--jazer-cyan, #00f2ea);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .demo-description {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .trigger-btn {
+            padding: 0.75rem 2rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            border-radius: 0.5rem;
+            font-family: var(--font-secondary, 'Rajdhani', sans-serif);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .trigger-btn:hover {
+            background: rgba(0, 242, 234, 0.2);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+            transform: scale(1.05);
+        }
+
+        /* Diagonal Wipe Overlay */
+        .diagonal-wipe-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .diagonal-wipe-overlay.active {
+            pointer-events: all;
+        }
+
+        /* Panel Container */
+        .wipe-panels {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .wipe-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-origin: top left;
+        }
+
+        /* Variation 1: Top-Left to Bottom-Right */
+        .wipe-tl-br .wipe-panel {
+            background: linear-gradient(135deg, #00f2ea 0%, #1a0a2e 100%);
+            clip-path: polygon(0 0, 0 0, 0 100%);
+            transition: clip-path 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .wipe-tl-br.active .wipe-panel {
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+        }
+
+        .wipe-tl-br.closing .wipe-panel {
+            clip-path: polygon(100% 0, 100% 0, 100% 100%);
+        }
+
+        /* Variation 2: Bottom-Left to Top-Right */
+        .wipe-bl-tr .wipe-panel {
+            background: linear-gradient(-45deg, #9333ea 0%, #2d1b69 100%);
+            clip-path: polygon(0 100%, 0 100%, 0 100%);
+            transition: clip-path 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .wipe-bl-tr.active .wipe-panel {
+            clip-path: polygon(0 100%, 100% 0, 100% 100%, 0 100%);
+        }
+
+        .wipe-bl-tr.closing .wipe-panel {
+            clip-path: polygon(100% 0, 100% 0, 100% 100%);
+        }
+
+        /* Variation 3: Multi-Panel Diagonal */
+        .wipe-multi .wipe-panel {
+            width: 33.333%;
+            background: linear-gradient(135deg, #ff006e 0%, #6b0f6b 100%);
+            clip-path: polygon(0 0, 0 0, 0 100%);
+        }
+
+        .wipe-multi .wipe-panel:nth-child(1) {
+            left: 0;
+            transition: clip-path 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .wipe-multi .wipe-panel:nth-child(2) {
+            left: 33.333%;
+            transition: clip-path 0.8s cubic-bezier(0.645, 0.045, 0.355, 1) 0.15s;
+        }
+
+        .wipe-multi .wipe-panel:nth-child(3) {
+            left: 66.666%;
+            transition: clip-path 0.8s cubic-bezier(0.645, 0.045, 0.355, 1) 0.3s;
+        }
+
+        .wipe-multi.active .wipe-panel {
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+        }
+
+        .wipe-multi.closing .wipe-panel:nth-child(1) {
+            clip-path: polygon(100% 0, 100% 0, 100% 100%);
+            transition-delay: 0.3s;
+        }
+
+        .wipe-multi.closing .wipe-panel:nth-child(2) {
+            clip-path: polygon(100% 0, 100% 0, 100% 100%);
+            transition-delay: 0.15s;
+        }
+
+        .wipe-multi.closing .wipe-panel:nth-child(3) {
+            clip-path: polygon(100% 0, 100% 0, 100% 100%);
+            transition-delay: 0s;
+        }
+
+        /* Variation 4: X-Shape Wipe */
+        .wipe-x .wipe-panel:nth-child(1) {
+            background: linear-gradient(135deg, #00f2ea 0%, #0a0a0a 100%);
+            clip-path: polygon(0 0, 0 0, 50% 50%, 0 0);
+            transition: clip-path 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .wipe-x .wipe-panel:nth-child(2) {
+            background: linear-gradient(-135deg, #9333ea 0%, #0a0a0a 100%);
+            clip-path: polygon(100% 0, 100% 0, 50% 50%, 100% 0);
+            transition: clip-path 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .wipe-x .wipe-panel:nth-child(3) {
+            background: linear-gradient(45deg, #ff006e 0%, #0a0a0a 100%);
+            clip-path: polygon(0 100%, 0 100%, 50% 50%, 0 100%);
+            transition: clip-path 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .wipe-x .wipe-panel:nth-child(4) {
+            background: linear-gradient(-45deg, #00f2ea 0%, #0a0a0a 100%);
+            clip-path: polygon(100% 100%, 100% 100%, 50% 50%, 100% 100%);
+            transition: clip-path 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .wipe-x.active .wipe-panel:nth-child(1) {
+            clip-path: polygon(0 0, 100% 0, 50% 50%, 0 0);
+        }
+
+        .wipe-x.active .wipe-panel:nth-child(2) {
+            clip-path: polygon(100% 0, 100% 100%, 50% 50%, 100% 0);
+        }
+
+        .wipe-x.active .wipe-panel:nth-child(3) {
+            clip-path: polygon(0 100%, 100% 100%, 50% 50%, 0 100%);
+        }
+
+        .wipe-x.active .wipe-panel:nth-child(4) {
+            clip-path: polygon(0 0, 0 100%, 50% 50%, 0 0);
+        }
+
+        /* Variation 5: Zig-Zag Wipe */
+        .wipe-zigzag {
+            display: flex;
+        }
+
+        .wipe-zigzag .wipe-panel {
+            width: 20%;
+            background: linear-gradient(135deg, #ff4d00 0%, #1a0a2e 100%);
+            transform: translateY(100%);
+        }
+
+        .wipe-zigzag .wipe-panel:nth-child(1) {
+            transition: transform 0.6s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .wipe-zigzag .wipe-panel:nth-child(2) {
+            transition: transform 0.6s cubic-bezier(0.645, 0.045, 0.355, 1) 0.1s;
+        }
+
+        .wipe-zigzag .wipe-panel:nth-child(3) {
+            transition: transform 0.6s cubic-bezier(0.645, 0.045, 0.355, 1) 0.2s;
+        }
+
+        .wipe-zigzag .wipe-panel:nth-child(4) {
+            transition: transform 0.6s cubic-bezier(0.645, 0.045, 0.355, 1) 0.3s;
+        }
+
+        .wipe-zigzag .wipe-panel:nth-child(5) {
+            transition: transform 0.6s cubic-bezier(0.645, 0.045, 0.355, 1) 0.4s;
+        }
+
+        .wipe-zigzag.active .wipe-panel {
+            transform: translateY(0);
+        }
+
+        .wipe-zigzag.closing .wipe-panel:nth-child(1) {
+            transform: translateY(-100%);
+            transition-delay: 0.4s;
+        }
+
+        .wipe-zigzag.closing .wipe-panel:nth-child(2) {
+            transform: translateY(-100%);
+            transition-delay: 0.3s;
+        }
+
+        .wipe-zigzag.closing .wipe-panel:nth-child(3) {
+            transform: translateY(-100%);
+            transition-delay: 0.2s;
+        }
+
+        .wipe-zigzag.closing .wipe-panel:nth-child(4) {
+            transform: translateY(-100%);
+            transition-delay: 0.1s;
+        }
+
+        .wipe-zigzag.closing .wipe-panel:nth-child(5) {
+            transform: translateY(-100%);
+            transition-delay: 0s;
+        }
+
+        /* Transition Content */
+        .transition-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .diagonal-wipe-overlay.active .transition-content {
+            opacity: 1;
+            transition-delay: 0.5s;
+        }
+
+        .transition-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 4rem);
+            color: #fff;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 30px rgba(0, 242, 234, 0.8);
+        }
+
+        .transition-text {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 2rem;
+        }
+
+        .close-transition-btn {
+            padding: 1rem 2.5rem;
+            background: rgba(0, 242, 234, 0.2);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            border-radius: 0.5rem;
+            font-family: var(--font-secondary, 'Rajdhani', sans-serif);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .close-transition-btn:hover {
+            background: rgba(0, 242, 234, 0.3);
+            box-shadow: 0 0 30px rgba(0, 242, 234, 0.5);
+            transform: scale(1.05);
+        }
+
+        /* Loading Progress Bar */
+        .loading-progress {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            max-width: 400px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .diagonal-wipe-overlay.active .loading-progress {
+            opacity: 1;
+            transition-delay: 0.6s;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--jazer-cyan, #00f2ea), var(--jazer-purple, #9333ea), var(--jazer-pink, #ff006e));
+            animation: progressFill 2s ease-in-out infinite;
+        }
+
+        @keyframes progressFill {
+            0%, 100% { width: 0%; }
+            50% { width: 100%; }
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .demo-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .demo-card {
+                padding: 1.5rem;
+            }
+
+            .loading-progress {
+                width: 80%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="component-title">Diagonal Panel Wipe Transitions</h1>
+            <p class="component-description">
+                Dynamic diagonal wipe animations that create dramatic page transitions. 
+                Perfect for creating cinematic effects when navigating between pages or revealing new content.
+            </p>
+        </div>
+
+        <div class="demo-grid">
+            <div class="demo-card">
+                <h3 class="demo-title">Top-Left to Bottom-Right</h3>
+                <p class="demo-description">
+                    Single panel sweeps diagonally from top-left to bottom-right corner.
+                </p>
+                <button class="trigger-btn" data-wipe="tl-br">Trigger Wipe</button>
+            </div>
+
+            <div class="demo-card">
+                <h3 class="demo-title">Bottom-Left to Top-Right</h3>
+                <p class="demo-description">
+                    Panel sweeps upward diagonally from bottom-left to top-right.
+                </p>
+                <button class="trigger-btn" data-wipe="bl-tr">Trigger Wipe</button>
+            </div>
+
+            <div class="demo-card">
+                <h3 class="demo-title">Multi-Panel Stagger</h3>
+                <p class="demo-description">
+                    Three panels wipe in sequence creating a cascading effect.
+                </p>
+                <button class="trigger-btn" data-wipe="multi">Trigger Wipe</button>
+            </div>
+
+            <div class="demo-card">
+                <h3 class="demo-title">X-Shape Convergence</h3>
+                <p class="demo-description">
+                    Four triangular panels converge from corners to center.
+                </p>
+                <button class="trigger-btn" data-wipe="x">Trigger Wipe</button>
+            </div>
+
+            <div class="demo-card">
+                <h3 class="demo-title">Zig-Zag Wave</h3>
+                <p class="demo-description">
+                    Five vertical panels slide in with staggered timing.
+                </p>
+                <button class="trigger-btn" data-wipe="zigzag">Trigger Wipe</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wipe Overlays -->
+    <div class="diagonal-wipe-overlay wipe-tl-br" id="wipe-tl-br">
+        <div class="wipe-panels">
+            <div class="wipe-panel"></div>
+        </div>
+        <div class="transition-content">
+            <h2 class="transition-title">Diagonal Wipe</h2>
+            <p class="transition-text">Smooth diagonal transition effect</p>
+            <button class="close-transition-btn" onclick="closeWipe('wipe-tl-br')">Close</button>
+        </div>
+        <div class="loading-progress">
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="progress-text">Loading Content...</div>
+        </div>
+    </div>
+
+    <div class="diagonal-wipe-overlay wipe-bl-tr" id="wipe-bl-tr">
+        <div class="wipe-panels">
+            <div class="wipe-panel"></div>
+        </div>
+        <div class="transition-content">
+            <h2 class="transition-title">Upward Sweep</h2>
+            <p class="transition-text">Rising diagonal transition</p>
+            <button class="close-transition-btn" onclick="closeWipe('wipe-bl-tr')">Close</button>
+        </div>
+        <div class="loading-progress">
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="progress-text">Loading Content...</div>
+        </div>
+    </div>
+
+    <div class="diagonal-wipe-overlay wipe-multi" id="wipe-multi">
+        <div class="wipe-panels">
+            <div class="wipe-panel"></div>
+            <div class="wipe-panel"></div>
+            <div class="wipe-panel"></div>
+        </div>
+        <div class="transition-content">
+            <h2 class="transition-title">Cascading Panels</h2>
+            <p class="transition-text">Sequential panel reveal</p>
+            <button class="close-transition-btn" onclick="closeWipe('wipe-multi')">Close</button>
+        </div>
+        <div class="loading-progress">
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="progress-text">Loading Content...</div>
+        </div>
+    </div>
+
+    <div class="diagonal-wipe-overlay wipe-x" id="wipe-x">
+        <div class="wipe-panels">
+            <div class="wipe-panel"></div>
+            <div class="wipe-panel"></div>
+            <div class="wipe-panel"></div>
+            <div class="wipe-panel"></div>
+        </div>
+        <div class="transition-content">
+            <h2 class="transition-title">X Convergence</h2>
+            <p class="transition-text">Corner to center reveal</p>
+            <button class="close-transition-btn" onclick="closeWipe('wipe-x')">Close</button>
+        </div>
+        <div class="loading-progress">
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="progress-text">Loading Content...</div>
+        </div>
+    </div>
+
+    <div class="diagonal-wipe-overlay wipe-zigzag" id="wipe-zigzag">
+        <div class="wipe-panels">
+            <div class="wipe-panel"></div>
+            <div class="wipe-panel"></div>
+            <div class="wipe-panel"></div>
+            <div class="wipe-panel"></div>
+            <div class="wipe-panel"></div>
+        </div>
+        <div class="transition-content">
+            <h2 class="transition-title">Wave Pattern</h2>
+            <p class="transition-text">Staggered vertical reveal</p>
+            <button class="close-transition-btn" onclick="closeWipe('wipe-zigzag')">Close</button>
+        </div>
+        <div class="loading-progress">
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="progress-text">Loading Content...</div>
+        </div>
+    </div>
+
+    <script>
+        // Trigger wipe animations
+        document.querySelectorAll('.trigger-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const wipeType = btn.dataset.wipe;
+                const overlay = document.getElementById(`wipe-${wipeType}`);
+                
+                // Prevent body scroll
+                document.body.style.overflow = 'hidden';
+                
+                // Activate overlay
+                overlay.classList.add('active');
+                overlay.classList.remove('closing');
+            });
+        });
+
+        // Close wipe animation
+        function closeWipe(overlayId) {
+            const overlay = document.getElementById(overlayId);
+            
+            // Start closing animation
+            overlay.classList.add('closing');
+            
+            // Remove active after animation completes
+            setTimeout(() => {
+                overlay.classList.remove('active', 'closing');
+                document.body.style.overflow = '';
+            }, 1200);
+        }
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.diagonal-wipe-overlay.active').forEach(overlay => {
+                    closeWipe(overlay.id);
+                });
+            }
+        });
+
+        // Simulate page transition
+        function simulatePageTransition(targetUrl, wipeType = 'tl-br') {
+            const overlay = document.getElementById(`wipe-${wipeType}`);
+            overlay.classList.add('active');
+            
+            // Simulate loading
+            setTimeout(() => {
+                // In real implementation, navigate here:
+                // window.location.href = targetUrl;
+                console.log('Transitioning to:', targetUrl);
+                
+                // For demo, close after delay
+                setTimeout(() => {
+                    closeWipe(overlay.id);
+                }, 2000);
+            }, 1000);
+        }
+
+        // Performance monitoring
+        let frameCount = 0;
+        let lastTime = performance.now();
+        
+        function monitorPerformance() {
+            frameCount++;
+            const currentTime = performance.now();
+            
+            if (currentTime - lastTime >= 1000) {
+                const fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+            
+            requestAnimationFrame(monitorPerformance);
+        }
+        
+        monitorPerformance();
+    </script>
+</body>
+</html>

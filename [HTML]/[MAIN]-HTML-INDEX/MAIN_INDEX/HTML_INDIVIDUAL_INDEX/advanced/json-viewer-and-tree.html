@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Viewer and Tree</title>
+  <style>
+    /* ==================== RESET ==================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 3rem;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 2rem;
+    }
+
+    p {
+      margin-bottom: 1.5rem;
+      color: #555;
+    }
+
+    /* ==================== JSON VIEWER ==================== */
+    .json-viewer-wrapper {
+      margin-top: 2rem;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      background-color: #fcfcfc;
+    }
+
+    .json-input-area {
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+    .json-input-area textarea {
+        width: 100%;
+        height: 150px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+        font-size: 0.9rem;
+        resize: vertical;
+        outline: none;
+    }
+    .json-input-area button {
+        background-color: #3498db;
+        color: #fff;
+        border: none;
+        padding: 0.6rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-top: 0.8rem;
+        transition: background-color 0.2s;
+    }
+    .json-input-area button:hover {
+        background-color: #2980b9;
+    }
+
+    .json-tree-view {
+      padding: 1.5rem;
+      text-align: left;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      overflow-x: auto;
+    }
+
+    .json-node {
+      margin-left: 1em;
+      list-style: none;
+    }
+
+    .json-node-line {
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .json-key {
+      color: #9b59b6; /* Purple for keys */
+      margin-right: 0.5em;
+    }
+
+    .json-value {
+      flex-grow: 1;
+      word-break: break-all;
+    }
+    .json-value.string { color: #2ecc71; } /* Green for strings */
+    .json-value.number { color: #f39c12; } /* Orange for numbers */
+    .json-value.boolean { color: #3498db; } /* Blue for booleans */
+    .json-value.null { color: #e74c3c; } /* Red for null */
+
+    .json-toggler {
+      cursor: pointer;
+      margin-right: 0.5em;
+      color: #6c757d;
+      user-select: none;
+    }
+
+    .json-node-line.collapsed > .json-toggler::before {
+        content: '▸'; /* Collapsed state */
+    }
+    .json-node-line:not(.collapsed) > .json-toggler::before {
+        content: '▾'; /* Expanded state */
+    }
+    .json-node-line.collapsed > ul {
+        display: none;
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 600px) {
+      .json-input-area button {
+          width: 100%;
+      }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../jazer-brand.css">
+  </head>
+<body>
+
+  <div class="container">
+    <h1>JSON Viewer and Tree</h1>
+    <p>Paste JSON data into the editor to view it in a formatted, collapsible tree structure.</p>
+
+    <div class="json-viewer-wrapper">
+      <div class="json-input-area">
+        <textarea id="jsonInput" placeholder="Paste your JSON data here..."
+        >{
+  "name": "John Doe",
+  "age": 30,
+  "isStudent": false,
+  "courses": [
+    {
+      "title": "History 101",
+      "credits": 3
+    },
+    {
+      "title": "Math 202",
+      "credits": 4
+    }
+  ],
+  "address": null,
+  "contact": {
+    "email": "john.doe@example.com",
+    "phone": "123-456-7890"
+  },
+  "grades": {
+    "fall_2023": ["A", "B+", "A-"],
+    "spring_2024": ["B", "A", "C+"]
+  }
+}</textarea>
+        <button id="formatJsonBtn">Format JSON</button>
+      </div>
+      <div class="json-tree-view" id="jsonTreeView">
+        <!-- JSON tree will be rendered here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const jsonInput = document.getElementById('jsonInput');
+      const formatJsonBtn = document.getElementById('formatJsonBtn');
+      const jsonTreeView = document.getElementById('jsonTreeView');
+
+      /**
+       * Recursively renders a JSON object or array into a collapsible tree view.
+       * @param {string} key - The key of the current node.
+       * @param {*} value - The value of the current node.
+       * @param {boolean} isRoot - True if it's the root node.
+       * @returns {HTMLElement} The HTML representation of the JSON node.
+       */
+      function renderJsonNode(key, value, isRoot = false) {
+        const node = document.createElement('li');
+        node.classList.add('json-node');
+
+        const line = document.createElement('div');
+        line.classList.add('json-node-line');
+        node.appendChild(line);
+
+        if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+          const toggler = document.createElement('span');
+          toggler.classList.add('json-toggler');
+          line.appendChild(toggler);
+
+          const keySpan = document.createElement('span');
+          keySpan.classList.add('json-key');
+          keySpan.textContent = key === null ? (Array.isArray(value) ? '[]' : '{}') : `${key}:`;
+          line.appendChild(keySpan);
+
+          if (Array.isArray(value)) {
+              const arrayLength = document.createElement('span');
+              arrayLength.classList.add('json-value');
+              arrayLength.textContent = ` [${value.length}]`;
+              line.appendChild(arrayLength);
+          }
+
+
+          const childList = document.createElement('ul');
+          childList.classList.add('json-children');
+          node.appendChild(childList);
+
+          // Collapse by default for large arrays/objects
+          if (Object.keys(value).length > 2 && !isRoot) {
+            line.classList.add('collapsed');
+          }
+
+          toggler.addEventListener('click', () => {
+            line.classList.toggle('collapsed');
+          });
+
+          if (Array.isArray(value)) {
+            value.forEach((item, index) => {
+              childList.appendChild(renderJsonNode(index, item));
+            });
+          } else if (typeof value === 'object' && value !== null) {
+            for (const subKey in value) {
+              childList.appendChild(renderJsonNode(subKey, value[subKey]));
+            }
+          }
+        } else {
+          const keySpan = document.createElement('span');
+          keySpan.classList.add('json-key');
+          keySpan.textContent = isRoot ? '' : `${key}:`; // Don't show key for root scalar
+          line.appendChild(keySpan);
+
+          const valueSpan = document.createElement('span');
+          valueSpan.classList.add('json-value');
+          if (typeof value === 'string') {
+            valueSpan.classList.add('string');
+            valueSpan.textContent = `"${value}"`;
+          } else if (typeof value === 'number') {
+            valueSpan.classList.add('number');
+            valueSpan.textContent = value;
+          } else if (typeof value === 'boolean') {
+            valueSpan.classList.add('boolean');
+            valueSpan.textContent = value;
+          } else if (value === null) {
+            valueSpan.classList.add('null');
+            valueSpan.textContent = 'null';
+          }
+          line.appendChild(valueSpan);
+        }
+        return node;
+      }
+
+      /**
+       * Formats and displays the JSON data in the tree view.
+       */
+      function formatAndDisplayJson() {
+        jsonTreeView.innerHTML = '';
+        const jsonString = jsonInput.value;
+        try {
+          const jsonData = JSON.parse(jsonString);
+          const rootNode = renderJsonNode(null, jsonData, true); // Root has no key, isRoot = true
+          jsonTreeView.appendChild(rootNode);
+        } catch (e) {
+          jsonTreeView.innerHTML = `<p style="color: #e74c3c;">Invalid JSON: ${e.message}</p>`;
+        }
+      }
+
+      formatJsonBtn.addEventListener('click', formatAndDisplayJson);
+
+      // Initial render with default JSON
+      formatAndDisplayJson();
+    });
+  </script>
+
+</body>
+</html>

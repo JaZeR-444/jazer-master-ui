@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line Chart Multi Series - JaZeR CSS Patterns</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-light);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            padding: 1.5rem;
+            padding-bottom: 3rem;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .back-button:hover {
+            background: rgba(6, 182, 212, 0.1);
+            gap: 0.75rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(147, 51, 234, 0.08) 50%, rgba(236, 72, 153, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 1000px) {
+            .main-container {
+                grid-template-columns: 1fr 340px;
+            }
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .panel:hover {
+            border-color: rgba(6, 182, 212, 0.3);
+        }
+
+        .panel-title {
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--jazer-cyan);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel-title::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--jazer-cyan);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .chart-title {
+            font-family: var(--font-secondary);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .chart-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        /* SVG Chart */
+        .chart-wrapper {
+            position: relative;
+        }
+
+        .chart-svg {
+            width: 100%;
+            height: 350px;
+            overflow: visible;
+        }
+
+        /* Grid */
+        .grid-line {
+            stroke: rgba(255, 255, 255, 0.06);
+            stroke-width: 1;
+        }
+
+        .grid-line-zero {
+            stroke: rgba(255, 255, 255, 0.15);
+            stroke-width: 1;
+        }
+
+        /* Axis Labels */
+        .axis-label {
+            font-family: var(--font-secondary);
+            font-size: 10px;
+            fill: var(--text-muted);
+        }
+
+        .axis-label-x {
+            text-anchor: middle;
+        }
+
+        .axis-label-y {
+            text-anchor: end;
+        }
+
+        /* Lines */
+        .chart-line {
+            fill: none;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: stroke-width 0.2s ease, opacity 0.2s ease;
+        }
+
+        .chart-line.dimmed {
+            opacity: 0.2;
+        }
+
+        .chart-line.highlight {
+            stroke-width: 4;
+        }
+
+        .chart-line.cyan { stroke: var(--jazer-cyan); filter: drop-shadow(0 0 6px var(--jazer-cyan)); }
+        .chart-line.purple { stroke: var(--jazer-purple); filter: drop-shadow(0 0 6px var(--jazer-purple)); }
+        .chart-line.pink { stroke: var(--jazer-pink); filter: drop-shadow(0 0 6px var(--jazer-pink)); }
+        .chart-line.orange { stroke: var(--jazer-orange); filter: drop-shadow(0 0 6px var(--jazer-orange)); }
+        .chart-line.yellow { stroke: var(--jazer-yellow); filter: drop-shadow(0 0 6px var(--jazer-yellow)); }
+
+        /* Data Points */
+        .data-point {
+            cursor: pointer;
+            transition: r 0.2s ease, opacity 0.2s ease;
+        }
+
+        .data-point:hover {
+            r: 8;
+        }
+
+        .data-point.dimmed {
+            opacity: 0.2;
+        }
+
+        .data-point.cyan { fill: var(--jazer-cyan); filter: drop-shadow(0 0 4px var(--jazer-cyan)); }
+        .data-point.purple { fill: var(--jazer-purple); filter: drop-shadow(0 0 4px var(--jazer-purple)); }
+        .data-point.pink { fill: var(--jazer-pink); filter: drop-shadow(0 0 4px var(--jazer-pink)); }
+        .data-point.orange { fill: var(--jazer-orange); filter: drop-shadow(0 0 4px var(--jazer-orange)); }
+        .data-point.yellow { fill: var(--jazer-yellow); filter: drop-shadow(0 0 4px var(--jazer-yellow)); }
+
+        /* Area Fill */
+        .chart-area {
+            opacity: 0.15;
+            transition: opacity 0.2s ease;
+        }
+
+        .chart-area.dimmed {
+            opacity: 0.05;
+        }
+
+        .chart-area.cyan { fill: var(--jazer-cyan); }
+        .chart-area.purple { fill: var(--jazer-purple); }
+        .chart-area.pink { fill: var(--jazer-pink); }
+        .chart-area.orange { fill: var(--jazer-orange); }
+        .chart-area.yellow { fill: var(--jazer-yellow); }
+
+        /* Crosshair */
+        .crosshair-line {
+            stroke: rgba(255, 255, 255, 0.3);
+            stroke-width: 1;
+            stroke-dasharray: 4, 4;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .crosshair-line.visible {
+            opacity: 1;
+        }
+
+        /* Legend */
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            cursor: pointer;
+            padding: 0.4rem 0.75rem;
+            border-radius: 20px;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .legend-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border-default);
+        }
+
+        .legend-item.hidden {
+            opacity: 0.4;
+        }
+
+        .legend-item.active {
+            border-color: var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .legend-line {
+            width: 20px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        .legend-line.cyan { background: var(--jazer-cyan); box-shadow: 0 0 6px var(--jazer-cyan); }
+        .legend-line.purple { background: var(--jazer-purple); box-shadow: 0 0 6px var(--jazer-purple); }
+        .legend-line.pink { background: var(--jazer-pink); box-shadow: 0 0 6px var(--jazer-pink); }
+        .legend-line.orange { background: var(--jazer-orange); box-shadow: 0 0 6px var(--jazer-orange); }
+        .legend-line.yellow { background: var(--jazer-yellow); box-shadow: 0 0 6px var(--jazer-yellow); }
+
+        /* Tooltip */
+        .chart-tooltip {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+            min-width: 150px;
+        }
+
+        .chart-tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip-title {
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .tooltip-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.2rem 0;
+        }
+
+        .tooltip-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .tooltip-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .tooltip-value {
+            font-family: var(--font-secondary);
+            font-weight: 600;
+        }
+
+        /* Controls */
+        .controls-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        details {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-default);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+        }
+
+        details:hover {
+            border-color: rgba(6, 182, 212, 0.3);
+        }
+
+        details[open] {
+            border-color: var(--jazer-cyan);
+        }
+
+        summary {
+            padding: 0.875rem 1rem;
+            font-family: var(--font-secondary);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-light);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+            transition: background 0.2s ease;
+        }
+
+        summary:hover {
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        summary::after {
+            content: '+';
+            font-size: 1.1rem;
+            color: var(--jazer-cyan);
+        }
+
+        details[open] summary::after {
+            content: '−';
+        }
+
+        .details-content {
+            padding: 1rem;
+            border-top: 1px solid var(--border-default);
+        }
+
+        /* Control Groups */
+        .control-group {
+            margin-bottom: 1rem;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-label {
+            display: block;
+            font-size: 0.7rem;
+            font-family: var(--font-secondary);
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Select */
+        select {
+            width: 100%;
+            padding: 0.6rem 0.875rem;
+            font-size: 0.8rem;
+            font-family: var(--font-body);
+            color: var(--text-light);
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2306b6d4' d='M6 8L2 4h8z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+        }
+
+        select:hover {
+            border-color: var(--jazer-purple);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.2);
+        }
+
+        select option {
+            background: var(--bg-dark);
+            color: var(--text-light);
+        }
+
+        /* Range Slider */
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+            margin: 0.5rem 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--jazer-cyan);
+            transition: transform 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .range-values {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        /* Toggle Switch */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .toggle-row:last-child {
+            border-bottom: none;
+        }
+
+        .toggle-label {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 22px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 22px;
+            transition: all 0.3s ease;
+            border: 2px solid var(--border-default);
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background: var(--text-gray);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: rgba(6, 182, 212, 0.3);
+            border-color: var(--jazer-cyan);
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(18px);
+            background: var(--jazer-cyan);
+            box-shadow: 0 0 8px var(--jazer-cyan);
+        }
+
+        /* Data Presets */
+        .data-presets {
+            margin-top: 1.5rem;
+        }
+
+        .data-preset-list {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .data-preset {
+            padding: 0.5rem 0.875rem;
+            font-size: 0.75rem;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 20px;
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .data-preset:hover {
+            border-color: var(--jazer-pink);
+            color: var(--jazer-pink);
+        }
+
+        .data-preset.active {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.7rem 1rem;
+            font-size: 0.75rem;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 8px;
+            border: 2px solid var(--border-default);
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+        }
+
+        .action-btn.primary {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .action-btn.primary:hover {
+            background: rgba(6, 182, 212, 0.2);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--jazer-cyan); }
+            50% { opacity: 0.5; box-shadow: 0 0 8px var(--jazer-cyan); }
+        }
+
+        /* Line Animation */
+        .chart-line.animate {
+            stroke-dasharray: 2000;
+            stroke-dashoffset: 2000;
+            animation: drawLine 1.5s ease forwards;
+        }
+
+        @keyframes drawLine {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        .data-point.animate {
+            opacity: 0;
+            animation: fadeInPoint 0.3s ease forwards;
+        }
+
+        @keyframes fadeInPoint {
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .hero {
+                padding: 1.5rem 1rem;
+            }
+
+            .panel {
+                padding: 1rem;
+            }
+
+            .chart-svg {
+                height: 280px;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .status-info {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to Data Visualization</a>
+
+    <header class="hero">
+        <h1>Line Chart Multi Series</h1>
+        <p class="hero-description">Interactive line chart for tracking trends across multiple data series with customizable curves and animations</p>
+    </header>
+
+    <div class="main-container">
+        <!-- Chart Panel -->
+        <div class="panel">
+            <div class="panel-title">Interactive Chart</div>
+            
+            <div class="chart-container">
+                <div class="chart-title" id="chartTitle">Monthly Performance Metrics</div>
+                <div class="chart-subtitle" id="chartSubtitle">Comparative trend analysis</div>
+                
+                <div class="chart-wrapper">
+                    <svg class="chart-svg" id="chartSvg"></svg>
+                </div>
+
+                <div class="chart-legend" id="chartLegend"></div>
+            </div>
+
+            <!-- Data Presets -->
+            <div class="data-presets">
+                <div class="panel-title">Data Scenarios</div>
+                <div class="data-preset-list" id="dataPresets">
+                    <button class="data-preset active" data-preset="performance">Performance Metrics</button>
+                    <button class="data-preset" data-preset="revenue">Revenue Trends</button>
+                    <button class="data-preset" data-preset="traffic">Website Traffic</button>
+                    <button class="data-preset" data-preset="stocks">Stock Prices</button>
+                    <button class="data-preset" data-preset="temperature">Temperature Data</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Panel -->
+        <div class="panel controls-panel">
+            <div class="panel-title">Configuration</div>
+
+            <!-- Line Style -->
+            <details open>
+                <summary>Line Style</summary>
+                <div class="details-content">
+                    <div class="control-group">
+                        <label class="control-label">Curve Type</label>
+                        <select id="curveType">
+                            <option value="smooth" selected>Smooth (Bezier)</option>
+                            <option value="linear">Linear</option>
+                            <option value="step">Step</option>
+                            <option value="stepBefore">Step Before</option>
+                            <option value="stepAfter">Step After</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Line Width: <span id="lineWidthValue">3px</span></label>
+                        <input type="range" id="lineWidth" min="1" max="6" value="3">
+                        <div class="range-values">
+                            <span>Thin</span>
+                            <span>Thick</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Point Size: <span id="pointSizeValue">5px</span></label>
+                        <input type="range" id="pointSize" min="0" max="10" value="5">
+                        <div class="range-values">
+                            <span>None</span>
+                            <span>Large</span>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- Display Options -->
+            <details open>
+                <summary>Display Options</summary>
+                <div class="details-content">
+                    <div class="toggle-row">
+                        <span class="toggle-label">Show Area Fill</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showArea">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Show Data Points</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showPoints" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Show Grid Lines</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showGrid" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Show Legend</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showLegend" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Animate Lines</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="animateLines" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </details>
+
+            <!-- Interaction -->
+            <details>
+                <summary>Interaction</summary>
+                <div class="details-content">
+                    <div class="toggle-row">
+                        <span class="toggle-label">Show Crosshair</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showCrosshair" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Highlight on Hover</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="highlightHover" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.75rem;">
+                        Click legend items to toggle series visibility. Hover over lines to highlight.
+                    </p>
+                </div>
+            </details>
+
+            <!-- Actions -->
+            <div class="action-buttons">
+                <button class="action-btn" id="resetBtn">Reset</button>
+                <button class="action-btn primary" id="replayBtn">Replay</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="chart-tooltip" id="tooltip">
+        <div class="tooltip-title" id="tooltipTitle">Data Point</div>
+        <div id="tooltipContent"></div>
+    </div>
+
+    <!-- Status Bar -->
+    <footer class="status-bar">
+        <div class="status-info">
+            <div class="status-item">
+                <span>Series:</span>
+                <span id="statusSeries">3</span>
+            </div>
+            <div class="status-item">
+                <span>Points:</span>
+                <span id="statusPoints">12</span>
+            </div>
+            <div class="status-item">
+                <span>Curve:</span>
+                <span id="statusCurve">Smooth</span>
+            </div>
+            <div class="status-item">
+                <span>Range:</span>
+                <span id="statusRange">0-100</span>
+            </div>
+        </div>
+        <div class="status-indicator">
+            <span class="status-dot"></span>
+            <span>Chart Ready</span>
+        </div>
+    </footer>
+
+    <script>
+        // State
+        const state = {
+            curveType: 'smooth',
+            lineWidth: 3,
+            pointSize: 5,
+            showArea: false,
+            showPoints: true,
+            showGrid: true,
+            showLegend: true,
+            animateLines: true,
+            showCrosshair: true,
+            highlightHover: true,
+            currentDataset: 'performance',
+            hiddenSeries: [],
+            highlightedSeries: null
+        };
+
+        // Colors
+        const colors = ['cyan', 'purple', 'pink', 'orange', 'yellow'];
+        const colorValues = {
+            cyan: '#06b6d4',
+            purple: '#9333ea',
+            pink: '#ec4899',
+            orange: '#ff8800',
+            yellow: '#ffbe0b'
+        };
+
+        // Data Sets
+        const datasets = {
+            performance: {
+                title: 'Monthly Performance Metrics',
+                subtitle: 'Comparative trend analysis',
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                series: [
+                    { name: 'Conversion Rate', values: [2.4, 2.8, 3.2, 3.1, 3.5, 3.8, 4.2, 4.0, 4.3, 4.6, 4.8, 5.1] },
+                    { name: 'Bounce Rate', values: [45, 42, 38, 40, 35, 32, 30, 28, 26, 24, 22, 20] },
+                    { name: 'Engagement', values: [62, 65, 68, 72, 75, 78, 82, 85, 88, 90, 92, 95] }
+                ],
+                format: 'percent'
+            },
+            revenue: {
+                title: 'Quarterly Revenue Trends',
+                subtitle: 'Revenue by product line (in thousands)',
+                labels: ['Q1 22', 'Q2 22', 'Q3 22', 'Q4 22', 'Q1 23', 'Q2 23', 'Q3 23', 'Q4 23'],
+                series: [
+                    { name: 'Electronics', values: [125, 142, 156, 178, 185, 198, 215, 235] },
+                    { name: 'Software', values: [89, 95, 108, 122, 135, 148, 162, 178] },
+                    { name: 'Services', values: [45, 52, 58, 65, 72, 78, 85, 92] }
+                ],
+                format: 'currency'
+            },
+            traffic: {
+                title: 'Website Traffic Analysis',
+                subtitle: 'Daily visitors by source',
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                series: [
+                    { name: 'Organic', values: [4523, 5180, 5892, 5234, 4876, 3245, 2890] },
+                    { name: 'Direct', values: [2345, 2567, 2890, 2678, 2456, 1890, 1567] },
+                    { name: 'Social', values: [1234, 1456, 1678, 1567, 1345, 1890, 2123] },
+                    { name: 'Referral', values: [890, 945, 1023, 978, 856, 678, 567] }
+                ],
+                format: 'number'
+            },
+            stocks: {
+                title: 'Stock Price Movement',
+                subtitle: 'Weekly closing prices',
+                labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10'],
+                series: [
+                    { name: 'TECH', values: [145.2, 148.5, 142.3, 151.8, 155.2, 152.4, 158.9, 162.3, 159.8, 165.4] },
+                    { name: 'FIN', values: [78.5, 79.2, 81.3, 80.1, 82.5, 84.2, 83.8, 86.1, 87.5, 89.2] },
+                    { name: 'HEALTH', values: [234.5, 238.2, 241.8, 235.6, 242.3, 248.9, 252.1, 249.5, 255.8, 262.4] }
+                ],
+                format: 'currency'
+            },
+            temperature: {
+                title: 'Temperature Comparison',
+                subtitle: 'Average daily temperature by city',
+                labels: ['6AM', '9AM', '12PM', '3PM', '6PM', '9PM'],
+                series: [
+                    { name: 'New York', values: [18, 22, 28, 30, 26, 21] },
+                    { name: 'Los Angeles', values: [20, 24, 29, 32, 28, 23] },
+                    { name: 'Chicago', values: [15, 19, 25, 27, 23, 18] },
+                    { name: 'Miami', values: [25, 28, 33, 35, 31, 27] }
+                ],
+                format: 'temperature'
+            }
+        };
+
+        // DOM References
+        const chartSvg = document.getElementById('chartSvg');
+        const chartLegend = document.getElementById('chartLegend');
+        const chartTitle = document.getElementById('chartTitle');
+        const chartSubtitle = document.getElementById('chartSubtitle');
+        const tooltip = document.getElementById('tooltip');
+        const tooltipTitle = document.getElementById('tooltipTitle');
+        const tooltipContent = document.getElementById('tooltipContent');
+
+        // Control elements
+        const curveTypeSelect = document.getElementById('curveType');
+        const lineWidthSlider = document.getElementById('lineWidth');
+        const pointSizeSlider = document.getElementById('pointSize');
+        const showAreaToggle = document.getElementById('showArea');
+        const showPointsToggle = document.getElementById('showPoints');
+        const showGridToggle = document.getElementById('showGrid');
+        const showLegendToggle = document.getElementById('showLegend');
+        const animateLinesToggle = document.getElementById('animateLines');
+        const showCrosshairToggle = document.getElementById('showCrosshair');
+        const highlightHoverToggle = document.getElementById('highlightHover');
+        const dataPresets = document.getElementById('dataPresets');
+        const resetBtn = document.getElementById('resetBtn');
+        const replayBtn = document.getElementById('replayBtn');
+
+        // Status elements
+        const statusSeries = document.getElementById('statusSeries');
+        const statusPoints = document.getElementById('statusPoints');
+        const statusCurve = document.getElementById('statusCurve');
+        const statusRange = document.getElementById('statusRange');
+
+        // Chart dimensions
+        const margin = { top: 20, right: 20, bottom: 40, left: 50 };
+        let width, height, chartWidth, chartHeight;
+
+        // Utility Functions
+        function formatValue(value, format) {
+            switch (format) {
+                case 'currency':
+                    return '$' + value.toLocaleString();
+                case 'percent':
+                    return value + '%';
+                case 'temperature':
+                    return value + '°C';
+                case 'number':
+                default:
+                    return value.toLocaleString();
+            }
+        }
+
+        function getMinMax(dataset) {
+            let min = Infinity, max = -Infinity;
+            dataset.series.forEach(s => {
+                if (!state.hiddenSeries.includes(s.name)) {
+                    min = Math.min(min, ...s.values);
+                    max = Math.max(max, ...s.values);
+                }
+            });
+            const padding = (max - min) * 0.1;
+            return { min: Math.floor(min - padding), max: Math.ceil(max + padding) };
+        }
+
+        function scaleX(index, total) {
+            return margin.left + (index / (total - 1)) * chartWidth;
+        }
+
+        function scaleY(value, min, max) {
+            return margin.top + chartHeight - ((value - min) / (max - min)) * chartHeight;
+        }
+
+        // Path generators
+        function generateLinearPath(points) {
+            return points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+        }
+
+        function generateSmoothPath(points) {
+            if (points.length < 2) return '';
+            
+            let path = `M ${points[0].x} ${points[0].y}`;
+            
+            for (let i = 0; i < points.length - 1; i++) {
+                const p0 = points[Math.max(0, i - 1)];
+                const p1 = points[i];
+                const p2 = points[i + 1];
+                const p3 = points[Math.min(points.length - 1, i + 2)];
+                
+                const cp1x = p1.x + (p2.x - p0.x) / 6;
+                const cp1y = p1.y + (p2.y - p0.y) / 6;
+                const cp2x = p2.x - (p3.x - p1.x) / 6;
+                const cp2y = p2.y - (p3.y - p1.y) / 6;
+                
+                path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+            }
+            
+            return path;
+        }
+
+        function generateStepPath(points, type = 'step') {
+            if (points.length < 2) return '';
+            
+            let path = `M ${points[0].x} ${points[0].y}`;
+            
+            for (let i = 1; i < points.length; i++) {
+                const prev = points[i - 1];
+                const curr = points[i];
+                const midX = (prev.x + curr.x) / 2;
+                
+                if (type === 'stepBefore') {
+                    path += ` V ${curr.y} H ${curr.x}`;
+                } else if (type === 'stepAfter') {
+                    path += ` H ${curr.x} V ${curr.y}`;
+                } else {
+                    path += ` H ${midX} V ${curr.y} H ${curr.x}`;
+                }
+            }
+            
+            return path;
+        }
+
+        function generatePath(points) {
+            switch (state.curveType) {
+                case 'linear':
+                    return generateLinearPath(points);
+                case 'step':
+                case 'stepBefore':
+                case 'stepAfter':
+                    return generateStepPath(points, state.curveType);
+                case 'smooth':
+                default:
+                    return generateSmoothPath(points);
+            }
+        }
+
+        function generateAreaPath(points, baseY) {
+            const linePath = generatePath(points);
+            return `${linePath} L ${points[points.length - 1].x} ${baseY} L ${points[0].x} ${baseY} Z`;
+        }
+
+        // Render Chart
+        function renderChart(animate = true) {
+            const dataset = datasets[state.currentDataset];
+            const { min, max } = getMinMax(dataset);
+            
+            // Update dimensions
+            const rect = chartSvg.getBoundingClientRect();
+            width = rect.width || 600;
+            height = rect.height || 350;
+            chartWidth = width - margin.left - margin.right;
+            chartHeight = height - margin.top - margin.bottom;
+
+            // Update title
+            chartTitle.textContent = dataset.title;
+            chartSubtitle.textContent = dataset.subtitle;
+
+            // Clear SVG
+            chartSvg.innerHTML = '';
+
+            // Render grid
+            if (state.showGrid) {
+                renderGrid(min, max);
+            }
+
+            // Render axes
+            renderAxes(dataset.labels, min, max, dataset.format);
+
+            // Render crosshair
+            const crosshairV = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            crosshairV.setAttribute('class', 'crosshair-line');
+            crosshairV.setAttribute('id', 'crosshairV');
+            crosshairV.setAttribute('y1', margin.top);
+            crosshairV.setAttribute('y2', margin.top + chartHeight);
+            chartSvg.appendChild(crosshairV);
+
+            // Render series
+            const visibleSeries = dataset.series.filter(s => !state.hiddenSeries.includes(s.name));
+            
+            visibleSeries.forEach((series, seriesIndex) => {
+                const color = colors[dataset.series.indexOf(series) % colors.length];
+                const points = series.values.map((val, i) => ({
+                    x: scaleX(i, dataset.labels.length),
+                    y: scaleY(val, min, max),
+                    value: val,
+                    label: dataset.labels[i]
+                }));
+
+                // Area fill
+                if (state.showArea) {
+                    const areaPath = generateAreaPath(points, margin.top + chartHeight);
+                    const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    area.setAttribute('d', areaPath);
+                    area.setAttribute('class', `chart-area ${color} ${state.highlightedSeries && state.highlightedSeries !== series.name ? 'dimmed' : ''}`);
+                    area.dataset.series = series.name;
+                    chartSvg.appendChild(area);
+                }
+
+                // Line
+                const linePath = generatePath(points);
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                line.setAttribute('d', linePath);
+                line.setAttribute('class', `chart-line ${color} ${state.highlightedSeries && state.highlightedSeries !== series.name ? 'dimmed' : ''} ${state.highlightedSeries === series.name ? 'highlight' : ''}`);
+                line.setAttribute('stroke-width', state.lineWidth);
+                line.dataset.series = series.name;
+                
+                if (animate && state.animateLines) {
+                    line.classList.add('animate');
+                    line.style.animationDelay = `${seriesIndex * 200}ms`;
+                }
+
+                // Hover events for line
+                line.addEventListener('mouseenter', () => {
+                    if (state.highlightHover) {
+                        state.highlightedSeries = series.name;
+                        updateHighlight();
+                    }
+                });
+                line.addEventListener('mouseleave', () => {
+                    if (state.highlightHover && !state.highlightedSeries) {
+                        state.highlightedSeries = null;
+                        updateHighlight();
+                    }
+                });
+
+                chartSvg.appendChild(line);
+
+                // Points
+                if (state.showPoints && state.pointSize > 0) {
+                    points.forEach((point, pointIndex) => {
+                        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        circle.setAttribute('cx', point.x);
+                        circle.setAttribute('cy', point.y);
+                        circle.setAttribute('r', state.pointSize);
+                        circle.setAttribute('class', `data-point ${color} ${state.highlightedSeries && state.highlightedSeries !== series.name ? 'dimmed' : ''}`);
+                        circle.dataset.series = series.name;
+                        circle.dataset.value = point.value;
+                        circle.dataset.label = point.label;
+
+                        if (animate && state.animateLines) {
+                            circle.classList.add('animate');
+                            circle.style.animationDelay = `${seriesIndex * 200 + pointIndex * 50 + 500}ms`;
+                        }
+
+                        circle.addEventListener('mouseenter', (e) => showPointTooltip(e, point.label, series.name, point.value, dataset.format, color));
+                        circle.addEventListener('mousemove', (e) => moveTooltip(e));
+                        circle.addEventListener('mouseleave', hideTooltip);
+
+                        chartSvg.appendChild(circle);
+                    });
+                }
+            });
+
+            // Render legend
+            renderLegend(dataset.series);
+
+            // Update status
+            updateStatus(dataset, min, max);
+
+            // Interaction layer
+            const interactionRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            interactionRect.setAttribute('x', margin.left);
+            interactionRect.setAttribute('y', margin.top);
+            interactionRect.setAttribute('width', chartWidth);
+            interactionRect.setAttribute('height', chartHeight);
+            interactionRect.setAttribute('fill', 'transparent');
+            interactionRect.addEventListener('mousemove', (e) => handleMouseMove(e, dataset, min, max));
+            interactionRect.addEventListener('mouseleave', handleMouseLeave);
+            chartSvg.appendChild(interactionRect);
+        }
+
+        function renderGrid(min, max) {
+            const gridGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            const steps = 5;
+
+            for (let i = 0; i <= steps; i++) {
+                const y = margin.top + (i / steps) * chartHeight;
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', margin.left);
+                line.setAttribute('x2', margin.left + chartWidth);
+                line.setAttribute('y1', y);
+                line.setAttribute('y2', y);
+                line.setAttribute('class', 'grid-line');
+                gridGroup.appendChild(line);
+            }
+
+            chartSvg.appendChild(gridGroup);
+        }
+
+        function renderAxes(labels, min, max, format) {
+            const axisGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+            // X-axis labels
+            labels.forEach((label, i) => {
+                const x = scaleX(i, labels.length);
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', x);
+                text.setAttribute('y', margin.top + chartHeight + 25);
+                text.setAttribute('class', 'axis-label axis-label-x');
+                text.textContent = label;
+                axisGroup.appendChild(text);
+            });
+
+            // Y-axis labels
+            const steps = 5;
+            for (let i = 0; i <= steps; i++) {
+                const value = min + ((max - min) / steps) * (steps - i);
+                const y = margin.top + (i / steps) * chartHeight;
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', margin.left - 8);
+                text.setAttribute('y', y + 4);
+                text.setAttribute('class', 'axis-label axis-label-y');
+                text.textContent = Math.round(value);
+                axisGroup.appendChild(text);
+            }
+
+            chartSvg.appendChild(axisGroup);
+        }
+
+        function renderLegend(series) {
+            chartLegend.innerHTML = '';
+            chartLegend.style.display = state.showLegend ? 'flex' : 'none';
+
+            if (!state.showLegend) return;
+
+            series.forEach((s, index) => {
+                const color = colors[index % colors.length];
+                const item = document.createElement('div');
+                item.className = `legend-item ${state.hiddenSeries.includes(s.name) ? 'hidden' : ''} ${state.highlightedSeries === s.name ? 'active' : ''}`;
+                item.innerHTML = `
+                    <div class="legend-line ${color}"></div>
+                    <span>${s.name}</span>
+                `;
+                item.addEventListener('click', () => toggleSeries(s.name));
+                item.addEventListener('mouseenter', () => {
+                    if (state.highlightHover && !state.hiddenSeries.includes(s.name)) {
+                        state.highlightedSeries = s.name;
+                        updateHighlight();
+                    }
+                });
+                item.addEventListener('mouseleave', () => {
+                    if (state.highlightHover) {
+                        state.highlightedSeries = null;
+                        updateHighlight();
+                    }
+                });
+                chartLegend.appendChild(item);
+            });
+        }
+
+        function toggleSeries(name) {
+            const index = state.hiddenSeries.indexOf(name);
+            if (index === -1) {
+                state.hiddenSeries.push(name);
+            } else {
+                state.hiddenSeries.splice(index, 1);
+            }
+            renderChart(false);
+        }
+
+        function updateHighlight() {
+            document.querySelectorAll('.chart-line, .chart-area, .data-point').forEach(el => {
+                if (state.highlightedSeries) {
+                    el.classList.toggle('dimmed', el.dataset.series !== state.highlightedSeries);
+                    el.classList.toggle('highlight', el.dataset.series === state.highlightedSeries && el.classList.contains('chart-line'));
+                } else {
+                    el.classList.remove('dimmed', 'highlight');
+                }
+            });
+
+            document.querySelectorAll('.legend-item').forEach(item => {
+                const name = item.querySelector('span').textContent;
+                item.classList.toggle('active', state.highlightedSeries === name);
+            });
+        }
+
+        function handleMouseMove(e, dataset, min, max) {
+            if (!state.showCrosshair) return;
+
+            const rect = chartSvg.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            
+            if (x >= margin.left && x <= margin.left + chartWidth) {
+                const crosshairV = document.getElementById('crosshairV');
+                crosshairV.setAttribute('x1', x);
+                crosshairV.setAttribute('x2', x);
+                crosshairV.classList.add('visible');
+            }
+        }
+
+        function handleMouseLeave() {
+            const crosshairV = document.getElementById('crosshairV');
+            if (crosshairV) {
+                crosshairV.classList.remove('visible');
+            }
+            state.highlightedSeries = null;
+            updateHighlight();
+        }
+
+        // Tooltip Functions
+        function showPointTooltip(e, label, series, value, format, color) {
+            tooltipTitle.textContent = label;
+            tooltipContent.innerHTML = `
+                <div class="tooltip-row">
+                    <div class="tooltip-label">
+                        <div class="tooltip-dot" style="background: var(--jazer-${color})"></div>
+                        <span>${series}</span>
+                    </div>
+                    <div class="tooltip-value">${formatValue(value, format)}</div>
+                </div>
+            `;
+            tooltip.classList.add('visible');
+            moveTooltip(e);
+        }
+
+        function moveTooltip(e) {
+            tooltip.style.left = `${e.clientX + 15}px`;
+            tooltip.style.top = `${e.clientY - 10}px`;
+        }
+
+        function hideTooltip() {
+            tooltip.classList.remove('visible');
+        }
+
+        function updateStatus(dataset, min, max) {
+            const visibleCount = dataset.series.length - state.hiddenSeries.length;
+            statusSeries.textContent = visibleCount;
+            statusPoints.textContent = dataset.labels.length;
+            statusCurve.textContent = state.curveType.charAt(0).toUpperCase() + state.curveType.slice(1);
+            statusRange.textContent = `${Math.round(min)}-${Math.round(max)}`;
+        }
+
+        // Event Listeners
+        curveTypeSelect.addEventListener('change', (e) => {
+            state.curveType = e.target.value;
+            renderChart(false);
+        });
+
+        lineWidthSlider.addEventListener('input', (e) => {
+            state.lineWidth = parseInt(e.target.value);
+            document.getElementById('lineWidthValue').textContent = `${state.lineWidth}px`;
+            document.querySelectorAll('.chart-line').forEach(line => {
+                line.setAttribute('stroke-width', state.lineWidth);
+            });
+        });
+
+        pointSizeSlider.addEventListener('input', (e) => {
+            state.pointSize = parseInt(e.target.value);
+            document.getElementById('pointSizeValue').textContent = `${state.pointSize}px`;
+            renderChart(false);
+        });
+
+        showAreaToggle.addEventListener('change', (e) => {
+            state.showArea = e.target.checked;
+            renderChart(false);
+        });
+
+        showPointsToggle.addEventListener('change', (e) => {
+            state.showPoints = e.target.checked;
+            renderChart(false);
+        });
+
+        showGridToggle.addEventListener('change', (e) => {
+            state.showGrid = e.target.checked;
+            renderChart(false);
+        });
+
+        showLegendToggle.addEventListener('change', (e) => {
+            state.showLegend = e.target.checked;
+            chartLegend.style.display = state.showLegend ? 'flex' : 'none';
+        });
+
+        animateLinesToggle.addEventListener('change', (e) => {
+            state.animateLines = e.target.checked;
+        });
+
+        showCrosshairToggle.addEventListener('change', (e) => {
+            state.showCrosshair = e.target.checked;
+        });
+
+        highlightHoverToggle.addEventListener('change', (e) => {
+            state.highlightHover = e.target.checked;
+        });
+
+        dataPresets.addEventListener('click', (e) => {
+            const preset = e.target.closest('.data-preset');
+            if (!preset) return;
+            state.currentDataset = preset.dataset.preset;
+            state.hiddenSeries = [];
+            state.highlightedSeries = null;
+            dataPresets.querySelectorAll('.data-preset').forEach(p => p.classList.remove('active'));
+            preset.classList.add('active');
+            renderChart();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            state.curveType = 'smooth';
+            state.lineWidth = 3;
+            state.pointSize = 5;
+            state.showArea = false;
+            state.showPoints = true;
+            state.showGrid = true;
+            state.showLegend = true;
+            state.animateLines = true;
+            state.showCrosshair = true;
+            state.highlightHover = true;
+            state.currentDataset = 'performance';
+            state.hiddenSeries = [];
+            state.highlightedSeries = null;
+
+            curveTypeSelect.value = 'smooth';
+            lineWidthSlider.value = 3;
+            pointSizeSlider.value = 5;
+            showAreaToggle.checked = false;
+            showPointsToggle.checked = true;
+            showGridToggle.checked = true;
+            showLegendToggle.checked = true;
+            animateLinesToggle.checked = true;
+            showCrosshairToggle.checked = true;
+            highlightHoverToggle.checked = true;
+
+            document.getElementById('lineWidthValue').textContent = '3px';
+            document.getElementById('pointSizeValue').textContent = '5px';
+
+            dataPresets.querySelectorAll('.data-preset').forEach(p => p.classList.remove('active'));
+            dataPresets.querySelector('[data-preset="performance"]').classList.add('active');
+
+            renderChart();
+        });
+
+        replayBtn.addEventListener('click', () => {
+            renderChart(true);
+        });
+
+        // Handle resize
+        window.addEventListener('resize', () => renderChart(false));
+
+        // Initialize
+        renderChart();
+    </script>
+</body>
+</html>

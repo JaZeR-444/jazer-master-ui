@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floating 3D Shapes - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="cyan"] { background: var(--jazer-cyan); }
+    .color-btn[data-color="purple"] { background: var(--jazer-purple); }
+    .color-btn[data-color="pink"] { background: var(--jazer-pink); }
+    .color-btn[data-color="rainbow"] { background: conic-gradient(#0ff, #f0f, #ff0, #0ff); }
+    .color-btn[data-color="mono"] { background: #888; }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .shapes-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0a0a20 0%, #1a1a40 100%);
+      overflow: hidden;
+      perspective: 1000px;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Floating 3D Shapes</h1>
+    <p>Cubes, pyramids, and spheres floating with 3D perspective</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Reset</span>
+      <span class="key-hint"><kbd>B</kbd> Burst</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="cyan" title="Cyan"></button>
+      <button class="color-btn" data-color="purple" title="Purple"></button>
+      <button class="color-btn" data-color="pink" title="Pink"></button>
+      <button class="color-btn" data-color="rainbow" title="Rainbow"></button>
+      <button class="color-btn" data-color="mono" title="Monochrome"></button>
+    </div>
+    <div class="slider-group">
+      <label>Shape Count: <span class="slider-value" id="countValue">15</span></label>
+      <input type="range" id="countSlider" min="5" max="30" value="15">
+    </div>
+    <div class="slider-group">
+      <label>Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.2" max="2.5" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Size: <span class="slider-value" id="sizeValue">80</span></label>
+      <input type="range" id="sizeSlider" min="40" max="150" step="5" value="80">
+    </div>
+  </div>
+
+  <div class="shapes-container" id="container"></div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const container = document.getElementById('container');
+    const status = document.getElementById('status');
+
+    let config = {
+      count: 15,
+      speed: 1,
+      size: 80,
+      colorScheme: 'cyan',
+      paused: false
+    };
+
+    const colorSchemes = {
+      cyan: ['rgba(0, 242, 234, 0.3)', 'rgba(0, 200, 220, 0.25)'],
+      purple: ['rgba(147, 51, 234, 0.3)', 'rgba(120, 70, 200, 0.25)'],
+      pink: ['rgba(255, 0, 110, 0.3)', 'rgba(236, 72, 153, 0.25)'],
+      rainbow: ['rgba(0, 242, 234, 0.3)', 'rgba(147, 51, 234, 0.3)', 'rgba(255, 0, 110, 0.3)', 'rgba(255, 200, 0, 0.3)'],
+      mono: ['rgba(255, 255, 255, 0.2)', 'rgba(200, 200, 200, 0.15)']
+    };
+
+    const shapeTypes = ['cube', 'pyramid', 'sphere', 'octahedron'];
+    let shapes = [];
+    let animationId;
+    let time = 0;
+
+    function createShapes() {
+      container.innerHTML = '';
+      shapes = [];
+      const colors = colorSchemes[config.colorScheme];
+
+      for (let i = 0; i < config.count; i++) {
+        const shapeType = shapeTypes[i % shapeTypes.length];
+        const color = colors[i % colors.length];
+        const size = config.size * (0.5 + Math.random() * 0.8);
+        
+        const shape = document.createElement('div');
+        shape.className = `shape shape-${shapeType}`;
+        shape.style.cssText = `
+          position: absolute;
+          width: ${size}px;
+          height: ${size}px;
+          left: ${Math.random() * 100}%;
+          top: ${Math.random() * 100}%;
+          opacity: 0.4;
+          transform-style: preserve-3d;
+          pointer-events: none;
+        `;
+
+        // Style based on shape type
+        if (shapeType === 'cube') {
+          shape.style.background = `linear-gradient(135deg, ${color}, transparent)`;
+          shape.style.border = `2px solid ${color}`;
+          shape.style.boxShadow = `0 0 20px ${color}`;
+        } else if (shapeType === 'pyramid') {
+          shape.style.width = '0';
+          shape.style.height = '0';
+          shape.style.borderLeft = `${size/2}px solid transparent`;
+          shape.style.borderRight = `${size/2}px solid transparent`;
+          shape.style.borderBottom = `${size}px solid ${color}`;
+          shape.style.filter = `drop-shadow(0 0 10px ${color})`;
+        } else if (shapeType === 'sphere') {
+          shape.style.borderRadius = '50%';
+          shape.style.background = `radial-gradient(circle at 30% 30%, ${color}, transparent 70%)`;
+          shape.style.boxShadow = `0 0 30px ${color}`;
+        } else if (shapeType === 'octahedron') {
+          shape.style.clipPath = 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
+          shape.style.background = `linear-gradient(45deg, ${color}, transparent)`;
+          shape.style.border = `2px solid ${color}`;
+        }
+
+        container.appendChild(shape);
+        
+        shapes.push({
+          element: shape,
+          x: parseFloat(shape.style.left),
+          y: parseFloat(shape.style.top),
+          z: Math.random() * 500 - 250,
+          rotX: Math.random() * 360,
+          rotY: Math.random() * 360,
+          rotZ: Math.random() * 360,
+          speedX: (Math.random() - 0.5) * 0.3,
+          speedY: (Math.random() - 0.5) * 0.3,
+          speedZ: (Math.random() - 0.5) * 0.3,
+          rotSpeedX: (Math.random() - 0.5) * 2,
+          rotSpeedY: (Math.random() - 0.5) * 2,
+          rotSpeedZ: (Math.random() - 0.5) * 2,
+          floatOffset: Math.random() * Math.PI * 2,
+          floatSpeed: 0.5 + Math.random() * 1
+        });
+      }
+    }
+
+    function animate() {
+      if (config.paused) {
+        animationId = requestAnimationFrame(animate);
+        return;
+      }
+
+      time += 0.016 * config.speed;
+
+      shapes.forEach(shape => {
+        // Update position with floating motion
+        const floatY = Math.sin(time * shape.floatSpeed + shape.floatOffset) * 30;
+        const floatX = Math.cos(time * shape.floatSpeed * 0.5 + shape.floatOffset) * 20;
+
+        shape.x += shape.speedX * config.speed;
+        shape.y += shape.speedY * config.speed;
+        
+        // Wrap around edges
+        if (shape.x > 110) shape.x = -10;
+        if (shape.x < -10) shape.x = 110;
+        if (shape.y > 110) shape.y = -10;
+        if (shape.y < -10) shape.y = 110;
+
+        // Update rotation
+        shape.rotX += shape.rotSpeedX * config.speed;
+        shape.rotY += shape.rotSpeedY * config.speed;
+        shape.rotZ += shape.rotSpeedZ * config.speed;
+
+        // Apply transform
+        const scale = 1 + (shape.z / 1000);
+        shape.element.style.left = `calc(${shape.x}% + ${floatX}px)`;
+        shape.element.style.top = `calc(${shape.y}% + ${floatY}px)`;
+        shape.element.style.transform = `
+          translateZ(${shape.z}px)
+          rotateX(${shape.rotX}deg)
+          rotateY(${shape.rotY}deg)
+          rotateZ(${shape.rotZ}deg)
+          scale(${scale})
+        `;
+      });
+
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function burstEffect() {
+      shapes.forEach(shape => {
+        shape.speedX *= 3;
+        shape.speedY *= 3;
+        shape.rotSpeedX *= 3;
+        shape.rotSpeedY *= 3;
+        shape.rotSpeedZ *= 3;
+        
+        setTimeout(() => {
+          shape.speedX /= 3;
+          shape.speedY /= 3;
+          shape.rotSpeedX /= 3;
+          shape.rotSpeedY /= 3;
+          shape.rotSpeedZ /= 3;
+        }, 500);
+      });
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+        createShapes();
+      });
+    });
+
+    // Sliders
+    document.getElementById('countSlider').addEventListener('input', e => {
+      config.count = parseInt(e.target.value);
+      document.getElementById('countValue').textContent = config.count;
+      createShapes();
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('sizeSlider').addEventListener('input', e => {
+      config.size = parseInt(e.target.value);
+      document.getElementById('sizeValue').textContent = config.size;
+      createShapes();
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        time = 0;
+        createShapes();
+      }
+      if (e.code === 'KeyB') {
+        burstEffect();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['cyan', 'purple', 'pink', 'rainbow', 'mono'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+        createShapes();
+      }
+    });
+
+    // Initialize
+    createShapes();
+    animate();
+  </script>
+</body>
+</html>

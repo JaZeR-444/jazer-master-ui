@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A/B Test Controller - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: #0a0a0a;
+            min-height: 100vh; 
+            color: #e0e0e0;
+        }
+        .devtools-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .devtools-header {
+            background: #1a1a1a;
+            border-bottom: 2px solid var(--jazer-cyan);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.4rem 0.8rem;
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 4px;
+            background: rgba(0, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+        }
+        .header-title {
+            font-size: 1rem;
+            color: var(--jazer-cyan);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .header-title::before {
+            content: '⚗️';
+        }
+        .header-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-left: auto;
+            font-size: 0.75rem;
+        }
+        .header-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .header-stat-label {
+            color: #666;
+        }
+        .header-stat-value {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+        .header-stat-value.running { color: #39ff14; }
+        .header-stat-value.paused { color: #ffbe0b; }
+
+        /* Toolbar */
+        .toolbar {
+            background: #141414;
+            border-bottom: 1px solid #333;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .toolbar-divider {
+            width: 1px;
+            height: 24px;
+            background: #333;
+            margin: 0 0.5rem;
+        }
+        .toolbar-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #1a1a1a;
+            color: #aaa;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .toolbar-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+        .toolbar-btn.active {
+            background: rgba(0, 255, 255, 0.15);
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+        .toolbar-btn.primary {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+            color: #0a0a0a;
+            font-weight: 600;
+        }
+        .toolbar-btn.primary:hover {
+            background: #00d4d4;
+        }
+        .search-input {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: inherit;
+            width: 200px;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+        .search-input::placeholder {
+            color: #555;
+        }
+        .filter-select {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #1a1a1a;
+            color: #aaa;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Experiments List */
+        .experiments-panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        .experiment-card {
+            background: #141414;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        .experiment-card:hover {
+            border-color: #444;
+        }
+        .experiment-card.selected {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+        }
+        .experiment-header {
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .experiment-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .experiment-status.running {
+            background: #39ff14;
+            box-shadow: 0 0 8px #39ff14;
+        }
+        .experiment-status.paused {
+            background: #ffbe0b;
+            box-shadow: 0 0 8px #ffbe0b;
+        }
+        .experiment-status.draft {
+            background: #666;
+        }
+        .experiment-status.completed {
+            background: var(--jazer-cyan);
+            box-shadow: 0 0 8px var(--jazer-cyan);
+        }
+        .experiment-info {
+            flex: 1;
+        }
+        .experiment-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.25rem;
+        }
+        .experiment-id {
+            font-size: 0.7rem;
+            color: #666;
+        }
+        .experiment-meta {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.75rem;
+        }
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .meta-label {
+            color: #666;
+        }
+        .meta-value {
+            color: var(--jazer-cyan);
+        }
+        .experiment-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .action-btn {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.7rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: transparent;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .action-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+        .action-btn.stop {
+            border-color: #ff4757;
+            color: #ff4757;
+        }
+        .action-btn.stop:hover {
+            background: rgba(255, 71, 87, 0.2);
+        }
+        .action-btn.start {
+            border-color: #39ff14;
+            color: #39ff14;
+        }
+        .action-btn.start:hover {
+            background: rgba(57, 255, 20, 0.2);
+        }
+
+        /* Variants Section */
+        .variants-section {
+            padding: 1rem;
+            background: #0f0f0f;
+        }
+        .variants-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+        .variants-title {
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .variants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+        }
+        .variant-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 0.75rem;
+            position: relative;
+        }
+        .variant-card.control {
+            border-color: #666;
+        }
+        .variant-card.winner {
+            border-color: #39ff14;
+            box-shadow: 0 0 12px rgba(57, 255, 20, 0.2);
+        }
+        .variant-badge {
+            position: absolute;
+            top: -8px;
+            right: 10px;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.6rem;
+            border-radius: 3px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        .variant-badge.control {
+            background: #333;
+            color: #aaa;
+        }
+        .variant-badge.winner {
+            background: #39ff14;
+            color: #0a0a0a;
+        }
+        .variant-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        .variant-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+        .variant-stat {
+            text-align: center;
+            padding: 0.4rem;
+            background: #0f0f0f;
+            border-radius: 4px;
+        }
+        .variant-stat-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+        }
+        .variant-stat-label {
+            font-size: 0.65rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .traffic-bar {
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        .traffic-fill {
+            height: 100%;
+            background: var(--jazer-cyan);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        .variant-card.control .traffic-fill {
+            background: #888;
+        }
+        .variant-card.winner .traffic-fill {
+            background: #39ff14;
+        }
+
+        /* Details Panel */
+        .details-panel {
+            width: 380px;
+            background: #141414;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .details-panel.hidden {
+            display: none;
+        }
+        .details-header {
+            padding: 1rem;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .details-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0.2rem;
+            line-height: 1;
+        }
+        .close-btn:hover {
+            color: #fff;
+        }
+        .details-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        .detail-section {
+            margin-bottom: 1.5rem;
+        }
+        .detail-section-title {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            font-size: 0.8rem;
+        }
+        .detail-label {
+            color: #888;
+        }
+        .detail-value {
+            color: #fff;
+            font-weight: 500;
+        }
+        .detail-value.positive {
+            color: #39ff14;
+        }
+        .detail-value.negative {
+            color: #ff4757;
+        }
+        .detail-value.neutral {
+            color: #ffbe0b;
+        }
+
+        /* Metrics Chart */
+        .metrics-chart {
+            background: #0f0f0f;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 0.75rem;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        .chart-title {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .chart-legend {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.65rem;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .legend-dot.control { background: #888; }
+        .legend-dot.variant { background: var(--jazer-cyan); }
+        .chart-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.5rem;
+            height: 100px;
+        }
+        .chart-bar-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .chart-bar-wrapper {
+            display: flex;
+            gap: 3px;
+            align-items: flex-end;
+            height: 80px;
+        }
+        .chart-bar {
+            width: 12px;
+            border-radius: 2px 2px 0 0;
+            transition: height 0.3s ease;
+        }
+        .chart-bar.control { background: #555; }
+        .chart-bar.variant { background: var(--jazer-cyan); }
+        .chart-bar-label {
+            font-size: 0.6rem;
+            color: #666;
+        }
+
+        /* Confidence Meter */
+        .confidence-meter {
+            margin-top: 1rem;
+        }
+        .confidence-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .confidence-label {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .confidence-value {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+        }
+        .confidence-bar {
+            height: 8px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4757, #ffbe0b, #39ff14);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .confidence-threshold {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #fff;
+            left: 95%;
+        }
+
+        /* Targeting Rules */
+        .targeting-rules {
+            background: #0f0f0f;
+            border-radius: 6px;
+            padding: 0.75rem;
+        }
+        .rule-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0;
+            font-size: 0.75rem;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .rule-item:last-child {
+            border-bottom: none;
+        }
+        .rule-icon {
+            color: var(--jazer-cyan);
+        }
+        .rule-text {
+            color: #aaa;
+        }
+        .rule-value {
+            color: #fff;
+            font-weight: 500;
+            margin-left: auto;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.7rem;
+        }
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #666;
+        }
+        .status-item span:last-child {
+            color: var(--jazer-cyan);
+        }
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #39ff14;
+        }
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: #39ff14;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .details-panel {
+                position: fixed;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 100%;
+                max-width: 400px;
+                z-index: 100;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            }
+            .details-panel.visible {
+                transform: translateX(0);
+            }
+            .header-stats {
+                display: none;
+            }
+        }
+        @media (max-width: 600px) {
+            .toolbar {
+                padding: 0.5rem;
+            }
+            .search-input {
+                width: 100%;
+            }
+            .variants-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="devtools-container">
+        <header class="devtools-header">
+            <a href="index.html" class="back-button">← Back</a>
+            <div class="header-title">A/B Test Controller</div>
+            <div class="header-stats">
+                <div class="header-stat">
+                    <span class="header-stat-label">Running:</span>
+                    <span class="header-stat-value running" id="runningCount">3</span>
+                </div>
+                <div class="header-stat">
+                    <span class="header-stat-label">Paused:</span>
+                    <span class="header-stat-value paused" id="pausedCount">2</span>
+                </div>
+                <div class="header-stat">
+                    <span class="header-stat-label">Total Visitors:</span>
+                    <span class="header-stat-value" id="totalVisitors">124,892</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="toolbar">
+            <div class="toolbar-group">
+                <button class="toolbar-btn primary" onclick="createExperiment()">+ New Experiment</button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+                <input type="text" class="search-input" placeholder="Search experiments..." id="searchInput" oninput="filterExperiments()">
+            </div>
+            <div class="toolbar-group">
+                <select class="filter-select" id="statusFilter" onchange="filterExperiments()">
+                    <option value="all">All Status</option>
+                    <option value="running">Running</option>
+                    <option value="paused">Paused</option>
+                    <option value="draft">Draft</option>
+                    <option value="completed">Completed</option>
+                </select>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" onclick="refreshData()">↻ Refresh</button>
+                <button class="toolbar-btn" onclick="exportReport()">⬇ Export</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="experiments-panel" id="experimentsPanel">
+                <!-- Experiments will be rendered here -->
+            </div>
+
+            <aside class="details-panel hidden" id="detailsPanel">
+                <div class="details-header">
+                    <span class="details-title" id="detailsTitle">Experiment Details</span>
+                    <button class="close-btn" onclick="closeDetails()">×</button>
+                </div>
+                <div class="details-content" id="detailsContent">
+                    <!-- Details will be rendered here -->
+                </div>
+            </aside>
+        </div>
+
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Last sync:</span>
+                    <span id="lastSync">--</span>
+                </div>
+                <div class="status-item">
+                    <span>Active experiments:</span>
+                    <span id="activeCount">3</span>
+                </div>
+                <div class="status-item">
+                    <span>Avg confidence:</span>
+                    <span id="avgConfidence">87.3%</span>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Live Tracking</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Experiment Data
+        const experiments = [
+            {
+                id: 'exp_checkout_v2',
+                name: 'Checkout Flow Redesign',
+                status: 'running',
+                startDate: '2024-01-15',
+                visitors: 45892,
+                goal: 'Increase conversion rate',
+                confidence: 94.2,
+                variants: [
+                    { name: 'Control', traffic: 50, conversions: 1247, conversionRate: 5.4, isControl: true },
+                    { name: 'Single Page Checkout', traffic: 50, conversions: 1489, conversionRate: 6.5, isWinner: true }
+                ],
+                targeting: [
+                    { type: 'country', value: 'US, CA, UK' },
+                    { type: 'device', value: 'All devices' },
+                    { type: 'traffic', value: '100%' }
+                ],
+                dailyData: [
+                    { day: 'Mon', control: 45, variant: 52 },
+                    { day: 'Tue', control: 48, variant: 58 },
+                    { day: 'Wed', control: 42, variant: 61 },
+                    { day: 'Thu', control: 51, variant: 65 },
+                    { day: 'Fri', control: 47, variant: 63 },
+                    { day: 'Sat', control: 38, variant: 55 },
+                    { day: 'Sun', control: 35, variant: 48 }
+                ]
+            },
+            {
+                id: 'exp_pricing_display',
+                name: 'Pricing Page Layout',
+                status: 'running',
+                startDate: '2024-01-20',
+                visitors: 32156,
+                goal: 'Increase plan upgrades',
+                confidence: 78.5,
+                variants: [
+                    { name: 'Control', traffic: 33, conversions: 423, conversionRate: 3.9, isControl: true },
+                    { name: 'Horizontal Cards', traffic: 33, conversions: 445, conversionRate: 4.1 },
+                    { name: 'Feature Comparison', traffic: 34, conversions: 512, conversionRate: 4.7, isWinner: true }
+                ],
+                targeting: [
+                    { type: 'user_type', value: 'Free tier' },
+                    { type: 'visits', value: '> 3 sessions' },
+                    { type: 'traffic', value: '80%' }
+                ],
+                dailyData: [
+                    { day: 'Mon', control: 38, variant: 42 },
+                    { day: 'Tue', control: 41, variant: 48 },
+                    { day: 'Wed', control: 39, variant: 51 },
+                    { day: 'Thu', control: 43, variant: 47 },
+                    { day: 'Fri', control: 40, variant: 52 },
+                    { day: 'Sat', control: 35, variant: 44 },
+                    { day: 'Sun', control: 32, variant: 40 }
+                ]
+            },
+            {
+                id: 'exp_cta_color',
+                name: 'CTA Button Color Test',
+                status: 'running',
+                startDate: '2024-02-01',
+                visitors: 28743,
+                goal: 'Increase click-through rate',
+                confidence: 62.1,
+                variants: [
+                    { name: 'Control (Blue)', traffic: 50, conversions: 2156, conversionRate: 15.0, isControl: true },
+                    { name: 'Green CTA', traffic: 50, conversions: 2289, conversionRate: 15.9 }
+                ],
+                targeting: [
+                    { type: 'page', value: '/landing/*' },
+                    { type: 'device', value: 'Desktop only' },
+                    { type: 'traffic', value: '100%' }
+                ],
+                dailyData: [
+                    { day: 'Mon', control: 62, variant: 65 },
+                    { day: 'Tue', control: 58, variant: 64 },
+                    { day: 'Wed', control: 65, variant: 68 },
+                    { day: 'Thu', control: 61, variant: 66 },
+                    { day: 'Fri', control: 59, variant: 62 },
+                    { day: 'Sat', control: 48, variant: 51 },
+                    { day: 'Sun', control: 45, variant: 49 }
+                ]
+            },
+            {
+                id: 'exp_onboarding_flow',
+                name: 'User Onboarding Steps',
+                status: 'paused',
+                startDate: '2024-01-05',
+                visitors: 18234,
+                goal: 'Increase completion rate',
+                confidence: 88.9,
+                variants: [
+                    { name: 'Control (5 steps)', traffic: 50, conversions: 4012, conversionRate: 44.0, isControl: true },
+                    { name: '3 Step Flow', traffic: 50, conversions: 4890, conversionRate: 53.6, isWinner: true }
+                ],
+                targeting: [
+                    { type: 'user_type', value: 'New signups' },
+                    { type: 'source', value: 'Organic, Paid' },
+                    { type: 'traffic', value: '100%' }
+                ],
+                dailyData: [
+                    { day: 'Mon', control: 42, variant: 51 },
+                    { day: 'Tue', control: 44, variant: 54 },
+                    { day: 'Wed', control: 43, variant: 52 },
+                    { day: 'Thu', control: 45, variant: 55 },
+                    { day: 'Fri', control: 44, variant: 53 },
+                    { day: 'Sat', control: 40, variant: 50 },
+                    { day: 'Sun', control: 38, variant: 48 }
+                ]
+            },
+            {
+                id: 'exp_social_proof',
+                name: 'Social Proof Placement',
+                status: 'paused',
+                startDate: '2023-12-10',
+                visitors: 52891,
+                goal: 'Increase trust signals',
+                confidence: 96.7,
+                variants: [
+                    { name: 'Control (Footer)', traffic: 50, conversions: 3156, conversionRate: 11.9, isControl: true },
+                    { name: 'Above Fold', traffic: 50, conversions: 3892, conversionRate: 14.7, isWinner: true }
+                ],
+                targeting: [
+                    { type: 'page', value: '/product/*' },
+                    { type: 'device', value: 'All devices' },
+                    { type: 'traffic', value: '100%' }
+                ],
+                dailyData: [
+                    { day: 'Mon', control: 55, variant: 68 },
+                    { day: 'Tue', control: 58, variant: 72 },
+                    { day: 'Wed', control: 52, variant: 70 },
+                    { day: 'Thu', control: 56, variant: 71 },
+                    { day: 'Fri', control: 54, variant: 69 },
+                    { day: 'Sat', control: 48, variant: 62 },
+                    { day: 'Sun', control: 45, variant: 58 }
+                ]
+            },
+            {
+                id: 'exp_email_subject',
+                name: 'Email Subject Line Test',
+                status: 'completed',
+                startDate: '2023-11-20',
+                endDate: '2023-12-20',
+                visitors: 125000,
+                goal: 'Increase open rate',
+                confidence: 99.2,
+                variants: [
+                    { name: 'Control', traffic: 33, conversions: 8125, conversionRate: 19.5, isControl: true },
+                    { name: 'Personalized', traffic: 33, conversions: 9875, conversionRate: 23.7 },
+                    { name: 'Urgency', traffic: 34, conversions: 11220, conversionRate: 26.4, isWinner: true }
+                ],
+                targeting: [
+                    { type: 'segment', value: 'Active users' },
+                    { type: 'email_pref', value: 'Marketing opted-in' },
+                    { type: 'traffic', value: '100%' }
+                ],
+                dailyData: [
+                    { day: 'Mon', control: 19, variant: 26 },
+                    { day: 'Tue', control: 20, variant: 27 },
+                    { day: 'Wed', control: 19, variant: 26 },
+                    { day: 'Thu', control: 21, variant: 28 },
+                    { day: 'Fri', control: 20, variant: 27 },
+                    { day: 'Sat', control: 18, variant: 24 },
+                    { day: 'Sun', control: 17, variant: 23 }
+                ]
+            },
+            {
+                id: 'exp_nav_redesign',
+                name: 'Navigation Menu Redesign',
+                status: 'draft',
+                startDate: null,
+                visitors: 0,
+                goal: 'Improve navigation efficiency',
+                confidence: 0,
+                variants: [
+                    { name: 'Control', traffic: 50, conversions: 0, conversionRate: 0, isControl: true },
+                    { name: 'Mega Menu', traffic: 50, conversions: 0, conversionRate: 0 }
+                ],
+                targeting: [
+                    { type: 'page', value: 'All pages' },
+                    { type: 'device', value: 'Desktop only' },
+                    { type: 'traffic', value: '50%' }
+                ],
+                dailyData: []
+            }
+        ];
+
+        let selectedExperiment = null;
+        let filteredExperiments = [...experiments];
+
+        // Render experiments
+        function renderExperiments() {
+            const panel = document.getElementById('experimentsPanel');
+            panel.innerHTML = filteredExperiments.map(exp => `
+                <div class="experiment-card ${selectedExperiment?.id === exp.id ? 'selected' : ''}" data-id="${exp.id}">
+                    <div class="experiment-header" onclick="selectExperiment('${exp.id}')">
+                        <div class="experiment-status ${exp.status}"></div>
+                        <div class="experiment-info">
+                            <div class="experiment-name">${exp.name}</div>
+                            <div class="experiment-id">${exp.id}</div>
+                        </div>
+                        <div class="experiment-meta">
+                            <div class="meta-item">
+                                <span class="meta-label">Visitors:</span>
+                                <span class="meta-value">${exp.visitors.toLocaleString()}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Confidence:</span>
+                                <span class="meta-value">${exp.confidence}%</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Variants:</span>
+                                <span class="meta-value">${exp.variants.length}</span>
+                            </div>
+                        </div>
+                        <div class="experiment-actions">
+                            ${exp.status === 'running' ? 
+                                `<button class="action-btn stop" onclick="event.stopPropagation(); toggleExperiment('${exp.id}', 'pause')">Pause</button>` : 
+                                exp.status === 'paused' || exp.status === 'draft' ?
+                                `<button class="action-btn start" onclick="event.stopPropagation(); toggleExperiment('${exp.id}', 'start')">Start</button>` : ''}
+                            <button class="action-btn" onclick="event.stopPropagation(); selectExperiment('${exp.id}')">Details</button>
+                        </div>
+                    </div>
+                    <div class="variants-section">
+                        <div class="variants-header">
+                            <span class="variants-title">Variants & Performance</span>
+                        </div>
+                        <div class="variants-grid">
+                            ${exp.variants.map(v => `
+                                <div class="variant-card ${v.isControl ? 'control' : ''} ${v.isWinner ? 'winner' : ''}">
+                                    ${v.isControl ? '<span class="variant-badge control">Control</span>' : ''}
+                                    ${v.isWinner ? '<span class="variant-badge winner">Winner</span>' : ''}
+                                    <div class="variant-name">${v.name}</div>
+                                    <div class="variant-stats">
+                                        <div class="variant-stat">
+                                            <div class="variant-stat-value">${v.conversionRate}%</div>
+                                            <div class="variant-stat-label">Conv. Rate</div>
+                                        </div>
+                                        <div class="variant-stat">
+                                            <div class="variant-stat-value">${v.conversions.toLocaleString()}</div>
+                                            <div class="variant-stat-label">Conversions</div>
+                                        </div>
+                                    </div>
+                                    <div class="traffic-bar">
+                                        <div class="traffic-fill" style="width: ${v.traffic}%"></div>
+                                    </div>
+                                    <div style="font-size: 0.65rem; color: #666; margin-top: 0.25rem; text-align: center;">${v.traffic}% traffic</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Select experiment and show details
+        function selectExperiment(id) {
+            selectedExperiment = experiments.find(e => e.id === id);
+            renderExperiments();
+            renderDetails();
+            document.getElementById('detailsPanel').classList.remove('hidden');
+            document.getElementById('detailsPanel').classList.add('visible');
+        }
+
+        // Close details panel
+        function closeDetails() {
+            selectedExperiment = null;
+            document.getElementById('detailsPanel').classList.add('hidden');
+            document.getElementById('detailsPanel').classList.remove('visible');
+            renderExperiments();
+        }
+
+        // Render experiment details
+        function renderDetails() {
+            if (!selectedExperiment) return;
+            const exp = selectedExperiment;
+            const winner = exp.variants.find(v => v.isWinner);
+            const control = exp.variants.find(v => v.isControl);
+            const lift = control && winner ? ((winner.conversionRate - control.conversionRate) / control.conversionRate * 100).toFixed(1) : 0;
+
+            document.getElementById('detailsTitle').textContent = exp.name;
+            document.getElementById('detailsContent').innerHTML = `
+                <div class="detail-section">
+                    <div class="detail-section-title">Overview</div>
+                    <div class="detail-row">
+                        <span class="detail-label">Status</span>
+                        <span class="detail-value" style="text-transform: capitalize;">${exp.status}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Start Date</span>
+                        <span class="detail-value">${exp.startDate || 'Not started'}</span>
+                    </div>
+                    ${exp.endDate ? `
+                    <div class="detail-row">
+                        <span class="detail-label">End Date</span>
+                        <span class="detail-value">${exp.endDate}</span>
+                    </div>
+                    ` : ''}
+                    <div class="detail-row">
+                        <span class="detail-label">Goal</span>
+                        <span class="detail-value">${exp.goal}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Total Visitors</span>
+                        <span class="detail-value">${exp.visitors.toLocaleString()}</span>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-section-title">Results</div>
+                    <div class="detail-row">
+                        <span class="detail-label">Statistical Confidence</span>
+                        <span class="detail-value ${exp.confidence >= 95 ? 'positive' : exp.confidence >= 80 ? 'neutral' : ''}">${exp.confidence}%</span>
+                    </div>
+                    ${winner && control ? `
+                    <div class="detail-row">
+                        <span class="detail-label">Relative Lift</span>
+                        <span class="detail-value ${lift > 0 ? 'positive' : 'negative'}">${lift > 0 ? '+' : ''}${lift}%</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Leading Variant</span>
+                        <span class="detail-value">${winner.name}</span>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="confidence-meter">
+                        <div class="confidence-header">
+                            <span class="confidence-label">Confidence Level</span>
+                            <span class="confidence-value">${exp.confidence}%</span>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${exp.confidence}%"></div>
+                            <div class="confidence-threshold" title="95% threshold"></div>
+                        </div>
+                    </div>
+                </div>
+
+                ${exp.dailyData.length > 0 ? `
+                <div class="detail-section">
+                    <div class="detail-section-title">7-Day Performance</div>
+                    <div class="metrics-chart">
+                        <div class="chart-header">
+                            <span class="chart-title">Conversion Rate %</span>
+                            <div class="chart-legend">
+                                <div class="legend-item">
+                                    <span class="legend-dot control"></span>
+                                    <span>Control</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-dot variant"></span>
+                                    <span>Variant</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-bars">
+                            ${exp.dailyData.map(d => `
+                                <div class="chart-bar-group">
+                                    <div class="chart-bar-wrapper">
+                                        <div class="chart-bar control" style="height: ${d.control}px"></div>
+                                        <div class="chart-bar variant" style="height: ${d.variant}px"></div>
+                                    </div>
+                                    <span class="chart-bar-label">${d.day}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+
+                <div class="detail-section">
+                    <div class="detail-section-title">Targeting Rules</div>
+                    <div class="targeting-rules">
+                        ${exp.targeting.map(t => `
+                            <div class="rule-item">
+                                <span class="rule-icon">${getTargetingIcon(t.type)}</span>
+                                <span class="rule-text">${formatTargetingType(t.type)}</span>
+                                <span class="rule-value">${t.value}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function getTargetingIcon(type) {
+            const icons = {
+                country: '🌍',
+                device: '📱',
+                traffic: '📊',
+                user_type: '👤',
+                visits: '🔄',
+                page: '📄',
+                source: '🔗',
+                segment: '🎯',
+                email_pref: '📧'
+            };
+            return icons[type] || '•';
+        }
+
+        function formatTargetingType(type) {
+            return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        // Filter experiments
+        function filterExperiments() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+
+            filteredExperiments = experiments.filter(exp => {
+                const matchesSearch = exp.name.toLowerCase().includes(search) || exp.id.toLowerCase().includes(search);
+                const matchesStatus = status === 'all' || exp.status === status;
+                return matchesSearch && matchesStatus;
+            });
+
+            renderExperiments();
+        }
+
+        // Toggle experiment status
+        function toggleExperiment(id, action) {
+            const exp = experiments.find(e => e.id === id);
+            if (exp) {
+                exp.status = action === 'pause' ? 'paused' : 'running';
+                updateHeaderStats();
+                renderExperiments();
+                if (selectedExperiment?.id === id) {
+                    renderDetails();
+                }
+            }
+        }
+
+        // Update header stats
+        function updateHeaderStats() {
+            const running = experiments.filter(e => e.status === 'running').length;
+            const paused = experiments.filter(e => e.status === 'paused').length;
+            const totalVisitors = experiments.reduce((sum, e) => sum + e.visitors, 0);
+
+            document.getElementById('runningCount').textContent = running;
+            document.getElementById('pausedCount').textContent = paused;
+            document.getElementById('totalVisitors').textContent = totalVisitors.toLocaleString();
+            document.getElementById('activeCount').textContent = running;
+        }
+
+        // Toolbar actions
+        function createExperiment() {
+            alert('Create Experiment dialog would open here.\n\nThis would include:\n- Experiment name & goal\n- Variant configuration\n- Traffic allocation\n- Targeting rules\n- Success metrics');
+        }
+
+        function refreshData() {
+            document.getElementById('lastSync').textContent = new Date().toLocaleTimeString();
+            // Simulate data refresh with small random changes
+            experiments.forEach(exp => {
+                if (exp.status === 'running') {
+                    exp.visitors += Math.floor(Math.random() * 50);
+                    exp.variants.forEach(v => {
+                        v.conversions += Math.floor(Math.random() * 5);
+                    });
+                }
+            });
+            updateHeaderStats();
+            renderExperiments();
+            if (selectedExperiment) renderDetails();
+        }
+
+        function exportReport() {
+            alert('Exporting experiment report...\n\nFormats available:\n- CSV (raw data)\n- PDF (executive summary)\n- JSON (API format)');
+            console.log('Experiments data:', experiments);
+        }
+
+        // Update timestamp
+        function updateLastSync() {
+            document.getElementById('lastSync').textContent = new Date().toLocaleTimeString();
+        }
+
+        // Initialize
+        renderExperiments();
+        updateHeaderStats();
+        updateLastSync();
+
+        // Auto-refresh simulation
+        setInterval(() => {
+            if (experiments.some(e => e.status === 'running')) {
+                experiments.forEach(exp => {
+                    if (exp.status === 'running') {
+                        exp.visitors += Math.floor(Math.random() * 10);
+                    }
+                });
+                updateHeaderStats();
+                if (document.visibilityState === 'visible') {
+                    renderExperiments();
+                    if (selectedExperiment) renderDetails();
+                }
+            }
+            updateLastSync();
+        }, 5000);
+    </script>
+</body>
+</html>

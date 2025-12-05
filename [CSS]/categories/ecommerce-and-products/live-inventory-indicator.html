@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Inventory Indicator - JaZeR E-commerce Patterns</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-gray);
+            text-decoration: none;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 2px solid var(--border-default);
+            background: var(--bg-card);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 2rem;
+        }
+
+        .back-button:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            transform: translateX(-5px);
+            box-shadow: var(--shadow-cyan);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero p {
+            font-size: 1.125rem;
+            color: var(--text-gray);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .style-btn {
+            padding: 0.625rem 1.25rem;
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .style-btn:hover {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+        }
+
+        .style-btn.active {
+            background: var(--gradient-primary);
+            border-color: transparent;
+            color: white;
+            box-shadow: var(--shadow-cyan);
+        }
+
+        .keyboard-hint {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            opacity: 0.7;
+        }
+
+        .keyboard-hint kbd {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: 4px;
+            padding: 0.2rem 0.5rem;
+            font-family: var(--font-mono);
+            margin: 0 0.25rem;
+        }
+
+        .demo-section {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .demo-container {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 20px;
+            padding: 3rem;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .demo-container:hover {
+            border-color: var(--jazer-cyan);
+        }
+
+        .indicator-showcase {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        /* ==================== STYLE 1: Classic Bar ==================== */
+        .style-classic .indicator {
+            background: var(--bg-dark);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .style-classic .indicator__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .style-classic .indicator__label {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+
+        .style-classic .indicator__count {
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            color: var(--text-gray);
+        }
+
+        .style-classic .indicator__bar {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+        }
+
+        .style-classic .indicator__fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s ease, background 0.3s ease;
+        }
+
+        .style-classic .indicator__fill--high {
+            background: linear-gradient(90deg, #00ff88, #00cc6a);
+            width: 85%;
+        }
+
+        .style-classic .indicator__fill--medium {
+            background: linear-gradient(90deg, #ffa500, #ff8c00);
+            width: 35%;
+        }
+
+        .style-classic .indicator__fill--low {
+            background: linear-gradient(90deg, #ff006e, #cc0058);
+            width: 8%;
+            animation: bar-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes bar-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .style-classic .indicator__status {
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .style-classic .indicator__status--high { color: #00ff88; }
+        .style-classic .indicator__status--medium { color: #ffa500; }
+        .style-classic .indicator__status--low { color: #ff006e; }
+
+        /* ==================== STYLE 2: Circular Gauge ==================== */
+        .style-circular .indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            padding: 2rem;
+        }
+
+        .style-circular .gauge {
+            position: relative;
+            width: 180px;
+            height: 180px;
+        }
+
+        .style-circular .gauge__svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .style-circular .gauge__bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 12;
+        }
+
+        .style-circular .gauge__fill {
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+            stroke-dasharray: 440;
+            transition: stroke-dashoffset 1s ease, stroke 0.3s ease;
+        }
+
+        .style-circular .gauge__fill--high {
+            stroke: url(#gradient-high);
+            stroke-dashoffset: 66;
+        }
+
+        .style-circular .gauge__fill--medium {
+            stroke: url(#gradient-medium);
+            stroke-dashoffset: 286;
+        }
+
+        .style-circular .gauge__fill--low {
+            stroke: url(#gradient-low);
+            stroke-dashoffset: 400;
+            animation: gauge-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes gauge-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .style-circular .gauge__center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform: rotate(0deg);
+        }
+
+        .style-circular .gauge__value {
+            font-family: var(--font-primary);
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .style-circular .gauge__value--high { color: #00ff88; }
+        .style-circular .gauge__value--medium { color: #ffa500; }
+        .style-circular .gauge__value--low { color: #ff006e; }
+
+        .style-circular .gauge__label {
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 0.25rem;
+        }
+
+        .style-circular .indicator__status {
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .style-circular .indicator__status--high { color: #00ff88; }
+        .style-circular .indicator__status--medium { color: #ffa500; }
+        .style-circular .indicator__status--low { color: #ff006e; }
+
+        /* ==================== STYLE 3: Segmented Bar ==================== */
+        .style-segmented .indicator {
+            background: var(--bg-dark);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .style-segmented .indicator__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .style-segmented .indicator__label {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+
+        .style-segmented .indicator__live {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.75rem;
+            color: #00ff88;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+        }
+
+        .style-segmented .indicator__live-dot {
+            width: 8px;
+            height: 8px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: live-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes live-pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.5); }
+            50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(0, 255, 136, 0); }
+        }
+
+        .style-segmented .indicator__segments {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 0.75rem;
+        }
+
+        .style-segmented .indicator__segment {
+            flex: 1;
+            height: 24px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .style-segmented .indicator__segment--filled-high {
+            background: linear-gradient(180deg, #00ff88, #00cc6a);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .style-segmented .indicator__segment--filled-medium {
+            background: linear-gradient(180deg, #ffa500, #ff8c00);
+            box-shadow: 0 0 10px rgba(255, 165, 0, 0.3);
+        }
+
+        .style-segmented .indicator__segment--filled-low {
+            background: linear-gradient(180deg, #ff006e, #cc0058);
+            box-shadow: 0 0 10px rgba(255, 0, 110, 0.3);
+            animation: segment-pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes segment-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .style-segmented .indicator__footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        /* ==================== STYLE 4: Real-time Counter ==================== */
+        .style-counter .indicator {
+            background: var(--bg-dark);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .style-counter .indicator__icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .style-counter .indicator__value {
+            font-family: var(--font-mono);
+            font-size: 4rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .style-counter .indicator__value--high { color: #00ff88; }
+        .style-counter .indicator__value--medium { color: #ffa500; }
+        .style-counter .indicator__value--low { 
+            color: #ff006e;
+            animation: counter-flash 0.5s ease-in-out infinite;
+        }
+
+        @keyframes counter-flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .style-counter .indicator__unit {
+            font-family: var(--font-secondary);
+            font-size: 1rem;
+            color: var(--text-gray);
+            margin-bottom: 1rem;
+        }
+
+        .style-counter .indicator__message {
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .style-counter .indicator__message--high {
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+        }
+
+        .style-counter .indicator__message--medium {
+            background: rgba(255, 165, 0, 0.15);
+            color: #ffa500;
+        }
+
+        .style-counter .indicator__message--low {
+            background: rgba(255, 0, 110, 0.15);
+            color: #ff006e;
+        }
+
+        /* ==================== STYLE 5: Waveform ==================== */
+        .style-waveform .indicator {
+            background: var(--bg-dark);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .style-waveform .indicator__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .style-waveform .indicator__label {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .style-waveform .indicator__count {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .style-waveform .indicator__count--high { color: #00ff88; }
+        .style-waveform .indicator__count--medium { color: #ffa500; }
+        .style-waveform .indicator__count--low { color: #ff006e; }
+
+        .style-waveform .indicator__waves {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 4px;
+            height: 60px;
+            margin-bottom: 1rem;
+        }
+
+        .style-waveform .indicator__wave {
+            width: 8px;
+            border-radius: 4px;
+            transition: height 0.3s ease, background 0.3s ease;
+        }
+
+        .style-waveform .indicator__wave--high {
+            background: linear-gradient(180deg, #00ff88, #00cc6a);
+            animation: wave-high 1.5s ease-in-out infinite;
+        }
+
+        .style-waveform .indicator__wave--medium {
+            background: linear-gradient(180deg, #ffa500, #ff8c00);
+            animation: wave-medium 1.5s ease-in-out infinite;
+        }
+
+        .style-waveform .indicator__wave--low {
+            background: linear-gradient(180deg, #ff006e, #cc0058);
+            animation: wave-low 1s ease-in-out infinite;
+        }
+
+        @keyframes wave-high {
+            0%, 100% { height: 60px; }
+            50% { height: 40px; }
+        }
+
+        @keyframes wave-medium {
+            0%, 100% { height: 35px; }
+            50% { height: 20px; }
+        }
+
+        @keyframes wave-low {
+            0%, 100% { height: 15px; opacity: 1; }
+            50% { height: 8px; opacity: 0.5; }
+        }
+
+        .style-waveform .indicator__status {
+            text-align: center;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .style-waveform .indicator__status--high { color: #00ff88; }
+        .style-waveform .indicator__status--medium { color: #ffa500; }
+        .style-waveform .indicator__status--low { color: #ff006e; }
+
+        /* ==================== STYLE 6: Grid Dots ==================== */
+        .style-grid .indicator {
+            background: var(--bg-dark);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .style-grid .indicator__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .style-grid .indicator__label {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .style-grid .indicator__percentage {
+            font-family: var(--font-mono);
+            font-weight: 700;
+        }
+
+        .style-grid .indicator__percentage--high { color: #00ff88; }
+        .style-grid .indicator__percentage--medium { color: #ffa500; }
+        .style-grid .indicator__percentage--low { color: #ff006e; }
+
+        .style-grid .indicator__dots {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .style-grid .indicator__dot {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .style-grid .indicator__dot--filled-high {
+            background: #00ff88;
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
+        }
+
+        .style-grid .indicator__dot--filled-medium {
+            background: #ffa500;
+            box-shadow: 0 0 8px rgba(255, 165, 0, 0.5);
+        }
+
+        .style-grid .indicator__dot--filled-low {
+            background: #ff006e;
+            box-shadow: 0 0 8px rgba(255, 0, 110, 0.5);
+            animation: dot-blink 1s ease-in-out infinite;
+        }
+
+        @keyframes dot-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .style-grid .indicator__info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        /* ==================== STYLE 7: Glass Card ==================== */
+        .style-glass .indicator {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .style-glass .indicator::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent);
+            pointer-events: none;
+        }
+
+        .style-glass .indicator__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .style-glass .indicator__title {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .style-glass .indicator__subtitle {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        .style-glass .indicator__badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 50px;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .style-glass .indicator__badge--high {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .style-glass .indicator__badge--medium {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+        }
+
+        .style-glass .indicator__badge--low {
+            background: rgba(255, 0, 110, 0.2);
+            color: #ff006e;
+        }
+
+        .style-glass .indicator__body {
+            position: relative;
+            z-index: 1;
+        }
+
+        .style-glass .indicator__value {
+            font-family: var(--font-primary);
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .style-glass .indicator__value--high { color: #00ff88; }
+        .style-glass .indicator__value--medium { color: #ffa500; }
+        .style-glass .indicator__value--low { color: #ff006e; }
+
+        .style-glass .indicator__bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .style-glass .indicator__fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .style-glass .indicator__fill--high {
+            width: 85%;
+            background: linear-gradient(90deg, rgba(0, 255, 136, 0.8), rgba(0, 200, 100, 0.6));
+        }
+
+        .style-glass .indicator__fill--medium {
+            width: 35%;
+            background: linear-gradient(90deg, rgba(255, 165, 0, 0.8), rgba(255, 120, 0, 0.6));
+        }
+
+        .style-glass .indicator__fill--low {
+            width: 8%;
+            background: linear-gradient(90deg, rgba(255, 0, 110, 0.8), rgba(200, 0, 80, 0.6));
+        }
+
+        /* ==================== STYLE 8: Cyberpunk Terminal ==================== */
+        .style-cyberpunk .indicator {
+            background: #0a0a0a;
+            border: 2px solid #00f2ea;
+            border-radius: 4px;
+            padding: 1.5rem;
+            position: relative;
+            font-family: var(--font-mono, monospace);
+        }
+
+        .style-cyberpunk .indicator::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 242, 234, 0.03) 2px,
+                rgba(0, 242, 234, 0.03) 4px
+            );
+            pointer-events: none;
+        }
+
+        .style-cyberpunk .indicator__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(0, 242, 234, 0.3);
+        }
+
+        .style-cyberpunk .indicator__title {
+            color: #00f2ea;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .style-cyberpunk .indicator__status {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .style-cyberpunk .indicator__status--high { color: #00ff88; }
+        .style-cyberpunk .indicator__status--medium { color: #ffa500; }
+        .style-cyberpunk .indicator__status--low { 
+            color: #ff006e;
+            animation: status-blink 0.5s ease-in-out infinite;
+        }
+
+        @keyframes status-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .style-cyberpunk .indicator__body {
+            margin-bottom: 1rem;
+        }
+
+        .style-cyberpunk .indicator__line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.8125rem;
+        }
+
+        .style-cyberpunk .indicator__key {
+            color: var(--text-gray);
+        }
+
+        .style-cyberpunk .indicator__val {
+            color: var(--text-light);
+        }
+
+        .style-cyberpunk .indicator__val--high { color: #00ff88; }
+        .style-cyberpunk .indicator__val--medium { color: #ffa500; }
+        .style-cyberpunk .indicator__val--low { color: #ff006e; }
+
+        .style-cyberpunk .indicator__progress {
+            display: flex;
+            gap: 2px;
+            margin-top: 1rem;
+        }
+
+        .style-cyberpunk .indicator__block {
+            flex: 1;
+            height: 20px;
+            background: rgba(0, 242, 234, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .style-cyberpunk .indicator__block--filled-high {
+            background: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .style-cyberpunk .indicator__block--filled-medium {
+            background: #ffa500;
+            box-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+        }
+
+        .style-cyberpunk .indicator__block--filled-low {
+            background: #ff006e;
+            box-shadow: 0 0 10px rgba(255, 0, 110, 0.5);
+            animation: block-flash 0.5s ease-in-out infinite;
+        }
+
+        @keyframes block-flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .style-cyberpunk .indicator__footer {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(0, 242, 234, 0.3);
+            font-size: 0.6875rem;
+            color: rgba(0, 242, 234, 0.6);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Hide all styles by default */
+        .indicator-showcase > div { display: none; }
+        .indicator-showcase > div.active { display: block; }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .hero { padding: 2rem 0; }
+            .hero h1 { font-size: 2rem; }
+            .demo-container { padding: 1.5rem; }
+            .controls { gap: 0.5rem; }
+            .style-btn { padding: 0.5rem 1rem; font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to E-commerce Patterns</a>
+
+    <section class="hero">
+        <h1>Live Inventory Indicator</h1>
+        <p>Real-time stock level displays with animated urgency indicators to drive conversions and create buying urgency.</p>
+        
+        <div class="controls">
+            <button class="style-btn active" data-style="classic">Classic Bar</button>
+            <button class="style-btn" data-style="circular">Circular</button>
+            <button class="style-btn" data-style="segmented">Segmented</button>
+            <button class="style-btn" data-style="counter">Counter</button>
+            <button class="style-btn" data-style="waveform">Waveform</button>
+            <button class="style-btn" data-style="grid">Grid Dots</button>
+            <button class="style-btn" data-style="glass">Glass</button>
+            <button class="style-btn" data-style="cyberpunk">Cyberpunk</button>
+        </div>
+        <p class="keyboard-hint">Press <kbd>Space</kbd> to cycle styles | <kbd>R</kbd> to reset | <kbd>1-3</kbd> stock levels</p>
+    </section>
+
+    <section class="demo-section">
+        <div class="demo-container">
+            <div class="indicator-showcase">
+                <!-- Style 1: Classic Bar -->
+                <div class="style-classic active" data-level="high">
+                    <div class="indicator">
+                        <div class="indicator__header">
+                            <span class="indicator__label">Stock Level</span>
+                            <span class="indicator__count"><span class="count-value">342</span> units</span>
+                        </div>
+                        <div class="indicator__bar">
+                            <div class="indicator__fill indicator__fill--high"></div>
+                        </div>
+                        <div class="indicator__status indicator__status--high">In Stock - Ready to Ship</div>
+                    </div>
+                </div>
+
+                <!-- Style 2: Circular Gauge -->
+                <div class="style-circular" data-level="high">
+                    <div class="indicator">
+                        <div class="gauge">
+                            <svg class="gauge__svg" viewBox="0 0 160 160">
+                                <defs>
+                                    <linearGradient id="gradient-high" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#00ff88"/>
+                                        <stop offset="100%" stop-color="#00cc6a"/>
+                                    </linearGradient>
+                                    <linearGradient id="gradient-medium" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#ffa500"/>
+                                        <stop offset="100%" stop-color="#ff8c00"/>
+                                    </linearGradient>
+                                    <linearGradient id="gradient-low" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#ff006e"/>
+                                        <stop offset="100%" stop-color="#cc0058"/>
+                                    </linearGradient>
+                                </defs>
+                                <circle class="gauge__bg" cx="80" cy="80" r="70"/>
+                                <circle class="gauge__fill gauge__fill--high" cx="80" cy="80" r="70"/>
+                            </svg>
+                            <div class="gauge__center">
+                                <span class="gauge__value gauge__value--high"><span class="count-value">85</span></span>
+                                <span class="gauge__label">% Stock</span>
+                            </div>
+                        </div>
+                        <div class="indicator__status indicator__status--high">Fully Stocked</div>
+                    </div>
+                </div>
+
+                <!-- Style 3: Segmented -->
+                <div class="style-segmented" data-level="high">
+                    <div class="indicator">
+                        <div class="indicator__header">
+                            <span class="indicator__label">Inventory Status</span>
+                            <span class="indicator__live"><span class="indicator__live-dot"></span>LIVE</span>
+                        </div>
+                        <div class="indicator__segments">
+                            <div class="indicator__segment indicator__segment--filled-high"></div>
+                            <div class="indicator__segment indicator__segment--filled-high"></div>
+                            <div class="indicator__segment indicator__segment--filled-high"></div>
+                            <div class="indicator__segment indicator__segment--filled-high"></div>
+                            <div class="indicator__segment indicator__segment--filled-high"></div>
+                            <div class="indicator__segment indicator__segment--filled-high"></div>
+                            <div class="indicator__segment indicator__segment--filled-high"></div>
+                            <div class="indicator__segment indicator__segment--filled-high"></div>
+                            <div class="indicator__segment"></div>
+                            <div class="indicator__segment"></div>
+                        </div>
+                        <div class="indicator__footer">
+                            <span><span class="count-value">342</span> available</span>
+                            <span>400 capacity</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 4: Counter -->
+                <div class="style-counter" data-level="high">
+                    <div class="indicator">
+                        <div class="indicator__icon">📦</div>
+                        <div class="indicator__value indicator__value--high"><span class="count-value">342</span></div>
+                        <div class="indicator__unit">units in stock</div>
+                        <div class="indicator__message indicator__message--high">Ready for immediate dispatch</div>
+                    </div>
+                </div>
+
+                <!-- Style 5: Waveform -->
+                <div class="style-waveform" data-level="high">
+                    <div class="indicator">
+                        <div class="indicator__header">
+                            <span class="indicator__label">Live Stock Monitor</span>
+                            <span class="indicator__count indicator__count--high"><span class="count-value">342</span></span>
+                        </div>
+                        <div class="indicator__waves">
+                            <div class="indicator__wave indicator__wave--high" style="height: 50px; animation-delay: 0s;"></div>
+                            <div class="indicator__wave indicator__wave--high" style="height: 45px; animation-delay: 0.1s;"></div>
+                            <div class="indicator__wave indicator__wave--high" style="height: 55px; animation-delay: 0.2s;"></div>
+                            <div class="indicator__wave indicator__wave--high" style="height: 40px; animation-delay: 0.3s;"></div>
+                            <div class="indicator__wave indicator__wave--high" style="height: 60px; animation-delay: 0.4s;"></div>
+                            <div class="indicator__wave indicator__wave--high" style="height: 48px; animation-delay: 0.5s;"></div>
+                            <div class="indicator__wave indicator__wave--high" style="height: 52px; animation-delay: 0.6s;"></div>
+                            <div class="indicator__wave indicator__wave--high" style="height: 58px; animation-delay: 0.7s;"></div>
+                            <div class="indicator__wave indicator__wave--high" style="height: 44px; animation-delay: 0.8s;"></div>
+                            <div class="indicator__wave indicator__wave--high" style="height: 50px; animation-delay: 0.9s;"></div>
+                        </div>
+                        <div class="indicator__status indicator__status--high">Stock levels healthy</div>
+                    </div>
+                </div>
+
+                <!-- Style 6: Grid Dots -->
+                <div class="style-grid" data-level="high">
+                    <div class="indicator">
+                        <div class="indicator__header">
+                            <span class="indicator__label">Warehouse Inventory</span>
+                            <span class="indicator__percentage indicator__percentage--high">85%</span>
+                        </div>
+                        <div class="indicator__dots"></div>
+                        <div class="indicator__info">
+                            <span><span class="count-value">342</span> / 400 units</span>
+                            <span>Last updated: now</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 7: Glass -->
+                <div class="style-glass" data-level="high">
+                    <div class="indicator">
+                        <div class="indicator__header">
+                            <div>
+                                <div class="indicator__title">Current Stock</div>
+                                <div class="indicator__subtitle">Premium Headphones</div>
+                            </div>
+                            <div class="indicator__badge indicator__badge--high">In Stock</div>
+                        </div>
+                        <div class="indicator__body">
+                            <div class="indicator__value indicator__value--high"><span class="count-value">342</span></div>
+                            <div style="color: var(--text-gray); font-size: 0.875rem;">units available</div>
+                            <div class="indicator__bar">
+                                <div class="indicator__fill indicator__fill--high"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Style 8: Cyberpunk -->
+                <div class="style-cyberpunk" data-level="high">
+                    <div class="indicator">
+                        <div class="indicator__header">
+                            <span class="indicator__title">// INVENTORY_SYS</span>
+                            <span class="indicator__status indicator__status--high">[OPTIMAL]</span>
+                        </div>
+                        <div class="indicator__body">
+                            <div class="indicator__line">
+                                <span class="indicator__key">UNIT_COUNT:</span>
+                                <span class="indicator__val indicator__val--high"><span class="count-value">342</span></span>
+                            </div>
+                            <div class="indicator__line">
+                                <span class="indicator__key">CAPACITY:</span>
+                                <span class="indicator__val">400</span>
+                            </div>
+                            <div class="indicator__line">
+                                <span class="indicator__key">FILL_RATE:</span>
+                                <span class="indicator__val indicator__val--high">85.5%</span>
+                            </div>
+                        </div>
+                        <div class="indicator__progress"></div>
+                        <div class="indicator__footer">
+                            <span>SYS_ID: INV-7749</span>
+                            <span>REFRESH: 2.5s</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SVG Definitions for Circular Gauge -->
+    <svg style="position: absolute; width: 0; height: 0;">
+        <defs>
+            <linearGradient id="gradient-high" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#00ff88"/>
+                <stop offset="100%" stop-color="#00cc6a"/>
+            </linearGradient>
+            <linearGradient id="gradient-medium" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ffa500"/>
+                <stop offset="100%" stop-color="#ff8c00"/>
+            </linearGradient>
+            <linearGradient id="gradient-low" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ff006e"/>
+                <stop offset="100%" stop-color="#cc0058"/>
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <script>
+        const styles = ['classic', 'circular', 'segmented', 'counter', 'waveform', 'grid', 'glass', 'cyberpunk'];
+        let currentStyleIndex = 0;
+        let currentLevel = 'high';
+
+        const buttons = document.querySelectorAll('.style-btn');
+        const styleContainers = document.querySelectorAll('.indicator-showcase > div');
+
+        const stockLevels = {
+            high: { count: 342, percent: 85, message: 'In Stock', status: 'OPTIMAL' },
+            medium: { count: 28, percent: 35, message: 'Low Stock', status: 'WARNING' },
+            low: { count: 3, percent: 8, message: 'Almost Gone!', status: 'CRITICAL' }
+        };
+
+        function setStyle(styleName) {
+            currentStyleIndex = styles.indexOf(styleName);
+            
+            buttons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.style === styleName);
+            });
+
+            styleContainers.forEach(container => {
+                const isActive = container.classList.contains(`style-${styleName}`);
+                container.classList.toggle('active', isActive);
+                if (isActive) {
+                    updateStockLevel(container, currentLevel);
+                }
+            });
+
+            // Generate grid dots for grid style
+            if (styleName === 'grid') {
+                generateGridDots();
+            }
+
+            // Generate progress blocks for cyberpunk style
+            if (styleName === 'cyberpunk') {
+                generateProgressBlocks();
+            }
+        }
+
+        function setLevel(level) {
+            currentLevel = level;
+            const activeContainer = document.querySelector('.indicator-showcase > div.active');
+            if (activeContainer) {
+                updateStockLevel(activeContainer, level);
+            }
+        }
+
+        function updateStockLevel(container, level) {
+            const data = stockLevels[level];
+            container.dataset.level = level;
+
+            // Update count values
+            container.querySelectorAll('.count-value').forEach(el => {
+                el.textContent = level === 'high' ? data.count : level === 'medium' ? data.count : data.count;
+            });
+
+            // Update fills, values, statuses based on level
+            const levels = ['high', 'medium', 'low'];
+            levels.forEach(l => {
+                container.querySelectorAll(`[class*="--${l}"]`).forEach(el => {
+                    const classes = Array.from(el.classList);
+                    classes.forEach(cls => {
+                        if (cls.includes('--high') || cls.includes('--medium') || cls.includes('--low')) {
+                            el.classList.remove(cls);
+                            el.classList.add(cls.replace(/--(?:high|medium|low)/, `--${level}`));
+                        }
+                    });
+                });
+            });
+
+            // Update circular gauge
+            const gaugeFill = container.querySelector('.gauge__fill');
+            if (gaugeFill) {
+                gaugeFill.classList.remove('gauge__fill--high', 'gauge__fill--medium', 'gauge__fill--low');
+                gaugeFill.classList.add(`gauge__fill--${level}`);
+                const dashOffset = level === 'high' ? 66 : level === 'medium' ? 286 : 400;
+                gaugeFill.style.strokeDashoffset = dashOffset;
+            }
+
+            // Update segmented bars
+            const segments = container.querySelectorAll('.indicator__segment');
+            if (segments.length > 0) {
+                const filledCount = level === 'high' ? 8 : level === 'medium' ? 3 : 1;
+                segments.forEach((seg, i) => {
+                    seg.classList.remove('indicator__segment--filled-high', 'indicator__segment--filled-medium', 'indicator__segment--filled-low');
+                    if (i < filledCount) {
+                        seg.classList.add(`indicator__segment--filled-${level}`);
+                    }
+                });
+            }
+
+            // Update waveform
+            const waves = container.querySelectorAll('.indicator__wave');
+            if (waves.length > 0) {
+                waves.forEach(wave => {
+                    wave.classList.remove('indicator__wave--high', 'indicator__wave--medium', 'indicator__wave--low');
+                    wave.classList.add(`indicator__wave--${level}`);
+                });
+            }
+
+            // Update grid dots
+            if (container.classList.contains('style-grid')) {
+                generateGridDots();
+            }
+
+            // Update cyberpunk progress
+            if (container.classList.contains('style-cyberpunk')) {
+                generateProgressBlocks();
+            }
+
+            // Update specific text content
+            const percentageEl = container.querySelector('.indicator__percentage');
+            if (percentageEl) {
+                percentageEl.textContent = `${data.percent}%`;
+                percentageEl.classList.remove('indicator__percentage--high', 'indicator__percentage--medium', 'indicator__percentage--low');
+                percentageEl.classList.add(`indicator__percentage--${level}`);
+            }
+
+            // Update messages
+            const messageEl = container.querySelector('.indicator__message');
+            if (messageEl) {
+                messageEl.textContent = level === 'high' ? 'Ready for immediate dispatch' : 
+                                        level === 'medium' ? 'Order soon - selling fast!' : 
+                                        'Hurry! Only 3 left!';
+                messageEl.classList.remove('indicator__message--high', 'indicator__message--medium', 'indicator__message--low');
+                messageEl.classList.add(`indicator__message--${level}`);
+            }
+
+            // Update bar fills
+            const barFill = container.querySelector('.indicator__fill');
+            if (barFill) {
+                barFill.classList.remove('indicator__fill--high', 'indicator__fill--medium', 'indicator__fill--low');
+                barFill.classList.add(`indicator__fill--${level}`);
+            }
+
+            // Update badge
+            const badge = container.querySelector('.indicator__badge');
+            if (badge) {
+                badge.textContent = data.message;
+                badge.classList.remove('indicator__badge--high', 'indicator__badge--medium', 'indicator__badge--low');
+                badge.classList.add(`indicator__badge--${level}`);
+            }
+
+            // Update counter value
+            const counterValue = container.querySelector('.indicator__value');
+            if (counterValue) {
+                counterValue.classList.remove('indicator__value--high', 'indicator__value--medium', 'indicator__value--low');
+                counterValue.classList.add(`indicator__value--${level}`);
+            }
+
+            // Update gauge value
+            const gaugeValue = container.querySelector('.gauge__value');
+            if (gaugeValue) {
+                gaugeValue.classList.remove('gauge__value--high', 'gauge__value--medium', 'gauge__value--low');
+                gaugeValue.classList.add(`gauge__value--${level}`);
+            }
+
+            // Update count displays
+            container.querySelectorAll('.indicator__count').forEach(el => {
+                el.classList.remove('indicator__count--high', 'indicator__count--medium', 'indicator__count--low');
+                el.classList.add(`indicator__count--${level}`);
+            });
+
+            // Update status displays
+            container.querySelectorAll('.indicator__status').forEach(el => {
+                el.classList.remove('indicator__status--high', 'indicator__status--medium', 'indicator__status--low');
+                el.classList.add(`indicator__status--${level}`);
+                if (el.textContent.includes('[')) {
+                    el.textContent = `[${data.status}]`;
+                } else if (level === 'high') {
+                    el.textContent = 'In Stock - Ready to Ship';
+                } else if (level === 'medium') {
+                    el.textContent = 'Low Stock - Order Soon!';
+                } else {
+                    el.textContent = 'Almost Gone - Act Fast!';
+                }
+            });
+
+            // Update all .count-value spans
+            container.querySelectorAll('.count-value').forEach(el => {
+                el.textContent = data.count;
+            });
+
+            // Update cyberpunk values
+            const cyberVal = container.querySelector('.indicator__val--high, .indicator__val--medium, .indicator__val--low');
+            if (cyberVal) {
+                cyberVal.classList.remove('indicator__val--high', 'indicator__val--medium', 'indicator__val--low');
+                cyberVal.classList.add(`indicator__val--${level}`);
+            }
+        }
+
+        function generateGridDots() {
+            const gridContainer = document.querySelector('.style-grid .indicator__dots');
+            if (!gridContainer) return;
+
+            const data = stockLevels[currentLevel];
+            const filledCount = Math.round(data.percent / 2); // 50 dots = 100%
+            
+            gridContainer.innerHTML = '';
+            for (let i = 0; i < 50; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'indicator__dot';
+                if (i < filledCount) {
+                    dot.classList.add(`indicator__dot--filled-${currentLevel}`);
+                }
+                gridContainer.appendChild(dot);
+            }
+        }
+
+        function generateProgressBlocks() {
+            const progressContainer = document.querySelector('.style-cyberpunk .indicator__progress');
+            if (!progressContainer) return;
+
+            const data = stockLevels[currentLevel];
+            const filledCount = Math.round(data.percent / 5); // 20 blocks = 100%
+            
+            progressContainer.innerHTML = '';
+            for (let i = 0; i < 20; i++) {
+                const block = document.createElement('div');
+                block.className = 'indicator__block';
+                if (i < filledCount) {
+                    block.classList.add(`indicator__block--filled-${currentLevel}`);
+                }
+                progressContainer.appendChild(block);
+            }
+        }
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => setStyle(btn.dataset.style));
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                currentStyleIndex = (currentStyleIndex + 1) % styles.length;
+                setStyle(styles[currentStyleIndex]);
+            } else if (e.code === 'KeyR') {
+                e.preventDefault();
+                currentStyleIndex = 0;
+                currentLevel = 'high';
+                setStyle(styles[0]);
+            } else if (e.key === '1') {
+                setLevel('high');
+            } else if (e.key === '2') {
+                setLevel('medium');
+            } else if (e.key === '3') {
+                setLevel('low');
+            }
+        });
+
+        // Initialize grid dots
+        generateGridDots();
+    </script>
+</body>
+</html>

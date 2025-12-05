@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alternating Sections Slide Opposite Sides - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header h1 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 1rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        /* Animation Style Controls */
+        .style-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            padding: 0 2rem 2rem;
+        }
+
+        .style-btn {
+            padding: 0.875rem 1.75rem;
+            background: rgba(147, 51, 234, 0.1);
+            border: 2px solid var(--jazer-purple, #9333ea);
+            color: var(--jazer-purple, #9333ea);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .style-btn:hover {
+            background: rgba(147, 51, 234, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(147, 51, 234, 0.4);
+        }
+
+        .style-btn.active {
+            background: var(--jazer-purple, #9333ea);
+            color: #000000;
+            box-shadow: 0 0 30px rgba(147, 51, 234, 0.6);
+        }
+
+        /* Sections Container */
+        .sections-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Alternating Section */
+        .alt-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Section Content Wrapper */
+        .section-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            max-width: 1200px;
+            width: 100%;
+            opacity: 0;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .alt-section.visible .section-wrapper {
+            opacity: 1;
+        }
+
+        /* Image Container */
+        .section-image {
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+            transform: translateX(-100px);
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .alt-section:nth-child(even) .section-image {
+            transform: translateX(100px);
+        }
+
+        .alt-section.visible .section-image {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .image-placeholder {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, 
+                        rgba(0, 242, 234, 0.2) 0%, 
+                        rgba(147, 51, 234, 0.2) 50%, 
+                        rgba(255, 0, 110, 0.2) 100%);
+            border: 2px solid rgba(0, 242, 234, 0.3);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: var(--jazer-cyan, #00f2ea);
+            backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-placeholder::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 242, 234, 0.3) 0%, transparent 70%);
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translate(20px, 20px) scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        .section-image:hover .image-placeholder {
+            border-color: var(--jazer-cyan, #00f2ea);
+            box-shadow: 0 20px 60px rgba(0, 242, 234, 0.3);
+            transform: scale(1.02);
+        }
+
+        /* Content Container */
+        .section-content {
+            transform: translateX(100px);
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transition-delay: 0.2s;
+        }
+
+        .alt-section:nth-child(even) .section-content {
+            transform: translateX(-100px);
+        }
+
+        .alt-section.visible .section-content {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .section-number {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 1px solid var(--jazer-cyan, #00f2ea);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            color: var(--jazer-cyan, #00f2ea);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-content h2 {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            margin-bottom: 1rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-content p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-features {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .section-features li {
+            padding: 0.75rem 0;
+            padding-left: 2rem;
+            position: relative;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+        }
+
+        .section-features li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--jazer-cyan, #00f2ea);
+            font-weight: 600;
+        }
+
+        .section-cta {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-cta:hover {
+            background: rgba(0, 242, 234, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 242, 234, 0.4);
+        }
+
+        /* Alternate Layout (Image on Right) */
+        .alt-section:nth-child(even) .section-wrapper {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        /* Animation Variations */
+        .sections-container.fade-scale .section-image,
+        .sections-container.fade-scale .section-content {
+            transform: scale(0.8);
+        }
+
+        .sections-container.fade-scale .alt-section.visible .section-image,
+        .sections-container.fade-scale .alt-section.visible .section-content {
+            transform: scale(1);
+        }
+
+        .sections-container.bounce .section-image,
+        .sections-container.bounce .section-content {
+            transition-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .sections-container.rotate-in .section-image {
+            transform: translateX(-100px) rotate(-10deg);
+        }
+
+        .sections-container.rotate-in .alt-section:nth-child(even) .section-image {
+            transform: translateX(100px) rotate(10deg);
+        }
+
+        .sections-container.rotate-in .alt-section.visible .section-image {
+            transform: translateX(0) rotate(0deg);
+        }
+
+        .sections-container.blur .section-image,
+        .sections-container.blur .section-content {
+            filter: blur(10px);
+        }
+
+        .sections-container.blur .alt-section.visible .section-image,
+        .sections-container.blur .alt-section.visible .section-content {
+            filter: blur(0);
+        }
+
+        /* Progress Indicator */
+        .progress-indicator {
+            position: fixed;
+            left: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+        }
+
+        .progress-line {
+            width: 3px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            background: var(--gradient-primary, linear-gradient(180deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            transition: height 0.3s ease;
+        }
+
+        .progress-dots {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 100%;
+        }
+
+        .progress-dot {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background: var(--jazer-cyan, #00f2ea);
+            border-color: var(--jazer-cyan, #00f2ea);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.8);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 968px) {
+            .section-wrapper {
+                grid-template-columns: 1fr !important;
+                gap: 2rem;
+            }
+
+            .section-image,
+            .section-content {
+                transform: translateY(50px) !important;
+            }
+
+            .alt-section.visible .section-image,
+            .alt-section.visible .section-content {
+                transform: translateY(0) !important;
+            }
+
+            .progress-indicator {
+                display: none;
+            }
+
+            .sections-container.rotate-in .section-image {
+                transform: translateY(50px) rotate(0deg) !important;
+            }
+
+            .sections-container.rotate-in .alt-section.visible .section-image {
+                transform: translateY(0) rotate(0deg) !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .back-button {
+                top: 1rem;
+                left: 1rem;
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .header {
+                padding: 6rem 1rem 3rem;
+            }
+
+            .style-controls {
+                padding: 0 1rem 2rem;
+                gap: 0.5rem;
+            }
+
+            .style-btn {
+                padding: 0.75rem 1.25rem;
+                font-size: 0.875rem;
+            }
+
+            .sections-container {
+                padding: 1rem;
+            }
+
+            .alt-section {
+                padding: 3rem 1rem;
+                min-height: auto;
+            }
+
+            .image-placeholder {
+                height: 300px;
+            }
+
+            .section-content h2 {
+                font-size: 1.5rem;
+            }
+
+            .section-content p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <div class="header">
+        <h1>Alternating Sections Slide</h1>
+        <p>Content sections that slide in from opposite sides as you scroll, creating dynamic visual rhythm and engagement</p>
+    </div>
+
+    <div class="style-controls">
+        <button class="style-btn active" data-style="slide">Slide</button>
+        <button class="style-btn" data-style="fade-scale">Fade & Scale</button>
+        <button class="style-btn" data-style="bounce">Bounce</button>
+        <button class="style-btn" data-style="rotate-in">Rotate In</button>
+        <button class="style-btn" data-style="blur">Blur Fade</button>
+    </div>
+
+    <div class="progress-indicator">
+        <div class="progress-line">
+            <div class="progress-fill" id="progressFill"></div>
+            <div class="progress-dots" id="progressDots"></div>
+        </div>
+    </div>
+
+    <div class="sections-container" id="sectionsContainer">
+        <!-- Section 1 -->
+        <section class="alt-section">
+            <div class="section-wrapper">
+                <div class="section-image">
+                    <div class="image-placeholder">01</div>
+                </div>
+                <div class="section-content">
+                    <span class="section-number">Feature 01</span>
+                    <h2>Dynamic Animations</h2>
+                    <p>Each section slides in smoothly from alternating sides, creating a natural reading flow that guides users through your content with visual interest.</p>
+                    <ul class="section-features">
+                        <li>Smooth scroll-triggered animations</li>
+                        <li>GPU-accelerated transforms for 60fps</li>
+                        <li>Customizable timing and easing</li>
+                    </ul>
+                    <a href="#" class="section-cta">Learn More</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2 -->
+        <section class="alt-section">
+            <div class="section-wrapper">
+                <div class="section-content">
+                    <span class="section-number">Feature 02</span>
+                    <h2>Responsive Design</h2>
+                    <p>Fully responsive layout that adapts seamlessly to all screen sizes. On mobile, sections stack vertically while maintaining smooth animations.</p>
+                    <ul class="section-features">
+                        <li>Mobile-first approach</li>
+                        <li>Breakpoint optimization</li>
+                        <li>Touch-friendly interactions</li>
+                    </ul>
+                    <a href="#" class="section-cta">Explore Features</a>
+                </div>
+                <div class="section-image">
+                    <div class="image-placeholder">02</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3 -->
+        <section class="alt-section">
+            <div class="section-wrapper">
+                <div class="section-image">
+                    <div class="image-placeholder">03</div>
+                </div>
+                <div class="section-content">
+                    <span class="section-number">Feature 03</span>
+                    <h2>Multiple Variations</h2>
+                    <p>Switch between different animation styles to match your brand aesthetic. From subtle fades to dramatic rotations, find the perfect effect.</p>
+                    <ul class="section-features">
+                        <li>5 animation variations included</li>
+                        <li>Easy style switching</li>
+                        <li>Consistent performance across styles</li>
+                    </ul>
+                    <a href="#" class="section-cta">View Styles</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4 -->
+        <section class="alt-section">
+            <div class="section-wrapper">
+                <div class="section-content">
+                    <span class="section-number">Feature 04</span>
+                    <h2>Performance Optimized</h2>
+                    <p>Built with performance in mind using Intersection Observer API for efficient scroll detection and CSS transforms for smooth animations.</p>
+                    <ul class="section-features">
+                        <li>Lightweight and fast</li>
+                        <li>No jQuery dependencies</li>
+                        <li>Minimal JavaScript footprint</li>
+                    </ul>
+                    <a href="#" class="section-cta">Technical Details</a>
+                </div>
+                <div class="section-image">
+                    <div class="image-placeholder">04</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5 -->
+        <section class="alt-section">
+            <div class="section-wrapper">
+                <div class="section-image">
+                    <div class="image-placeholder">05</div>
+                </div>
+                <div class="section-content">
+                    <span class="section-number">Feature 05</span>
+                    <h2>Easy Integration</h2>
+                    <p>Simple HTML structure with self-contained CSS and JavaScript. Copy and paste to integrate into any project in minutes.</p>
+                    <ul class="section-features">
+                        <li>Clean, semantic HTML</li>
+                        <li>Modular code structure</li>
+                        <li>Well-documented and commented</li>
+                    </ul>
+                    <a href="#" class="section-cta">Get Started</a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const sections = document.querySelectorAll('.alt-section');
+        const sectionsContainer = document.getElementById('sectionsContainer');
+        const styleButtons = document.querySelectorAll('.style-btn');
+        const progressFill = document.getElementById('progressFill');
+        const progressDots = document.getElementById('progressDots');
+
+        // Create progress dots
+        sections.forEach((section, index) => {
+            const dot = document.createElement('div');
+            dot.className = 'progress-dot';
+            dot.style.top = `${(index / (sections.length - 1)) * 100}%`;
+            progressDots.appendChild(dot);
+        });
+
+        const dots = document.querySelectorAll('.progress-dot');
+
+        // Intersection Observer for sections
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -20% 0px',
+            threshold: 0
+        };
+
+        const sectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    
+                    // Update progress dots
+                    const index = Array.from(sections).indexOf(entry.target);
+                    dots.forEach((dot, i) => {
+                        if (i <= index) {
+                            dot.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, observerOptions);
+
+        // Observe all sections
+        sections.forEach(section => {
+            sectionObserver.observe(section);
+        });
+
+        // Update progress fill on scroll
+        function updateProgress() {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercent = (scrollTop / docHeight) * 100;
+            progressFill.style.height = `${Math.min(scrollPercent, 100)}%`;
+        }
+
+        window.addEventListener('scroll', updateProgress);
+        window.addEventListener('resize', updateProgress);
+
+        // Style switching
+        styleButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                styleButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                // Get selected style
+                const selectedStyle = button.getAttribute('data-style');
+
+                // Remove all style classes
+                sectionsContainer.classList.remove('slide', 'fade-scale', 'bounce', 'rotate-in', 'blur');
+
+                // Add selected style (except 'slide' which is default)
+                if (selectedStyle !== 'slide') {
+                    sectionsContainer.classList.add(selectedStyle);
+                }
+
+                // Reset and re-trigger animations
+                sections.forEach(section => {
+                    section.classList.remove('visible');
+                });
+
+                // Re-observe after a brief delay
+                setTimeout(() => {
+                    sections.forEach(section => {
+                        const rect = section.getBoundingClientRect();
+                        const windowHeight = window.innerHeight;
+                        if (rect.top < windowHeight * 0.8 && rect.bottom > windowHeight * 0.2) {
+                            section.classList.add('visible');
+                        }
+                    });
+                }, 100);
+            });
+        });
+
+        // Initial progress update
+        updateProgress();
+    </script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Variant Image Switcher - JaZeR E-commerce Patterns</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-body); background: var(--bg-dark); color: var(--text-light); line-height: 1.6; padding: 1.5rem; min-height: 100vh; }
+    .back-button { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-gray); text-decoration: none; font-family: var(--font-secondary); font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 12px; border: 2px solid var(--border-default); background: var(--bg-card); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-bottom: 1.5rem; }
+    .back-button:hover { border-color: var(--jazer-cyan); color: var(--jazer-cyan); transform: translateX(-5px); box-shadow: var(--shadow-cyan); }
+    h1 { font-family: var(--font-primary); font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; background: var(--gradient-text); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .description { color: var(--text-gray); font-size: 1.1rem; margin-bottom: 1.5rem; max-width: 700px; }
+    .hero-keys { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .key-hint { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-gray); font-size: 0.875rem; }
+    .key-hint kbd { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 6px; padding: 0.25rem 0.5rem; font-family: var(--font-secondary); font-size: 0.75rem; color: var(--jazer-cyan); }
+    .style-selector { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 2rem; }
+    .style-btn { padding: 0.625rem 1.25rem; font-family: var(--font-secondary); font-weight: 600; font-size: 0.875rem; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px; border: 2px solid var(--border-default); background: var(--bg-card); color: var(--text-gray); }
+    .style-btn:hover { border-color: var(--jazer-cyan); color: var(--jazer-cyan); transform: translateY(-2px); }
+    .style-btn.active { background: var(--gradient-primary); border-color: var(--jazer-cyan); color: var(--text-light); box-shadow: var(--shadow-cyan); }
+    .demo-container { padding: 3rem; background: var(--bg-card); border: 2px solid var(--border-default); border-radius: 16px; min-height: 500px; }
+    
+    /* Variant Switcher Base Styles */
+    .variant-switcher { max-width: 700px; margin: 0 auto; }
+    .switcher-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .main-image { aspect-ratio: 1; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 8rem; transition: all 0.4s ease; position: relative; overflow: hidden; }
+    .product-info { display: flex; flex-direction: column; justify-content: center; }
+    .product-title { font-family: var(--font-secondary); font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .product-price { font-family: var(--font-primary); font-size: 2rem; font-weight: 800; margin-bottom: 1.5rem; }
+    .variant-label { font-family: var(--font-secondary); font-size: 0.875rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+    .variant-name { font-weight: 400; }
+    .color-swatches { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .swatch { width: 48px; height: 48px; border-radius: 50%; cursor: pointer; transition: all 0.3s ease; border: 3px solid transparent; position: relative; }
+    .swatch:hover { transform: scale(1.1); }
+    .swatch.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.25rem; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+
+    /* Style 1: Neon */
+    .style-neon .main-image { background: linear-gradient(145deg, rgba(6, 182, 212, 0.1), rgba(139, 92, 246, 0.1)); border: 2px solid var(--jazer-cyan); box-shadow: 0 0 30px rgba(6, 182, 212, 0.3), inset 0 0 60px rgba(6, 182, 212, 0.1); }
+    .style-neon .product-title { color: var(--text-light); }
+    .style-neon .product-price { background: var(--gradient-text); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .style-neon .variant-label { color: var(--jazer-cyan); }
+    .style-neon .variant-name { color: var(--text-light); }
+    .style-neon .swatch { box-shadow: 0 0 15px rgba(6, 182, 212, 0.3); }
+    .style-neon .swatch.active { border-color: var(--jazer-cyan); box-shadow: 0 0 25px var(--jazer-cyan); }
+    .style-neon .swatch.active::after { color: white; }
+
+    /* Style 2: Gradient */
+    .style-gradient .main-image { background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); border: none; }
+    .style-gradient .product-title { background: linear-gradient(90deg, #667eea, #f093fb); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .style-gradient .product-price { background: linear-gradient(90deg, #f093fb, #667eea); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .style-gradient .variant-label { color: #a78bfa; }
+    .style-gradient .variant-name { color: #e0e7ff; }
+    .style-gradient .swatch { border: 2px solid rgba(255,255,255,0.2); }
+    .style-gradient .swatch.active { border-color: #f093fb; box-shadow: 0 0 20px rgba(240, 147, 251, 0.5); }
+    .style-gradient .swatch.active::after { color: white; }
+
+    /* Style 3: Minimal */
+    .style-minimal .main-image { background: #1a1a2e; border: 1px solid #2a2a4e; }
+    .style-minimal .product-title { color: #e0e0e0; font-weight: 500; }
+    .style-minimal .product-price { color: #888; font-weight: 600; -webkit-text-fill-color: #888; }
+    .style-minimal .variant-label { color: #666; }
+    .style-minimal .variant-name { color: #999; }
+    .style-minimal .swatch { border: 2px solid #333; }
+    .style-minimal .swatch.active { border-color: #666; }
+    .style-minimal .swatch.active::after { color: white; }
+
+    /* Style 4: Neumorphic */
+    .style-neumorphic .main-image { background: #2d2d3a; border: none; box-shadow: 8px 8px 16px #1a1a24, -8px -8px 16px #404050; border-radius: 24px; }
+    .style-neumorphic .product-title { color: #d0d0e0; }
+    .style-neumorphic .product-price { color: #8b5cf6; -webkit-text-fill-color: #8b5cf6; }
+    .style-neumorphic .variant-label { color: #7a7a8c; }
+    .style-neumorphic .variant-name { color: #a0a0b0; }
+    .style-neumorphic .swatch { box-shadow: 4px 4px 8px #1a1a24, -4px -4px 8px #404050; border: none; }
+    .style-neumorphic .swatch.active { box-shadow: inset 4px 4px 8px #1a1a24, inset -4px -4px 8px #404050; }
+    .style-neumorphic .swatch.active::after { color: #8b5cf6; }
+
+    /* Style 5: Outline */
+    .style-outline .main-image { background: transparent; border: 3px solid var(--jazer-pink); }
+    .style-outline .product-title { color: var(--jazer-pink); }
+    .style-outline .product-price { color: var(--jazer-cyan); -webkit-text-fill-color: var(--jazer-cyan); }
+    .style-outline .variant-label { color: var(--jazer-purple); }
+    .style-outline .variant-name { color: var(--text-light); }
+    .style-outline .swatch { background: transparent !important; border: 3px solid; }
+    .style-outline .swatch:nth-child(1) { border-color: #1a1a2e; }
+    .style-outline .swatch:nth-child(2) { border-color: #ef4444; }
+    .style-outline .swatch:nth-child(3) { border-color: #3b82f6; }
+    .style-outline .swatch:nth-child(4) { border-color: #e0e0e0; }
+    .style-outline .swatch:nth-child(5) { border-color: var(--jazer-pink); }
+    .style-outline .swatch.active { box-shadow: 0 0 15px currentColor; }
+    .style-outline .swatch.active::after { color: var(--jazer-cyan); }
+
+    /* Style 6: Retro */
+    .style-retro .main-image { background: #2a1f4e; border: 4px solid #ff6b6b; box-shadow: 8px 8px 0 #ff6b6b; border-radius: 0; }
+    .style-retro .product-title { color: #feca57; font-family: var(--font-primary); }
+    .style-retro .product-price { color: #ff6b6b; -webkit-text-fill-color: #ff6b6b; }
+    .style-retro .variant-label { color: #5f27cd; }
+    .style-retro .variant-name { color: #feca57; }
+    .style-retro .swatch { border-radius: 0; border: 3px solid #222; box-shadow: 3px 3px 0 #222; }
+    .style-retro .swatch.active { border-color: #feca57; box-shadow: 3px 3px 0 #feca57; }
+    .style-retro .swatch.active::after { color: #222; text-shadow: none; }
+
+    /* Style 7: Glass */
+    .style-glass .main-image { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+    .style-glass .product-title { color: rgba(255, 255, 255, 0.9); }
+    .style-glass .product-price { color: rgba(6, 182, 212, 0.9); -webkit-text-fill-color: rgba(6, 182, 212, 0.9); }
+    .style-glass .variant-label { color: rgba(255, 255, 255, 0.5); }
+    .style-glass .variant-name { color: rgba(255, 255, 255, 0.7); }
+    .style-glass .swatch { backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+    .style-glass .swatch.active { border-color: rgba(255, 255, 255, 0.5); box-shadow: 0 0 20px rgba(255, 255, 255, 0.2); }
+    .style-glass .swatch.active::after { color: white; }
+
+    /* Style 8: Cyberpunk */
+    .style-cyberpunk .main-image { background: linear-gradient(135deg, #0a0a0a, #1a0a2e); border: 2px solid #ff00ff; box-shadow: 0 0 30px rgba(255, 0, 255, 0.4), inset 0 0 60px rgba(0, 255, 255, 0.1); clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px)); border-radius: 0; }
+    .style-cyberpunk .product-title { color: #00ffff; text-shadow: 0 0 10px #00ffff; font-family: var(--font-primary); }
+    .style-cyberpunk .product-price { color: #ff00ff; -webkit-text-fill-color: #ff00ff; text-shadow: 0 0 15px #ff00ff; }
+    .style-cyberpunk .variant-label { color: #ffff00; text-shadow: 0 0 5px #ffff00; }
+    .style-cyberpunk .variant-name { color: #00ffff; }
+    .style-cyberpunk .swatch { border: 2px solid #ff00ff; box-shadow: 0 0 10px rgba(255, 0, 255, 0.3); }
+    .style-cyberpunk .swatch.active { border-color: #00ffff; box-shadow: 0 0 20px #00ffff, 0 0 40px rgba(0, 255, 255, 0.3); }
+    .style-cyberpunk .swatch.active::after { color: #00ffff; text-shadow: 0 0 10px #00ffff; }
+
+    @media (max-width: 600px) {
+      .switcher-grid { grid-template-columns: 1fr; }
+      .main-image { font-size: 5rem; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to E-commerce Patterns</a>
+  <h1>Variant Image Switcher</h1>
+  <p class="description">Switch product images dynamically when selecting color or size variants with smooth transitions and visual feedback.</p>
+  <div class="hero-keys">
+    <span class="key-hint"><kbd>Space</kbd> Cycle variant</span>
+    <span class="key-hint"><kbd>R</kbd> Reset selection</span>
+  </div>
+
+  <div class="style-selector">
+    <button class="style-btn active" data-style="neon">Neon</button>
+    <button class="style-btn" data-style="gradient">Gradient</button>
+    <button class="style-btn" data-style="minimal">Minimal</button>
+    <button class="style-btn" data-style="neumorphic">Neumorphic</button>
+    <button class="style-btn" data-style="outline">Outline</button>
+    <button class="style-btn" data-style="retro">Retro</button>
+    <button class="style-btn" data-style="glass">Glass</button>
+    <button class="style-btn" data-style="cyberpunk">Cyberpunk</button>
+  </div>
+
+  <div class="demo-container">
+    <div id="demoContent"></div>
+  </div>
+
+  <script>
+    const variants = [
+      { color: '#1a1a2e', name: 'Midnight Black', emoji: '🎧' },
+      { color: '#ef4444', name: 'Crimson Red', emoji: '❤️' },
+      { color: '#3b82f6', name: 'Ocean Blue', emoji: '💙' },
+      { color: '#f0f0f0', name: 'Pearl White', emoji: '🤍' },
+      { color: 'linear-gradient(135deg, #ff0080, #7928ca)', name: 'Cyber Pink', emoji: '💜' }
+    ];
+
+    let currentVariant = 0;
+    let currentStyle = 'neon';
+
+    const templates = {
+      neon: () => renderSwitcher('style-neon'),
+      gradient: () => renderSwitcher('style-gradient'),
+      minimal: () => renderSwitcher('style-minimal'),
+      neumorphic: () => renderSwitcher('style-neumorphic'),
+      outline: () => renderSwitcher('style-outline'),
+      retro: () => renderSwitcher('style-retro'),
+      glass: () => renderSwitcher('style-glass'),
+      cyberpunk: () => renderSwitcher('style-cyberpunk')
+    };
+
+    function renderSwitcher(styleClass) {
+      const v = variants[currentVariant];
+      const swatchesHTML = variants.map((variant, i) => `
+        <div class="swatch ${i === currentVariant ? 'active' : ''}" 
+             style="background: ${variant.color};" 
+             data-index="${i}"
+             onclick="selectVariant(${i})"></div>
+      `).join('');
+
+      return `
+        <div class="variant-switcher ${styleClass}">
+          <div class="switcher-grid">
+            <div class="main-image" id="mainImage">${v.emoji}</div>
+            <div class="product-info">
+              <div class="product-title">Premium Wireless Headphones</div>
+              <div class="product-price">$299</div>
+              <div class="variant-label">Color: <span class="variant-name" id="variantName">${v.name}</span></div>
+              <div class="color-swatches" id="swatches">${swatchesHTML}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function selectVariant(index) {
+      currentVariant = index;
+      render();
+    }
+
+    function cycleVariant() {
+      currentVariant = (currentVariant + 1) % variants.length;
+      render();
+    }
+
+    function resetVariant() {
+      currentVariant = 0;
+      render();
+    }
+
+    function render() {
+      document.getElementById('demoContent').innerHTML = templates[currentStyle]();
+    }
+
+    // Style selector
+    document.querySelectorAll('.style-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentStyle = btn.dataset.style;
+        render();
+      });
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        cycleVariant();
+      } else if (e.code === 'KeyR') {
+        resetVariant();
+      }
+    });
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>

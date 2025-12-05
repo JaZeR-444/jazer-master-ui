@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag Text Cursor on Carousel - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a, #1a0a2a, #0a1a2a);
+            font-family: var(--font-body);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Custom cursor */
+        .custom-cursor {
+            position: fixed;
+            width: 24px;
+            height: 24px;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease;
+        }
+
+        .cursor-default {
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--jazer-cyan);
+        }
+
+        .cursor-grab {
+            width: 32px;
+            height: 32px;
+            background: radial-gradient(circle, var(--jazer-pink), var(--jazer-cyan));
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--jazer-pink);
+            position: relative;
+        }
+
+        .cursor-grab::before {
+            content: '✊';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+        }
+
+        .cursor-grabbing {
+            width: 36px;
+            height: 36px;
+            background: radial-gradient(circle, var(--jazer-purple), var(--jazer-pink));
+            border-radius: 50%;
+            box-shadow: 0 0 25px var(--jazer-purple);
+            position: relative;
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+
+        .cursor-grabbing::before {
+            content: '🤚';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        /* Drag text indicator */
+        .drag-indicator {
+            position: fixed;
+            background: linear-gradient(45deg, var(--jazer-cyan), var(--jazer-purple));
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0;
+            transform: translate(-50%, -150%);
+            transition: opacity 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .drag-indicator.visible {
+            opacity: 1;
+        }
+
+        /* Content area */
+        .content {
+            position: relative;
+            z-index: 1;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+
+        /* Carousel container */
+        .carousel-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        .carousel-title {
+            font-size: 1.5rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        /* Main carousel */
+        .carousel {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            border-radius: 15px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.3);
+            margin-bottom: 2rem;
+        }
+
+        .carousel-track {
+            display: flex;
+            height: 100%;
+            transition: transform 0.3s ease;
+            cursor: grab;
+        }
+
+        .carousel-track.dragging {
+            cursor: grabbing;
+            transition: none;
+        }
+
+        .carousel-slide {
+            min-width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+            position: relative;
+            user-select: none;
+        }
+
+        .slide-1 { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .slide-2 { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .slide-3 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .slide-4 { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .slide-5 { background: linear-gradient(135deg, #fa709a, #fee140); }
+
+        .slide-content {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .slide-number {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            text-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .slide-text {
+            font-size: 1.5rem;
+            opacity: 0.9;
+        }
+
+        /* Carousel controls */
+        .carousel-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .carousel-btn {
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--jazer-purple);
+            color: var(--jazer-purple);
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .carousel-btn:hover {
+            background: var(--jazer-purple);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 0, 255, 0.3);
+        }
+
+        /* Carousel indicators */
+        .carousel-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .indicator.active {
+            background: var(--jazer-cyan);
+            transform: scale(1.2);
+        }
+
+        /* Mini carousel */
+        .mini-carousel {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            border-radius: 15px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.3);
+            margin-bottom: 2rem;
+        }
+
+        .mini-carousel-track {
+            display: flex;
+            height: 100%;
+            transition: transform 0.3s ease;
+            cursor: grab;
+        }
+
+        .mini-carousel-track.dragging {
+            cursor: grabbing;
+            transition: none;
+        }
+
+        .mini-slide {
+            min-width: 200px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+            user-select: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Card carousel */
+        .card-carousel {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            border-radius: 15px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .card-carousel-track {
+            display: flex;
+            height: 100%;
+            transition: transform 0.3s ease;
+            cursor: grab;
+            padding: 1rem;
+            gap: 1rem;
+        }
+
+        .card-carousel-track.dragging {
+            cursor: grabbing;
+            transition: none;
+        }
+
+        .carousel-card {
+            min-width: 250px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 15px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            user-select: none;
+            transition: all 0.3s ease;
+        }
+
+        .carousel-card:hover {
+            border-color: var(--jazer-cyan);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            color: var(--jazer-pink);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* Controls */
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .controls-title {
+            font-size: 1.3rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-input {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .control-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .control-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Stats display */
+        .stats {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            display: block;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Back navigation */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 25px;
+            border: 1px solid var(--jazer-cyan);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .carousel {
+                height: 300px;
+            }
+            
+            .mini-slide {
+                min-width: 150px;
+            }
+            
+            .carousel-card {
+                min-width: 200px;
+            }
+            
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back navigation -->
+    <a href="index.html" class="back-button">← Back to Cursors</a>
+
+    <!-- Custom cursor -->
+    <div class="custom-cursor" id="customCursor">
+        <div class="cursor-default" id="cursorElement"></div>
+    </div>
+
+    <!-- Drag indicator -->
+    <div class="drag-indicator" id="dragIndicator">Dragging...</div>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">🎠 Drag Text Cursor on Carousel</h1>
+            <p class="subtitle">Custom cursor states for drag interactions with visual feedback and smooth carousel controls</p>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value" id="currentSlide">1</span>
+                    <span class="stat-label">Current Slide</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="dragStatus">Ready</span>
+                    <span class="stat-label">Drag Status</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="cursorState">Default</span>
+                    <span class="stat-label">Cursor State</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="dragDistance">0px</span>
+                    <span class="stat-label">Drag Distance</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <h2 class="controls-title">🎛️ Drag Controls</h2>
+            <div class="control-group">
+                <div class="control-item">
+                    <label class="control-label">Drag Sensitivity</label>
+                    <input type="range" class="control-slider" id="dragSensitivity" min="1" max="10" value="5">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Animation Speed</label>
+                    <input type="range" class="control-slider" id="animationSpeed" min="100" max="1000" value="300">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Snap Threshold</label>
+                    <input type="range" class="control-slider" id="snapThreshold" min="10" max="100" value="30">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Indicator Text</label>
+                    <input type="text" class="control-input" id="indicatorText" value="Dragging...">
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Carousel -->
+        <div class="carousel-container">
+            <h2 class="carousel-title">🎯 Main Carousel - Drag to Navigate</h2>
+            <div class="carousel" id="mainCarousel">
+                <div class="carousel-track" id="mainTrack">
+                    <div class="carousel-slide slide-1">
+                        <div class="slide-content">
+                            <div class="slide-number">01</div>
+                            <div class="slide-text">Drag to explore</div>
+                        </div>
+                    </div>
+                    <div class="carousel-slide slide-2">
+                        <div class="slide-content">
+                            <div class="slide-number">02</div>
+                            <div class="slide-text">Smooth transitions</div>
+                        </div>
+                    </div>
+                    <div class="carousel-slide slide-3">
+                        <div class="slide-content">
+                            <div class="slide-number">03</div>
+                            <div class="slide-text">Visual feedback</div>
+                        </div>
+                    </div>
+                    <div class="carousel-slide slide-4">
+                        <div class="slide-content">
+                            <div class="slide-number">04</div>
+                            <div class="slide-text">Touch friendly</div>
+                        </div>
+                    </div>
+                    <div class="carousel-slide slide-5">
+                        <div class="slide-content">
+                            <div class="slide-number">05</div>
+                            <div class="slide-text">Responsive design</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="carousel-controls">
+                <button class="carousel-btn" id="prevBtn">← Previous</button>
+                <button class="carousel-btn" id="nextBtn">Next →</button>
+            </div>
+            
+            <div class="carousel-indicators" id="indicators"></div>
+        </div>
+
+        <!-- Mini Carousel -->
+        <div class="carousel-container">
+            <h2 class="carousel-title">📱 Mini Carousel - Horizontal Drag</h2>
+            <div class="mini-carousel" id="miniCarousel">
+                <div class="mini-carousel-track" id="miniTrack">
+                    <div class="mini-slide">Item 1</div>
+                    <div class="mini-slide">Item 2</div>
+                    <div class="mini-slide">Item 3</div>
+                    <div class="mini-slide">Item 4</div>
+                    <div class="mini-slide">Item 5</div>
+                    <div class="mini-slide">Item 6</div>
+                    <div class="mini-slide">Item 7</div>
+                    <div class="mini-slide">Item 8</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Carousel -->
+        <div class="carousel-container">
+            <h2 class="carousel-title">🎴 Card Carousel - Smooth Drag</h2>
+            <div class="card-carousel" id="cardCarousel">
+                <div class="card-carousel-track" id="cardTrack">
+                    <div class="carousel-card">
+                        <div class="card-icon">🎨</div>
+                        <h3 class="card-title">Design</h3>
+                        <p class="card-description">Beautiful visual effects and smooth animations</p>
+                    </div>
+                    <div class="carousel-card">
+                        <div class="card-icon">⚡</div>
+                        <h3 class="card-title">Performance</h3>
+                        <p class="card-description">Optimized for 60fps interactions</p>
+                    </div>
+                    <div class="carousel-card">
+                        <div class="card-icon">🔧</div>
+                        <h3 class="card-title">Customizable</h3>
+                        <p class="card-description">Adjust settings to your preference</p>
+                    </div>
+                    <div class="carousel-card">
+                        <div class="card-icon">📱</div>
+                        <h3 class="card-title">Responsive</h3>
+                        <p class="card-description">Works on all device sizes</p>
+                    </div>
+                    <div class="carousel-card">
+                        <div class="card-icon">🎯</div>
+                        <h3 class="card-title">Precise</h3>
+                        <p class="card-description">Accurate drag controls</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        let config = {
+            dragSensitivity: 5,
+            animationSpeed: 300,
+            snapThreshold: 30,
+            indicatorText: 'Dragging...'
+        };
+
+        // State
+        let mouseX = 0, mouseY = 0;
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let dragDistance = 0;
+        let currentSlide = 0;
+        let cursorState = 'default';
+
+        // Carousel state
+        const carousels = {
+            main: {
+                element: null,
+                track: null,
+                currentIndex: 0,
+                totalSlides: 5,
+                slideWidth: 0,
+                startX: 0,
+                currentX: 0
+            },
+            mini: {
+                element: null,
+                track: null,
+                currentIndex: 0,
+                totalSlides: 8,
+                slideWidth: 200,
+                startX: 0,
+                currentX: 0
+            },
+            card: {
+                element: null,
+                track: null,
+                currentIndex: 0,
+                totalSlides: 5,
+                slideWidth: 266, // 250px + 16px gap
+                startX: 0,
+                currentX: 0
+            }
+        };
+
+        // Elements
+        const customCursor = document.getElementById('customCursor');
+        const cursorElement = document.getElementById('cursorElement');
+        const dragIndicator = document.getElementById('dragIndicator');
+        const currentSlideEl = document.getElementById('currentSlide');
+        const dragStatusEl = document.getElementById('dragStatus');
+        const cursorStateEl = document.getElementById('cursorState');
+        const dragDistanceEl = document.getElementById('dragDistance');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeCarousels();
+            setupEventListeners();
+            createIndicators();
+            updateStats();
+        });
+
+        // Initialize carousels
+        function initializeCarousels() {
+            // Main carousel
+            carousels.main.element = document.getElementById('mainCarousel');
+            carousels.main.track = document.getElementById('mainTrack');
+            carousels.main.slideWidth = carousels.main.element.offsetWidth;
+            
+            // Mini carousel
+            carousels.mini.element = document.getElementById('miniCarousel');
+            carousels.mini.track = document.getElementById('miniTrack');
+            
+            // Card carousel
+            carousels.card.element = document.getElementById('cardCarousel');
+            carousels.card.track = document.getElementById('cardTrack');
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Mouse events
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mousedown', handleMouseDown);
+            document.addEventListener('mouseup', handleMouseUp);
+            
+            // Carousel drag events
+            setupCarouselDrag('main');
+            setupCarouselDrag('mini');
+            setupCarouselDrag('card');
+            
+            // Control inputs
+            document.getElementById('dragSensitivity').addEventListener('input', (e) => {
+                config.dragSensitivity = parseInt(e.target.value);
+            });
+            
+            document.getElementById('animationSpeed').addEventListener('input', (e) => {
+                config.animationSpeed = parseInt(e.target.value);
+                updateAnimationSpeed();
+            });
+            
+            document.getElementById('snapThreshold').addEventListener('input', (e) => {
+                config.snapThreshold = parseInt(e.target.value);
+            });
+            
+            document.getElementById('indicatorText').addEventListener('input', (e) => {
+                config.indicatorText = e.target.value;
+                dragIndicator.textContent = config.indicatorText;
+            });
+
+            // Carousel controls
+            document.getElementById('prevBtn').addEventListener('click', () => {
+                navigateCarousel('main', -1);
+            });
+            
+            document.getElementById('nextBtn').addEventListener('click', () => {
+                navigateCarousel('main', 1);
+            });
+        }
+
+        // Setup carousel drag
+        function setupCarouselDrag(name) {
+            const carousel = carousels[name];
+            const track = carousel.track;
+            
+            track.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.carousel-card')) return;
+                
+                isDragging = true;
+                dragStartX = e.clientX;
+                carousel.startX = e.clientX;
+                carousel.currentX = carousel.currentIndex * carousel.slideWidth;
+                
+                track.classList.add('dragging');
+                updateCursorState('grabbing');
+                showDragIndicator(e.clientX, e.clientY);
+                
+                e.preventDefault();
+            });
+        }
+
+        // Handle mouse movement
+        function handleMouseMove(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Update custom cursor position
+            customCursor.style.left = mouseX + 'px';
+            customCursor.style.top = mouseY + 'px';
+            
+            // Update drag distance
+            if (isDragging) {
+                dragDistance = Math.abs(mouseX - dragStartX);
+                updateStats();
+                
+                // Update drag indicator position
+                dragIndicator.style.left = mouseX + 'px';
+                dragIndicator.style.top = (mouseY - 40) + 'px';
+                
+                // Update carousel positions
+                updateCarouselDrag();
+            }
+        }
+
+        // Handle mouse down
+        function handleMouseDown(e) {
+            if (!e.target.closest('.carousel-track')) {
+                updateCursorState('grab');
+            }
+        }
+
+        // Handle mouse up
+        function handleMouseUp(e) {
+            if (isDragging) {
+                isDragging = false;
+                dragDistance = 0;
+                
+                // Update all carousels
+                Object.keys(carousels).forEach(name => {
+                    const carousel = carousels[name];
+                    if (carousel.track.classList.contains('dragging')) {
+                        carousel.track.classList.remove('dragging');
+                        finalizeCarouselDrag(name);
+                    }
+                });
+                
+                updateCursorState('default');
+                hideDragIndicator();
+                updateStats();
+            } else {
+                updateCursorState('default');
+            }
+        }
+
+        // Update carousel drag
+        function updateCarouselDrag() {
+            Object.keys(carousels).forEach(name => {
+                const carousel = carousels[name];
+                if (carousel.track.classList.contains('dragging')) {
+                    const deltaX = mouseX - carousel.startX;
+                    const sensitivity = config.dragSensitivity / 5;
+                    const newX = carousel.currentX - (deltaX * sensitivity);
+                    
+                    carousel.track.style.transform = `translateX(-${newX}px)`;
+                }
+            });
+        }
+
+        // Finalize carousel drag
+        function finalizeCarouselDrag(name) {
+            const carousel = carousels[name];
+            const deltaX = mouseX - carousel.startX;
+            const threshold = config.snapThreshold;
+            
+            // Determine slide change
+            if (Math.abs(deltaX) > threshold) {
+                const direction = deltaX > 0 ? -1 : 1;
+                navigateCarousel(name, direction);
+            } else {
+                // Snap back to current position
+                updateCarouselPosition(name);
+            }
+        }
+
+        // Navigate carousel
+        function navigateCarousel(name, direction) {
+            const carousel = carousels[name];
+            const newIndex = Math.max(0, Math.min(carousel.totalSlides - 1, carousel.currentIndex + direction));
+            
+            if (newIndex !== carousel.currentIndex) {
+                carousel.currentIndex = newIndex;
+                updateCarouselPosition(name);
+                
+                if (name === 'main') {
+                    currentSlide = newIndex + 1;
+                    updateIndicators();
+                    updateStats();
+                }
+            }
+        }
+
+        // Update carousel position
+        function updateCarouselPosition(name) {
+            const carousel = carousels[name];
+            const position = carousel.currentIndex * carousel.slideWidth;
+            carousel.track.style.transform = `translateX(-${position}px)`;
+            carousel.track.style.transition = `transform ${config.animationSpeed}ms ease`;
+            
+            // Remove transition after animation
+            setTimeout(() => {
+                carousel.track.style.transition = '';
+            }, config.animationSpeed);
+        }
+
+        // Update animation speed
+        function updateAnimationSpeed() {
+            Object.keys(carousels).forEach(name => {
+                const carousel = carousels[name];
+                carousel.track.style.transition = `transform ${config.animationSpeed}ms ease`;
+            });
+        }
+
+        // Create indicators
+        function createIndicators() {
+            const indicatorsContainer = document.getElementById('indicators');
+            const totalSlides = carousels.main.totalSlides;
+            
+            for (let i = 0; i < totalSlides; i++) {
+                const indicator = document.createElement('div');
+                indicator.className = 'indicator';
+                if (i === 0) indicator.classList.add('active');
+                indicator.addEventListener('click', () => {
+                    carousels.main.currentIndex = i;
+                    currentSlide = i + 1;
+                    updateCarouselPosition('main');
+                    updateIndicators();
+                    updateStats();
+                });
+                indicatorsContainer.appendChild(indicator);
+            }
+        }
+
+        // Update indicators
+        function updateIndicators() {
+            const indicators = document.querySelectorAll('.indicator');
+            indicators.forEach((indicator, index) => {
+                indicator.classList.toggle('active', index === carousels.main.currentIndex);
+            });
+        }
+
+        // Update cursor state
+        function updateCursorState(state) {
+            cursorState = state;
+            cursorElement.className = `cursor-${state}`;
+            updateStats();
+        }
+
+        // Show drag indicator
+        function showDragIndicator(x, y) {
+            dragIndicator.textContent = config.indicatorText;
+            dragIndicator.style.left = x + 'px';
+            dragIndicator.style.top = (y - 40) + 'px';
+            dragIndicator.classList.add('visible');
+        }
+
+        // Hide drag indicator
+        function hideDragIndicator() {
+            dragIndicator.classList.remove('visible');
+        }
+
+        // Update stats display
+        function updateStats() {
+            currentSlideEl.textContent = currentSlide;
+            dragStatusEl.textContent = isDragging ? 'Dragging' : 'Ready';
+            cursorStateEl.textContent = cursorState.charAt(0).toUpperCase() + cursorState.slice(1);
+            dragDistanceEl.textContent = Math.round(dragDistance) + 'px';
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            // Update main carousel slide width
+            carousels.main.slideWidth = carousels.main.element.offsetWidth;
+            updateCarouselPosition('main');
+        });
+
+        // Hide default cursor on leave
+        document.addEventListener('mouseleave', () => {
+            customCursor.style.display = 'none';
+            hideDragIndicator();
+        });
+
+        document.addEventListener('mouseenter', () => {
+            customCursor.style.display = 'block';
+        });
+    </script>
+</body>
+</html>

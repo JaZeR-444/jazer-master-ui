@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Noise Cancellation - JaZeR Components</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+      color: var(--text-light);
+      min-height: 100vh;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Back Button */
+    .back-button {
+      align-self: flex-start;
+      padding: 0.75rem 1.5rem;
+      background: transparent;
+      border: 2px solid var(--jazer-cyan);
+      border-radius: 10px;
+      color: var(--jazer-cyan);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      font-size: 0.875rem;
+      transition: all 0.3s ease;
+      margin-bottom: 2rem;
+    }
+
+    .back-button:hover {
+      background: var(--jazer-cyan);
+      color: var(--bg-dark);
+      transform: translateX(-5px);
+      box-shadow: 0 0 20px rgba(0, 242, 234, 0.5);
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .header h1 {
+      font-family: var(--font-secondary);
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      color: var(--text-gray);
+      font-size: 1rem;
+    }
+
+    /* Container */
+    .container {
+      width: 100%;
+      max-width: 800px;
+    }
+
+    /* Noise Cancellation Card */
+    .noise-cancellation {
+      background: rgba(10, 10, 10, 0.8);
+      border: 2px solid var(--border-default);
+      border-radius: 20px;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    .noise-cancellation::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(147, 51, 234, 0.1) 0%, transparent 70%);
+      animation: rotate 15s linear infinite;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .noise-cancellation.active {
+      border-color: var(--jazer-cyan);
+      box-shadow: 0 0 40px rgba(0, 242, 234, 0.3);
+    }
+
+    .noise-cancellation.active::before {
+      opacity: 1;
+    }
+
+    /* Header Section */
+    .nc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .nc-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .nc-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 15px;
+      background: linear-gradient(135deg, var(--jazer-purple), var(--jazer-cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      position: relative;
+      box-shadow: 0 5px 25px rgba(147, 51, 234, 0.4);
+    }
+
+    .noise-cancellation.active .nc-icon {
+      animation: iconPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes iconPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 5px 25px rgba(147, 51, 234, 0.4); }
+      50% { transform: scale(1.05); box-shadow: 0 10px 40px rgba(0, 242, 234, 0.6); }
+    }
+
+    .nc-title-group h2 {
+      font-family: var(--font-secondary);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-light);
+      margin-bottom: 0.25rem;
+    }
+
+    .nc-title-group p {
+      font-size: 0.9375rem;
+      color: var(--text-gray);
+    }
+
+    /* Status Badge */
+    .status-badge {
+      padding: 0.625rem 1.25rem;
+      border-radius: 25px;
+      font-family: var(--font-secondary);
+      font-size: 0.8125rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(255, 0, 110, 0.15);
+      border: 2px solid var(--jazer-pink);
+      color: var(--jazer-pink);
+      transition: all 0.3s ease;
+    }
+
+    .noise-cancellation.active .status-badge {
+      background: rgba(0, 242, 234, 0.15);
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: 0 0 20px rgba(0, 242, 234, 0.3);
+    }
+
+    /* Toggle Switch */
+    .toggle-switch {
+      width: 70px;
+      height: 36px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      border: 2px solid var(--border-default);
+      position: relative;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 28px;
+      height: 28px;
+      background: var(--text-gray);
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .noise-cancellation.active .toggle-switch {
+      background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+      border-color: var(--jazer-cyan);
+      box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+    }
+
+    .noise-cancellation.active .toggle-slider {
+      left: 36px;
+      background: white;
+      box-shadow: 0 0 15px rgba(0, 242, 234, 0.6);
+    }
+
+    /* Visualization Card */
+    .visualization-card {
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid var(--border-default);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      position: relative;
+      z-index: 1;
+      transition: all 0.3s ease;
+    }
+
+    .noise-cancellation.active .visualization-card {
+      border-color: var(--jazer-cyan);
+      background: rgba(0, 242, 234, 0.03);
+    }
+
+    /* Wave Display */
+    .wave-section {
+      margin-bottom: 2rem;
+    }
+
+    .wave-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .wave-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .wave-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text-light);
+    }
+
+    .wave-icon {
+      font-size: 1.25rem;
+    }
+
+    .wave-value {
+      font-family: var(--font-secondary);
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--jazer-cyan);
+    }
+
+    /* Wave Bars */
+    .wave-bars {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 60px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      padding: 0.5rem;
+    }
+
+    .wave-bar {
+      flex: 1;
+      background: var(--gradient-accent);
+      border-radius: 3px;
+      transition: all 0.3s ease;
+      opacity: 0.6;
+    }
+
+    .noise-cancellation.active .wave-input .wave-bar {
+      animation: inputWave 1.2s ease-in-out infinite;
+    }
+
+    .noise-cancellation.active .wave-output .wave-bar {
+      animation: outputWave 1.2s ease-in-out infinite;
+      background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+    }
+
+    @keyframes inputWave {
+      0%, 100% { height: 50%; opacity: 0.6; }
+      50% { height: 90%; opacity: 1; }
+    }
+
+    @keyframes outputWave {
+      0%, 100% { height: 25%; opacity: 0.7; }
+      50% { height: 45%; opacity: 1; }
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-card {
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid var(--border-default);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .noise-cancellation.active .stat-card {
+      border-color: var(--jazer-cyan);
+      background: rgba(0, 242, 234, 0.05);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0, 242, 234, 0.2);
+    }
+
+    .stat-icon {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .stat-value {
+      font-family: var(--font-secondary);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-light);
+      margin-bottom: 0.25rem;
+    }
+
+    .noise-cancellation.active .stat-value {
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 0.8125rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 768px) {
+      .nc-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to AI & Voice Interactions</a>
+
+  <div class="header">
+    <h1>Voice Noise Cancellation</h1>
+    <p>Advanced AI-powered noise filtering for crystal-clear audio</p>
+  </div>
+
+  <div class="container">
+    <div class="noise-cancellation" id="noiseCancel">
+      <div class="nc-header">
+        <div class="nc-info">
+          <div class="nc-icon">🎧</div>
+          <div class="nc-title-group">
+            <h2>Noise Cancellation</h2>
+            <p>AI-Powered Filtering</p>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <span class="status-badge" id="statusBadge">Inactive</span>
+          <div class="toggle-switch" id="toggleSwitch">
+            <div class="toggle-slider"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="visualization-card">
+        <div class="wave-section wave-input">
+          <div class="wave-header">
+            <div class="wave-label">
+              <span class="wave-icon">🎤</span>
+              <span>Input Signal</span>
+            </div>
+            <div class="wave-value" id="inputDb">-32 dB</div>
+          </div>
+          <div class="wave-bars" id="inputBars"></div>
+        </div>
+
+        <div style="height: 2rem; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1;">
+          <div style="font-size: 1.5rem; opacity: 0.5;">↓</div>
+        </div>
+
+        <div class="wave-section wave-output">
+          <div class="wave-header">
+            <div class="wave-label">
+              <span class="wave-icon">✨</span>
+              <span>Clean Output</span>
+            </div>
+            <div class="wave-value" id="outputDb">-12 dB</div>
+          </div>
+          <div class="wave-bars" id="outputBars"></div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <div class="stat-value" id="reduction">0%</div>
+          <div class="stat-label">Noise Reduction</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⚡</div>
+          <div class="stat-value" id="latency">0ms</div>
+          <div class="stat-label">Latency</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🎯</div>
+          <div class="stat-value" id="quality">--</div>
+          <div class="stat-label">Audio Quality</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const noiseCancel = document.getElementById('noiseCancel');
+    const toggleSwitch = document.getElementById('toggleSwitch');
+    const statusBadge = document.getElementById('statusBadge');
+    const inputBars = document.getElementById('inputBars');
+    const outputBars = document.getElementById('outputBars');
+    const reductionEl = document.getElementById('reduction');
+    const latencyEl = document.getElementById('latency');
+    const qualityEl = document.getElementById('quality');
+
+    let isActive = false;
+
+    // Generate wave bars
+    function generateBars(container, count) {
+      container.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'wave-bar';
+        const height = Math.random() * 50 + 30;
+        bar.style.height = `${height}%`;
+        bar.style.animationDelay = `${i * 0.08}s`;
+        container.appendChild(bar);
+      }
+    }
+
+    generateBars(inputBars, 40);
+    generateBars(outputBars, 40);
+
+    // Toggle functionality
+    toggleSwitch.addEventListener('click', () => {
+      isActive = !isActive;
+      
+      if (isActive) {
+        noiseCancel.classList.add('active');
+        statusBadge.textContent = 'Active';
+        reductionEl.textContent = '87%';
+        latencyEl.textContent = '8ms';
+        qualityEl.textContent = 'HD';
+      } else {
+        noiseCancel.classList.remove('active');
+        statusBadge.textContent = 'Inactive';
+        reductionEl.textContent = '0%';
+        latencyEl.textContent = '0ms';
+        qualityEl.textContent = '--';
+      }
+    });
+
+    // Simulate dynamic values when active
+    setInterval(() => {
+      if (isActive) {
+        const reduction = 84 + Math.floor(Math.random() * 6);
+        const latency = 7 + Math.floor(Math.random() * 3);
+        reductionEl.textContent = `${reduction}%`;
+        latencyEl.textContent = `${latency}ms`;
+      }
+    }, 2000);
+  </script>
+</body>
+</html>

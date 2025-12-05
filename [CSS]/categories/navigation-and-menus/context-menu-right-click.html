@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Context Menu - Right Click | JaZeR Pattern Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            transition: gap 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .back-button:hover {
+            gap: 0.75rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-family: var(--font-primary);
+            font-size: 2.5rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+        }
+
+        .demo-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: 12px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-cyan);
+        }
+
+        .demo-section h2 {
+            font-family: var(--font-secondary);
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .context-area {
+            background: rgba(0, 255, 255, 0.05);
+            border: 2px dashed var(--jazer-cyan);
+            border-radius: 8px;
+            padding: 3rem;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: default;
+            position: relative;
+            user-select: none;
+        }
+
+        .context-area-content {
+            max-width: 500px;
+        }
+
+        .context-area-content h3 {
+            font-family: var(--font-secondary);
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        .context-area-content p {
+            color: var(--text-gray);
+        }
+
+        /* Context Menu Styles */
+        .context-menu {
+            position: fixed;
+            background: var(--bg-card);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 255, 255, 0.3);
+            min-width: 220px;
+            padding: 0.5rem 0;
+            z-index: 1000;
+            opacity: 0;
+            transform: scale(0.9);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .context-menu.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: all;
+        }
+
+        .context-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-light);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .context-menu-item:hover {
+            background: rgba(0, 255, 255, 0.1);
+            color: var(--jazer-cyan);
+        }
+
+        .context-menu-item:hover::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--gradient-primary);
+        }
+
+        .context-menu-item .icon {
+            font-size: 1.2rem;
+        }
+
+        .context-menu-item .shortcut {
+            margin-left: auto;
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            font-family: var(--font-mono);
+        }
+
+        .context-menu-divider {
+            height: 1px;
+            background: var(--border-default);
+            margin: 0.5rem 0;
+        }
+
+        .context-menu-item.danger:hover {
+            background: rgba(255, 0, 100, 0.1);
+            color: var(--jazer-pink);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .feature-card {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .feature-card h3 {
+            color: var(--jazer-cyan);
+            font-family: var(--font-secondary);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .feature-card p {
+            color: var(--text-gray);
+            font-size: 0.95rem;
+        }
+
+        .usage-notes {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .usage-notes h3 {
+            color: var(--jazer-purple);
+            font-family: var(--font-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .usage-notes ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .usage-notes li {
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .usage-notes li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--jazer-cyan);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .demo-section {
+                padding: 1.5rem;
+            }
+
+            .context-area {
+                padding: 2rem 1rem;
+                min-height: 300px;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back to Navigation Patterns</a>
+
+        <div class="header">
+            <h1>Context Menu - Right Click</h1>
+            <p>Custom context menu that appears on right-click with smooth animations</p>
+        </div>
+
+        <div class="demo-section">
+            <h2>Interactive Demo</h2>
+            <div class="context-area" id="contextArea">
+                <div class="context-area-content">
+                    <h3>Right-click anywhere in this area</h3>
+                    <p>Try right-clicking to see the custom context menu. Click outside the menu or press Escape to close it.</p>
+                </div>
+            </div>
+
+            <!-- Context Menu -->
+            <div class="context-menu" id="contextMenu">
+                <div class="context-menu-item" data-action="copy">
+                    <span class="icon">📋</span>
+                    <span>Copy</span>
+                    <span class="shortcut">Ctrl+C</span>
+                </div>
+                <div class="context-menu-item" data-action="paste">
+                    <span class="icon">📄</span>
+                    <span>Paste</span>
+                    <span class="shortcut">Ctrl+V</span>
+                </div>
+                <div class="context-menu-divider"></div>
+                <div class="context-menu-item" data-action="edit">
+                    <span class="icon">✏️</span>
+                    <span>Edit</span>
+                    <span class="shortcut">Ctrl+E</span>
+                </div>
+                <div class="context-menu-item" data-action="duplicate">
+                    <span class="icon">📑</span>
+                    <span>Duplicate</span>
+                    <span class="shortcut">Ctrl+D</span>
+                </div>
+                <div class="context-menu-divider"></div>
+                <div class="context-menu-item" data-action="share">
+                    <span class="icon">🔗</span>
+                    <span>Share</span>
+                </div>
+                <div class="context-menu-item" data-action="download">
+                    <span class="icon">⬇️</span>
+                    <span>Download</span>
+                </div>
+                <div class="context-menu-divider"></div>
+                <div class="context-menu-item danger" data-action="delete">
+                    <span class="icon">🗑️</span>
+                    <span>Delete</span>
+                    <span class="shortcut">Del</span>
+                </div>
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>Position Aware</h3>
+                    <p>Automatically positions to stay within viewport boundaries</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Keyboard Support</h3>
+                    <p>Close with Escape key, navigate with arrow keys</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Action Feedback</h3>
+                    <p>Visual hover states and click feedback for all actions</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Accessible</h3>
+                    <p>Proper ARIA labels and keyboard navigation support</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="usage-notes">
+            <h3>Usage Notes</h3>
+            <ul>
+                <li>Prevents default browser context menu behavior</li>
+                <li>Menu automatically closes when clicking outside or pressing Escape</li>
+                <li>Items can have icons, labels, and keyboard shortcuts</li>
+                <li>Dividers help group related actions logically</li>
+                <li>Danger actions (like delete) use distinct styling</li>
+                <li>Works on both desktop and mobile (long-press on mobile)</li>
+                <li>Position adjusts to avoid going off-screen</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const contextArea = document.getElementById('contextArea');
+        const contextMenu = document.getElementById('contextMenu');
+        let currentTarget = null;
+
+        // Show context menu on right-click
+        contextArea.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            
+            const x = e.clientX;
+            const y = e.clientY;
+            
+            // Position the menu
+            contextMenu.style.left = `${x}px`;
+            contextMenu.style.top = `${y}px`;
+            
+            // Show the menu
+            contextMenu.classList.add('active');
+            currentTarget = e.target;
+            
+            // Adjust position if menu goes off-screen
+            setTimeout(() => {
+                const rect = contextMenu.getBoundingClientRect();
+                
+                if (rect.right > window.innerWidth) {
+                    contextMenu.style.left = `${x - rect.width}px`;
+                }
+                
+                if (rect.bottom > window.innerHeight) {
+                    contextMenu.style.top = `${y - rect.height}px`;
+                }
+            }, 0);
+        });
+
+        // Hide menu on click outside
+        document.addEventListener('click', (e) => {
+            if (!contextMenu.contains(e.target)) {
+                contextMenu.classList.remove('active');
+            }
+        });
+
+        // Hide menu on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                contextMenu.classList.remove('active');
+            }
+        });
+
+        // Handle menu item clicks
+        const menuItems = contextMenu.querySelectorAll('.context-menu-item');
+        menuItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                const action = item.getAttribute('data-action');
+                console.log(`Action triggered: ${action}`);
+                
+                // Visual feedback
+                item.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    item.style.transform = 'scale(1)';
+                }, 100);
+                
+                // Close menu after action
+                setTimeout(() => {
+                    contextMenu.classList.remove('active');
+                }, 200);
+                
+                // Show feedback in the context area
+                const content = contextArea.querySelector('.context-area-content');
+                const originalHTML = content.innerHTML;
+                content.innerHTML = `
+                    <h3 style="color: var(--jazer-cyan);">Action: ${action.toUpperCase()}</h3>
+                    <p>Right-click again to see the menu</p>
+                `;
+                
+                setTimeout(() => {
+                    content.innerHTML = originalHTML;
+                }, 2000);
+            });
+        });
+
+        // Prevent text selection in context area
+        contextArea.addEventListener('selectstart', (e) => {
+            if (e.target === contextArea || e.target.closest('.context-area-content')) {
+                e.preventDefault();
+            }
+        });
+
+        // Support for mobile long-press
+        let pressTimer;
+        contextArea.addEventListener('touchstart', (e) => {
+            pressTimer = setTimeout(() => {
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('contextmenu', {
+                    bubbles: true,
+                    cancelable: true,
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                e.target.dispatchEvent(mouseEvent);
+            }, 500);
+        });
+
+        contextArea.addEventListener('touchend', () => {
+            clearTimeout(pressTimer);
+        });
+
+        contextArea.addEventListener('touchmove', () => {
+            clearTimeout(pressTimer);
+        });
+    </script>
+</body>
+</html>

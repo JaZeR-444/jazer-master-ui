@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor Squish on Click - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a, #1a0a2a, #0a1a2a);
+            font-family: var(--font-body);
+            color: #fff;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Hide default cursor */
+        * {
+            cursor: none !important;
+        }
+
+        /* Custom cursor */
+        .custom-cursor {
+            position: fixed;
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease;
+            box-shadow: 0 0 20px var(--jazer-cyan), 0 0 40px var(--jazer-purple);
+        }
+
+        .custom-cursor.squishing {
+            animation: squish 0.4s ease-out;
+        }
+
+        @keyframes squish {
+            0% {
+                transform: translate(-50%, -50%) scale(1, 1);
+            }
+            30% {
+                transform: translate(-50%, -50%) scale(0.6, 1.4);
+            }
+            60% {
+                transform: translate(-50%, -50%) scale(1.3, 0.7);
+            }
+            80% {
+                transform: translate(-50%, -50%) scale(0.9, 1.1);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1, 1);
+            }
+        }
+
+        /* Ripple effect */
+        .ripple {
+            position: fixed;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            animation: rippleExpand 0.6s ease-out forwards;
+        }
+
+        @keyframes rippleExpand {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 1;
+            }
+            100% {
+                width: 100px;
+                height: 100px;
+                opacity: 0;
+            }
+        }
+
+        /* Content area */
+        .content {
+            position: relative;
+            z-index: 1;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+
+        /* Demo area */
+        .demo-area {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-title {
+            font-size: 1.5rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        /* Interactive elements */
+        .interactive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .interactive-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .interactive-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .interactive-card:hover::before {
+            left: 100%;
+        }
+
+        .interactive-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            color: var(--jazer-pink);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* Clickable buttons */
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .squish-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, var(--jazer-purple), var(--jazer-pink));
+            border: none;
+            border-radius: 25px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .squish-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 0, 255, 0.3);
+        }
+
+        .squish-btn:active {
+            transform: translateY(0);
+        }
+
+        .squish-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--jazer-cyan);
+        }
+
+        .squish-btn.secondary:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+        }
+
+        /* Controls */
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .controls-title {
+            font-size: 1.3rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-input {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .control-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+        }
+
+        .control-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+            border: none;
+        }
+
+        .color-picker {
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: none;
+        }
+
+        /* Stats display */
+        .stats {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            display: block;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Squish variations */
+        .squish-variation {
+            display: inline-block;
+            margin: 1rem;
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 10px;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .squish-variation:hover {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 255, 255, 0.1);
+        }
+
+        /* Back navigation */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 25px;
+            border: 1px solid var(--jazer-cyan);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .interactive-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back navigation -->
+    <a href="index.html" class="back-button">← Back to Cursors</a>
+
+    <!-- Custom cursor -->
+    <div class="custom-cursor" id="customCursor"></div>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">🎯 Cursor Squish on Click</h1>
+            <p class="subtitle">Elastic squish animations that respond to mouse clicks with spring physics and customizable effects</p>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value" id="clickCount">0</span>
+                    <span class="stat-label">Total Clicks</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="squishIntensity">Medium</span>
+                    <span class="stat-label">Squish Intensity</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="animationDuration">0.4s</span>
+                    <span class="stat-label">Animation Duration</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="rippleEnabled">On</span>
+                    <span class="stat-label">Ripple Effect</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <h2 class="controls-title">🎛️ Squish Controls</h2>
+            <div class="control-group">
+                <div class="control-item">
+                    <label class="control-label">Cursor Size</label>
+                    <input type="range" class="control-slider" id="cursorSize" min="16" max="48" value="24">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Squish Intensity</label>
+                    <input type="range" class="control-slider" id="squishIntensity" min="1" max="10" value="5">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Animation Duration</label>
+                    <input type="range" class="control-slider" id="animationDuration" min="200" max="1000" value="400">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Ripple Size</label>
+                    <input type="range" class="control-slider" id="rippleSize" min="50" max="200" value="100">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Primary Color</label>
+                    <input type="color" class="color-picker" id="primaryColor" value="#00ffff">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Secondary Color</label>
+                    <input type="color" class="color-picker" id="secondaryColor" value="#ff00ff">
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Area -->
+        <div class="demo-area">
+            <h2 class="demo-title">🎮 Click Anywhere to Squish!</h2>
+            
+            <!-- Interactive cards -->
+            <div class="interactive-grid">
+                <div class="interactive-card">
+                    <span class="card-icon">🎨</span>
+                    <h3 class="card-title">Visual Feedback</h3>
+                    <p class="card-description">Click anywhere to see the cursor squish with elastic animations and ripple effects</p>
+                </div>
+                <div class="interactive-card">
+                    <span class="card-icon">⚡</span>
+                    <h3 class="card-title">Spring Physics</h3>
+                    <p class="card-description">Realistic spring-based animations with customizable intensity and duration</p>
+                </div>
+                <div class="interactive-card">
+                    <span class="card-icon">🔧</span>
+                    <h3 class="card-title">Fully Customizable</h3>
+                    <p class="card-description">Adjust size, colors, intensity, and animation timing to your preference</p>
+                </div>
+            </div>
+
+            <!-- Clickable buttons -->
+            <h3 style="color: var(--jazer-pink); text-align: center; margin: 2rem 0;">Interactive Elements</h3>
+            <div class="button-grid">
+                <button class="squish-btn">Primary Button</button>
+                <button class="squish-btn secondary">Secondary Button</button>
+                <button class="squish-btn">Click Me!</button>
+                <button class="squish-btn secondary">Another Action</button>
+            </div>
+
+            <!-- Squish variations -->
+            <h3 style="color: var(--jazer-pink); text-align: center; margin: 2rem 0;">Different Elements</h3>
+            <div style="text-align: center;">
+                <a href="#" class="squish-variation">Link Element</a>
+                <a href="#" class="squish-variation">Another Link</a>
+                <a href="#" class="squish-variation">Third Link</a>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="text-align: center; margin-top: 2rem;">
+            <button class="squish-btn" id="toggleRipple">Toggle Ripple</button>
+            <button class="squish-btn secondary" id="resetSettings">Reset Settings</button>
+            <button class="squish-btn secondary" id="randomizeColors">Randomize Colors</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        let config = {
+            cursorSize: 24,
+            squishIntensity: 5,
+            animationDuration: 400,
+            rippleSize: 100,
+            primaryColor: '#00ffff',
+            secondaryColor: '#ff00ff',
+            rippleEnabled: true
+        };
+
+        // State
+        let clickCount = 0;
+        let isSquishing = false;
+
+        // Elements
+        const customCursor = document.getElementById('customCursor');
+        const clickCountEl = document.getElementById('clickCount');
+        const squishIntensityEl = document.getElementById('squishIntensity');
+        const animationDurationEl = document.getElementById('animationDuration');
+        const rippleEnabledEl = document.getElementById('rippleEnabled');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            updateCursorStyles();
+            updateStats();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Mouse movement
+            document.addEventListener('mousemove', (e) => {
+                customCursor.style.left = e.clientX + 'px';
+                customCursor.style.top = e.clientY + 'px';
+            });
+
+            // Click events
+            document.addEventListener('click', handleClick);
+            document.addEventListener('mousedown', handleMouseDown);
+            document.addEventListener('mouseup', handleMouseUp);
+
+            // Control inputs
+            document.getElementById('cursorSize').addEventListener('input', (e) => {
+                config.cursorSize = parseInt(e.target.value);
+                updateCursorStyles();
+            });
+            
+            document.getElementById('squishIntensity').addEventListener('input', (e) => {
+                config.squishIntensity = parseInt(e.target.value);
+                updateSquishAnimation();
+                updateStats();
+            });
+            
+            document.getElementById('animationDuration').addEventListener('input', (e) => {
+                config.animationDuration = parseInt(e.target.value);
+                updateSquishAnimation();
+                updateStats();
+            });
+            
+            document.getElementById('rippleSize').addEventListener('input', (e) => {
+                config.rippleSize = parseInt(e.target.value);
+            });
+            
+            document.getElementById('primaryColor').addEventListener('input', (e) => {
+                config.primaryColor = e.target.value;
+                updateCursorStyles();
+            });
+            
+            document.getElementById('secondaryColor').addEventListener('input', (e) => {
+                config.secondaryColor = e.target.value;
+                updateCursorStyles();
+            });
+
+            // Action buttons
+            document.getElementById('toggleRipple').addEventListener('click', toggleRipple);
+            document.getElementById('resetSettings').addEventListener('click', resetSettings);
+            document.getElementById('randomizeColors').addEventListener('click', randomizeColors);
+        }
+
+        // Handle click
+        function handleClick(e) {
+            // Prevent squish on action buttons
+            if (e.target.closest('.squish-btn') || e.target.closest('.back-button')) {
+                return;
+            }
+
+            performSquish(e.clientX, e.clientY);
+            clickCount++;
+            updateStats();
+        }
+
+        // Handle mouse down
+        function handleMouseDown(e) {
+            if (!isSquishing) {
+                performSquish(e.clientX, e.clientY);
+            }
+        }
+
+        // Handle mouse up
+        function handleMouseUp(e) {
+            // Additional effects can be added here
+        }
+
+        // Perform squish animation
+        function performSquish(x, y) {
+            if (isSquishing) return;
+            
+            isSquishing = true;
+            customCursor.classList.add('squishing');
+            
+            // Create ripple effect
+            if (config.rippleEnabled) {
+                createRipple(x, y);
+            }
+            
+            // Remove squish class after animation
+            setTimeout(() => {
+                customCursor.classList.remove('squishing');
+                isSquishing = false;
+            }, config.animationDuration);
+        }
+
+        // Create ripple effect
+        function createRipple(x, y) {
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            ripple.style.left = (x - config.rippleSize / 2) + 'px';
+            ripple.style.top = (y - config.rippleSize / 2) + 'px';
+            ripple.style.borderColor = config.primaryColor;
+            
+            document.body.appendChild(ripple);
+            
+            // Remove ripple after animation
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        }
+
+        // Update cursor styles
+        function updateCursorStyles() {
+            customCursor.style.width = config.cursorSize + 'px';
+            customCursor.style.height = config.cursorSize + 'px';
+            customCursor.style.background = `radial-gradient(circle, ${config.primaryColor}, ${config.secondaryColor})`;
+            customCursor.style.boxShadow = `0 0 20px ${config.primaryColor}, 0 0 40px ${config.secondaryColor}`;
+        }
+
+        // Update squish animation
+        function updateSquishAnimation() {
+            const intensity = config.squishIntensity / 10;
+            const duration = config.animationDuration + 'ms';
+            
+            // Create dynamic keyframes
+            const styleSheet = document.createElement('style');
+            styleSheet.textContent = `
+                @keyframes squish {
+                    0% {
+                        transform: translate(-50%, -50%) scale(1, 1);
+                    }
+                    30% {
+                        transform: translate(-50%, -50%) scale(${0.6 + intensity * 0.2}, ${1.4 - intensity * 0.2});
+                    }
+                    60% {
+                        transform: translate(-50%, -50%) scale(${1.3 - intensity * 0.2}, ${0.7 + intensity * 0.2});
+                    }
+                    80% {
+                        transform: translate(-50%, -50%) scale(${0.9 + intensity * 0.1}, ${1.1 - intensity * 0.1});
+                    }
+                    100% {
+                        transform: translate(-50%, -50%) scale(1, 1);
+                    }
+                }
+                
+                .custom-cursor.squishing {
+                    animation: squish ${duration} ease-out;
+                }
+            `;
+            
+            // Remove old style and add new one
+            const oldStyle = document.querySelector('style[data-squish]');
+            if (oldStyle) oldStyle.remove();
+            styleSheet.setAttribute('data-squish', 'true');
+            document.head.appendChild(styleSheet);
+        }
+
+        // Update stats display
+        function updateStats() {
+            clickCountEl.textContent = clickCount;
+            
+            const intensityLabels = ['Very Low', 'Low', 'Medium-Low', 'Medium', 'Medium-High', 'High', 'Very High', 'Extreme', 'Maximum', 'Insane'];
+            squishIntensityEl.textContent = intensityLabels[config.squishIntensity - 1] || 'Custom';
+            
+            animationDurationEl.textContent = (config.animationDuration / 1000).toFixed(1) + 's';
+            rippleEnabledEl.textContent = config.rippleEnabled ? 'On' : 'Off';
+        }
+
+        // Toggle ripple effect
+        function toggleRipple() {
+            config.rippleEnabled = !config.rippleEnabled;
+            updateStats();
+        }
+
+        // Reset settings
+        function resetSettings() {
+            config = {
+                cursorSize: 24,
+                squishIntensity: 5,
+                animationDuration: 400,
+                rippleSize: 100,
+                primaryColor: '#00ffff',
+                secondaryColor: '#ff00ff',
+                rippleEnabled: true
+            };
+            
+            // Update UI controls
+            document.getElementById('cursorSize').value = config.cursorSize;
+            document.getElementById('squishIntensity').value = config.squishIntensity;
+            document.getElementById('animationDuration').value = config.animationDuration;
+            document.getElementById('rippleSize').value = config.rippleSize;
+            document.getElementById('primaryColor').value = config.primaryColor;
+            document.getElementById('secondaryColor').value = config.secondaryColor;
+            
+            updateCursorStyles();
+            updateSquishAnimation();
+            updateStats();
+        }
+
+        // Randomize colors
+        function randomizeColors() {
+            const randomColor = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            config.primaryColor = randomColor();
+            config.secondaryColor = randomColor();
+            
+            document.getElementById('primaryColor').value = config.primaryColor;
+            document.getElementById('secondaryColor').value = config.secondaryColor;
+            
+            updateCursorStyles();
+        }
+
+        // Hide default cursor on leave
+        document.addEventListener('mouseleave', () => {
+            customCursor.style.display = 'none';
+        });
+
+        document.addEventListener('mouseenter', () => {
+            customCursor.style.display = 'block';
+        });
+    </script>
+</body>
+</html>

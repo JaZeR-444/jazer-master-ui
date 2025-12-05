@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Fallback Message - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+        }
+
+        h1 {
+            font-family: var(--font-primary);
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        /* Demo Container */
+        .demo-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        /* Fallback Message Card */
+        .fallback-card {
+            position: relative;
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .fallback-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .fallback-card:hover {
+            border-color: var(--jazer-pink);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 0, 110, 0.3);
+        }
+
+        /* Card Header */
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .error-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .error-icon::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            padding: 2px;
+            background: var(--gradient-accent);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: rotate-border 3s linear infinite;
+        }
+
+        .error-icon.critical {
+            background: rgba(255, 0, 110, 0.15);
+            color: var(--jazer-pink);
+        }
+
+        .error-icon.warning {
+            background: rgba(255, 190, 11, 0.15);
+            color: var(--jazer-yellow);
+        }
+
+        .error-icon.info {
+            background: rgba(0, 242, 234, 0.15);
+            color: var(--jazer-cyan);
+        }
+
+        .header-content {
+            flex: 1;
+        }
+
+        .error-title {
+            font-family: var(--font-secondary);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .error-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .error-badge.critical {
+            background: rgba(255, 0, 110, 0.2);
+            color: var(--jazer-pink);
+            border: 1px solid rgba(255, 0, 110, 0.3);
+        }
+
+        .error-badge.warning {
+            background: rgba(255, 190, 11, 0.2);
+            color: var(--jazer-yellow);
+            border: 1px solid rgba(255, 190, 11, 0.3);
+        }
+
+        .error-badge.info {
+            background: rgba(0, 242, 234, 0.2);
+            color: var(--jazer-cyan);
+            border: 1px solid rgba(0, 242, 234, 0.3);
+        }
+
+        .error-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+        }
+
+        /* Card Body */
+        .card-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .error-message {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .error-details {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            overflow-x: auto;
+        }
+
+        .error-code {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        /* Suggestions Section */
+        .suggestions {
+            margin-bottom: 1.5rem;
+        }
+
+        .suggestions-title {
+            font-family: var(--font-secondary);
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .suggestion-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .suggestion-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.875rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-default);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .suggestion-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--jazer-cyan);
+            transform: translateX(5px);
+        }
+
+        .suggestion-bullet {
+            color: var(--jazer-cyan);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .suggestion-text {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        /* Action Buttons */
+        .card-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 0.875rem 1.5rem;
+            border-radius: 12px;
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            border: 2px solid;
+        }
+
+        .action-btn.primary {
+            background: var(--gradient-accent);
+            border-color: transparent;
+            color: var(--text-light);
+            box-shadow: 0 5px 20px rgba(255, 0, 110, 0.3);
+        }
+
+        .action-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(255, 0, 110, 0.5);
+        }
+
+        .action-btn.secondary {
+            background: transparent;
+            border-color: var(--border-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        .action-btn.secondary:hover {
+            background: var(--jazer-cyan);
+            color: var(--bg-dark);
+            box-shadow: 0 5px 20px rgba(0, 242, 234, 0.3);
+        }
+
+        /* Timestamp */
+        .timestamp {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-default);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Animations */
+        @keyframes rotate-border {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .card-actions {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                width: 100%;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button back-link">← Back</a>
+    
+    <h1 class="gradient-text">AI Fallback Message</h1>
+
+    <div class="demo-container">
+        <!-- Critical Error -->
+        <div class="fallback-card">
+            <div class="card-header">
+                <div class="error-icon critical">⚠️</div>
+                <div class="header-content">
+                    <div class="error-title">
+                        AI Service Unavailable
+                        <span class="error-badge critical">Critical</span>
+                    </div>
+                    <div class="error-subtitle">Connection to AI model failed</div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="error-message">
+                    We're unable to connect to the AI processing service at the moment. This could be due to high traffic or a temporary network issue.
+                </div>
+                <div class="error-details">
+                    Error Code: <span class="error-code">AI_CONNECTION_TIMEOUT</span><br>
+                    Endpoint: /api/v2/inference<br>
+                    Status: 503 Service Unavailable
+                </div>
+            </div>
+
+            <div class="suggestions">
+                <div class="suggestions-title">💡 Suggested Actions</div>
+                <div class="suggestion-list">
+                    <div class="suggestion-item">
+                        <span class="suggestion-bullet">→</span>
+                        <span class="suggestion-text">Check your internet connection and try again</span>
+                    </div>
+                    <div class="suggestion-item">
+                        <span class="suggestion-bullet">→</span>
+                        <span class="suggestion-text">Switch to offline mode for basic features</span>
+                    </div>
+                    <div class="suggestion-item">
+                        <span class="suggestion-bullet">→</span>
+                        <span class="suggestion-text">Contact support if the issue persists</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-actions">
+                <button class="action-btn primary" onclick="handleRetry()">🔄 Retry Connection</button>
+                <button class="action-btn secondary" onclick="handleOfflineMode()">📴 Offline Mode</button>
+            </div>
+
+            <div class="timestamp">
+                <span>⏱️</span>
+                <span id="timestamp1">Just now</span>
+            </div>
+        </div>
+
+        <!-- Warning -->
+        <div class="fallback-card">
+            <div class="card-header">
+                <div class="error-icon warning">⚡</div>
+                <div class="header-content">
+                    <div class="error-title">
+                        Rate Limit Approaching
+                        <span class="error-badge warning">Warning</span>
+                    </div>
+                    <div class="error-subtitle">You're approaching your usage limit</div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="error-message">
+                    You've used 95% of your monthly AI request quota. Reduce request frequency or upgrade your plan to continue using the service without interruption.
+                </div>
+                <div class="error-details">
+                    Current Usage: <span class="error-code">9,500 / 10,000 requests</span><br>
+                    Resets: January 1, 2025<br>
+                    Plan: Free Tier
+                </div>
+            </div>
+
+            <div class="suggestions">
+                <div class="suggestions-title">💡 Suggested Actions</div>
+                <div class="suggestion-list">
+                    <div class="suggestion-item">
+                        <span class="suggestion-bullet">→</span>
+                        <span class="suggestion-text">Upgrade to Pro plan for unlimited requests</span>
+                    </div>
+                    <div class="suggestion-item">
+                        <span class="suggestion-bullet">→</span>
+                        <span class="suggestion-text">Optimize your queries to reduce request count</span>
+                    </div>
+                    <div class="suggestion-item">
+                        <span class="suggestion-bullet">→</span>
+                        <span class="suggestion-text">Enable caching to reuse previous responses</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-actions">
+                <button class="action-btn primary" onclick="handleUpgrade()">⬆️ Upgrade Plan</button>
+                <button class="action-btn secondary" onclick="handleSettings()">⚙️ Settings</button>
+            </div>
+
+            <div class="timestamp">
+                <span>⏱️</span>
+                <span id="timestamp2">2 minutes ago</span>
+            </div>
+        </div>
+
+        <!-- Info -->
+        <div class="fallback-card">
+            <div class="card-header">
+                <div class="error-icon info">ℹ️</div>
+                <div class="header-content">
+                    <div class="error-title">
+                        Fallback Mode Active
+                        <span class="error-badge info">Info</span>
+                    </div>
+                    <div class="error-subtitle">Using cached responses</div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="error-message">
+                    The AI model is currently updating. We're using cached responses and simplified processing to maintain service availability. Full functionality will be restored shortly.
+                </div>
+                <div class="error-details">
+                    Status: <span class="error-code">FALLBACK_MODE</span><br>
+                    Estimated Duration: 5-10 minutes<br>
+                    Affected Features: Real-time inference, Advanced reasoning
+                </div>
+            </div>
+
+            <div class="suggestions">
+                <div class="suggestions-title">💡 What You Can Still Do</div>
+                <div class="suggestion-list">
+                    <div class="suggestion-item">
+                        <span class="suggestion-bullet">→</span>
+                        <span class="suggestion-text">Access previously generated content</span>
+                    </div>
+                    <div class="suggestion-item">
+                        <span class="suggestion-bullet">→</span>
+                        <span class="suggestion-text">Use basic text processing features</span>
+                    </div>
+                    <div class="suggestion-item">
+                        <span class="suggestion-bullet">→</span>
+                        <span class="suggestion-text">View analytics and historical data</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-actions">
+                <button class="action-btn primary" onclick="handleRefresh()">🔄 Check Status</button>
+                <button class="action-btn secondary" onclick="handleNotify()">🔔 Notify Me</button>
+            </div>
+
+            <div class="timestamp">
+                <span>⏱️</span>
+                <span id="timestamp3">5 minutes ago</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update timestamps
+        function updateTimestamps() {
+            const timestamps = [
+                { id: 'timestamp1', seconds: 0 },
+                { id: 'timestamp2', seconds: 120 },
+                { id: 'timestamp3', seconds: 300 }
+            ];
+
+            timestamps.forEach(({ id, seconds }) => {
+                const element = document.getElementById(id);
+                const minutes = Math.floor(seconds / 60);
+                const hours = Math.floor(minutes / 60);
+
+                if (seconds < 60) {
+                    element.textContent = 'Just now';
+                } else if (minutes < 60) {
+                    element.textContent = `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+                } else {
+                    element.textContent = `${hours} hour${hours > 1 ? 's' : ''} ago`;
+                }
+            });
+        }
+
+        // Action handlers
+        function handleRetry() {
+            alert('Retrying connection to AI service...');
+        }
+
+        function handleOfflineMode() {
+            alert('Switching to offline mode...');
+        }
+
+        function handleUpgrade() {
+            alert('Redirecting to upgrade page...');
+        }
+
+        function handleSettings() {
+            alert('Opening settings...');
+        }
+
+        function handleRefresh() {
+            alert('Checking service status...');
+        }
+
+        function handleNotify() {
+            alert('You will be notified when service is restored!');
+        }
+
+        // Animate suggestion items on hover
+        const suggestionItems = document.querySelectorAll('.suggestion-item');
+        suggestionItems.forEach(item => {
+            item.addEventListener('click', () => {
+                item.style.background = 'rgba(0, 242, 234, 0.1)';
+                setTimeout(() => {
+                    item.style.background = 'rgba(255, 255, 255, 0.03)';
+                }, 300);
+            });
+        });
+
+        updateTimestamps();
+    </script>
+</body>
+</html>

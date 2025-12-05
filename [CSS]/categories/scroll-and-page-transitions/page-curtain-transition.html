@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Curtain Transition - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body, 'Inter', sans-serif);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+            color: var(--jazer-purple, #9333ea);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .component-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .component-description {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Demo Grid */
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .demo-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 242, 234, 0.2);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .demo-card:hover {
+            border-color: rgba(0, 242, 234, 0.5);
+        }
+
+        .demo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .demo-title {
+            font-family: var(--font-secondary, 'Rajdhani', sans-serif);
+            font-size: 1.2rem;
+            color: var(--jazer-cyan, #00f2ea);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .demo-badge {
+            background: rgba(147, 51, 234, 0.2);
+            color: var(--jazer-purple, #9333ea);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .demo-description {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        /* Preview Container */
+        .preview-container {
+            position: relative;
+            height: 280px;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #1a0a2e 0%, #2d1b69 100%);
+            border: 2px solid rgba(0, 242, 234, 0.2);
+        }
+
+        .preview-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .preview-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .preview-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .preview-text {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Curtain Base Styles */
+        .curtain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .curtain-panel {
+            position: absolute;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);
+        }
+
+        /* Style 1: Vertical Split (Theater Curtains) */
+        .curtain-1 .curtain-panel {
+            top: 0;
+            height: 100%;
+            width: 50%;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .curtain-1 .curtain-left {
+            left: 0;
+            transform-origin: left;
+            transform: scaleX(0);
+        }
+
+        .curtain-1 .curtain-right {
+            right: 0;
+            transform-origin: right;
+            transform: scaleX(0);
+        }
+
+        .curtain-1.active .curtain-left,
+        .curtain-1.active .curtain-right {
+            transform: scaleX(1);
+        }
+
+        /* Style 2: Horizontal Split (Stage Drop) */
+        .curtain-2 .curtain-panel {
+            left: 0;
+            width: 100%;
+            height: 50%;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .curtain-2 .curtain-top {
+            top: 0;
+            transform-origin: top;
+            transform: scaleY(0);
+        }
+
+        .curtain-2 .curtain-bottom {
+            bottom: 0;
+            transform-origin: bottom;
+            transform: scaleY(0);
+        }
+
+        .curtain-2.active .curtain-top,
+        .curtain-2.active .curtain-bottom {
+            transform: scaleY(1);
+        }
+
+        /* Style 3: Diagonal Wipe */
+        .curtain-3 .curtain-panel {
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+            transition: clip-path 1s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, #2d1b69 0%, #6b0f6b 100%);
+        }
+
+        .curtain-3.active .curtain-panel {
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+        }
+
+        /* Style 4: Iris/Circle Expand */
+        .curtain-4 .curtain-panel {
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            clip-path: circle(0% at 50% 50%);
+            transition: clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            background: radial-gradient(circle, #6b0f6b 0%, #1a0a2e 100%);
+        }
+
+        .curtain-4.active .curtain-panel {
+            clip-path: circle(150% at 50% 50%);
+        }
+
+        /* Style 5: Four Corners */
+        .curtain-5 .curtain-panel {
+            width: 50%;
+            height: 50%;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .curtain-5 .corner-tl {
+            top: 0;
+            left: 0;
+            transform-origin: top left;
+            transform: scale(0);
+            background: linear-gradient(135deg, #1a0a2e 0%, #2d1b69 100%);
+        }
+
+        .curtain-5 .corner-tr {
+            top: 0;
+            right: 0;
+            transform-origin: top right;
+            transform: scale(0);
+            background: linear-gradient(225deg, #1a0a2e 0%, #2d1b69 100%);
+            transition-delay: 0.1s;
+        }
+
+        .curtain-5 .corner-bl {
+            bottom: 0;
+            left: 0;
+            transform-origin: bottom left;
+            transform: scale(0);
+            background: linear-gradient(45deg, #1a0a2e 0%, #2d1b69 100%);
+            transition-delay: 0.15s;
+        }
+
+        .curtain-5 .corner-br {
+            bottom: 0;
+            right: 0;
+            transform-origin: bottom right;
+            transform: scale(0);
+            background: linear-gradient(315deg, #1a0a2e 0%, #2d1b69 100%);
+            transition-delay: 0.2s;
+        }
+
+        .curtain-5.active .curtain-panel {
+            transform: scale(1);
+        }
+
+        /* Style 6: Venetian Blinds */
+        .curtain-6 .curtain-panel {
+            left: 0;
+            width: 100%;
+            height: 20%;
+            transform-origin: top;
+            transform: scaleY(0);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .curtain-6 .blind-1 { top: 0%; transition-delay: 0s; background: linear-gradient(180deg, #0a0a0a 0%, #1a0a2e 100%); }
+        .curtain-6 .blind-2 { top: 20%; transition-delay: 0.05s; background: linear-gradient(180deg, #1a0a2e 0%, #2d1b69 100%); }
+        .curtain-6 .blind-3 { top: 40%; transition-delay: 0.1s; background: linear-gradient(180deg, #2d1b69 0%, #4d2b89 100%); }
+        .curtain-6 .blind-4 { top: 60%; transition-delay: 0.15s; background: linear-gradient(180deg, #4d2b89 0%, #6b0f6b 100%); }
+        .curtain-6 .blind-5 { top: 80%; transition-delay: 0.2s; background: linear-gradient(180deg, #6b0f6b 0%, #8b1a8b 100%); }
+
+        .curtain-6.active .curtain-panel {
+            transform: scaleY(1);
+        }
+
+        /* Style 7: Diamond Reveal */
+        .curtain-7 .curtain-panel {
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%);
+            transition: clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, #2d1b69 0%, #6b0f6b 50%, #ff006e 100%);
+        }
+
+        .curtain-7.active .curtain-panel {
+            clip-path: polygon(50% -50%, 150% 50%, 50% 150%, -50% 50%);
+        }
+
+        /* Curtain Content Overlay */
+        .curtain-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 20;
+            opacity: 0;
+            transition: opacity 0.4s ease 0.3s;
+        }
+
+        .curtain.active .curtain-content {
+            opacity: 1;
+        }
+
+        .curtain-label {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 1.25rem;
+            color: var(--jazer-cyan, #00f2ea);
+            text-shadow: 0 0 20px rgba(0, 242, 234, 0.8);
+        }
+
+        /* Trigger Button */
+        .trigger-btn {
+            width: 100%;
+            padding: 0.875rem 1.5rem;
+            background: rgba(0, 242, 234, 0.1);
+            border: 2px solid var(--jazer-cyan, #00f2ea);
+            color: var(--jazer-cyan, #00f2ea);
+            border-radius: 0.5rem;
+            font-family: var(--font-secondary, 'Rajdhani', sans-serif);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .trigger-btn:hover {
+            background: rgba(0, 242, 234, 0.2);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .trigger-btn.active {
+            background: var(--jazer-cyan, #00f2ea);
+            color: #0a0a0a;
+        }
+
+        /* Full-Page Demo Section */
+        .fullpage-section {
+            margin-top: 4rem;
+            padding-top: 3rem;
+            border-top: 1px solid rgba(0, 242, 234, 0.2);
+        }
+
+        .section-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 1.75rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--jazer-cyan, #00f2ea);
+        }
+
+        .section-description {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Full-Page Curtain Overlay */
+        .fullpage-curtain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            pointer-events: none;
+            display: flex;
+        }
+
+        .fullpage-curtain.active {
+            pointer-events: all;
+        }
+
+        .fullpage-panel {
+            width: 50%;
+            height: 100%;
+            transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .fullpage-left {
+            background: linear-gradient(90deg, #0a0a0a 0%, #1a0a2e 100%);
+            transform: translateX(-100%);
+        }
+
+        .fullpage-right {
+            background: linear-gradient(270deg, #0a0a0a 0%, #1a0a2e 100%);
+            transform: translateX(100%);
+        }
+
+        .fullpage-curtain.active .fullpage-left {
+            transform: translateX(0);
+        }
+
+        .fullpage-curtain.active .fullpage-right {
+            transform: translateX(0);
+        }
+
+        .fullpage-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.5s ease 0.5s;
+        }
+
+        .fullpage-curtain.active .fullpage-center {
+            opacity: 1;
+        }
+
+        .fullpage-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 6vw, 4rem);
+            margin-bottom: 1rem;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .fullpage-text {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 2rem;
+        }
+
+        .close-fullpage {
+            padding: 1rem 2.5rem;
+            background: rgba(255, 0, 110, 0.2);
+            border: 2px solid var(--jazer-pink, #ff006e);
+            color: var(--jazer-pink, #ff006e);
+            border-radius: 0.5rem;
+            font-family: var(--font-secondary, 'Rajdhani', sans-serif);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .close-fullpage:hover {
+            background: rgba(255, 0, 110, 0.3);
+            box-shadow: 0 0 30px rgba(255, 0, 110, 0.5);
+        }
+
+        /* Demo Buttons */
+        .demo-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .demo-button {
+            padding: 1rem 2rem;
+            background: rgba(147, 51, 234, 0.1);
+            border: 2px solid var(--jazer-purple, #9333ea);
+            color: var(--jazer-purple, #9333ea);
+            border-radius: 0.5rem;
+            font-family: var(--font-secondary, 'Rajdhani', sans-serif);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .demo-button:hover {
+            background: rgba(147, 51, 234, 0.2);
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Animated Progress Bar in Curtain */
+        .curtain-progress {
+            position: absolute;
+            bottom: 30%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease 0.6s;
+        }
+
+        .fullpage-curtain.active .curtain-progress {
+            opacity: 1;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: var(--gradient-text, linear-gradient(90deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            border-radius: 2px;
+            animation: progressFill 2s ease-out forwards;
+            animation-play-state: paused;
+        }
+
+        .fullpage-curtain.active .progress-bar {
+            animation-play-state: running;
+        }
+
+        @keyframes progressFill {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .demo-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .demo-card {
+                padding: 1.25rem;
+            }
+
+            .preview-container {
+                height: 240px;
+            }
+
+            .demo-buttons {
+                flex-direction: column;
+            }
+
+            .demo-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to Scroll & Page Transitions</a>
+
+    <div class="container">
+        <header class="header">
+            <h1 class="component-title">Page Curtain Transitions</h1>
+            <p class="component-description">
+                Dramatic curtain-style animations that sweep across the screen during page transitions. 
+                These theatrical effects create immersive transitions for revealing new content.
+            </p>
+        </header>
+
+        <div class="demo-grid">
+            <!-- Style 1: Vertical Split (Theater) -->
+            <div class="demo-card">
+                <div class="demo-header">
+                    <h3 class="demo-title">1. Theater Curtains</h3>
+                    <span class="demo-badge">Classic</span>
+                </div>
+                <p class="demo-description">
+                    Classic theater-style curtains that close from left and right, meeting in the center.
+                </p>
+                <div class="preview-container">
+                    <div class="preview-content">
+                        <div class="preview-icon">🎭</div>
+                        <div class="preview-title">Stage Content</div>
+                        <div class="preview-text">Click to draw the curtains</div>
+                    </div>
+                    <div class="curtain curtain-1" id="curtain1">
+                        <div class="curtain-panel curtain-left"></div>
+                        <div class="curtain-panel curtain-right"></div>
+                        <div class="curtain-content">
+                            <span class="curtain-label">INTERMISSION</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="trigger-btn" data-curtain="curtain1">Draw Curtains</button>
+            </div>
+
+            <!-- Style 2: Horizontal Split (Stage Drop) -->
+            <div class="demo-card">
+                <div class="demo-header">
+                    <h3 class="demo-title">2. Stage Drop</h3>
+                    <span class="demo-badge">Cinematic</span>
+                </div>
+                <p class="demo-description">
+                    Horizontal panels that drop from top and rise from bottom like a stage curtain.
+                </p>
+                <div class="preview-container">
+                    <div class="preview-content">
+                        <div class="preview-icon">🎬</div>
+                        <div class="preview-title">Scene Content</div>
+                        <div class="preview-text">Letterbox reveal effect</div>
+                    </div>
+                    <div class="curtain curtain-2" id="curtain2">
+                        <div class="curtain-panel curtain-top"></div>
+                        <div class="curtain-panel curtain-bottom"></div>
+                        <div class="curtain-content">
+                            <span class="curtain-label">SCENE CHANGE</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="trigger-btn" data-curtain="curtain2">Drop Curtain</button>
+            </div>
+
+            <!-- Style 3: Diagonal Wipe -->
+            <div class="demo-card">
+                <div class="demo-header">
+                    <h3 class="demo-title">3. Diagonal Wipe</h3>
+                    <span class="demo-badge">Dynamic</span>
+                </div>
+                <p class="demo-description">
+                    A smooth diagonal sweep across the screen for energetic transitions.
+                </p>
+                <div class="preview-container">
+                    <div class="preview-content">
+                        <div class="preview-icon">⚡</div>
+                        <div class="preview-title">Dynamic Content</div>
+                        <div class="preview-text">Diagonal reveal animation</div>
+                    </div>
+                    <div class="curtain curtain-3" id="curtain3">
+                        <div class="curtain-panel"></div>
+                        <div class="curtain-content">
+                            <span class="curtain-label">TRANSITIONING</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="trigger-btn" data-curtain="curtain3">Diagonal Wipe</button>
+            </div>
+
+            <!-- Style 4: Iris/Circle -->
+            <div class="demo-card">
+                <div class="demo-header">
+                    <h3 class="demo-title">4. Iris Circle</h3>
+                    <span class="demo-badge">Focus</span>
+                </div>
+                <p class="demo-description">
+                    Circular expansion from center like a camera iris opening or classic film transition.
+                </p>
+                <div class="preview-container">
+                    <div class="preview-content">
+                        <div class="preview-icon">📷</div>
+                        <div class="preview-title">Focus Point</div>
+                        <div class="preview-text">Iris reveal animation</div>
+                    </div>
+                    <div class="curtain curtain-4" id="curtain4">
+                        <div class="curtain-panel"></div>
+                        <div class="curtain-content">
+                            <span class="curtain-label">FOCUSING</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="trigger-btn" data-curtain="curtain4">Iris Open</button>
+            </div>
+
+            <!-- Style 5: Four Corners -->
+            <div class="demo-card">
+                <div class="demo-header">
+                    <h3 class="demo-title">5. Four Corners</h3>
+                    <span class="demo-badge">Quadrant</span>
+                </div>
+                <p class="demo-description">
+                    Four panels expand from each corner with staggered timing for visual interest.
+                </p>
+                <div class="preview-container">
+                    <div class="preview-content">
+                        <div class="preview-icon">🔲</div>
+                        <div class="preview-title">Quadrant Reveal</div>
+                        <div class="preview-text">Corner expansion effect</div>
+                    </div>
+                    <div class="curtain curtain-5" id="curtain5">
+                        <div class="curtain-panel corner-tl"></div>
+                        <div class="curtain-panel corner-tr"></div>
+                        <div class="curtain-panel corner-bl"></div>
+                        <div class="curtain-panel corner-br"></div>
+                        <div class="curtain-content">
+                            <span class="curtain-label">ASSEMBLING</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="trigger-btn" data-curtain="curtain5">Expand Corners</button>
+            </div>
+
+            <!-- Style 6: Venetian Blinds -->
+            <div class="demo-card">
+                <div class="demo-header">
+                    <h3 class="demo-title">6. Venetian Blinds</h3>
+                    <span class="demo-badge">Layered</span>
+                </div>
+                <p class="demo-description">
+                    Horizontal strips that cascade down like venetian blinds closing in sequence.
+                </p>
+                <div class="preview-container">
+                    <div class="preview-content">
+                        <div class="preview-icon">🪟</div>
+                        <div class="preview-title">Blinds Content</div>
+                        <div class="preview-text">Sequential blind animation</div>
+                    </div>
+                    <div class="curtain curtain-6" id="curtain6">
+                        <div class="curtain-panel blind-1"></div>
+                        <div class="curtain-panel blind-2"></div>
+                        <div class="curtain-panel blind-3"></div>
+                        <div class="curtain-panel blind-4"></div>
+                        <div class="curtain-panel blind-5"></div>
+                        <div class="curtain-content">
+                            <span class="curtain-label">CLOSING</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="trigger-btn" data-curtain="curtain6">Close Blinds</button>
+            </div>
+
+            <!-- Style 7: Diamond Reveal -->
+            <div class="demo-card">
+                <div class="demo-header">
+                    <h3 class="demo-title">7. Diamond Reveal</h3>
+                    <span class="demo-badge">Geometric</span>
+                </div>
+                <p class="demo-description">
+                    A diamond shape expands from the center creating an elegant geometric transition.
+                </p>
+                <div class="preview-container">
+                    <div class="preview-content">
+                        <div class="preview-icon">💎</div>
+                        <div class="preview-title">Gem Content</div>
+                        <div class="preview-text">Diamond expansion effect</div>
+                    </div>
+                    <div class="curtain curtain-7" id="curtain7">
+                        <div class="curtain-panel"></div>
+                        <div class="curtain-content">
+                            <span class="curtain-label">REVEALING</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="trigger-btn" data-curtain="curtain7">Diamond Reveal</button>
+            </div>
+        </div>
+
+        <!-- Full-Page Demo Section -->
+        <section class="fullpage-section">
+            <h2 class="section-title">Full-Page Curtain Transition</h2>
+            <p class="section-description">
+                Experience a full-screen theater curtain transition that can be used for 
+                page navigation or loading screens.
+            </p>
+            <div class="demo-buttons">
+                <button class="demo-button" id="triggerFullCurtain">
+                    Open Full-Page Curtains
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Full-Page Curtain Overlay -->
+    <div class="fullpage-curtain" id="fullpageCurtain">
+        <div class="fullpage-panel fullpage-left"></div>
+        <div class="fullpage-panel fullpage-right"></div>
+        <div class="fullpage-center">
+            <h2 class="fullpage-title">Loading</h2>
+            <p class="fullpage-text">Preparing your experience...</p>
+            <div class="curtain-progress">
+                <div class="progress-bar"></div>
+            </div>
+            <button class="close-fullpage" onclick="closeFullpageCurtain()">Close Curtains</button>
+        </div>
+    </div>
+
+    <script>
+        // Individual curtain toggles
+        document.querySelectorAll('.trigger-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const curtainId = this.dataset.curtain;
+                const curtain = document.getElementById(curtainId);
+                
+                if (curtain) {
+                    curtain.classList.toggle('active');
+                    this.classList.toggle('active');
+                    
+                    const isActive = curtain.classList.contains('active');
+                    this.textContent = isActive ? 'Open Curtains' : this.textContent.replace('Open', 'Close').replace('Draw', 'Open');
+                }
+            });
+        });
+
+        // Full-page curtain
+        const fullpageCurtain = document.getElementById('fullpageCurtain');
+        const triggerFullCurtain = document.getElementById('triggerFullCurtain');
+
+        triggerFullCurtain.addEventListener('click', function() {
+            document.body.style.overflow = 'hidden';
+            fullpageCurtain.classList.add('active');
+            
+            // Reset progress bar animation
+            const progressBar = fullpageCurtain.querySelector('.progress-bar');
+            progressBar.style.animation = 'none';
+            progressBar.offsetHeight; // Trigger reflow
+            progressBar.style.animation = null;
+        });
+
+        function closeFullpageCurtain() {
+            fullpageCurtain.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && fullpageCurtain.classList.contains('active')) {
+                closeFullpageCurtain();
+            }
+        });
+
+        // Auto-demo on page load
+        setTimeout(() => {
+            const firstCurtain = document.getElementById('curtain1');
+            if (firstCurtain) {
+                firstCurtain.classList.add('active');
+                setTimeout(() => firstCurtain.classList.remove('active'), 2000);
+            }
+        }, 1000);
+
+        // Page transition simulation function
+        function simulatePageTransition(callback) {
+            document.body.style.overflow = 'hidden';
+            fullpageCurtain.classList.add('active');
+            
+            // Simulate loading time
+            setTimeout(() => {
+                if (callback) callback();
+                
+                // Open curtains after "loading"
+                setTimeout(() => {
+                    closeFullpageCurtain();
+                }, 500);
+            }, 2000);
+        }
+
+        // Example: Attach to links for page transitions
+        // document.querySelectorAll('a[data-transition]').forEach(link => {
+        //     link.addEventListener('click', function(e) {
+        //         e.preventDefault();
+        //         const href = this.href;
+        //         simulatePageTransition(() => {
+        //             window.location.href = href;
+        //         });
+        //     });
+        // });
+
+        // Keyboard accessibility
+        document.querySelectorAll('.preview-container').forEach(container => {
+            container.setAttribute('tabindex', '0');
+            container.setAttribute('role', 'button');
+            container.setAttribute('aria-label', 'Toggle curtain animation');
+
+            container.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    const curtain = this.querySelector('.curtain');
+                    if (curtain) {
+                        curtain.classList.toggle('active');
+                    }
+                }
+            });
+        });
+
+        // Touch swipe to toggle curtains on mobile
+        let touchStartY = 0;
+        
+        document.querySelectorAll('.preview-container').forEach(container => {
+            container.addEventListener('touchstart', e => {
+                touchStartY = e.changedTouches[0].screenY;
+            }, false);
+
+            container.addEventListener('touchend', e => {
+                const touchEndY = e.changedTouches[0].screenY;
+                const curtain = container.querySelector('.curtain');
+                
+                if (Math.abs(touchEndY - touchStartY) > 30 && curtain) {
+                    curtain.classList.toggle('active');
+                }
+            }, false);
+        });
+    </script>
+</body>
+</html>

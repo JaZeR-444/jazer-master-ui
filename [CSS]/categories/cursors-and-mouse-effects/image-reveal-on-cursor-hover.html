@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Reveal on Cursor Hover - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a, #1a0a2a, #0a1a2a);
+            font-family: var(--font-body);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Custom cursor */
+        .custom-cursor {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .custom-cursor::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 4px;
+            background: var(--jazer-pink);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Content area */
+        .content {
+            position: relative;
+            z-index: 1;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+
+        /* Reveal container */
+        .reveal-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            background: #000;
+        }
+
+        .reveal-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .reveal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #1a0a2a, #0a1a2a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #888;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        /* Spotlight mask */
+        .spotlight {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Demo area */
+        .demo-area {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-title {
+            font-size: 1.5rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        /* Image gallery */
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            height: 250px;
+            background: #000;
+        }
+
+        .gallery-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 600;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        /* Before/after comparison */
+        .comparison-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .comparison-before,
+        .comparison-after {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .comparison-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 5;
+        }
+
+        .comparison-reveal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 6;
+        }
+
+        /* Controls */
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .controls-title {
+            font-size: 1.3rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-input {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .control-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+        }
+
+        .control-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            cursor: none;
+            border: none;
+        }
+
+        .color-picker {
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: none;
+        }
+
+        /* Stats display */
+        .stats {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            display: block;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            background: linear-gradient(45deg, var(--jazer-purple), var(--jazer-pink));
+            border: none;
+            border-radius: 25px;
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 0, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--jazer-cyan);
+        }
+
+        .btn-secondary:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+        }
+
+        /* Back navigation */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 25px;
+            border: 1px solid var(--jazer-cyan);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .image-gallery {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back navigation -->
+    <a href="index.html" class="back-button">← Back to Cursors</a>
+
+    <!-- Custom cursor -->
+    <div class="custom-cursor" id="customCursor"></div>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">🖼️ Image Reveal on Cursor Hover</h1>
+            <p class="subtitle">Spotlight effect that reveals hidden images as you explore with customizable reveal radius and intensity</p>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value" id="revealRadius">100px</span>
+                    <span class="stat-label">Reveal Radius</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="revealIntensity">80%</span>
+                    <span class="stat-label">Reveal Intensity</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="blurAmount">0px</span>
+                    <span class="stat-label">Blur Amount</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="revealMode">Spotlight</span>
+                    <span class="stat-label">Reveal Mode</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <h2 class="controls-title">🎛️ Reveal Controls</h2>
+            <div class="control-group">
+                <div class="control-item">
+                    <label class="control-label">Reveal Radius</label>
+                    <input type="range" class="control-slider" id="revealRadiusSlider" min="50" max="200" value="100">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Reveal Intensity</label>
+                    <input type="range" class="control-slider" id="revealIntensitySlider" min="0" max="100" value="80">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Blur Amount</label>
+                    <input type="range" class="control-slider" id="blurAmountSlider" min="0" max="20" value="0">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Edge Softness</label>
+                    <input type="range" class="control-slider" id="edgeSoftnessSlider" min="0" max="50" value="20">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Overlay Color</label>
+                    <input type="color" class="color-picker" id="overlayColor" value="#1a0a2a">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Reveal Mode</label>
+                    <select class="control-input" id="revealModeSelect">
+                        <option value="spotlight">Spotlight</option>
+                        <option value="gradient">Gradient</option>
+                        <option value="hard">Hard Edge</option>
+                        <option value="feathered">Feathered</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Area -->
+        <div class="demo-area">
+            <h2 class="demo-title">🎮 Interactive Reveal Demos</h2>
+            
+            <!-- Main reveal demo -->
+            <div class="reveal-container" id="mainReveal">
+                <img src="https://picsum.photos/seed/reveal1/800/400.jpg" alt="Hidden Image" class="reveal-image">
+                <div class="reveal-overlay">
+                    <div>🔦 Move your cursor to reveal the hidden image</div>
+                </div>
+                <canvas id="revealCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;"></canvas>
+            </div>
+
+            <!-- Image gallery -->
+            <h3 style="color: var(--jazer-pink); text-align: center; margin: 2rem 0;">Gallery Reveal</h3>
+            <div class="image-gallery">
+                <div class="gallery-item" data-reveal="true">
+                    <img src="https://picsum.photos/seed/gallery1/400/250.jpg" alt="Gallery Image 1" class="gallery-image">
+                    <div class="gallery-overlay">Hover to Reveal</div>
+                    <canvas class="gallery-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5;"></canvas>
+                </div>
+                <div class="gallery-item" data-reveal="true">
+                    <img src="https://picsum.photos/seed/gallery2/400/250.jpg" alt="Gallery Image 2" class="gallery-image">
+                    <div class="gallery-overlay">Hover to Reveal</div>
+                    <canvas class="gallery-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5;"></canvas>
+                </div>
+                <div class="gallery-item" data-reveal="true">
+                    <img src="https://picsum.photos/seed/gallery3/400/250.jpg" alt="Gallery Image 3" class="gallery-image">
+                    <div class="gallery-overlay">Hover to Reveal</div>
+                    <canvas class="gallery-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5;"></canvas>
+                </div>
+            </div>
+
+            <!-- Before/After comparison -->
+            <h3 style="color: var(--jazer-pink); text-align: center; margin: 2rem 0;">Before/After Comparison</h3>
+            <div class="comparison-container" id="comparisonContainer">
+                <img src="https://picsum.photos/seed/before/800/400.jpg" alt="Before" class="comparison-before">
+                <img src="https://picsum.photos/seed/after/800/400.jpg" alt="After" class="comparison-after">
+                <div class="comparison-overlay">Hover to see after</div>
+                <canvas id="comparisonCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 6;"></canvas>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+            <button class="btn" id="toggleAnimation">Toggle Animation</button>
+            <button class="btn btn-secondary" id="resetSettings">Reset Settings</button>
+            <button class="btn btn-secondary" id="randomizeImage">Randomize Images</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        let config = {
+            revealRadius: 100,
+            revealIntensity: 80,
+            blurAmount: 0,
+            edgeSoftness: 20,
+            overlayColor: '#1a0a2a',
+            revealMode: 'spotlight',
+            animationEnabled: true
+        };
+
+        // State
+        let mouseX = 0, mouseY = 0;
+        let animationFrame = null;
+        let revealContainers = [];
+
+        // Elements
+        const customCursor = document.getElementById('customCursor');
+        const revealRadiusEl = document.getElementById('revealRadius');
+        const revealIntensityEl = document.getElementById('revealIntensity');
+        const blurAmountEl = document.getElementById('blurAmount');
+        const revealModeEl = document.getElementById('revealMode');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupRevealContainers();
+            setupEventListeners();
+            updateStats();
+            startAnimation();
+        });
+
+        // Setup reveal containers
+        function setupRevealContainers() {
+            // Main reveal
+            const mainCanvas = document.getElementById('revealCanvas');
+            const mainContainer = document.getElementById('mainReveal');
+            setupCanvas(mainCanvas, mainContainer);
+            
+            // Gallery items
+            document.querySelectorAll('.gallery-item').forEach(item => {
+                const canvas = item.querySelector('.gallery-canvas');
+                setupCanvas(canvas, item);
+            });
+            
+            // Comparison container
+            const comparisonCanvas = document.getElementById('comparisonCanvas');
+            const comparisonContainer = document.getElementById('comparisonContainer');
+            setupCanvas(comparisonCanvas, comparisonContainer, true);
+        }
+
+        // Setup individual canvas
+        function setupCanvas(canvas, container, isComparison = false) {
+            const ctx = canvas.getContext('2d');
+            const rect = container.getBoundingClientRect();
+            
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            
+            revealContainers.push({
+                canvas: canvas,
+                ctx: ctx,
+                container: container,
+                isComparison: isComparison,
+                rect: rect
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Mouse movement
+            document.addEventListener('mousemove', handleMouseMove);
+            
+            // Control inputs
+            document.getElementById('revealRadiusSlider').addEventListener('input', (e) => {
+                config.revealRadius = parseInt(e.target.value);
+                updateCursorSize();
+                updateStats();
+            });
+            
+            document.getElementById('revealIntensitySlider').addEventListener('input', (e) => {
+                config.revealIntensity = parseInt(e.target.value);
+                updateStats();
+            });
+            
+            document.getElementById('blurAmountSlider').addEventListener('input', (e) => {
+                config.blurAmount = parseInt(e.target.value);
+                updateStats();
+            });
+            
+            document.getElementById('edgeSoftnessSlider').addEventListener('input', (e) => {
+                config.edgeSoftness = parseInt(e.target.value);
+            });
+            
+            document.getElementById('overlayColor').addEventListener('input', (e) => {
+                config.overlayColor = e.target.value;
+                updateOverlayColors();
+            });
+            
+            document.getElementById('revealModeSelect').addEventListener('change', (e) => {
+                config.revealMode = e.target.value;
+                updateStats();
+            });
+
+            // Action buttons
+            document.getElementById('toggleAnimation').addEventListener('click', toggleAnimation);
+            document.getElementById('resetSettings').addEventListener('click', resetSettings);
+            document.getElementById('randomizeImage').addEventListener('click', randomizeImages);
+        }
+
+        // Handle mouse movement
+        function handleMouseMove(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Update custom cursor
+            customCursor.style.left = mouseX + 'px';
+            customCursor.style.top = mouseY + 'px';
+        }
+
+        // Start animation loop
+        function startAnimation() {
+            function animate() {
+                if (config.animationEnabled) {
+                    updateRevealEffects();
+                }
+                animationFrame = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // Update reveal effects
+        function updateRevealEffects() {
+            revealContainers.forEach(container => {
+                const { canvas, ctx, rect, isComparison } = container;
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Calculate relative mouse position
+                const relativeX = mouseX - rect.left;
+                const relativeY = mouseY - rect.top;
+                
+                // Check if mouse is over container
+                if (relativeX >= 0 && relativeX <= rect.width && 
+                    relativeY >= 0 && relativeY <= rect.height) {
+                    
+                    // Create reveal effect
+                    ctx.save();
+                    
+                    if (isComparison) {
+                        // For comparison, reveal the "after" image
+                        ctx.globalCompositeOperation = 'destination-out';
+                    } else {
+                        // For regular reveal, create hole in overlay
+                        ctx.globalCompositeOperation = 'destination-out';
+                    }
+                    
+                    // Draw reveal shape based on mode
+                    drawRevealShape(ctx, relativeX, relativeY);
+                    
+                    ctx.restore();
+                }
+            });
+        }
+
+        // Draw reveal shape
+        function drawRevealShape(ctx, x, y) {
+            const radius = config.revealRadius;
+            const intensity = config.revealIntensity / 100;
+            
+            switch (config.revealMode) {
+                case 'spotlight':
+                    // Create radial gradient for smooth spotlight
+                    const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+                    gradient.addColorStop(0, `rgba(255, 255, 255, ${intensity})`);
+                    gradient.addColorStop(0.7, `rgba(255, 255, 255, ${intensity * 0.8})`);
+                    gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+                    break;
+                    
+                case 'gradient':
+                    // Soft gradient reveal
+                    const softGradient = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.5);
+                    softGradient.addColorStop(0, `rgba(255, 255, 255, ${intensity})`);
+                    softGradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
+                    
+                    ctx.fillStyle = softGradient;
+                    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                    break;
+                    
+                case 'hard':
+                    // Hard edge circle
+                    ctx.beginPath();
+                    ctx.arc(x, y, radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${intensity})`;
+                    ctx.fill();
+                    break;
+                    
+                case 'feathered':
+                    // Feathered edge with multiple circles
+                    for (let i = 5; i > 0; i--) {
+                        ctx.beginPath();
+                        ctx.arc(x, y, radius * (i / 5), 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255, 255, 255, ${intensity * (i / 5) * 0.2})`;
+                        ctx.fill();
+                    }
+                    break;
+            }
+        }
+
+        // Update cursor size
+        function updateCursorSize() {
+            const size = config.revealRadius * 0.4;
+            customCursor.style.width = size + 'px';
+            customCursor.style.height = size + 'px';
+        }
+
+        // Update overlay colors
+        function updateOverlayColors() {
+            document.querySelectorAll('.reveal-overlay, .gallery-overlay, .comparison-overlay').forEach(overlay => {
+                overlay.style.background = config.overlayColor;
+            });
+        }
+
+        // Update stats display
+        function updateStats() {
+            revealRadiusEl.textContent = config.revealRadius + 'px';
+            revealIntensityEl.textContent = config.revealIntensity + '%';
+            blurAmountEl.textContent = config.blurAmount + 'px';
+            revealModeEl.textContent = config.revealMode.charAt(0).toUpperCase() + config.revealMode.slice(1);
+        }
+
+        // Toggle animation
+        function toggleAnimation() {
+            config.animationEnabled = !config.animationEnabled;
+            const btn = document.getElementById('toggleAnimation');
+            btn.textContent = config.animationEnabled ? 'Disable Animation' : 'Enable Animation';
+        }
+
+        // Reset settings
+        function resetSettings() {
+            config = {
+                revealRadius: 100,
+                revealIntensity: 80,
+                blurAmount: 0,
+                edgeSoftness: 20,
+                overlayColor: '#1a0a2a',
+                revealMode: 'spotlight',
+                animationEnabled: true
+            };
+            
+            // Update UI controls
+            document.getElementById('revealRadiusSlider').value = config.revealRadius;
+            document.getElementById('revealIntensitySlider').value = config.revealIntensity;
+            document.getElementById('blurAmountSlider').value = config.blurAmount;
+            document.getElementById('edgeSoftnessSlider').value = config.edgeSoftness;
+            document.getElementById('overlayColor').value = config.overlayColor;
+            document.getElementById('revealModeSelect').value = config.revealMode;
+            
+            updateCursorSize();
+            updateOverlayColors();
+            updateStats();
+            
+            const btn = document.getElementById('toggleAnimation');
+            btn.textContent = 'Disable Animation';
+        }
+
+        // Randomize images
+        function randomizeImages() {
+            const randomSeed = () => Math.random().toString(36).substring(7);
+            
+            // Update main reveal image
+            const mainImage = document.querySelector('.reveal-image');
+            mainImage.src = `https://picsum.photos/seed/${randomSeed()}/800/400.jpg`;
+            
+            // Update gallery images
+            document.querySelectorAll('.gallery-image').forEach((img, index) => {
+                img.src = `https://picsum.photos/seed/${randomSeed()}/400/250.jpg`;
+            });
+            
+            // Update comparison images
+            const beforeImage = document.querySelector('.comparison-before');
+            const afterImage = document.querySelector('.comparison-after');
+            beforeImage.src = `https://picsum.photos/seed/${randomSeed()}/800/400.jpg`;
+            afterImage.src = `https://picsum.photos/seed/${randomSeed()}/800/400.jpg`;
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            // Recalculate canvas sizes
+            revealContainers.forEach(container => {
+                const rect = container.container.getBoundingClientRect();
+                container.canvas.width = rect.width;
+                container.canvas.height = rect.height;
+                container.rect = rect;
+            });
+        });
+
+        // Hide default cursor on leave
+        document.addEventListener('mouseleave', () => {
+            customCursor.style.display = 'none';
+        });
+
+        document.addEventListener('mouseenter', () => {
+            customCursor.style.display = 'block';
+        });
+    </script>
+</body>
+</html>

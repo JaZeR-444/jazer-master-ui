@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Map Bookmarks Panel - JaZeR Maps Patterns</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:var(--font-body);background:var(--bg-dark);color:var(--text-light);margin:0;padding:1.25rem}
+    .back-button{display:inline-flex;align-items:center;gap:.5rem;color:var(--text-gray);text-decoration:none;font-family:var(--font-secondary);font-weight:600;padding:.5rem 1rem;border-radius:8px;border:1px solid var(--border-default);background:var(--bg-card)}
+    .back-button:hover{border-color:var(--jazer-cyan);color:var(--jazer-cyan)}
+
+    .hero{text-align:center;margin:1rem 0}
+    .hero h1{font-size:clamp(1.75rem,3.5vw,2.4rem);background:var(--gradient-text);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .hero p{color:var(--text-gray);max-width:780px;margin:.4rem auto}
+
+    .layout{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:360px 1fr;gap:1rem}
+    @media (max-width:900px){.layout{grid-template-columns:1fr}}
+
+    .panel{background:var(--bg-card);border-radius:12px;padding:1rem;border:2px solid var(--border-default);box-shadow:var(--shadow-card)}
+    .folders{display:flex;flex-direction:column;gap:.5rem;max-height:520px;overflow:auto}
+    .folder{display:flex;align-items:center;gap:.5rem;padding:.5rem;border-radius:8px;border:1px dashed rgba(255,255,255,0.03);cursor:pointer}
+    .folder .meta{flex:1}
+    .bookmark-list{display:flex;flex-direction:column;gap:.5rem;max-height:520px;overflow:auto;margin-top:.5rem}
+    .bookmark{display:flex;align-items:center;gap:.6rem;padding:.6rem;border-radius:8px;border:1px solid var(--border-default)}
+    .thumbnail{width:46px;height:46px;background:linear-gradient(135deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:8px;border:1px solid var(--border-default);display:flex;align-items:center;justify-content:center}
+    .muted{color:var(--text-gray);font-size:.9rem}
+    .btn{padding:.4rem .6rem;border-radius:8px;border:none;background:var(--gradient-accent);color:var(--text-light);font-weight:700;cursor:pointer}
+    .btn-ghost{padding:.35rem .5rem;border-radius:6px;border:1px solid var(--border-default);background:transparent;color:var(--text-light)}
+    .small{font-size:.85rem;color:var(--text-gray)}
+
+    .search{display:flex;gap:.5rem;align-items:center;margin-bottom:.5rem}
+    input[type=search]{flex:1;padding:.45rem .6rem;border-radius:8px;background:var(--bg-dark);border:1px solid var(--border-default);color:var(--text-light)}
+    .actions{display:flex;gap:.5rem}
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to Maps & Geolocation</a>
+  <header class="hero">
+    <h1>Map Bookmarks Panel</h1>
+    <p>Create and manage saved places, organize bookmarks into folders, and perform quick actions like share, edit, and open in map.</p>
+  </header>
+
+  <main class="layout">
+    <aside class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem"><div style="font-weight:700">Folders</div><div class="small muted">3 folders</div></div>
+      <div class="search"><input id="folderSearch" type="search" placeholder="Search folders" aria-label="Search folders"></div>
+      <div class="folders" id="folders"></div>
+      <div style="display:flex;gap:.5rem;margin-top:.5rem"><input id="newFolderName" type="text" placeholder="New folder name" style="flex:1;padding:.45rem .6rem;border-radius:8px;background:var(--bg-dark);border:1px solid var(--border-default);color:var(--text-light)"><button id="newFolder" class="btn">Create</button></div>
+    </aside>
+
+    <section class="panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem"><div style="font-weight:700">Bookmarks</div><div class="small muted">Drag to reorder • Multi-select</div></div>
+      <div class="search" style="margin-bottom:.6rem"><input id="bookmarkSearch" type="search" placeholder="Search bookmarks"><div class="actions"><button id="importBtn" class="btn-ghost">Import</button><button id="exportBtn" class="btn-ghost">Export</button></div></div>
+      <div class="bookmark-list" id="bookmarks"></div>
+      <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem"><button id="deleteSel" class="btn-ghost">Delete Selected</button><button id="shareSel" class="btn">Share Selected</button></div>
+    </section>
+  </main>
+
+  <script>
+    const foldersEl = document.getElementById('folders'); const bookmarksEl = document.getElementById('bookmarks');
+    let folders = [ {id:1, name:'Favorites'}, {id:2, name:'Work'}, {id:3, name:'Road Trip'} ];
+    let bookmarks = [ {id:1, title:'Blue Moon Café', folder:1, city:'Portland'}, {id:2, title:'Sunrise Hotel', folder:2, city:'Santa Monica'}, {id:3, title:'Central Park', folder:1, city:'New York'}, {id:4, title:'City Library', folder:2, city:'Boston'}, {id:5, title:'Pike Place Market', folder:3, city:'Seattle'} ];
+    let selectedBookmarks = new Set(); let currentFolder = null;
+
+    function renderFolders(q=''){ foldersEl.innerHTML=''; folders.filter(f=> f.name.toLowerCase().includes(q.toLowerCase())).forEach(f=>{ const el = document.createElement('div'); el.className = 'folder'; el.innerHTML = `<div class='meta'><strong>${f.name}</strong><div class='small muted'>${bookmarks.filter(b=>b.folder===f.id).length} places</div></div><div style='display:flex;gap:.4rem'><button class='btn-ghost edit' data-id='${f.id}'>✎</button><button class='btn-ghost open' data-id='${f.id}'>⋯</button></div>`; el.addEventListener('click', ()=>{ currentFolder = f.id; renderBookmarks(); renderFolders(); }); if(currentFolder===f.id) el.style.borderColor='var(--jazer-cyan)'; foldersEl.appendChild(el); }); }
+
+    function renderBookmarks(q=''){ bookmarksEl.innerHTML=''; const list = bookmarks.filter(b => (!currentFolder || b.folder===currentFolder) && (!q || b.title.toLowerCase().includes(q.toLowerCase()))); list.forEach(b => { const el = document.createElement('div'); el.className='bookmark'; el.innerHTML = `<div class='thumbnail'>${b.title.split(' ')[0].charAt(0)}</div><div style='flex:1'><div style='font-weight:700'>${b.title}</div><div class='small muted'>${b.city}</div></div><div style='display:flex;gap:.4rem'><button class='btn-ghost add' data-id='${b.id}'>＋</button><button class='btn-ghost share' data-id='${b.id}'>🔗</button><button class='btn-ghost del' data-id='${b.id}'>✖</button></div>`; el.querySelector('.add').addEventListener('click', ()=>{ alert('Add to map (demo)') }); el.querySelector('.share').addEventListener('click', ()=>{ alert('Share: ' + b.title) }); el.querySelector('.del').addEventListener('click', ()=>{ if(confirm('Delete ' + b.title + '?')){ bookmarks = bookmarks.filter(x=>x.id!==b.id); renderBookmarks(); renderFolders(); } }); el.addEventListener('click', ()=>{ if(selectedBookmarks.has(b.id)){ selectedBookmarks.delete(b.id); el.style.border='1px solid var(--border-default)'; } else { selectedBookmarks.add(b.id); el.style.border='1px solid var(--jazer-cyan)'; } }); bookmarksEl.appendChild(el); }); }
+
+    document.getElementById('newFolder').addEventListener('click', ()=>{ const name = document.getElementById('newFolderName').value.trim(); if(!name) return alert('Folder name required'); const id = Date.now(); folders.push({id, name}); document.getElementById('newFolderName').value=''; renderFolders(); });
+
+    document.getElementById('exportBtn').addEventListener('click', ()=>{ const data = { folders, bookmarks }; const blob = new Blob([JSON.stringify(data,null,2)], { type:'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='bookmarks.json'; a.click(); URL.revokeObjectURL(a.href); });
+    document.getElementById('importBtn').addEventListener('click', ()=>alert('Import demo - paste JSON to import feature'));
+    document.getElementById('deleteSel').addEventListener('click', ()=>{ if(!selectedBookmarks.size) return alert('No selection'); if(confirm('Delete selected?')){ bookmarks = bookmarks.filter(b => !selectedBookmarks.has(b.id)); selectedBookmarks.clear(); renderBookmarks(); renderFolders(); } });
+    document.getElementById('shareSel').addEventListener('click', ()=>{ if(!selectedBookmarks.size) return alert('No selection'); alert('Share ' + Array.from(selectedBookmarks).length + ' bookmarks (demo)'); });
+
+    document.getElementById('folderSearch').addEventListener('input', (e)=> renderFolders(e.target.value)); document.getElementById('bookmarkSearch').addEventListener('input', (e)=> renderBookmarks(e.target.value));
+
+    renderFolders(); renderBookmarks();
+  </script>
+</body>
+</html>

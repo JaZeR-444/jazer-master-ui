@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOM Tree Viewer - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: #0a0a0a;
+            min-height: 100vh; 
+            color: #e0e0e0;
+        }
+        .devtools-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .devtools-header {
+            background: #1a1a1a;
+            border-bottom: 2px solid #50fa7b;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #50fa7b;
+            text-decoration: none;
+            padding: 0.4rem 0.8rem;
+            border: 1px solid #50fa7b;
+            border-radius: 4px;
+            background: rgba(80, 250, 123, 0.1);
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+        .back-button:hover {
+            background: #50fa7b;
+            color: #0a0a0a;
+        }
+        .header-title {
+            font-size: 1rem;
+            color: #50fa7b;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .header-title::before {
+            content: '🌳';
+        }
+        .header-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-left: auto;
+            font-size: 0.75rem;
+        }
+        .header-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .header-stat-label { color: #666; }
+        .header-stat-value { color: #50fa7b; font-weight: 600; }
+
+        /* Toolbar */
+        .toolbar {
+            background: #141414;
+            border-bottom: 1px solid #333;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .search-input {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: inherit;
+            width: 280px;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #50fa7b;
+        }
+        .toolbar-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #1a1a1a;
+            color: #aaa;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .toolbar-btn:hover {
+            border-color: #50fa7b;
+            color: #50fa7b;
+        }
+        .toolbar-btn.active {
+            background: rgba(80, 250, 123, 0.15);
+            border-color: #50fa7b;
+            color: #50fa7b;
+        }
+        .toolbar-spacer { flex: 1; }
+        .view-mode {
+            display: flex;
+            gap: 0.25rem;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 2px;
+        }
+        .view-btn {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.7rem;
+            border: none;
+            background: transparent;
+            color: #666;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.2s ease;
+        }
+        .view-btn.active {
+            background: #50fa7b;
+            color: #0a0a0a;
+        }
+        .view-btn:hover:not(.active) {
+            color: #aaa;
+        }
+
+        /* Main Layout */
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* DOM Tree Panel */
+        .tree-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #0f0f0f;
+        }
+        .tree-scroll {
+            flex: 1;
+            overflow: auto;
+            padding: 1rem;
+        }
+
+        /* Tree Node Styles */
+        .tree-node {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+        }
+        .tree-line {
+            display: flex;
+            align-items: flex-start;
+            padding: 0.15rem 0;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: background 0.15s ease;
+        }
+        .tree-line:hover {
+            background: rgba(80, 250, 123, 0.08);
+        }
+        .tree-line.selected {
+            background: rgba(80, 250, 123, 0.15);
+        }
+        .tree-line.highlight {
+            background: rgba(255, 190, 11, 0.15);
+        }
+        .tree-indent {
+            display: inline-flex;
+            align-items: center;
+        }
+        .indent-guide {
+            width: 16px;
+            height: 20px;
+            border-left: 1px solid #333;
+            margin-left: 7px;
+        }
+        .indent-guide.last {
+            border-left-color: transparent;
+        }
+        .tree-toggle {
+            width: 16px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 0.65rem;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .tree-toggle:hover {
+            color: #50fa7b;
+        }
+        .tree-toggle.collapsed::before {
+            content: '▶';
+        }
+        .tree-toggle.expanded::before {
+            content: '▼';
+        }
+        .tree-toggle.empty {
+            visibility: hidden;
+        }
+        .tree-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+
+        /* Syntax Highlighting */
+        .tag-bracket { color: #666; }
+        .tag-name { color: #ff79c6; }
+        .attr-name { color: #50fa7b; }
+        .attr-value { color: #f1fa8c; }
+        .attr-equals { color: #fff; }
+        .tag-text { color: #8be9fd; }
+        .tag-comment { color: #6272a4; font-style: italic; }
+        .tag-doctype { color: #bd93f9; }
+        .tag-close { color: #666; }
+        .ellipsis { color: #666; }
+
+        /* Children container */
+        .tree-children {
+            display: none;
+        }
+        .tree-children.expanded {
+            display: block;
+        }
+
+        /* Properties Panel */
+        .properties-panel {
+            width: 350px;
+            background: #141414;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .properties-panel.hidden {
+            display: none;
+        }
+        .panel-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1a1a1a;
+        }
+        .panel-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #50fa7b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .close-btn:hover { color: #fff; }
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* Tabs */
+        .panel-tabs {
+            display: flex;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+        }
+        .panel-tab {
+            flex: 1;
+            padding: 0.6rem;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #666;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .panel-tab:hover {
+            color: #aaa;
+        }
+        .panel-tab.active {
+            color: #50fa7b;
+            border-bottom-color: #50fa7b;
+        }
+
+        /* Properties Section */
+        .props-section {
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .props-header {
+            padding: 0.6rem 1rem;
+            font-size: 0.7rem;
+            color: #888;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s ease;
+        }
+        .props-header:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .props-toggle {
+            font-size: 0.6rem;
+            color: #666;
+        }
+        .props-body {
+            padding: 0 1rem 0.75rem 1rem;
+        }
+        .props-body.collapsed {
+            display: none;
+        }
+        .prop-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0.35rem 0;
+            font-size: 0.75rem;
+            gap: 0.75rem;
+        }
+        .prop-name {
+            color: #888;
+            flex-shrink: 0;
+        }
+        .prop-value {
+            color: #50fa7b;
+            font-family: 'Courier New', monospace;
+            text-align: right;
+            word-break: break-all;
+        }
+        .prop-value.string { color: #f1fa8c; }
+        .prop-value.number { color: #bd93f9; }
+        .prop-value.null { color: #666; }
+
+        /* Element Breadcrumb */
+        .breadcrumb {
+            padding: 0.75rem 1rem;
+            background: #111;
+            border-bottom: 1px solid #2a2a2a;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            overflow-x: auto;
+        }
+        .breadcrumb-item {
+            color: #666;
+            cursor: pointer;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            white-space: nowrap;
+        }
+        .breadcrumb-item:hover {
+            color: #aaa;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .breadcrumb-item.current {
+            color: #50fa7b;
+            background: rgba(80, 250, 123, 0.1);
+        }
+        .breadcrumb-sep {
+            color: #444;
+        }
+
+        /* Computed Styles */
+        .computed-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+        }
+        .computed-item {
+            font-size: 0.7rem;
+        }
+        .computed-label {
+            color: #666;
+            margin-bottom: 0.15rem;
+        }
+        .computed-value {
+            color: #8be9fd;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Box Model */
+        .box-model {
+            padding: 1rem;
+        }
+        .box-model-visual {
+            position: relative;
+            background: rgba(255, 190, 11, 0.1);
+            border: 2px dashed rgba(255, 190, 11, 0.3);
+            padding: 20px;
+            text-align: center;
+        }
+        .box-margin {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.65rem;
+            color: #ffbe0b;
+        }
+        .box-border-wrap {
+            background: rgba(80, 250, 123, 0.1);
+            border: 2px solid rgba(80, 250, 123, 0.3);
+            padding: 15px;
+        }
+        .box-border-label {
+            position: absolute;
+            top: 25px;
+            left: 5px;
+            font-size: 0.6rem;
+            color: #50fa7b;
+        }
+        .box-padding-wrap {
+            background: rgba(139, 233, 253, 0.1);
+            border: 2px solid rgba(139, 233, 253, 0.3);
+            padding: 10px;
+        }
+        .box-content {
+            background: rgba(189, 147, 249, 0.2);
+            border: 1px solid rgba(189, 147, 249, 0.5);
+            padding: 0.75rem;
+            font-size: 0.7rem;
+            color: #bd93f9;
+        }
+
+        /* Event Listeners */
+        .event-item {
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid #2a2a2a;
+            font-size: 0.75rem;
+        }
+        .event-name {
+            color: #ff79c6;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        .event-handler {
+            color: #666;
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.7rem;
+        }
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #666;
+        }
+        .status-item span:last-child {
+            color: #50fa7b;
+        }
+
+        /* Search Results */
+        .search-results {
+            background: #111;
+            border-bottom: 1px solid #333;
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            color: #888;
+            display: none;
+        }
+        .search-results.visible {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .search-count {
+            color: #50fa7b;
+        }
+        .search-nav {
+            display: flex;
+            gap: 0.25rem;
+        }
+        .search-nav-btn {
+            padding: 0.2rem 0.5rem;
+            background: #2a2a2a;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 0.7rem;
+        }
+        .search-nav-btn:hover {
+            background: #333;
+            color: #fff;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .properties-panel {
+                position: fixed;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 100%;
+                max-width: 350px;
+                z-index: 100;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            }
+            .properties-panel.visible {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="devtools-container">
+        <header class="devtools-header">
+            <a href="index.html" class="back-button">← Back</a>
+            <div class="header-title">DOM Tree Viewer</div>
+            <div class="header-stats">
+                <div class="header-stat">
+                    <span class="header-stat-label">Elements:</span>
+                    <span class="header-stat-value" id="elementCount">47</span>
+                </div>
+                <div class="header-stat">
+                    <span class="header-stat-label">Depth:</span>
+                    <span class="header-stat-value" id="maxDepth">8</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="toolbar">
+            <input type="text" class="search-input" placeholder="Search by tag, class, id, or content..." id="searchInput" oninput="handleSearch()">
+            <button class="toolbar-btn" id="inspectBtn" onclick="toggleInspect()">
+                <span>🎯</span> Inspect
+            </button>
+            <button class="toolbar-btn" onclick="expandAll()">Expand All</button>
+            <button class="toolbar-btn" onclick="collapseAll()">Collapse All</button>
+            <div class="toolbar-spacer"></div>
+            <div class="view-mode">
+                <button class="view-btn active" onclick="setView('tree')">Tree</button>
+                <button class="view-btn" onclick="setView('source')">Source</button>
+            </div>
+            <button class="toolbar-btn" onclick="refreshTree()">↻ Refresh</button>
+        </div>
+
+        <div class="search-results" id="searchResults">
+            <span>Found <span class="search-count" id="searchCount">0</span> matches</span>
+            <div class="search-nav">
+                <button class="search-nav-btn" onclick="prevMatch()">◀ Prev</button>
+                <button class="search-nav-btn" onclick="nextMatch()">Next ▶</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="tree-panel">
+                <div class="tree-scroll" id="treeContainer">
+                    <!-- DOM Tree rendered here -->
+                </div>
+            </div>
+
+            <aside class="properties-panel" id="propertiesPanel">
+                <div class="panel-header">
+                    <span class="panel-title">Element Properties</span>
+                    <button class="close-btn" onclick="closeProperties()">×</button>
+                </div>
+                <div class="breadcrumb" id="breadcrumb">
+                    <span class="breadcrumb-item">html</span>
+                    <span class="breadcrumb-sep">›</span>
+                    <span class="breadcrumb-item">body</span>
+                    <span class="breadcrumb-sep">›</span>
+                    <span class="breadcrumb-item">div.container</span>
+                    <span class="breadcrumb-sep">›</span>
+                    <span class="breadcrumb-item current">header#main-header</span>
+                </div>
+                <div class="panel-tabs">
+                    <div class="panel-tab active" onclick="showTab('attributes')">Attributes</div>
+                    <div class="panel-tab" onclick="showTab('styles')">Styles</div>
+                    <div class="panel-tab" onclick="showTab('box')">Box Model</div>
+                    <div class="panel-tab" onclick="showTab('events')">Events</div>
+                </div>
+                <div class="panel-content" id="panelContent">
+                    <!-- Tab content rendered here -->
+                </div>
+            </aside>
+        </div>
+
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Selected:</span>
+                    <span id="selectedElement">header#main-header</span>
+                </div>
+                <div class="status-item">
+                    <span>Size:</span>
+                    <span id="selectedSize">1200 × 80</span>
+                </div>
+                <div class="status-item">
+                    <span>Last refresh:</span>
+                    <span id="lastRefresh">--</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Simulated DOM tree data
+        const domTree = {
+            tag: 'html',
+            attrs: { lang: 'en' },
+            children: [
+                {
+                    tag: 'head',
+                    children: [
+                        { tag: 'meta', attrs: { charset: 'UTF-8' }, selfClosing: true },
+                        { tag: 'meta', attrs: { name: 'viewport', content: 'width=device-width, initial-scale=1.0' }, selfClosing: true },
+                        { tag: 'title', text: 'My Application' },
+                        { tag: 'link', attrs: { rel: 'stylesheet', href: 'styles.css' }, selfClosing: true },
+                        { tag: 'script', attrs: { src: 'app.js', defer: '' } }
+                    ]
+                },
+                {
+                    tag: 'body',
+                    attrs: { class: 'theme-dark' },
+                    children: [
+                        {
+                            tag: 'header',
+                            attrs: { id: 'main-header', class: 'site-header sticky' },
+                            children: [
+                                {
+                                    tag: 'nav',
+                                    attrs: { class: 'navbar', role: 'navigation' },
+                                    children: [
+                                        { tag: 'a', attrs: { href: '/', class: 'logo' }, text: 'MyApp' },
+                                        {
+                                            tag: 'ul',
+                                            attrs: { class: 'nav-links' },
+                                            children: [
+                                                { tag: 'li', children: [{ tag: 'a', attrs: { href: '/home' }, text: 'Home' }] },
+                                                { tag: 'li', children: [{ tag: 'a', attrs: { href: '/about' }, text: 'About' }] },
+                                                { tag: 'li', children: [{ tag: 'a', attrs: { href: '/contact' }, text: 'Contact' }] }
+                                            ]
+                                        },
+                                        { tag: 'button', attrs: { class: 'menu-toggle', 'aria-label': 'Toggle menu' }, text: '☰' }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            tag: 'main',
+                            attrs: { id: 'content', class: 'main-content' },
+                            children: [
+                                {
+                                    tag: 'section',
+                                    attrs: { class: 'hero-section' },
+                                    children: [
+                                        { tag: 'h1', attrs: { class: 'hero-title' }, text: 'Welcome to MyApp' },
+                                        { tag: 'p', attrs: { class: 'hero-subtitle' }, text: 'Build amazing things with us' },
+                                        { tag: 'button', attrs: { class: 'cta-button primary', 'data-action': 'signup' }, text: 'Get Started' }
+                                    ]
+                                },
+                                {
+                                    tag: 'section',
+                                    attrs: { class: 'features-section', id: 'features' },
+                                    children: [
+                                        { tag: 'h2', text: 'Features' },
+                                        {
+                                            tag: 'div',
+                                            attrs: { class: 'feature-grid' },
+                                            children: [
+                                                {
+                                                    tag: 'article',
+                                                    attrs: { class: 'feature-card' },
+                                                    children: [
+                                                        { tag: 'img', attrs: { src: 'icon1.svg', alt: 'Fast' }, selfClosing: true },
+                                                        { tag: 'h3', text: 'Lightning Fast' },
+                                                        { tag: 'p', text: 'Optimized performance' }
+                                                    ]
+                                                },
+                                                {
+                                                    tag: 'article',
+                                                    attrs: { class: 'feature-card' },
+                                                    children: [
+                                                        { tag: 'img', attrs: { src: 'icon2.svg', alt: 'Secure' }, selfClosing: true },
+                                                        { tag: 'h3', text: 'Secure' },
+                                                        { tag: 'p', text: 'Enterprise-grade security' }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            tag: 'footer',
+                            attrs: { class: 'site-footer' },
+                            children: [
+                                { tag: 'p', attrs: { class: 'copyright' }, text: '© 2024 MyApp. All rights reserved.' },
+                                {
+                                    tag: 'div',
+                                    attrs: { class: 'social-links' },
+                                    children: [
+                                        { tag: 'a', attrs: { href: '#', class: 'social-icon' }, text: 'Twitter' },
+                                        { tag: 'a', attrs: { href: '#', class: 'social-icon' }, text: 'GitHub' }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        let selectedNode = null;
+        let searchMatches = [];
+        let currentMatchIndex = 0;
+        let expandedNodes = new Set();
+        let activeTab = 'attributes';
+
+        // Render DOM tree
+        function renderTree() {
+            const container = document.getElementById('treeContainer');
+            container.innerHTML = renderNode(domTree, 0, []);
+            updateStats();
+        }
+
+        function renderNode(node, depth, path) {
+            if (!node) return '';
+            
+            const nodeId = path.join('-') || 'root';
+            const hasChildren = node.children && node.children.length > 0;
+            const isExpanded = expandedNodes.has(nodeId) || depth < 2;
+            const isSelected = selectedNode === nodeId;
+            
+            if (isExpanded && hasChildren) expandedNodes.add(nodeId);
+
+            let html = `<div class="tree-node" data-id="${nodeId}">`;
+            html += `<div class="tree-line ${isSelected ? 'selected' : ''}" onclick="selectNode('${nodeId}', event)">`;
+            
+            // Indent guides
+            html += '<span class="tree-indent">';
+            for (let i = 0; i < depth; i++) {
+                html += '<span class="indent-guide"></span>';
+            }
+            html += '</span>';
+            
+            // Toggle button
+            if (hasChildren) {
+                html += `<span class="tree-toggle ${isExpanded ? 'expanded' : 'collapsed'}" onclick="toggleNode('${nodeId}', event)"></span>`;
+            } else {
+                html += '<span class="tree-toggle empty"></span>';
+            }
+            
+            // Content
+            html += '<span class="tree-content">';
+            html += renderOpenTag(node);
+            
+            if (node.text && !hasChildren) {
+                html += `<span class="tag-text">${escapeHtml(node.text)}</span>`;
+                html += renderCloseTag(node);
+            } else if (node.selfClosing) {
+                // Already closed in renderOpenTag
+            } else if (!hasChildren && !node.text) {
+                html += renderCloseTag(node);
+            } else if (hasChildren && !isExpanded) {
+                html += '<span class="ellipsis">...</span>';
+                html += renderCloseTag(node);
+            }
+            
+            html += '</span></div>';
+            
+            // Children
+            if (hasChildren) {
+                html += `<div class="tree-children ${isExpanded ? 'expanded' : ''}">`;
+                node.children.forEach((child, i) => {
+                    html += renderNode(child, depth + 1, [...path, i]);
+                });
+                
+                // Closing tag at same level
+                if (isExpanded) {
+                    html += `<div class="tree-line" onclick="selectNode('${nodeId}', event)">`;
+                    html += '<span class="tree-indent">';
+                    for (let i = 0; i < depth; i++) {
+                        html += '<span class="indent-guide"></span>';
+                    }
+                    html += '</span>';
+                    html += '<span class="tree-toggle empty"></span>';
+                    html += `<span class="tree-content">${renderCloseTag(node)}</span>`;
+                    html += '</div>';
+                }
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            return html;
+        }
+
+        function renderOpenTag(node) {
+            let html = '<span class="tag-bracket">&lt;</span>';
+            html += `<span class="tag-name">${node.tag}</span>`;
+            
+            if (node.attrs) {
+                for (const [key, value] of Object.entries(node.attrs)) {
+                    html += ` <span class="attr-name">${key}</span>`;
+                    if (value !== '') {
+                        html += `<span class="attr-equals">=</span><span class="attr-value">"${escapeHtml(value)}"</span>`;
+                    }
+                }
+            }
+            
+            if (node.selfClosing) {
+                html += '<span class="tag-bracket"> /&gt;</span>';
+            } else {
+                html += '<span class="tag-bracket">&gt;</span>';
+            }
+            
+            return html;
+        }
+
+        function renderCloseTag(node) {
+            if (node.selfClosing) return '';
+            return `<span class="tag-close">&lt;/${node.tag}&gt;</span>`;
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function toggleNode(nodeId, event) {
+            event.stopPropagation();
+            if (expandedNodes.has(nodeId)) {
+                expandedNodes.delete(nodeId);
+            } else {
+                expandedNodes.add(nodeId);
+            }
+            renderTree();
+        }
+
+        function selectNode(nodeId, event) {
+            event.stopPropagation();
+            selectedNode = nodeId;
+            renderTree();
+            showProperties(nodeId);
+            document.getElementById('propertiesPanel').classList.remove('hidden');
+        }
+
+        function showProperties(nodeId) {
+            const node = getNodeByPath(nodeId);
+            if (!node) return;
+
+            updateBreadcrumb(nodeId);
+            document.getElementById('selectedElement').textContent = getNodeLabel(node);
+            document.getElementById('selectedSize').textContent = '-- × --';
+            
+            renderTabContent(node);
+        }
+
+        function getNodeByPath(nodeId) {
+            if (nodeId === 'root') return domTree;
+            const path = nodeId.split('-').map(Number);
+            let current = domTree;
+            for (const index of path) {
+                if (!current.children) return null;
+                current = current.children[index];
+            }
+            return current;
+        }
+
+        function getNodeLabel(node) {
+            let label = node.tag;
+            if (node.attrs?.id) label += `#${node.attrs.id}`;
+            if (node.attrs?.class) label += `.${node.attrs.class.split(' ')[0]}`;
+            return label;
+        }
+
+        function updateBreadcrumb(nodeId) {
+            const breadcrumb = document.getElementById('breadcrumb');
+            const parts = [];
+            
+            if (nodeId === 'root') {
+                parts.push({ label: 'html', id: 'root' });
+            } else {
+                parts.push({ label: 'html', id: 'root' });
+                const path = nodeId.split('-').map(Number);
+                let current = domTree;
+                let currentId = 'root';
+                
+                for (let i = 0; i < path.length; i++) {
+                    current = current.children[path[i]];
+                    currentId = path.slice(0, i + 1).join('-');
+                    parts.push({ label: getNodeLabel(current), id: currentId });
+                }
+            }
+
+            breadcrumb.innerHTML = parts.map((part, i) => {
+                const isLast = i === parts.length - 1;
+                return `
+                    <span class="breadcrumb-item ${isLast ? 'current' : ''}" onclick="selectNode('${part.id}', event)">${part.label}</span>
+                    ${!isLast ? '<span class="breadcrumb-sep">›</span>' : ''}
+                `;
+            }).join('');
+        }
+
+        function showTab(tab) {
+            activeTab = tab;
+            document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const node = selectedNode ? getNodeByPath(selectedNode) : null;
+            if (node) renderTabContent(node);
+        }
+
+        function renderTabContent(node) {
+            const content = document.getElementById('panelContent');
+            
+            if (activeTab === 'attributes') {
+                let html = '<div class="props-section">';
+                html += '<div class="props-header" onclick="toggleSection(this)"><span class="props-toggle">▼</span> Attributes</div>';
+                html += '<div class="props-body">';
+                
+                if (node.attrs) {
+                    for (const [key, value] of Object.entries(node.attrs)) {
+                        html += `<div class="prop-row"><span class="prop-name">${key}</span><span class="prop-value string">"${escapeHtml(value)}"</span></div>`;
+                    }
+                } else {
+                    html += '<div class="prop-row"><span class="prop-name" style="color:#666">No attributes</span></div>';
+                }
+                html += '</div></div>';
+                
+                html += '<div class="props-section">';
+                html += '<div class="props-header" onclick="toggleSection(this)"><span class="props-toggle">▼</span> Properties</div>';
+                html += '<div class="props-body">';
+                html += `<div class="prop-row"><span class="prop-name">tagName</span><span class="prop-value">${node.tag.toUpperCase()}</span></div>`;
+                html += `<div class="prop-row"><span class="prop-name">childElementCount</span><span class="prop-value number">${node.children?.length || 0}</span></div>`;
+                html += `<div class="prop-row"><span class="prop-name">textContent</span><span class="prop-value string">${node.text ? '"' + escapeHtml(node.text.substring(0, 30)) + '..."' : 'null'}</span></div>`;
+                html += '</div></div>';
+                
+                content.innerHTML = html;
+            } else if (activeTab === 'styles') {
+                content.innerHTML = `
+                    <div class="computed-grid">
+                        <div class="computed-item"><div class="computed-label">display</div><div class="computed-value">block</div></div>
+                        <div class="computed-item"><div class="computed-label">position</div><div class="computed-value">relative</div></div>
+                        <div class="computed-item"><div class="computed-label">width</div><div class="computed-value">100%</div></div>
+                        <div class="computed-item"><div class="computed-label">height</div><div class="computed-value">auto</div></div>
+                        <div class="computed-item"><div class="computed-label">padding</div><div class="computed-value">16px</div></div>
+                        <div class="computed-item"><div class="computed-label">margin</div><div class="computed-value">0px</div></div>
+                        <div class="computed-item"><div class="computed-label">font-size</div><div class="computed-value">16px</div></div>
+                        <div class="computed-item"><div class="computed-label">color</div><div class="computed-value">#ffffff</div></div>
+                        <div class="computed-item"><div class="computed-label">background</div><div class="computed-value">transparent</div></div>
+                        <div class="computed-item"><div class="computed-label">z-index</div><div class="computed-value">auto</div></div>
+                    </div>
+                `;
+            } else if (activeTab === 'box') {
+                content.innerHTML = `
+                    <div class="box-model">
+                        <div class="box-model-visual">
+                            <span class="box-margin">margin: 0</span>
+                            <div class="box-border-wrap">
+                                <span class="box-border-label">border</span>
+                                <div class="box-padding-wrap">
+                                    <div class="box-content">
+                                        content<br>
+                                        <small>width × height</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="props-section">
+                        <div class="props-header"><span class="props-toggle">▼</span> Dimensions</div>
+                        <div class="props-body">
+                            <div class="prop-row"><span class="prop-name">offsetWidth</span><span class="prop-value number">1200</span></div>
+                            <div class="prop-row"><span class="prop-name">offsetHeight</span><span class="prop-value number">80</span></div>
+                            <div class="prop-row"><span class="prop-name">scrollWidth</span><span class="prop-value number">1200</span></div>
+                            <div class="prop-row"><span class="prop-name">scrollHeight</span><span class="prop-value number">80</span></div>
+                        </div>
+                    </div>
+                `;
+            } else if (activeTab === 'events') {
+                content.innerHTML = `
+                    <div class="event-item">
+                        <div class="event-name">click</div>
+                        <div class="event-handler">handleClick() at app.js:42</div>
+                    </div>
+                    <div class="event-item">
+                        <div class="event-name">mouseenter</div>
+                        <div class="event-handler">onHover() at app.js:67</div>
+                    </div>
+                    <div class="event-item">
+                        <div class="event-name">keydown</div>
+                        <div class="event-handler">handleKeyPress() at app.js:89</div>
+                    </div>
+                `;
+            }
+        }
+
+        function toggleSection(header) {
+            const body = header.nextElementSibling;
+            const toggle = header.querySelector('.props-toggle');
+            body.classList.toggle('collapsed');
+            toggle.textContent = body.classList.contains('collapsed') ? '▶' : '▼';
+        }
+
+        function closeProperties() {
+            document.getElementById('propertiesPanel').classList.add('hidden');
+        }
+
+        function expandAll() {
+            collectAllNodeIds(domTree, 'root');
+            renderTree();
+        }
+
+        function collectAllNodeIds(node, nodeId) {
+            expandedNodes.add(nodeId);
+            if (node.children) {
+                node.children.forEach((child, i) => {
+                    const childId = nodeId === 'root' ? String(i) : `${nodeId}-${i}`;
+                    collectAllNodeIds(child, childId);
+                });
+            }
+        }
+
+        function collapseAll() {
+            expandedNodes.clear();
+            expandedNodes.add('root');
+            renderTree();
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (!query) {
+                resultsDiv.classList.remove('visible');
+                document.querySelectorAll('.tree-line.highlight').forEach(el => el.classList.remove('highlight'));
+                return;
+            }
+
+            searchMatches = [];
+            findMatches(domTree, 'root', query);
+            
+            document.getElementById('searchCount').textContent = searchMatches.length;
+            resultsDiv.classList.add('visible');
+            
+            if (searchMatches.length > 0) {
+                currentMatchIndex = 0;
+                highlightMatch(currentMatchIndex);
+            }
+        }
+
+        function findMatches(node, nodeId, query) {
+            const matchesTag = node.tag?.toLowerCase().includes(query);
+            const matchesText = node.text?.toLowerCase().includes(query);
+            const matchesAttr = node.attrs && Object.entries(node.attrs).some(
+                ([k, v]) => k.toLowerCase().includes(query) || v.toLowerCase().includes(query)
+            );
+            
+            if (matchesTag || matchesText || matchesAttr) {
+                searchMatches.push(nodeId);
+            }
+            
+            if (node.children) {
+                node.children.forEach((child, i) => {
+                    const childId = nodeId === 'root' ? String(i) : `${nodeId}-${i}`;
+                    findMatches(child, childId, query);
+                });
+            }
+        }
+
+        function highlightMatch(index) {
+            document.querySelectorAll('.tree-line.highlight').forEach(el => el.classList.remove('highlight'));
+            
+            if (searchMatches[index]) {
+                // Expand parents
+                const parts = searchMatches[index].split('-');
+                for (let i = 0; i < parts.length; i++) {
+                    const parentId = parts.slice(0, i + 1).join('-');
+                    expandedNodes.add(parentId);
+                }
+                renderTree();
+                
+                const nodeEl = document.querySelector(`[data-id="${searchMatches[index]}"] > .tree-line`);
+                if (nodeEl) {
+                    nodeEl.classList.add('highlight');
+                    nodeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+
+        function nextMatch() {
+            if (searchMatches.length === 0) return;
+            currentMatchIndex = (currentMatchIndex + 1) % searchMatches.length;
+            highlightMatch(currentMatchIndex);
+        }
+
+        function prevMatch() {
+            if (searchMatches.length === 0) return;
+            currentMatchIndex = (currentMatchIndex - 1 + searchMatches.length) % searchMatches.length;
+            highlightMatch(currentMatchIndex);
+        }
+
+        function toggleInspect() {
+            const btn = document.getElementById('inspectBtn');
+            btn.classList.toggle('active');
+        }
+
+        function setView(view) {
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function refreshTree() {
+            document.getElementById('lastRefresh').textContent = new Date().toLocaleTimeString();
+            renderTree();
+        }
+
+        function updateStats() {
+            let count = 0;
+            let maxDepth = 0;
+            
+            function countNodes(node, depth) {
+                count++;
+                maxDepth = Math.max(maxDepth, depth);
+                if (node.children) {
+                    node.children.forEach(child => countNodes(child, depth + 1));
+                }
+            }
+            countNodes(domTree, 0);
+            
+            document.getElementById('elementCount').textContent = count;
+            document.getElementById('maxDepth').textContent = maxDepth;
+        }
+
+        // Initialize
+        expandedNodes.add('root');
+        expandedNodes.add('0');
+        expandedNodes.add('1');
+        renderTree();
+        document.getElementById('lastRefresh').textContent = new Date().toLocaleTimeString();
+    </script>
+</body>
+</html>

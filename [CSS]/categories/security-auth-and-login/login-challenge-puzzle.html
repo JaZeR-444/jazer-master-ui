@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Challenge Puzzle - JaZeR Security</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(255, 0, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-size: 1rem;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: rgba(0, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .puzzle-container {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.2);
+            animation: fadeIn 0.5s ease;
+        }
+
+        h1 {
+            color: var(--jazer-cyan);
+            font-family: var(--font-primary);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            text-align: center;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .challenge-type {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .type-badges {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .type-badge {
+            padding: 0.5rem 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+
+        .type-badge.active {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            background: rgba(0, 255, 255, 0.1);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .puzzle-section {
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .puzzle-section.active {
+            display: block;
+        }
+
+        /* Pattern Lock Puzzle */
+        .pattern-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            max-width: 300px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
+
+        .pattern-dot {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(0, 255, 255, 0.5);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: rgba(0, 255, 255, 0.1);
+        }
+
+        .pattern-dot::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .pattern-dot:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .pattern-dot.selected::after {
+            background: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+
+        /* Slider Puzzle */
+        .slider-puzzle {
+            max-width: 400px;
+            margin: 2rem auto;
+        }
+
+        .slider-track {
+            position: relative;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            overflow: hidden;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .slider-handle {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 50%;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .slider-handle:active {
+            cursor: grabbing;
+        }
+
+        .slider-handle:hover {
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.7);
+        }
+
+        /* Math Challenge */
+        .math-challenge {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .math-question {
+            font-size: 2.5rem;
+            color: var(--jazer-cyan);
+            margin: 2rem 0;
+            font-family: var(--font-primary);
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .math-input {
+            width: 100%;
+            max-width: 200px;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.5);
+            border-radius: 8px;
+            color: white;
+            font-size: 1.5rem;
+            text-align: center;
+            font-family: var(--font-primary);
+            transition: all 0.3s ease;
+        }
+
+        .math-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        /* Status Messages */
+        .status-message {
+            text-align: center;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .status-message.show {
+            opacity: 1;
+        }
+
+        .status-message.success {
+            background: rgba(57, 255, 20, 0.1);
+            border: 2px solid #39ff14;
+            color: #39ff14;
+        }
+
+        .status-message.error {
+            background: rgba(255, 51, 102, 0.1);
+            border: 2px solid #ff3366;
+            color: #ff3366;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.875rem;
+            border: 2px solid;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+            font-family: var(--font-body);
+        }
+
+        .btn-primary {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .btn-secondary {
+            border-color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            border-color: rgba(255, 255, 255, 0.5);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pattern-display {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+            margin-top: 1rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .back-button {
+                top: 1rem;
+                left: 1rem;
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .puzzle-container {
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .pattern-grid {
+                gap: 1.5rem;
+                max-width: 250px;
+            }
+
+            .pattern-dot {
+                width: 50px;
+                height: 50px;
+            }
+
+            .math-question {
+                font-size: 2rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <div class="puzzle-container">
+        <h1>Security Challenge</h1>
+        <p class="subtitle">Complete the challenge to verify you're human</p>
+
+        <div class="challenge-type">
+            <div class="type-badges">
+                <button class="type-badge active" data-type="pattern">Pattern Lock</button>
+                <button class="type-badge" data-type="slider">Slider</button>
+                <button class="type-badge" data-type="math">Math</button>
+            </div>
+        </div>
+
+        <div class="status-message"></div>
+
+        <!-- Pattern Lock Puzzle -->
+        <div class="puzzle-section active" id="pattern-puzzle">
+            <p style="text-align: center; color: rgba(255, 255, 255, 0.7); margin-bottom: 1rem;">
+                Draw a pattern by connecting at least 4 dots
+            </p>
+            <div class="pattern-grid">
+                <div class="pattern-dot" data-pos="0"></div>
+                <div class="pattern-dot" data-pos="1"></div>
+                <div class="pattern-dot" data-pos="2"></div>
+                <div class="pattern-dot" data-pos="3"></div>
+                <div class="pattern-dot" data-pos="4"></div>
+                <div class="pattern-dot" data-pos="5"></div>
+                <div class="pattern-dot" data-pos="6"></div>
+                <div class="pattern-dot" data-pos="7"></div>
+                <div class="pattern-dot" data-pos="8"></div>
+            </div>
+            <div class="pattern-display">Pattern: <span id="pattern-text">None</span></div>
+        </div>
+
+        <!-- Slider Puzzle -->
+        <div class="puzzle-section" id="slider-puzzle">
+            <p style="text-align: center; color: rgba(255, 255, 255, 0.7); margin-bottom: 1rem;">
+                Slide to the right to continue
+            </p>
+            <div class="slider-puzzle">
+                <div class="slider-track">
+                    <div class="slider-handle" id="slider-handle">→</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Math Challenge -->
+        <div class="puzzle-section" id="math-puzzle">
+            <div class="math-challenge">
+                <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 1rem;">
+                    Solve the equation
+                </p>
+                <div class="math-question" id="math-question">8 + 7 = ?</div>
+                <input type="number" class="math-input" id="math-answer" placeholder="?">
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="verifyBtn">Verify</button>
+            <button class="btn btn-secondary" id="resetBtn">Reset</button>
+        </div>
+    </div>
+
+    <script>
+        // Challenge type switching
+        const typeBadges = document.querySelectorAll('.type-badge');
+        const puzzleSections = document.querySelectorAll('.puzzle-section');
+        
+        typeBadges.forEach(badge => {
+            badge.addEventListener('click', () => {
+                typeBadges.forEach(b => b.classList.remove('active'));
+                badge.classList.add('active');
+                
+                const type = badge.dataset.type;
+                puzzleSections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(`${type}-puzzle`).classList.add('active');
+                
+                resetPuzzles();
+            });
+        });
+
+        // Pattern Lock
+        const patternDots = document.querySelectorAll('.pattern-dot');
+        const patternText = document.getElementById('pattern-text');
+        let pattern = [];
+        let isDrawing = false;
+
+        patternDots.forEach(dot => {
+            dot.addEventListener('mousedown', startPattern);
+            dot.addEventListener('mouseenter', addToPattern);
+            dot.addEventListener('touchstart', startPattern);
+            dot.addEventListener('touchmove', handleTouchMove);
+        });
+
+        document.addEventListener('mouseup', endPattern);
+        document.addEventListener('touchend', endPattern);
+
+        function startPattern(e) {
+            e.preventDefault();
+            isDrawing = true;
+            pattern = [];
+            patternDots.forEach(dot => dot.classList.remove('selected'));
+            addDotToPattern(this);
+        }
+
+        function addToPattern(e) {
+            if (isDrawing) {
+                addDotToPattern(this);
+            }
+        }
+
+        function handleTouchMove(e) {
+            if (!isDrawing) return;
+            const touch = e.touches[0];
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (element && element.classList.contains('pattern-dot')) {
+                addDotToPattern(element);
+            }
+        }
+
+        function addDotToPattern(dot) {
+            const pos = dot.dataset.pos;
+            if (!pattern.includes(pos)) {
+                pattern.push(pos);
+                dot.classList.add('selected');
+                patternText.textContent = pattern.join('-');
+            }
+        }
+
+        function endPattern() {
+            isDrawing = false;
+        }
+
+        // Slider Puzzle
+        const sliderHandle = document.getElementById('slider-handle');
+        const sliderTrack = sliderHandle.parentElement;
+        let isDragging = false;
+        let sliderComplete = false;
+
+        sliderHandle.addEventListener('mousedown', startDrag);
+        sliderHandle.addEventListener('touchstart', startDrag);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('touchmove', drag);
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchend', endDrag);
+
+        function startDrag(e) {
+            isDragging = true;
+            sliderComplete = false;
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const rect = sliderTrack.getBoundingClientRect();
+            let x = clientX - rect.left - 30;
+            
+            x = Math.max(0, Math.min(x, rect.width - 60));
+            sliderHandle.style.left = x + 'px';
+            
+            if (x >= rect.width - 70) {
+                sliderComplete = true;
+                sliderHandle.textContent = '✓';
+            } else {
+                sliderHandle.textContent = '→';
+            }
+        }
+
+        function endDrag() {
+            if (isDragging && !sliderComplete) {
+                sliderHandle.style.left = '0px';
+                sliderHandle.textContent = '→';
+            }
+            isDragging = false;
+        }
+
+        // Math Challenge
+        const mathQuestion = document.getElementById('math-question');
+        const mathAnswer = document.getElementById('math-answer');
+        let correctAnswer;
+
+        function generateMathChallenge() {
+            const num1 = Math.floor(Math.random() * 10) + 1;
+            const num2 = Math.floor(Math.random() * 10) + 1;
+            correctAnswer = num1 + num2;
+            mathQuestion.textContent = `${num1} + ${num2} = ?`;
+            mathAnswer.value = '';
+        }
+
+        generateMathChallenge();
+
+        // Verify and Reset
+        const verifyBtn = document.getElementById('verifyBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const statusMessage = document.querySelector('.status-message');
+
+        verifyBtn.addEventListener('click', verifyChallenge);
+        resetBtn.addEventListener('click', resetPuzzles);
+
+        function verifyChallenge() {
+            const activeType = document.querySelector('.type-badge.active').dataset.type;
+            let success = false;
+
+            if (activeType === 'pattern') {
+                success = pattern.length >= 4;
+            } else if (activeType === 'slider') {
+                success = sliderComplete;
+            } else if (activeType === 'math') {
+                success = parseInt(mathAnswer.value) === correctAnswer;
+            }
+
+            showStatus(success);
+        }
+
+        function showStatus(success) {
+            statusMessage.classList.remove('success', 'error', 'show');
+            
+            if (success) {
+                statusMessage.textContent = '✓ Challenge completed successfully!';
+                statusMessage.classList.add('success');
+            } else {
+                statusMessage.textContent = '✗ Challenge failed. Please try again.';
+                statusMessage.classList.add('error');
+            }
+            
+            statusMessage.classList.add('show');
+            
+            setTimeout(() => {
+                statusMessage.classList.remove('show');
+            }, 3000);
+        }
+
+        function resetPuzzles() {
+            // Reset pattern
+            pattern = [];
+            patternDots.forEach(dot => dot.classList.remove('selected'));
+            patternText.textContent = 'None';
+            
+            // Reset slider
+            sliderHandle.style.left = '0px';
+            sliderHandle.textContent = '→';
+            sliderComplete = false;
+            
+            // Reset math
+            generateMathChallenge();
+            
+            statusMessage.classList.remove('show');
+        }
+    </script>
+</body>
+</html>

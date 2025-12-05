@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Flag Toggle - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: #0a0a0a;
+            min-height: 100vh; 
+            color: #e0e0e0;
+        }
+        .devtools-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .devtools-header {
+            background: #1a1a1a;
+            border-bottom: 2px solid var(--jazer-cyan);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.4rem 0.8rem;
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 4px;
+            background: rgba(0, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+        }
+        .header-title {
+            font-size: 1rem;
+            color: var(--jazer-cyan);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .header-title::before {
+            content: '🚩';
+        }
+        .header-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 0.75rem;
+        }
+        .env-selector {
+            display: flex;
+            background: #141414;
+            border-radius: 6px;
+            border: 1px solid #333;
+            overflow: hidden;
+        }
+        .env-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            background: transparent;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            border-right: 1px solid #333;
+        }
+        .env-btn:last-child {
+            border-right: none;
+        }
+        .env-btn:hover {
+            color: #aaa;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .env-btn.active {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            font-weight: 600;
+        }
+        .env-btn.active.staging {
+            background: #ffbe0b;
+        }
+        .env-btn.active.production {
+            background: #ff4757;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            background: #141414;
+            border-bottom: 1px solid #333;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .search-input {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: inherit;
+            width: 250px;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+        .search-input::placeholder {
+            color: #555;
+        }
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .filter-label {
+            font-size: 0.7rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .filter-btn {
+            padding: 0.35rem 0.7rem;
+            font-size: 0.7rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: transparent;
+            color: #888;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+        .filter-btn:hover {
+            border-color: #555;
+            color: #aaa;
+        }
+        .filter-btn.active {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            background: rgba(0, 255, 255, 0.1);
+        }
+        .toolbar-spacer {
+            flex: 1;
+        }
+        .toolbar-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #1a1a1a;
+            color: #aaa;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .toolbar-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+        .toolbar-btn.primary {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+            color: #0a0a0a;
+            font-weight: 600;
+        }
+
+        /* Main Layout */
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Flags List */
+        .flags-panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        .flag-group {
+            margin-bottom: 1.5rem;
+        }
+        .flag-group-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #2a2a2a;
+            margin-bottom: 0.75rem;
+        }
+        .flag-group-icon {
+            font-size: 1rem;
+        }
+        .flag-group-title {
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .flag-group-count {
+            font-size: 0.7rem;
+            color: #555;
+            margin-left: auto;
+        }
+
+        /* Flag Card */
+        .flag-card {
+            background: #141414;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        .flag-card:hover {
+            border-color: #444;
+        }
+        .flag-card.selected {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+        }
+        .flag-main {
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #333;
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: #666;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        .toggle-switch input:checked + .toggle-slider {
+            background: var(--jazer-cyan);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+            background: #fff;
+        }
+
+        .flag-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .flag-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .flag-key {
+            font-size: 0.7rem;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+        }
+        .flag-description {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .flag-tags {
+            display: flex;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .flag-tag {
+            font-size: 0.6rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            background: rgba(147, 51, 234, 0.2);
+            color: #a78bfa;
+            text-transform: uppercase;
+        }
+        .flag-tag.team {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--jazer-cyan);
+        }
+        .flag-tag.critical {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+        }
+        .flag-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.4rem;
+            font-size: 0.7rem;
+        }
+        .flag-rollout {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .rollout-bar {
+            width: 60px;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .rollout-fill {
+            height: 100%;
+            background: var(--jazer-cyan);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        .rollout-value {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            min-width: 35px;
+            text-align: right;
+        }
+        .flag-updated {
+            color: #555;
+        }
+
+        /* Expand/Collapse */
+        .flag-expand {
+            background: none;
+            border: none;
+            color: #555;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .flag-expand:hover {
+            color: var(--jazer-cyan);
+        }
+        .flag-expand.expanded {
+            transform: rotate(180deg);
+        }
+
+        /* Flag Details */
+        .flag-details {
+            display: none;
+            background: #0f0f0f;
+            border-top: 1px solid #2a2a2a;
+            padding: 1rem;
+        }
+        .flag-details.visible {
+            display: block;
+        }
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .detail-block {
+            background: #141414;
+            border: 1px solid #2a2a2a;
+            border-radius: 6px;
+            padding: 0.75rem;
+        }
+        .detail-block-title {
+            font-size: 0.7rem;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        .targeting-rule {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0;
+            font-size: 0.75rem;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .targeting-rule:last-child {
+            border-bottom: none;
+        }
+        .rule-condition {
+            color: #ff79c6;
+        }
+        .rule-operator {
+            color: #666;
+        }
+        .rule-value {
+            color: var(--jazer-cyan);
+            font-weight: 500;
+        }
+        .env-status {
+            display: flex;
+            gap: 1rem;
+        }
+        .env-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+        .env-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .env-dot.on {
+            background: #39ff14;
+            box-shadow: 0 0 6px #39ff14;
+        }
+        .env-dot.off {
+            background: #555;
+        }
+        .env-name {
+            color: #888;
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            font-size: 0.7rem;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        .history-action {
+            color: #aaa;
+        }
+        .history-action.enabled {
+            color: #39ff14;
+        }
+        .history-action.disabled {
+            color: #ff4757;
+        }
+        .history-meta {
+            color: #555;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #141414;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .sidebar-section {
+            padding: 1rem;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .sidebar-title {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        .stat-card {
+            background: #0f0f0f;
+            border-radius: 6px;
+            padding: 0.75rem;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+        }
+        .stat-value.enabled {
+            color: #39ff14;
+        }
+        .stat-value.disabled {
+            color: #666;
+        }
+        .stat-label {
+            font-size: 0.65rem;
+            color: #666;
+            text-transform: uppercase;
+            margin-top: 0.25rem;
+        }
+        .recent-changes {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .change-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #1a1a1a;
+            font-size: 0.75rem;
+        }
+        .change-flag {
+            color: #fff;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        .change-action {
+            color: #888;
+        }
+        .change-action .on {
+            color: #39ff14;
+        }
+        .change-action .off {
+            color: #ff4757;
+        }
+        .change-meta {
+            color: #555;
+            font-size: 0.65rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.7rem;
+        }
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #666;
+        }
+        .status-item span:last-child {
+            color: var(--jazer-cyan);
+        }
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #39ff14;
+        }
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: #39ff14;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .sidebar {
+                display: none;
+            }
+            .env-selector {
+                display: none;
+            }
+        }
+        @media (max-width: 600px) {
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-input {
+                width: 100%;
+            }
+            .filter-group {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="devtools-container">
+        <header class="devtools-header">
+            <a href="index.html" class="back-button">← Back</a>
+            <div class="header-title">Feature Flags</div>
+            <div class="header-actions">
+                <div class="env-selector">
+                    <button class="env-btn active" data-env="development" onclick="switchEnv('development')">Development</button>
+                    <button class="env-btn" data-env="staging" onclick="switchEnv('staging')">Staging</button>
+                    <button class="env-btn" data-env="production" onclick="switchEnv('production')">Production</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="toolbar">
+            <input type="text" class="search-input" placeholder="Search flags by name, key, or tag..." id="searchInput" oninput="filterFlags()">
+            <div class="filter-group">
+                <span class="filter-label">Show:</span>
+                <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+                <button class="filter-btn" data-filter="enabled" onclick="setFilter('enabled')">Enabled</button>
+                <button class="filter-btn" data-filter="disabled" onclick="setFilter('disabled')">Disabled</button>
+                <button class="filter-btn" data-filter="partial" onclick="setFilter('partial')">Partial Rollout</button>
+            </div>
+            <div class="toolbar-spacer"></div>
+            <button class="toolbar-btn" onclick="refreshFlags()">↻ Sync</button>
+            <button class="toolbar-btn primary" onclick="createFlag()">+ New Flag</button>
+        </div>
+
+        <div class="main-content">
+            <div class="flags-panel" id="flagsPanel">
+                <!-- Flags rendered here -->
+            </div>
+
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Environment: <span id="currentEnvLabel">Development</span></div>
+                    <div class="stat-grid">
+                        <div class="stat-card">
+                            <div class="stat-value enabled" id="enabledCount">12</div>
+                            <div class="stat-label">Enabled</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value disabled" id="disabledCount">5</div>
+                            <div class="stat-label">Disabled</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="partialCount">3</div>
+                            <div class="stat-label">Partial</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalCount">17</div>
+                            <div class="stat-label">Total</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sidebar-section recent-changes">
+                    <div class="sidebar-title">Recent Changes</div>
+                    <div id="recentChanges">
+                        <!-- Changes rendered here -->
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Last synced:</span>
+                    <span id="lastSync">--</span>
+                </div>
+                <div class="status-item">
+                    <span>Environment:</span>
+                    <span id="currentEnv">development</span>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Connected</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Feature Flag Data
+        const flags = [
+            {
+                id: 'ff_new_checkout',
+                name: 'New Checkout Flow',
+                key: 'new_checkout_flow',
+                description: 'Enables the redesigned single-page checkout experience with improved UX',
+                category: 'features',
+                tags: ['checkout', 'ux'],
+                team: 'payments',
+                critical: true,
+                environments: {
+                    development: { enabled: true, rollout: 100 },
+                    staging: { enabled: true, rollout: 100 },
+                    production: { enabled: true, rollout: 35 }
+                },
+                targeting: [
+                    { condition: 'country', operator: 'in', value: 'US, CA' },
+                    { condition: 'user_tier', operator: '=', value: 'premium' }
+                ],
+                history: [
+                    { action: 'Rollout increased to 35%', by: 'sarah.chen', at: '2 hours ago' },
+                    { action: 'Enabled in production', by: 'sarah.chen', at: '1 day ago' },
+                    { action: 'Created', by: 'mike.wilson', at: '2 weeks ago' }
+                ],
+                updatedAt: '2 hours ago'
+            },
+            {
+                id: 'ff_dark_mode',
+                name: 'Dark Mode',
+                key: 'enable_dark_mode',
+                description: 'Enable dark mode theme toggle in user preferences',
+                category: 'features',
+                tags: ['ui', 'theme'],
+                team: 'frontend',
+                critical: false,
+                environments: {
+                    development: { enabled: true, rollout: 100 },
+                    staging: { enabled: true, rollout: 100 },
+                    production: { enabled: true, rollout: 100 }
+                },
+                targeting: [],
+                history: [
+                    { action: 'Rolled out to 100%', by: 'alex.kumar', at: '1 week ago' },
+                    { action: 'Enabled in production', by: 'alex.kumar', at: '2 weeks ago' }
+                ],
+                updatedAt: '1 week ago'
+            },
+            {
+                id: 'ff_ai_recommendations',
+                name: 'AI Product Recommendations',
+                key: 'ai_recommendations_v2',
+                description: 'ML-powered product recommendations using collaborative filtering',
+                category: 'features',
+                tags: ['ml', 'recommendations'],
+                team: 'data-science',
+                critical: false,
+                environments: {
+                    development: { enabled: true, rollout: 100 },
+                    staging: { enabled: true, rollout: 100 },
+                    production: { enabled: true, rollout: 20 }
+                },
+                targeting: [
+                    { condition: 'has_purchase_history', operator: '=', value: 'true' }
+                ],
+                history: [
+                    { action: 'Rollout increased to 20%', by: 'emma.zhang', at: '3 hours ago' },
+                    { action: 'Enabled in staging', by: 'emma.zhang', at: '3 days ago' }
+                ],
+                updatedAt: '3 hours ago'
+            },
+            {
+                id: 'ff_new_search',
+                name: 'Enhanced Search',
+                key: 'enhanced_search_v3',
+                description: 'Elasticsearch-powered search with typo tolerance and filters',
+                category: 'features',
+                tags: ['search', 'elasticsearch'],
+                team: 'platform',
+                critical: true,
+                environments: {
+                    development: { enabled: true, rollout: 100 },
+                    staging: { enabled: true, rollout: 100 },
+                    production: { enabled: false, rollout: 0 }
+                },
+                targeting: [],
+                history: [
+                    { action: 'Disabled in production', by: 'ops-bot', at: '5 hours ago' },
+                    { action: 'Performance issue detected', by: 'system', at: '5 hours ago' }
+                ],
+                updatedAt: '5 hours ago'
+            },
+            {
+                id: 'ff_social_login',
+                name: 'Social Login Providers',
+                key: 'social_login_enabled',
+                description: 'Allow login via Google, GitHub, and Apple',
+                category: 'auth',
+                tags: ['auth', 'oauth'],
+                team: 'identity',
+                critical: true,
+                environments: {
+                    development: { enabled: true, rollout: 100 },
+                    staging: { enabled: true, rollout: 100 },
+                    production: { enabled: true, rollout: 100 }
+                },
+                targeting: [],
+                history: [
+                    { action: 'Added Apple login', by: 'john.doe', at: '2 weeks ago' }
+                ],
+                updatedAt: '2 weeks ago'
+            },
+            {
+                id: 'ff_2fa_enforcement',
+                name: '2FA Enforcement',
+                key: 'enforce_2fa',
+                description: 'Require two-factor authentication for admin users',
+                category: 'auth',
+                tags: ['security', '2fa'],
+                team: 'security',
+                critical: true,
+                environments: {
+                    development: { enabled: false, rollout: 0 },
+                    staging: { enabled: true, rollout: 100 },
+                    production: { enabled: true, rollout: 100 }
+                },
+                targeting: [
+                    { condition: 'user_role', operator: 'in', value: 'admin, superadmin' }
+                ],
+                history: [
+                    { action: 'Enabled for all admins', by: 'security-team', at: '1 month ago' }
+                ],
+                updatedAt: '1 month ago'
+            },
+            {
+                id: 'ff_beta_api',
+                name: 'Beta API Endpoints',
+                key: 'beta_api_v2',
+                description: 'Enable access to v2 API beta endpoints',
+                category: 'api',
+                tags: ['api', 'beta'],
+                team: 'platform',
+                critical: false,
+                environments: {
+                    development: { enabled: true, rollout: 100 },
+                    staging: { enabled: true, rollout: 100 },
+                    production: { enabled: true, rollout: 10 }
+                },
+                targeting: [
+                    { condition: 'api_tier', operator: '=', value: 'enterprise' },
+                    { condition: 'beta_opted_in', operator: '=', value: 'true' }
+                ],
+                history: [
+                    { action: 'Beta started', by: 'api-team', at: '1 week ago' }
+                ],
+                updatedAt: '1 week ago'
+            },
+            {
+                id: 'ff_rate_limiting',
+                name: 'Adaptive Rate Limiting',
+                key: 'adaptive_rate_limit',
+                description: 'Dynamic rate limiting based on user behavior patterns',
+                category: 'api',
+                tags: ['security', 'rate-limit'],
+                team: 'platform',
+                critical: true,
+                environments: {
+                    development: { enabled: true, rollout: 100 },
+                    staging: { enabled: true, rollout: 100 },
+                    production: { enabled: true, rollout: 100 }
+                },
+                targeting: [],
+                history: [
+                    { action: 'Thresholds adjusted', by: 'ops-team', at: '3 days ago' }
+                ],
+                updatedAt: '3 days ago'
+            },
+            {
+                id: 'ff_analytics_v2',
+                name: 'Analytics Dashboard v2',
+                key: 'analytics_dashboard_v2',
+                description: 'New analytics dashboard with real-time metrics',
+                category: 'internal',
+                tags: ['analytics', 'dashboard'],
+                team: 'analytics',
+                critical: false,
+                environments: {
+                    development: { enabled: true, rollout: 100 },
+                    staging: { enabled: true, rollout: 100 },
+                    production: { enabled: false, rollout: 0 }
+                },
+                targeting: [],
+                history: [
+                    { action: 'In development', by: 'analytics-team', at: '5 days ago' }
+                ],
+                updatedAt: '5 days ago'
+            },
+            {
+                id: 'ff_debug_mode',
+                name: 'Debug Mode',
+                key: 'enable_debug_mode',
+                description: 'Enable verbose logging and debug panel for internal users',
+                category: 'internal',
+                tags: ['debug', 'internal'],
+                team: 'devops',
+                critical: false,
+                environments: {
+                    development: { enabled: true, rollout: 100 },
+                    staging: { enabled: true, rollout: 100 },
+                    production: { enabled: true, rollout: 0 }
+                },
+                targeting: [
+                    { condition: 'email', operator: 'ends_with', value: '@company.com' }
+                ],
+                history: [
+                    { action: 'Restricted to internal', by: 'devops', at: '2 months ago' }
+                ],
+                updatedAt: '2 months ago'
+            }
+        ];
+
+        const categories = {
+            features: { icon: '✨', title: 'Features' },
+            auth: { icon: '🔐', title: 'Authentication' },
+            api: { icon: '🔌', title: 'API' },
+            internal: { icon: '🔧', title: 'Internal Tools' }
+        };
+
+        let currentEnv = 'development';
+        let currentFilter = 'all';
+        let expandedFlags = new Set();
+        let recentChanges = [
+            { flag: 'New Checkout Flow', action: 'on', detail: 'Rollout → 35%', by: 'sarah.chen', at: '2h ago' },
+            { flag: 'AI Recommendations', action: 'on', detail: 'Rollout → 20%', by: 'emma.zhang', at: '3h ago' },
+            { flag: 'Enhanced Search', action: 'off', detail: 'Disabled', by: 'ops-bot', at: '5h ago' },
+            { flag: 'Beta API Endpoints', action: 'on', detail: 'Beta started', by: 'api-team', at: '1w ago' }
+        ];
+
+        // Render flags
+        function renderFlags() {
+            const panel = document.getElementById('flagsPanel');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+
+            // Filter flags
+            let filtered = flags.filter(flag => {
+                const env = flag.environments[currentEnv];
+                const matchesSearch = flag.name.toLowerCase().includes(search) || 
+                                     flag.key.toLowerCase().includes(search) ||
+                                     flag.tags.some(t => t.toLowerCase().includes(search));
+                
+                let matchesFilter = true;
+                if (currentFilter === 'enabled') matchesFilter = env.enabled && env.rollout === 100;
+                else if (currentFilter === 'disabled') matchesFilter = !env.enabled || env.rollout === 0;
+                else if (currentFilter === 'partial') matchesFilter = env.enabled && env.rollout > 0 && env.rollout < 100;
+
+                return matchesSearch && matchesFilter;
+            });
+
+            // Group by category
+            const grouped = {};
+            filtered.forEach(flag => {
+                if (!grouped[flag.category]) grouped[flag.category] = [];
+                grouped[flag.category].push(flag);
+            });
+
+            panel.innerHTML = Object.entries(grouped).map(([category, categoryFlags]) => `
+                <div class="flag-group">
+                    <div class="flag-group-header">
+                        <span class="flag-group-icon">${categories[category]?.icon || '📦'}</span>
+                        <span class="flag-group-title">${categories[category]?.title || category}</span>
+                        <span class="flag-group-count">${categoryFlags.length} flags</span>
+                    </div>
+                    ${categoryFlags.map(flag => renderFlagCard(flag)).join('')}
+                </div>
+            `).join('');
+
+            updateStats();
+        }
+
+        function renderFlagCard(flag) {
+            const env = flag.environments[currentEnv];
+            const isExpanded = expandedFlags.has(flag.id);
+
+            return `
+                <div class="flag-card" data-id="${flag.id}">
+                    <div class="flag-main">
+                        <label class="toggle-switch">
+                            <input type="checkbox" ${env.enabled ? 'checked' : ''} onchange="toggleFlag('${flag.id}')">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <div class="flag-info">
+                            <div class="flag-name">
+                                ${flag.name}
+                                <span class="flag-key">${flag.key}</span>
+                            </div>
+                            <div class="flag-description">${flag.description}</div>
+                            <div class="flag-tags">
+                                ${flag.tags.map(t => `<span class="flag-tag">${t}</span>`).join('')}
+                                <span class="flag-tag team">${flag.team}</span>
+                                ${flag.critical ? '<span class="flag-tag critical">critical</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="flag-meta">
+                            <div class="flag-rollout">
+                                <div class="rollout-bar">
+                                    <div class="rollout-fill" style="width: ${env.rollout}%"></div>
+                                </div>
+                                <span class="rollout-value">${env.rollout}%</span>
+                            </div>
+                            <div class="flag-updated">${flag.updatedAt}</div>
+                        </div>
+                        <button class="flag-expand ${isExpanded ? 'expanded' : ''}" onclick="toggleExpand('${flag.id}')">▼</button>
+                    </div>
+                    <div class="flag-details ${isExpanded ? 'visible' : ''}">
+                        <div class="details-grid">
+                            <div class="detail-block">
+                                <div class="detail-block-title">Environment Status</div>
+                                <div class="env-status">
+                                    <div class="env-item">
+                                        <span class="env-dot ${flag.environments.development.enabled ? 'on' : 'off'}"></span>
+                                        <span class="env-name">Dev</span>
+                                    </div>
+                                    <div class="env-item">
+                                        <span class="env-dot ${flag.environments.staging.enabled ? 'on' : 'off'}"></span>
+                                        <span class="env-name">Staging</span>
+                                    </div>
+                                    <div class="env-item">
+                                        <span class="env-dot ${flag.environments.production.enabled ? 'on' : 'off'}"></span>
+                                        <span class="env-name">Prod</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="detail-block">
+                                <div class="detail-block-title">Targeting Rules</div>
+                                ${flag.targeting.length > 0 ? flag.targeting.map(r => `
+                                    <div class="targeting-rule">
+                                        <span class="rule-condition">${r.condition}</span>
+                                        <span class="rule-operator">${r.operator}</span>
+                                        <span class="rule-value">${r.value}</span>
+                                    </div>
+                                `).join('') : '<div style="color: #555; font-size: 0.75rem;">No targeting rules</div>'}
+                            </div>
+                            <div class="detail-block">
+                                <div class="detail-block-title">Change History</div>
+                                ${flag.history.slice(0, 3).map(h => `
+                                    <div class="history-item">
+                                        <span class="history-action ${h.action.includes('Enabled') ? 'enabled' : h.action.includes('Disabled') ? 'disabled' : ''}">${h.action}</span>
+                                        <span class="history-meta">${h.by} · ${h.at}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleFlag(id) {
+            const flag = flags.find(f => f.id === id);
+            if (flag) {
+                const env = flag.environments[currentEnv];
+                env.enabled = !env.enabled;
+                if (!env.enabled) env.rollout = 0;
+                else if (env.rollout === 0) env.rollout = 100;
+
+                // Add to recent changes
+                recentChanges.unshift({
+                    flag: flag.name,
+                    action: env.enabled ? 'on' : 'off',
+                    detail: env.enabled ? `Enabled (${env.rollout}%)` : 'Disabled',
+                    by: 'you',
+                    at: 'Just now'
+                });
+                recentChanges = recentChanges.slice(0, 10);
+
+                renderFlags();
+                renderRecentChanges();
+            }
+        }
+
+        function toggleExpand(id) {
+            if (expandedFlags.has(id)) {
+                expandedFlags.delete(id);
+            } else {
+                expandedFlags.add(id);
+            }
+            renderFlags();
+        }
+
+        function switchEnv(env) {
+            currentEnv = env;
+            document.querySelectorAll('.env-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.env === env) {
+                    btn.classList.add('active');
+                    if (env === 'staging') btn.classList.add('staging');
+                    else if (env === 'production') btn.classList.add('production');
+                }
+            });
+            document.getElementById('currentEnv').textContent = env;
+            document.getElementById('currentEnvLabel').textContent = env.charAt(0).toUpperCase() + env.slice(1);
+            renderFlags();
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === filter);
+            });
+            renderFlags();
+        }
+
+        function filterFlags() {
+            renderFlags();
+        }
+
+        function updateStats() {
+            let enabled = 0, disabled = 0, partial = 0;
+            flags.forEach(flag => {
+                const env = flag.environments[currentEnv];
+                if (env.enabled && env.rollout === 100) enabled++;
+                else if (!env.enabled || env.rollout === 0) disabled++;
+                else partial++;
+            });
+
+            document.getElementById('enabledCount').textContent = enabled;
+            document.getElementById('disabledCount').textContent = disabled;
+            document.getElementById('partialCount').textContent = partial;
+            document.getElementById('totalCount').textContent = flags.length;
+        }
+
+        function renderRecentChanges() {
+            document.getElementById('recentChanges').innerHTML = recentChanges.map(c => `
+                <div class="change-item">
+                    <div class="change-flag">${c.flag}</div>
+                    <div class="change-action">
+                        <span class="${c.action}">${c.action === 'on' ? '● Enabled' : '○ Disabled'}</span> - ${c.detail}
+                    </div>
+                    <div class="change-meta">${c.by} · ${c.at}</div>
+                </div>
+            `).join('');
+        }
+
+        function refreshFlags() {
+            document.getElementById('lastSync').textContent = new Date().toLocaleTimeString();
+            renderFlags();
+        }
+
+        function createFlag() {
+            alert('Create Feature Flag\n\nThis would open a modal with:\n- Flag name & key\n- Description\n- Category selection\n- Initial environment settings\n- Targeting rules builder\n- Team assignment');
+        }
+
+        // Initialize
+        renderFlags();
+        renderRecentChanges();
+        document.getElementById('lastSync').textContent = new Date().toLocaleTimeString();
+    </script>
+</body>
+</html>

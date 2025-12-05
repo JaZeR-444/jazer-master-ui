@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autocomplete Dropdown - JaZeR Forms</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .back-button {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            background: rgba(0, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        .back-button:hover { background: var(--jazer-cyan); color: #0a0a0a; transform: translateX(-5px); }
+        .demo-container {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+        h1 { color: var(--jazer-cyan); text-align: center; margin-bottom: 2rem; font-family: var(--font-primary); }
+        .autocomplete-wrapper { position: relative; }
+        .autocomplete-input {
+            width: 100%;
+            padding: 0.875rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+        }
+        .autocomplete-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 0.5rem;
+            background: rgba(10, 10, 10, 0.95);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            backdrop-filter: blur(10px);
+        }
+        .autocomplete-dropdown.show { display: block; animation: slideDown 0.3s ease; }
+        .autocomplete-item {
+            padding: 0.875rem;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .autocomplete-item:last-child { border-bottom: none; }
+        .autocomplete-item:hover {
+            background: rgba(0, 255, 255, 0.1);
+            color: var(--jazer-cyan);
+        }
+        .autocomplete-item.active {
+            background: rgba(0, 255, 255, 0.2);
+            color: var(--jazer-cyan);
+        }
+        .highlight { color: var(--jazer-cyan); font-weight: 600; }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    <div class="demo-container">
+        <h1>Autocomplete Dropdown</h1>
+        <div class="autocomplete-wrapper">
+            <input type="text" class="autocomplete-input" id="autocomplete" placeholder="Type a country name...">
+            <div class="autocomplete-dropdown" id="dropdown"></div>
+        </div>
+    </div>
+    <script>
+        const countries = ['Afghanistan', 'Albania', 'Algeria', 'Argentina', 'Australia', 'Austria', 'Belgium', 'Brazil', 'Canada', 'China', 'Denmark', 'Egypt', 'Finland', 'France', 'Germany', 'Greece', 'India', 'Indonesia', 'Ireland', 'Italy', 'Japan', 'Mexico', 'Netherlands', 'New Zealand', 'Norway', 'Poland', 'Portugal', 'Russia', 'Spain', 'Sweden', 'Switzerland', 'Thailand', 'Turkey', 'United Kingdom', 'United States', 'Vietnam'];
+        
+        const input = document.getElementById('autocomplete');
+        const dropdown = document.getElementById('dropdown');
+        let activeIndex = -1;
+
+        input.addEventListener('input', function() {
+            const value = this.value.toLowerCase();
+            dropdown.innerHTML = '';
+            
+            if (!value) {
+                dropdown.classList.remove('show');
+                return;
+            }
+
+            const matches = countries.filter(country => 
+                country.toLowerCase().includes(value)
+            );
+
+            if (matches.length === 0) {
+                dropdown.classList.remove('show');
+                return;
+            }
+
+            matches.forEach((match, index) => {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                item.innerHTML = highlightMatch(match, value);
+                item.addEventListener('click', () => selectItem(match));
+                dropdown.appendChild(item);
+            });
+
+            dropdown.classList.add('show');
+            activeIndex = -1;
+        });
+
+        input.addEventListener('keydown', function(e) {
+            const items = dropdown.querySelectorAll('.autocomplete-item');
+            if (!items.length) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeIndex = (activeIndex + 1) % items.length;
+                updateActive(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeIndex = activeIndex <= 0 ? items.length - 1 : activeIndex - 1;
+                updateActive(items);
+            } else if (e.key === 'Enter' && activeIndex >= 0) {
+                e.preventDefault();
+                items[activeIndex].click();
+            }
+        });
+
+        function highlightMatch(text, query) {
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        function selectItem(value) {
+            input.value = value;
+            dropdown.classList.remove('show');
+        }
+
+        function updateActive(items) {
+            items.forEach((item, index) => {
+                item.classList.toggle('active', index === activeIndex);
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.autocomplete-wrapper')) {
+                dropdown.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>

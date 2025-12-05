@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Expiring Countdown - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%); 
+            min-height: 100vh; 
+            padding: 2rem; 
+            color: white; 
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        /* Header */
+        .back-button { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            padding: 0.75rem 1.5rem; 
+            border: 2px solid var(--jazer-cyan); 
+            border-radius: 12px; 
+            background: rgba(0, 255, 255, 0.1); 
+            transition: all 0.3s ease; 
+            margin-bottom: 2rem; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: #0a0a0a; 
+            transform: translateX(-5px); 
+        }
+        
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 3rem 2rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, rgba(255, 170, 0, 0.1) 0%, rgba(147, 51, 234, 0.1) 50%, rgba(0, 242, 234, 0.1) 100%);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 170, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ffaa00, var(--jazer-purple), var(--jazer-cyan), transparent);
+        }
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            background: linear-gradient(135deg, #ffaa00, #ff6600, #9333ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 60px rgba(255, 170, 0, 0.5);
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+        .control-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            background: rgba(0, 242, 234, 0.1);
+            color: var(--jazer-cyan);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-secondary);
+        }
+        .control-btn:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 242, 234, 0.3);
+        }
+        .control-btn.active {
+            background: #ffaa00;
+            border-color: #ffaa00;
+            color: #0a0a0a;
+        }
+        
+        /* Grid Layout */
+        .styles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+        
+        /* Style Card */
+        .style-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid rgba(255, 170, 0, 0.3);
+            border-radius: 20px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .style-card:hover {
+            border-color: #ffaa00;
+            box-shadow: 0 0 40px rgba(255, 170, 0, 0.2);
+            transform: translateY(-5px);
+        }
+        .style-label {
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: #ffaa00;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .style-label::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #ffaa00;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ffaa00;
+        }
+        
+        .demo-area {
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ==================== STYLE 1: Modal Countdown ==================== */
+        .session-modal-bg {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        .session-modal {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0a0a1a 100%);
+            border: 2px solid #ffaa00;
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 320px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(255, 170, 0, 0.3);
+            animation: modal-appear 0.4s ease-out;
+        }
+        @keyframes modal-appear {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .session-modal__icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #ffaa00, #ff6600);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+            box-shadow: 0 0 30px rgba(255, 170, 0, 0.5);
+            animation: icon-pulse 2s ease-in-out infinite;
+        }
+        @keyframes icon-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .session-modal__title {
+            font-family: var(--font-secondary);
+            font-size: 1.1rem;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        .session-modal__timer {
+            font-family: var(--font-primary);
+            font-size: 3rem;
+            font-weight: 700;
+            color: #ffaa00;
+            margin: 1rem 0;
+            text-shadow: 0 0 20px rgba(255, 170, 0, 0.5);
+        }
+        .session-modal__message {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 1.5rem;
+        }
+        .session-modal__actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+        .session-modal__btn {
+            padding: 0.6rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .session-modal__btn--primary {
+            background: linear-gradient(135deg, #ffaa00, #ff6600);
+            border: none;
+            color: #0a0a0a;
+        }
+        .session-modal__btn--secondary {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+        .session-modal__btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* ==================== STYLE 2: Top Banner ==================== */
+        .session-banner {
+            width: 100%;
+            background: linear-gradient(90deg, rgba(255, 170, 0, 0.2) 0%, rgba(255, 102, 0, 0.2) 100%);
+            border: 1px solid #ffaa00;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            animation: banner-drop 0.4s ease-out;
+        }
+        @keyframes banner-drop {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .session-banner__content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+        .session-banner__icon {
+            width: 35px;
+            height: 35px;
+            background: #ffaa00;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .session-banner__text {
+            flex: 1;
+        }
+        .session-banner__title {
+            font-weight: 600;
+            color: white;
+            font-size: 0.9rem;
+        }
+        .session-banner__time {
+            font-size: 0.8rem;
+            color: #ffaa00;
+            font-family: var(--font-secondary);
+        }
+        .session-banner__progress {
+            width: 120px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .session-banner__progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ffaa00, #ff6600);
+            width: 70%;
+            transition: width 1s linear;
+        }
+        .session-banner__btn {
+            padding: 0.4rem 1rem;
+            background: #ffaa00;
+            border: none;
+            border-radius: 6px;
+            color: #0a0a0a;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .session-banner__btn:hover {
+            background: #ff6600;
+            transform: scale(1.05);
+        }
+
+        /* ==================== STYLE 3: Circular Timer ==================== */
+        .session-circular {
+            text-align: center;
+            padding: 1rem;
+        }
+        .session-circular__ring {
+            width: 140px;
+            height: 140px;
+            position: relative;
+            margin: 0 auto 1rem;
+        }
+        .session-circular__svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        .session-circular__bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 8;
+        }
+        .session-circular__progress {
+            fill: none;
+            stroke: url(#sessionGradient);
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 377;
+            stroke-dashoffset: 113;
+            transition: stroke-dashoffset 1s linear;
+        }
+        .session-circular__time {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: var(--font-primary);
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffaa00;
+        }
+        .session-circular__label {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .session-circular__title {
+            font-size: 1rem;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        .session-circular__message {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 1rem;
+        }
+        .session-circular__btn {
+            padding: 0.6rem 1.5rem;
+            background: linear-gradient(135deg, #ffaa00, #ff6600);
+            border: none;
+            border-radius: 8px;
+            color: #0a0a0a;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .session-circular__btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 170, 0, 0.4);
+        }
+
+        /* ==================== STYLE 4: Toast Warning ==================== */
+        .session-toast-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: flex-end;
+        }
+        .session-toast {
+            background: linear-gradient(135deg, #2a1a0a 0%, #1a0a00 100%);
+            border: 1px solid #ffaa00;
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            max-width: 300px;
+            animation: toast-slide 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 10px 40px rgba(255, 170, 0, 0.2);
+        }
+        @keyframes toast-slide {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .session-toast__icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #ffaa00, #ff6600);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .session-toast__content {
+            flex: 1;
+        }
+        .session-toast__title {
+            font-weight: 600;
+            color: #ffaa00;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+        .session-toast__time {
+            font-family: var(--font-secondary);
+            font-size: 1.1rem;
+            color: white;
+        }
+        .session-toast__close {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .session-toast__close:hover {
+            background: rgba(255, 170, 0, 0.3);
+            color: white;
+        }
+
+        /* ==================== STYLE 5: Inline Countdown ==================== */
+        .session-inline {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .session-inline__card {
+            background: rgba(255, 170, 0, 0.05);
+            border: 1px solid rgba(255, 170, 0, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .session-inline__timer-box {
+            background: linear-gradient(135deg, #ffaa00, #ff6600);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            min-width: 70px;
+        }
+        .session-inline__timer-value {
+            font-family: var(--font-primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0a0a0a;
+            line-height: 1;
+        }
+        .session-inline__timer-label {
+            font-size: 0.65rem;
+            color: rgba(0, 0, 0, 0.6);
+            text-transform: uppercase;
+        }
+        .session-inline__info {
+            flex: 1;
+        }
+        .session-inline__title {
+            font-weight: 600;
+            color: white;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+        .session-inline__message {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .session-inline__action {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 1px solid #ffaa00;
+            border-radius: 6px;
+            color: #ffaa00;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .session-inline__action:hover {
+            background: #ffaa00;
+            color: #0a0a0a;
+        }
+
+        /* ==================== STYLE 6: Digital Clock ==================== */
+        .session-digital {
+            width: 100%;
+            text-align: center;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(20, 10, 0, 0.5) 100%);
+            border: 2px solid #ffaa00;
+            border-radius: 16px;
+        }
+        .session-digital__header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .session-digital__dot {
+            width: 8px;
+            height: 8px;
+            background: #ffaa00;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+        .session-digital__label {
+            font-size: 0.8rem;
+            color: #ffaa00;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .session-digital__display {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .session-digital__segment {
+            background: #0a0a0f;
+            border: 1px solid rgba(255, 170, 0, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem;
+            min-width: 55px;
+        }
+        .session-digital__number {
+            font-family: var(--font-primary);
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffaa00;
+            text-shadow: 0 0 20px rgba(255, 170, 0, 0.5);
+            line-height: 1;
+        }
+        .session-digital__unit {
+            font-size: 0.6rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            margin-top: 0.25rem;
+        }
+        .session-digital__colon {
+            font-size: 2rem;
+            color: #ffaa00;
+            line-height: 1;
+            animation: blink 1s infinite;
+        }
+        .session-digital__message {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 1rem;
+        }
+        .session-digital__btn {
+            padding: 0.6rem 2rem;
+            background: #ffaa00;
+            border: none;
+            border-radius: 8px;
+            color: #0a0a0a;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .session-digital__btn:hover {
+            background: #ff6600;
+            box-shadow: 0 0 30px rgba(255, 170, 0, 0.5);
+        }
+
+        /* ==================== STYLE 7: Progress Bar Style ==================== */
+        .session-progress {
+            width: 100%;
+            padding: 1.5rem;
+            background: rgba(255, 170, 0, 0.05);
+            border: 1px solid rgba(255, 170, 0, 0.3);
+            border-radius: 12px;
+        }
+        .session-progress__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .session-progress__title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            color: white;
+        }
+        .session-progress__icon {
+            font-size: 1.2rem;
+        }
+        .session-progress__time {
+            font-family: var(--font-secondary);
+            font-size: 1.2rem;
+            color: #ffaa00;
+            font-weight: 700;
+        }
+        .session-progress__bar-container {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        .session-progress__bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #ffaa00, #ff6600);
+            border-radius: 6px;
+            width: 30%;
+            transition: width 1s linear;
+            position: relative;
+        }
+        .session-progress__bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(100%); }
+        }
+        .session-progress__info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .session-progress__message {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .session-progress__btn {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 1px solid #ffaa00;
+            border-radius: 6px;
+            color: #ffaa00;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .session-progress__btn:hover {
+            background: #ffaa00;
+            color: #0a0a0a;
+        }
+
+        /* ==================== STYLE 8: Cyberpunk Countdown ==================== */
+        .session-cyberpunk {
+            width: 100%;
+            text-align: center;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a0020 100%);
+            border: 2px solid transparent;
+            border-image: linear-gradient(135deg, #ffaa00, #ff6600, #9333ea, #00f2ea) 1;
+            position: relative;
+            overflow: hidden;
+        }
+        .session-cyberpunk::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 170, 0, 0.1), transparent);
+            animation: scan 3s linear infinite;
+        }
+        @keyframes scan {
+            to { transform: translateX(100%); }
+        }
+        .session-cyberpunk__warning {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: rgba(255, 170, 0, 0.2);
+            border: 1px solid #ffaa00;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            color: #ffaa00;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            animation: warning-pulse 1s infinite;
+        }
+        @keyframes warning-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .session-cyberpunk__timer {
+            font-family: var(--font-primary);
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: #ffaa00;
+            text-shadow: 
+                0 0 10px #ffaa00,
+                3px 3px 0 #00f2ea,
+                -3px -3px 0 #9333ea;
+            margin-bottom: 0.5rem;
+            animation: glitch 3s infinite;
+        }
+        @keyframes glitch {
+            0%, 95%, 100% { transform: translate(0); }
+            96% { transform: translate(-2px, 2px); }
+            97% { transform: translate(2px, -2px); }
+            98% { transform: translate(-2px, -2px); }
+            99% { transform: translate(2px, 2px); }
+        }
+        .session-cyberpunk__title {
+            font-family: var(--font-secondary);
+            font-size: 1rem;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 0.5rem;
+        }
+        .session-cyberpunk__message {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 1.5rem;
+        }
+        .session-cyberpunk__actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .session-cyberpunk__btn {
+            padding: 0.6rem 1.5rem;
+            font-family: var(--font-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .session-cyberpunk__btn--primary {
+            background: linear-gradient(135deg, #ffaa00, #ff6600);
+            border: none;
+            color: #0a0a0a;
+        }
+        .session-cyberpunk__btn--secondary {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+        .session-cyberpunk__btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 170, 0, 0.3);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            margin-top: 3rem;
+            border-top: 1px solid rgba(255, 170, 0, 0.2);
+        }
+        footer p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+        .keyboard-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 170, 0, 0.1);
+            border: 1px solid rgba(255, 170, 0, 0.3);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #ffaa00;
+        }
+        .keyboard-hint kbd {
+            background: rgba(255, 170, 0, 0.2);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .styles-grid { grid-template-columns: 1fr; }
+            .hero { padding: 2rem 1rem; }
+            .hero h1 { font-size: 2rem; }
+            .controls { gap: 0.5rem; }
+            .control-btn { padding: 0.5rem 1rem; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back</a>
+        
+        <div class="hero">
+            <h1>Session Expiring Countdown</h1>
+            <p>8 stylish countdown timers to warn users about expiring sessions</p>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn active" onclick="showAll()">Show All</button>
+            <button class="control-btn" onclick="startCountdowns()">Start Countdowns</button>
+            <button class="control-btn" onclick="resetCountdowns()">Reset</button>
+        </div>
+
+        <div class="styles-grid">
+            <!-- Style 1: Modal Countdown -->
+            <div class="style-card">
+                <div class="style-label">Modal</div>
+                <div class="demo-area">
+                    <div class="session-modal-bg">
+                        <div class="session-modal">
+                            <div class="session-modal__icon">⏰</div>
+                            <div class="session-modal__title">Session Expiring Soon</div>
+                            <div class="session-modal__timer" id="modal-timer">4:59</div>
+                            <div class="session-modal__message">Your session will expire due to inactivity. Would you like to stay signed in?</div>
+                            <div class="session-modal__actions">
+                                <button class="session-modal__btn session-modal__btn--primary" onclick="extendSession()">Stay Signed In</button>
+                                <button class="session-modal__btn session-modal__btn--secondary">Log Out</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 2: Top Banner -->
+            <div class="style-card">
+                <div class="style-label">Top Banner</div>
+                <div class="demo-area">
+                    <div class="session-banner">
+                        <div class="session-banner__content">
+                            <div class="session-banner__icon">⚠</div>
+                            <div class="session-banner__text">
+                                <div class="session-banner__title">Session expires in <span class="session-banner__time" id="banner-timer">4:32</span></div>
+                            </div>
+                        </div>
+                        <div class="session-banner__progress">
+                            <div class="session-banner__progress-bar" id="banner-progress"></div>
+                        </div>
+                        <button class="session-banner__btn" onclick="extendSession()">Extend</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 3: Circular Timer -->
+            <div class="style-card">
+                <div class="style-label">Circular Timer</div>
+                <div class="demo-area">
+                    <div class="session-circular">
+                        <div class="session-circular__ring">
+                            <svg class="session-circular__svg" viewBox="0 0 120 120">
+                                <defs>
+                                    <linearGradient id="sessionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#ffaa00" />
+                                        <stop offset="100%" stop-color="#ff6600" />
+                                    </linearGradient>
+                                </defs>
+                                <circle class="session-circular__bg" cx="60" cy="60" r="54" />
+                                <circle class="session-circular__progress" id="circular-progress" cx="60" cy="60" r="54" />
+                            </svg>
+                            <div class="session-circular__time" id="circular-timer">3:45</div>
+                        </div>
+                        <div class="session-circular__label">remaining</div>
+                        <div class="session-circular__title">Session Timeout Warning</div>
+                        <div class="session-circular__message">Click below to extend your session</div>
+                        <button class="session-circular__btn" onclick="extendSession()">Extend Session</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 4: Toast Warning -->
+            <div class="style-card">
+                <div class="style-label">Toast Warning</div>
+                <div class="demo-area">
+                    <div class="session-toast-container">
+                        <div class="session-toast">
+                            <div class="session-toast__icon">⏱</div>
+                            <div class="session-toast__content">
+                                <div class="session-toast__title">Session Expiring</div>
+                                <div class="session-toast__time" id="toast-timer">2:30</div>
+                            </div>
+                            <button class="session-toast__close">×</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 5: Inline Countdown -->
+            <div class="style-card">
+                <div class="style-label">Inline Card</div>
+                <div class="demo-area">
+                    <div class="session-inline">
+                        <div class="session-inline__card">
+                            <div class="session-inline__timer-box">
+                                <div class="session-inline__timer-value" id="inline-timer">5:00</div>
+                                <div class="session-inline__timer-label">left</div>
+                            </div>
+                            <div class="session-inline__info">
+                                <div class="session-inline__title">Session Timeout</div>
+                                <div class="session-inline__message">Your session will expire soon due to inactivity</div>
+                            </div>
+                            <button class="session-inline__action" onclick="extendSession()">Extend</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 6: Digital Clock -->
+            <div class="style-card">
+                <div class="style-label">Digital Clock</div>
+                <div class="demo-area">
+                    <div class="session-digital">
+                        <div class="session-digital__header">
+                            <div class="session-digital__dot"></div>
+                            <span class="session-digital__label">Session Timeout</span>
+                        </div>
+                        <div class="session-digital__display">
+                            <div class="session-digital__segment">
+                                <div class="session-digital__number" id="digital-min">04</div>
+                                <div class="session-digital__unit">min</div>
+                            </div>
+                            <div class="session-digital__colon">:</div>
+                            <div class="session-digital__segment">
+                                <div class="session-digital__number" id="digital-sec">59</div>
+                                <div class="session-digital__unit">sec</div>
+                            </div>
+                        </div>
+                        <div class="session-digital__message">Click to continue your session</div>
+                        <button class="session-digital__btn" onclick="extendSession()">Continue Session</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 7: Progress Bar -->
+            <div class="style-card">
+                <div class="style-label">Progress Bar</div>
+                <div class="demo-area">
+                    <div class="session-progress">
+                        <div class="session-progress__header">
+                            <div class="session-progress__title">
+                                <span class="session-progress__icon">⏳</span>
+                                Session Timeout Warning
+                            </div>
+                            <div class="session-progress__time" id="progress-timer">3:00</div>
+                        </div>
+                        <div class="session-progress__bar-container">
+                            <div class="session-progress__bar" id="progress-bar"></div>
+                        </div>
+                        <div class="session-progress__info">
+                            <span class="session-progress__message">Your session will expire due to inactivity</span>
+                            <button class="session-progress__btn" onclick="extendSession()">Keep Active</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style 8: Cyberpunk Countdown -->
+            <div class="style-card">
+                <div class="style-label">Cyberpunk</div>
+                <div class="demo-area">
+                    <div class="session-cyberpunk">
+                        <div class="session-cyberpunk__warning">
+                            ⚡ Warning: Session Terminating
+                        </div>
+                        <div class="session-cyberpunk__timer" id="cyber-timer">02:59</div>
+                        <div class="session-cyberpunk__title">Authentication Expiring</div>
+                        <div class="session-cyberpunk__message">Neural link timeout imminent. Reauthorize to maintain connection.</div>
+                        <div class="session-cyberpunk__actions">
+                            <button class="session-cyberpunk__btn session-cyberpunk__btn--primary" onclick="extendSession()">Reauthorize</button>
+                            <button class="session-cyberpunk__btn session-cyberpunk__btn--secondary">Disconnect</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Session Expiring Countdown Components - JaZeR UI Library</p>
+            <div class="keyboard-hint">
+                <kbd>Space</kbd> to start countdowns
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        let countdownIntervals = [];
+        let isRunning = false;
+
+        // Timer configurations
+        const timers = [
+            { id: 'modal-timer', initial: 299, current: 299 },
+            { id: 'banner-timer', initial: 272, current: 272 },
+            { id: 'circular-timer', initial: 225, current: 225 },
+            { id: 'toast-timer', initial: 150, current: 150 },
+            { id: 'inline-timer', initial: 300, current: 300 },
+            { id: 'digital', initial: 299, current: 299 },
+            { id: 'progress-timer', initial: 180, current: 180 },
+            { id: 'cyber-timer', initial: 179, current: 179 }
+        ];
+
+        function formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = seconds % 60;
+            return `${min}:${sec.toString().padStart(2, '0')}`;
+        }
+
+        function formatTimeDigital(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = seconds % 60;
+            return {
+                min: min.toString().padStart(2, '0'),
+                sec: sec.toString().padStart(2, '0')
+            };
+        }
+
+        function updateTimerDisplay(timer) {
+            const el = document.getElementById(timer.id);
+            if (!el) return;
+
+            if (timer.id === 'digital') {
+                const time = formatTimeDigital(timer.current);
+                document.getElementById('digital-min').textContent = time.min;
+                document.getElementById('digital-sec').textContent = time.sec;
+            } else {
+                el.textContent = formatTime(timer.current);
+            }
+
+            // Update progress elements
+            if (timer.id === 'banner-timer') {
+                const progress = (timer.current / timer.initial) * 100;
+                document.getElementById('banner-progress').style.width = progress + '%';
+            }
+            if (timer.id === 'circular-timer') {
+                const circumference = 2 * Math.PI * 54; // 339.29
+                const offset = circumference * (1 - timer.current / timer.initial);
+                document.getElementById('circular-progress').style.strokeDashoffset = offset;
+            }
+            if (timer.id === 'progress-timer') {
+                const progress = (timer.current / timer.initial) * 100;
+                document.getElementById('progress-bar').style.width = progress + '%';
+            }
+        }
+
+        function startCountdowns() {
+            if (isRunning) return;
+            isRunning = true;
+            updateActiveButton(1);
+
+            timers.forEach(timer => {
+                const interval = setInterval(() => {
+                    if (timer.current > 0) {
+                        timer.current--;
+                        updateTimerDisplay(timer);
+                    } else {
+                        clearInterval(interval);
+                    }
+                }, 1000);
+                countdownIntervals.push(interval);
+            });
+        }
+
+        function resetCountdowns() {
+            countdownIntervals.forEach(interval => clearInterval(interval));
+            countdownIntervals = [];
+            isRunning = false;
+
+            timers.forEach(timer => {
+                timer.current = timer.initial;
+                updateTimerDisplay(timer);
+            });
+            updateActiveButton(2);
+        }
+
+        function showAll() {
+            updateActiveButton(0);
+        }
+
+        function extendSession() {
+            // Reset all countdowns
+            resetCountdowns();
+            
+            // Show feedback
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = 'Extended!';
+            btn.style.background = '#00ff88';
+            btn.style.color = '#0a0a0a';
+            
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = '';
+                btn.style.color = '';
+            }, 2000);
+        }
+
+        function updateActiveButton(index) {
+            document.querySelectorAll('.control-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+        }
+
+        // Initialize displays
+        timers.forEach(timer => updateTimerDisplay(timer));
+
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && e.target === document.body) {
+                e.preventDefault();
+                if (isRunning) {
+                    resetCountdowns();
+                } else {
+                    startCountdowns();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

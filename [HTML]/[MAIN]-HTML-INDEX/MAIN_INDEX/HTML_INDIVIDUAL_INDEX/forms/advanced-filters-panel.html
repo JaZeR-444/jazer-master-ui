@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Filters Panel</title>
+  <style>
+    /* ==================== RESET ==================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f5f5f5;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-wrap: wrap; /* Allow wrapping on smaller screens */
+      gap: 1.5rem;
+    }
+
+    h1 {
+      width: 100%; /* Take full width */
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 2rem;
+    }
+
+    /* ==================== FILTER PANEL ==================== */
+    .filters-panel {
+      flex: 0 0 280px; /* Fixed width sidebar for filters */
+      background-color: #fcfcfc;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+      align-self: flex-start; /* Align to the top */
+      max-height: calc(100vh - 4rem); /* Max height relative to viewport */
+      overflow-y: auto; /* Enable scrolling for long filter lists */
+    }
+
+    .filters-panel h2 {
+      font-size: 1.3rem;
+      color: #34495e;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #eee;
+    }
+
+    .filter-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .filter-group h3 {
+      font-size: 1.1rem;
+      color: #555;
+      margin-bottom: 0.8rem;
+    }
+
+    .filter-group label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+    }
+
+    .filter-group input[type="checkbox"],
+    .filter-group input[type="radio"] {
+      margin-right: 0.8rem;
+      width: 18px;
+      height: 18px;
+      accent-color: #3498db; /* Custom checkbox color */
+    }
+
+    .filter-group select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      background-color: #fff;
+    }
+
+    .filter-group input[type="range"] {
+      width: 100%;
+      margin-top: 0.5rem;
+      accent-color: #3498db;
+    }
+
+    .range-display {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: #777;
+      margin-top: 0.5rem;
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .filter-buttons button {
+      flex-grow: 1;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .filter-buttons .apply-btn {
+      background-color: #3498db;
+      color: #fff;
+    }
+
+    .filter-buttons .apply-btn:hover {
+      background-color: #2980b9;
+    }
+
+    .filter-buttons .reset-btn {
+      background-color: #e0e0e0;
+      color: #555;
+    }
+
+    .filter-buttons .reset-btn:hover {
+      background-color: #ccc;
+    }
+
+    /* ==================== RESULTS AREA ==================== */
+    .results-area {
+      flex: 1; /* Takes remaining space */
+      min-width: 300px; /* Minimum width for responsiveness */
+      padding: 1rem;
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .results-header h2 {
+      font-size: 1.5rem;
+      color: #34495e;
+      margin: 0;
+    }
+
+    .sort-by select {
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .product-card {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      text-align: center;
+      padding-bottom: 1rem;
+    }
+
+    .product-card img {
+      max-width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 1rem;
+    }
+
+    .product-card h3 {
+      font-size: 1.2rem;
+      color: #34495e;
+      margin-bottom: 0.5rem;
+      padding: 0 1rem;
+    }
+
+    .product-card p {
+      color: #777;
+      font-size: 0.95rem;
+      padding: 0 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .product-card .price {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #2ecc71;
+      margin-bottom: 1rem;
+    }
+
+    /* No results message */
+    .no-results {
+        text-align: center;
+        padding: 2rem;
+        color: #888;
+        font-style: italic;
+        width: 100%;
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        padding: 1rem;
+      }
+      .filters-panel {
+        flex: none;
+        width: 100%;
+        max-height: none;
+        position: static;
+        margin-bottom: 1.5rem;
+      }
+      .results-area {
+        flex: none;
+        width: 100%;
+      }
+      h1 {
+          font-size: 2rem;
+      }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../jazer-brand.css">
+  </head>
+<body>
+
+  <div class="container">
+    <h1>Product Listing with Advanced Filters</h1>
+
+    <aside class="filters-panel">
+      <h2>Filters</h2>
+
+      <div class="filter-group">
+        <h3>Category</h3>
+        <label><input type="checkbox" name="category" value="electronics"> Electronics</label>
+        <label><input type="checkbox" name="category" value="accessories"> Accessories</label>
+        <label><input type="checkbox" name="category" value="clothing"> Clothing</label>
+        <label><input type="checkbox" name="category" value="books"> Books</label>
+      </div>
+
+      <div class="filter-group">
+        <h3>Price Range</h3>
+        <input type="range" id="priceRange" min="0" max="1000" value="500">
+        <div class="range-display">
+          <span>$0</span>
+          <span>$<span id="currentPrice">500</span></span>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <h3>Brand</h3>
+        <select name="brand" id="brandSelect">
+          <option value="">All Brands</option>
+          <option value="brandA">Brand A</option>
+          <option value="brandB">Brand B</option>
+          <option value="brandC">Brand C</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <h3>Availability</h3>
+        <label><input type="radio" name="availability" value="in-stock" checked> In Stock</label>
+        <label><input type="radio" name="availability" value="all"> All Products</label>
+      </div>
+
+      <div class="filter-buttons">
+        <button class="apply-btn" id="applyFilters">Apply Filters</button>
+        <button class="reset-btn" id="resetFilters">Reset</button>
+      </div>
+    </aside>
+
+    <main class="results-area">
+      <div class="results-header">
+        <h2>Showing <span id="productCount">0</span> Products</h2>
+        <div class="sort-by">
+          <label for="sortBy">Sort by:</label>
+          <select id="sortBy">
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="name-asc">Name: A-Z</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="product-grid" id="productGrid">
+        <!-- Products will be displayed here -->
+      </div>
+      <div class="no-results" id="noResults" style="display: none;">No products match your criteria.</div>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const productGrid = document.getElementById('productGrid');
+      const productCountSpan = document.getElementById('productCount');
+      const noResultsMessage = document.getElementById('noResults');
+      const applyFiltersBtn = document.getElementById('applyFilters');
+      const resetFiltersBtn = document.getElementById('resetFilters');
+      const priceRange = document.getElementById('priceRange');
+      const currentPriceSpan = document.getElementById('currentPrice');
+      const brandSelect = document.getElementById('brandSelect');
+      const sortBySelect = document.getElementById('sortBy');
+
+      // --- Sample Product Data ---
+      const allProducts = [
+        { id: 1, name: 'Laptop Pro X', category: 'electronics', price: 1200, brand: 'brandA', inStock: true, image: 'https://via.placeholder.com/250x180?text=Laptop' },
+        { id: 2, name: 'Wireless Mouse', category: 'accessories', price: 35, brand: 'brandB', inStock: true, image: 'https://via.placeholder.com/250x180?text=Mouse' },
+        { id: 3, name: 'Graphic T-Shirt', category: 'clothing', price: 25, brand: 'brandC', inStock: true, image: 'https://via.placeholder.com/250x180?text=T-Shirt' },
+        { id: 4, name: 'Hardcover Novel', category: 'books', price: 18, brand: 'brandA', inStock: true, image: 'https://via.placeholder.com/250x180?text=Book' },
+        { id: 5, name: 'Gaming Headset', category: 'electronics', price: 80, brand: 'brandA', inStock: true, image: 'https://via.placeholder.com/250x180?text=Headset' },
+        { id: 6, name: 'USB-C Hub', category: 'accessories', price: 49, brand: 'brandB', inStock: true, image: 'https://via.placeholder.com/250x180?text=USB+Hub' },
+        { id: 7, name: 'Denim Jeans', category: 'clothing', price: 60, brand: 'brandC', inStock: false, image: 'https://via.placeholder.com/250x180?text=Jeans' },
+        { id: 8, name: 'Cookbook: Italian Delights', category: 'books', price: 30, brand: 'brandB', inStock: true, image: 'https://via.placeholder.com/250x180?text=Cookbook' },
+        { id: 9, name: 'Smartwatch', category: 'electronics', price: 199, brand: 'brandA', inStock: true, image: 'https://via.placeholder.com/250x180?text=Smartwatch' },
+        { id: 10, name: 'Ergonomic Keyboard', category: 'accessories', price: 120, brand: 'brandC', inStock: true, image: 'https://via.placeholder.com/250x180?text=Keyboard' },
+        { id: 11, name: 'Winter Jacket', category: 'clothing', price: 90, brand: 'brandA', inStock: false, image: 'https://via.placeholder.com/250x180?text=Jacket' },
+        { id: 12, name: 'Sci-Fi Anthology', category: 'books', price: 15, brand: 'brandC', inStock: true, image: 'https://via.placeholder.com/250x180?text=SciFi+Book' },
+        { id: 13, name: 'Drone with Camera', category: 'electronics', price: 350, brand: 'brandB', inStock: true, image: 'https://via.placeholder.com/250x180?text=Drone' },
+        { id: 14, name: 'External SSD', category: 'accessories', price: 80, brand: 'brandA', inStock: true, image: 'https://via.placeholder.com/250x180?text=SSD' },
+        { id: 15, name: 'Summer Dress', category: 'clothing', price: 40, brand: 'brandB', inStock: true, image: 'https://via.placeholder.com/250x180?text=Dress' },
+      ];
+
+      let filteredAndSortedProducts = [...allProducts];
+
+      /**
+       * Renders products to the grid.
+       * @param {Array} productsToRender - The array of product objects to display.
+       */
+      function renderProducts(productsToRender) {
+        productGrid.innerHTML = '';
+        if (productsToRender.length === 0) {
+          noResultsMessage.style.display = 'block';
+        } else {
+          noResultsMessage.style.display = 'none';
+          productsToRender.forEach(product => {
+            const productCard = document.createElement('div');
+            productCard.classList.add('product-card');
+            productCard.innerHTML = `
+              <img src="${product.image}" alt="${product.name}">
+              <h3>${product.name}</h3>
+              <p>${product.category} | ${product.brand}</p>
+              <div class="price">$${product.price.toFixed(2)}</div>
+            `;
+            productGrid.appendChild(productCard);
+          });
+        }
+        productCountSpan.textContent = productsToRender.length;
+      }
+
+      /**
+       * Applies all filters and sorting.
+       */
+      function applyFiltersAndSort() {
+        let tempProducts = [...allProducts];
+
+        // 1. Filter by Category
+        const selectedCategories = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(cb => cb.value);
+        if (selectedCategories.length > 0) {
+          tempProducts = tempProducts.filter(p => selectedCategories.includes(p.category));
+        }
+
+        // 2. Filter by Price Range
+        const maxPrice = parseInt(priceRange.value);
+        tempProducts = tempProducts.filter(p => p.price <= maxPrice);
+
+        // 3. Filter by Brand
+        const selectedBrand = brandSelect.value;
+        if (selectedBrand) {
+          tempProducts = tempProducts.filter(p => p.brand === selectedBrand);
+        }
+
+        // 4. Filter by Availability
+        const availability = document.querySelector('input[name="availability"]:checked').value;
+        if (availability === 'in-stock') {
+          tempProducts = tempProducts.filter(p => p.inStock);
+        }
+
+        // 5. Sort
+        const sortBy = sortBySelect.value;
+        tempProducts.sort((a, b) => {
+          if (sortBy === 'price-asc') {
+            return a.price - b.price;
+          } else if (sortBy === 'price-desc') {
+            return b.price - a.price;
+          } else if (sortBy === 'name-asc') {
+            return a.name.localeCompare(b.name);
+          }
+          return 0;
+        });
+
+        filteredAndSortedProducts = tempProducts;
+        renderProducts(filteredAndSortedProducts);
+      }
+
+      /**
+       * Resets all filters to their default states.
+       */
+      function resetFilters() {
+        // Reset checkboxes
+        document.querySelectorAll('input[name="category"]:checked').forEach(cb => cb.checked = false);
+        // Reset price range
+        priceRange.value = priceRange.max; // Set to max by default
+        currentPriceSpan.textContent = priceRange.max;
+        // Reset brand select
+        brandSelect.value = '';
+        // Reset availability radio
+        document.querySelector('input[name="availability"][value="in-stock"]').checked = true;
+        // Reset sort by
+        sortBySelect.value = 'price-asc';
+
+        applyFiltersAndSort(); // Re-apply filters to show all products
+      }
+
+      // --- Event Listeners ---
+      priceRange.addEventListener('input', () => {
+        currentPriceSpan.textContent = priceRange.value;
+      });
+
+      applyFiltersBtn.addEventListener('click', applyFiltersAndSort);
+      resetFiltersBtn.addEventListener('click', resetFilters);
+      sortBySelect.addEventListener('change', applyFiltersAndSort);
+
+      // Initial render
+      applyFiltersAndSort();
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll Progress Circle - Scroll & Page Transitions</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            background: rgba(0, 217, 255, 0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1000;
+        }
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateX(-5px);
+        }
+        h1 {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 2.5rem;
+            padding-top: 4rem;
+        }
+        .page-intro {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+        .component-section {
+            max-width: 1000px;
+            margin: 0 auto 3rem;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        .section-title {
+            color: var(--jazer-cyan);
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section-description {
+            color: #888;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+        .style-number {
+            background: var(--gradient-primary);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        /* Demo Container */
+        .demo-container {
+            position: relative;
+            height: 400px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #0a0a0a;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        /* Scroll Content */
+        .scroll-content {
+            height: 100%;
+            overflow-y: auto;
+            padding: 2rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--jazer-purple) transparent;
+        }
+        .scroll-content::-webkit-scrollbar { width: 6px; }
+        .scroll-content::-webkit-scrollbar-track { background: transparent; }
+        .scroll-content::-webkit-scrollbar-thumb { background: var(--jazer-purple); border-radius: 3px; }
+
+        .scroll-content p {
+            margin-bottom: 1.5rem;
+            color: #888;
+            line-height: 1.8;
+        }
+        .scroll-content h3 {
+            color: var(--jazer-cyan);
+            margin-bottom: 1rem;
+            padding-top: 1rem;
+        }
+
+        /* ========================================
+           STYLE 1: Basic Circle Progress
+        ======================================== */
+        .progress-circle {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            width: 50px;
+            height: 50px;
+            z-index: 10;
+        }
+        .progress-circle svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+        .progress-circle__bg {
+            fill: none;
+            stroke: rgba(139, 92, 246, 0.2);
+            stroke-width: 4;
+        }
+        .progress-circle__fill {
+            fill: none;
+            stroke: var(--jazer-cyan);
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 126;
+            stroke-dashoffset: 126;
+            transition: stroke-dashoffset 0.1s ease;
+        }
+        .progress-circle__text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        /* ========================================
+           STYLE 2: Large Center Overlay
+        ======================================== */
+        .progress-circle--large {
+            width: 100px;
+            height: 100px;
+            bottom: 50%;
+            right: 50%;
+            transform: translate(50%, 50%);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        .progress-circle--large .progress-circle__fill {
+            stroke-width: 6;
+            stroke-dasharray: 251;
+            stroke-dashoffset: 251;
+        }
+        .progress-circle--large .progress-circle__bg {
+            stroke-width: 6;
+        }
+        .progress-circle--large .progress-circle__text {
+            font-size: 1.5rem;
+        }
+
+        /* ========================================
+           STYLE 3: Mini Corner Indicator
+        ======================================== */
+        .progress-circle--mini {
+            width: 32px;
+            height: 32px;
+            top: 1rem;
+            right: 1rem;
+            bottom: auto;
+        }
+        .progress-circle--mini .progress-circle__fill {
+            stroke-width: 3;
+            stroke-dasharray: 82;
+            stroke-dashoffset: 82;
+        }
+        .progress-circle--mini .progress-circle__bg {
+            stroke-width: 3;
+        }
+        .progress-circle--mini .progress-circle__text {
+            font-size: 0.55rem;
+        }
+
+        /* ========================================
+           STYLE 4: Gradient Stroke
+        ======================================== */
+        .progress-circle--gradient .progress-circle__fill {
+            stroke: url(#gradientStroke);
+        }
+
+        /* ========================================
+           STYLE 5: Pulsing Glow
+        ======================================== */
+        .progress-circle--glow .progress-circle__fill {
+            filter: drop-shadow(0 0 6px var(--jazer-cyan));
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { filter: drop-shadow(0 0 4px var(--jazer-cyan)); }
+            50% { filter: drop-shadow(0 0 12px var(--jazer-cyan)); }
+        }
+
+        /* ========================================
+           STYLE 6: Segmented Circle
+        ======================================== */
+        .progress-segmented {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            width: 60px;
+            height: 60px;
+            z-index: 10;
+        }
+        .progress-segmented svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+        .segment {
+            fill: none;
+            stroke: rgba(139, 92, 246, 0.2);
+            stroke-width: 6;
+            stroke-linecap: round;
+            transition: stroke 0.3s ease;
+        }
+        .segment.active {
+            stroke: var(--jazer-cyan);
+            filter: drop-shadow(0 0 4px var(--jazer-cyan));
+        }
+        .progress-segmented__text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        /* ========================================
+           STYLE 7: Ring with Section Markers
+        ======================================== */
+        .progress-ring {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            width: 70px;
+            height: 70px;
+            z-index: 10;
+        }
+        .progress-ring svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+        .progress-ring__bg {
+            fill: none;
+            stroke: rgba(139, 92, 246, 0.15);
+            stroke-width: 8;
+        }
+        .progress-ring__fill {
+            fill: none;
+            stroke: var(--gradient-primary);
+            stroke: var(--jazer-cyan);
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 176;
+            stroke-dashoffset: 176;
+            transition: stroke-dashoffset 0.15s ease;
+        }
+        .progress-ring__marker {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.3);
+            stroke-width: 2;
+            stroke-dasharray: 2 42;
+        }
+        .progress-ring__center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 45px;
+            height: 45px;
+            background: rgba(10, 10, 20, 0.9);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .progress-ring__percent {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: white;
+        }
+        .progress-ring__label {
+            font-size: 0.5rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: var(--jazer-cyan);
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            white-space: pre;
+        }
+        .code-block .comment { color: #6a6a8a; }
+        .code-block .property { color: var(--jazer-pink); }
+        .code-block .value { color: #22c55e; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            h1 { font-size: 1.8rem; padding-top: 5rem; }
+            .component-section { padding: 1.5rem; }
+            .demo-container { height: 350px; }
+            .back-button { padding: 0.5rem 1rem; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    
+    <h1>Scroll Progress Circle</h1>
+    <p class="page-intro">Circular indicators showing scroll position and reading progress</p>
+
+    <!-- SVG Gradient Definition -->
+    <svg width="0" height="0" style="position: absolute;">
+        <defs>
+            <linearGradient id="gradientStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00d9ff" />
+                <stop offset="50%" stop-color="#8b5cf6" />
+                <stop offset="100%" stop-color="#ec4899" />
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <!-- Style 1: Basic Circle Progress -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">1</span> Basic Circle Progress</h2>
+        <p class="section-description">Simple SVG circle that fills as you scroll through content</p>
+        
+        <div class="demo-container">
+            <div class="scroll-content" id="scroll1">
+                <h3>The Art of Scrolling</h3>
+                <p>Scroll progress indicators provide users with valuable feedback about their position within a document. They answer the fundamental question: "How much content is left?"</p>
+                <p>This simple visual cue can significantly improve the reading experience, especially for long-form content like articles, documentation, or tutorials.</p>
+                <h3>Why Use Progress Indicators?</h3>
+                <p>Studies show that users appreciate knowing their progress through content. It helps them decide whether to continue reading or save for later.</p>
+                <p>A circular progress indicator is particularly effective because it's compact and can be placed in corners without disrupting the content flow.</p>
+                <h3>Implementation Details</h3>
+                <p>The circle is created using SVG with stroke-dasharray and stroke-dashoffset properties. As you scroll, JavaScript calculates the percentage and updates the offset accordingly.</p>
+                <p>The animation is smooth because we're only updating a single CSS property, which browsers can optimize effectively.</p>
+                <h3>Best Practices</h3>
+                <p>Keep the indicator subtle - it should inform, not distract. Position it consistently so users can glance at it without searching.</p>
+                <p>Consider adding a percentage label for users who prefer numerical feedback over visual approximation.</p>
+            </div>
+            <div class="progress-circle" id="circle1">
+                <svg viewBox="0 0 44 44">
+                    <circle class="progress-circle__bg" cx="22" cy="22" r="20" />
+                    <circle class="progress-circle__fill" cx="22" cy="22" r="20" />
+                </svg>
+                <span class="progress-circle__text">0%</span>
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="comment">/* SVG Circle with dashoffset */</span>
+&lt;circle stroke-dasharray="126" stroke-dashoffset="126" /&gt;
+
+<span class="comment">/* Update on scroll */</span>
+const offset = circumference - (progress * circumference);
+circle.style.strokeDashoffset = offset;</code>
+        </div>
+    </section>
+
+    <!-- Style 2: Large Center Overlay -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">2</span> Large Center Overlay</h2>
+        <p class="section-description">Semi-transparent large circle as a background element</p>
+        
+        <div class="demo-container">
+            <div class="scroll-content" id="scroll2">
+                <h3>Bold Visual Statement</h3>
+                <p>Sometimes you want the progress indicator to be a prominent design element rather than a subtle utility.</p>
+                <p>This large, centered overlay creates a dramatic effect while still allowing content to be read through it.</p>
+                <h3>When to Use This Style</h3>
+                <p>Perfect for landing pages, presentations, or any content where the scroll experience itself is part of the narrative.</p>
+                <p>The low opacity ensures readability while the size makes progress immediately apparent.</p>
+                <h3>Design Considerations</h3>
+                <p>Adjust opacity based on your content contrast. Lighter backgrounds may need more transparency.</p>
+                <p>Consider fading it out completely when the user stops scrolling to reduce visual noise.</p>
+                <h3>Technical Notes</h3>
+                <p>The pointer-events: none property ensures clicks pass through to the content beneath.</p>
+                <p>This style works best with dark backgrounds where the stroke color can stand out.</p>
+            </div>
+            <div class="progress-circle progress-circle--large" id="circle2">
+                <svg viewBox="0 0 88 88">
+                    <circle class="progress-circle__bg" cx="44" cy="44" r="40" />
+                    <circle class="progress-circle__fill" cx="44" cy="44" r="40" />
+                </svg>
+                <span class="progress-circle__text">0%</span>
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="comment">/* Large overlay style */</span>
+.progress-circle--large {
+    <span class="property">width</span>: <span class="value">100px</span>;
+    <span class="property">opacity</span>: <span class="value">0.3</span>;
+    <span class="property">pointer-events</span>: <span class="value">none</span>;
+    <span class="property">transform</span>: <span class="value">translate(50%, 50%)</span>;
+}</code>
+        </div>
+    </section>
+
+    <!-- Style 3: Mini Corner Indicator -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">3</span> Mini Corner Indicator</h2>
+        <p class="section-description">Compact indicator that stays out of the way</p>
+        
+        <div class="demo-container">
+            <div class="scroll-content" id="scroll3">
+                <h3>Minimal Footprint</h3>
+                <p>For content-focused designs, a tiny indicator in the corner provides progress feedback without demanding attention.</p>
+                <p>This style is ideal for reading apps, documentation sites, or anywhere the content should take center stage.</p>
+                <h3>Size Matters</h3>
+                <p>At just 32 pixels, this indicator is visible enough to be useful but small enough to ignore when focusing on content.</p>
+                <p>The compact size also works well on mobile devices where screen real estate is precious.</p>
+                <h3>Positioning Options</h3>
+                <p>Top-right placement is common as it's near traditional scrollbar locations. However, bottom-right can work well for RTL languages.</p>
+                <p>Avoid bottom corners on mobile if you have gesture navigation that might conflict.</p>
+                <h3>Accessibility</h3>
+                <p>Even small indicators should have sufficient contrast. The cyan stroke on dark background meets WCAG guidelines.</p>
+            </div>
+            <div class="progress-circle progress-circle--mini" id="circle3">
+                <svg viewBox="0 0 30 30">
+                    <circle class="progress-circle__bg" cx="15" cy="15" r="13" />
+                    <circle class="progress-circle__fill" cx="15" cy="15" r="13" />
+                </svg>
+                <span class="progress-circle__text">0%</span>
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="comment">/* Mini indicator */</span>
+.progress-circle--mini {
+    <span class="property">width</span>: <span class="value">32px</span>;
+    <span class="property">height</span>: <span class="value">32px</span>;
+    <span class="property">top</span>: <span class="value">1rem</span>;
+    <span class="property">right</span>: <span class="value">1rem</span>;
+}</code>
+        </div>
+    </section>
+
+    <!-- Style 4: Gradient Stroke -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">4</span> Gradient Stroke</h2>
+        <p class="section-description">Multi-color gradient that shifts as progress increases</p>
+        
+        <div class="demo-container">
+            <div class="scroll-content" id="scroll4">
+                <h3>Colorful Progress</h3>
+                <p>A gradient stroke adds visual interest and can convey additional meaning - like transitioning from "just started" blue to "almost done" pink.</p>
+                <p>SVG linear gradients applied to strokes create smooth color transitions as the circle fills.</p>
+                <h3>Brand Integration</h3>
+                <p>Use your brand colors in the gradient to maintain visual consistency across your design system.</p>
+                <p>This example uses cyan to purple to pink - a cyberpunk-inspired palette.</p>
+                <h3>Implementation</h3>
+                <p>Define the gradient in SVG defs, then reference it in the stroke property using url(#gradientId).</p>
+                <p>The gradient follows the SVG coordinate system, so rotation may be needed for desired effect.</p>
+                <h3>Performance</h3>
+                <p>Gradient strokes are GPU-accelerated in modern browsers. The performance impact is negligible.</p>
+            </div>
+            <div class="progress-circle progress-circle--gradient" id="circle4">
+                <svg viewBox="0 0 44 44">
+                    <circle class="progress-circle__bg" cx="22" cy="22" r="20" />
+                    <circle class="progress-circle__fill" cx="22" cy="22" r="20" />
+                </svg>
+                <span class="progress-circle__text">0%</span>
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="comment">/* SVG Gradient Definition */</span>
+&lt;linearGradient id="gradientStroke"&gt;
+    &lt;stop offset="0%" stop-color="#00d9ff" /&gt;
+    &lt;stop offset="100%" stop-color="#ec4899" /&gt;
+&lt;/linearGradient&gt;
+
+.circle { <span class="property">stroke</span>: <span class="value">url(#gradientStroke)</span>; }</code>
+        </div>
+    </section>
+
+    <!-- Style 5: Pulsing Glow -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">5</span> Pulsing Glow</h2>
+        <p class="section-description">Animated glow effect that draws attention to progress</p>
+        
+        <div class="demo-container">
+            <div class="scroll-content" id="scroll5">
+                <h3>Living Indicator</h3>
+                <p>The pulsing glow effect adds life to the progress indicator, making it feel dynamic and interactive.</p>
+                <p>This animation uses CSS filter with drop-shadow, creating a neon-like glow around the stroke.</p>
+                <h3>Use Cases</h3>
+                <p>Great for gaming interfaces, creative portfolios, or any design with a cyberpunk/futuristic aesthetic.</p>
+                <p>The pulse draws the eye periodically, reminding users of their progress without being intrusive.</p>
+                <h3>Animation Timing</h3>
+                <p>A 2-second cycle feels natural - fast enough to notice, slow enough not to distract during reading.</p>
+                <p>Consider pausing the animation when the user isn't actively scrolling to save battery on mobile devices.</p>
+                <h3>Customization</h3>
+                <p>Adjust the glow intensity (blur radius) and color to match your design. Multiple colors can create interesting effects.</p>
+            </div>
+            <div class="progress-circle progress-circle--glow" id="circle5">
+                <svg viewBox="0 0 44 44">
+                    <circle class="progress-circle__bg" cx="22" cy="22" r="20" />
+                    <circle class="progress-circle__fill" cx="22" cy="22" r="20" />
+                </svg>
+                <span class="progress-circle__text">0%</span>
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="comment">/* Pulsing glow animation */</span>
+@keyframes pulseGlow {
+    0%, 100% { filter: drop-shadow(0 0 4px cyan); }
+    50% { filter: drop-shadow(0 0 12px cyan); }
+}
+.progress-circle__fill {
+    <span class="property">animation</span>: <span class="value">pulseGlow 2s ease-in-out infinite</span>;
+}</code>
+        </div>
+    </section>
+
+    <!-- Style 6: Segmented Circle -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">6</span> Segmented Circle</h2>
+        <p class="section-description">Discrete segments that light up as you progress through sections</p>
+        
+        <div class="demo-container">
+            <div class="scroll-content" id="scroll6">
+                <h3>Section-Based Progress</h3>
+                <p>Instead of a smooth fill, segmented circles show progress in discrete steps - perfect for multi-section content.</p>
+                <p>Each segment represents a section or chapter, making it clear how many parts remain.</p>
+                <h3>Mental Model</h3>
+                <p>Users can think "I've completed 3 of 6 sections" rather than "I'm 50% through." This can feel more achievable.</p>
+                <p>It's especially useful for tutorials, courses, or documentation with distinct sections.</p>
+                <h3>Visual Design</h3>
+                <p>The gap between segments should be large enough to clearly distinguish them, but not so large that the circle looks disconnected.</p>
+                <p>Active segments get full color and a subtle glow to emphasize completion.</p>
+                <h3>Flexibility</h3>
+                <p>The number of segments can match your content structure. Adjust stroke-dasharray to change segment count.</p>
+            </div>
+            <div class="progress-segmented" id="segmented6">
+                <svg viewBox="0 0 60 60">
+                    <circle class="segment" cx="30" cy="30" r="25" stroke-dasharray="19 7" />
+                </svg>
+                <span class="progress-segmented__text">0/6</span>
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="comment">/* Segmented circle with gaps */</span>
+&lt;circle 
+    stroke-dasharray="19 7" <span class="comment">/* segment gap */</span>
+    r="25"
+/&gt;
+
+<span class="comment">/* Highlight segments based on progress */</span>
+const activeSegments = Math.ceil(progress * totalSegments);</code>
+        </div>
+    </section>
+
+    <!-- Style 7: Ring with Section Markers -->
+    <section class="component-section">
+        <h2 class="section-title"><span class="style-number">7</span> Ring with Section Markers</h2>
+        <p class="section-description">Progress ring with tick marks indicating key positions</p>
+        
+        <div class="demo-container">
+            <div class="scroll-content" id="scroll7">
+                <h3>Detailed Progress</h3>
+                <p>This style combines continuous progress with discrete markers, offering the best of both worlds.</p>
+                <p>The outer tick marks help users estimate their position even without looking at the percentage.</p>
+                <h3>Information Density</h3>
+                <p>The center area shows both percentage and a label, providing clear context for the indicator.</p>
+                <p>The thicker ring with subtle markers creates a dashboard-like feel.</p>
+                <h3>Design Inspiration</h3>
+                <p>Inspired by speedometers and fitness trackers, this style feels professional and data-focused.</p>
+                <p>It works well in analytics dashboards, admin panels, or professional applications.</p>
+                <h3>Variations</h3>
+                <p>The markers could indicate specific milestones like "25%", "50%", "75%" or section boundaries.</p>
+                <p>Consider making markers interactive - clicking could scroll to that position.</p>
+            </div>
+            <div class="progress-ring" id="ring7">
+                <svg viewBox="0 0 70 70">
+                    <circle class="progress-ring__marker" cx="35" cy="35" r="28" />
+                    <circle class="progress-ring__bg" cx="35" cy="35" r="28" />
+                    <circle class="progress-ring__fill" cx="35" cy="35" r="28" />
+                </svg>
+                <div class="progress-ring__center">
+                    <span class="progress-ring__percent">0%</span>
+                    <span class="progress-ring__label">Read</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="comment">/* Marker ring with dashed stroke */</span>
+.progress-ring__marker {
+    <span class="property">stroke-dasharray</span>: <span class="value">2 42</span>; <span class="comment">/* tick marks */</span>
+}
+
+<span class="comment">/* Center label */</span>
+.progress-ring__center {
+    <span class="property">position</span>: <span class="value">absolute</span>;
+    <span class="property">top</span>: <span class="value">50%</span>;
+    <span class="property">transform</span>: <span class="value">translate(-50%, -50%)</span>;
+}</code>
+        </div>
+    </section>
+
+    <script>
+        // Initialize progress circle
+        function initProgressCircle(scrollId, circleId, options = {}) {
+            const scrollContainer = document.getElementById(scrollId);
+            const circleContainer = document.getElementById(circleId);
+            if (!scrollContainer || !circleContainer) return;
+
+            const circle = circleContainer.querySelector('.progress-circle__fill, .progress-ring__fill');
+            const text = circleContainer.querySelector('.progress-circle__text, .progress-ring__percent');
+            
+            // Calculate circumference based on circle radius
+            const radius = parseFloat(circle.getAttribute('r'));
+            const circumference = 2 * Math.PI * radius;
+            
+            // Set initial dasharray
+            circle.style.strokeDasharray = circumference;
+            circle.style.strokeDashoffset = circumference;
+
+            scrollContainer.addEventListener('scroll', () => {
+                const scrollTop = scrollContainer.scrollTop;
+                const scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+                const progress = Math.min(scrollTop / scrollHeight, 1);
+                
+                // Update circle
+                const offset = circumference - (progress * circumference);
+                circle.style.strokeDashoffset = offset;
+                
+                // Update text
+                if (text) {
+                    text.textContent = Math.round(progress * 100) + '%';
+                }
+            });
+        }
+
+        // Initialize segmented progress
+        function initSegmentedProgress(scrollId, segmentedId, totalSegments = 6) {
+            const scrollContainer = document.getElementById(scrollId);
+            const segmentedContainer = document.getElementById(segmentedId);
+            if (!scrollContainer || !segmentedContainer) return;
+
+            const svg = segmentedContainer.querySelector('svg');
+            const text = segmentedContainer.querySelector('.progress-segmented__text');
+            
+            // Create individual segments
+            const radius = 25;
+            const circumference = 2 * Math.PI * radius;
+            const segmentLength = (circumference - totalSegments * 6) / totalSegments;
+            
+            // Clear existing and create segments
+            svg.innerHTML = '';
+            for (let i = 0; i < totalSegments; i++) {
+                const segment = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                segment.setAttribute('class', 'segment');
+                segment.setAttribute('cx', '30');
+                segment.setAttribute('cy', '30');
+                segment.setAttribute('r', radius);
+                
+                const gapAngle = (6 / circumference) * 360;
+                const segmentAngle = (segmentLength / circumference) * 360;
+                const startAngle = i * (segmentAngle + gapAngle);
+                
+                segment.style.strokeDasharray = `${segmentLength} ${circumference - segmentLength}`;
+                segment.style.strokeDashoffset = -i * (segmentLength + 6);
+                segment.style.transformOrigin = 'center';
+                segment.style.transform = `rotate(${-90}deg)`;
+                
+                svg.appendChild(segment);
+            }
+
+            scrollContainer.addEventListener('scroll', () => {
+                const scrollTop = scrollContainer.scrollTop;
+                const scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+                const progress = Math.min(scrollTop / scrollHeight, 1);
+                
+                const activeCount = Math.ceil(progress * totalSegments);
+                const segments = svg.querySelectorAll('.segment');
+                
+                segments.forEach((seg, i) => {
+                    seg.classList.toggle('active', i < activeCount);
+                });
+                
+                if (text) {
+                    text.textContent = `${activeCount}/${totalSegments}`;
+                }
+            });
+        }
+
+        // Initialize all demos
+        initProgressCircle('scroll1', 'circle1');
+        initProgressCircle('scroll2', 'circle2');
+        initProgressCircle('scroll3', 'circle3');
+        initProgressCircle('scroll4', 'circle4');
+        initProgressCircle('scroll5', 'circle5');
+        initSegmentedProgress('scroll6', 'segmented6', 6);
+        initProgressCircle('scroll7', 'ring7');
+    </script>
+</body>
+</html>

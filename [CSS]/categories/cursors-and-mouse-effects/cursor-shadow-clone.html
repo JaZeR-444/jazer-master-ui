@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shadow Clone Cursor - JaZeR</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a0b2e 100%);
+      color: var(--jazer-cyan);
+      cursor: none;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    .back-button {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      color: var(--jazer-cyan);
+      text-decoration: none;
+      font-size: 1.2rem;
+      z-index: 1000;
+      padding: 10px 20px;
+      border: 2px solid var(--jazer-cyan);
+      border-radius: 8px;
+      background: rgba(0, 242, 234, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .back-button:hover {
+      background: rgba(0, 242, 234, 0.2);
+      transform: translateX(-5px);
+    }
+
+    .info {
+      position: fixed;
+      top: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 10;
+      background: rgba(0, 242, 234, 0.1);
+      padding: 30px 50px;
+      border: 2px solid var(--jazer-cyan);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .info h1 {
+      font-family: var(--font-primary);
+      font-size: 2.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    .info p {
+      color: var(--jazer-purple);
+      font-size: 1.1rem;
+    }
+
+    .cursor {
+      position: fixed;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      background: var(--jazer-cyan);
+      box-shadow: 0 0 20px var(--jazer-cyan);
+    }
+
+    .shadow-clone {
+      position: fixed;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    @media (max-width: 768px) {
+      .info {
+        width: 90%;
+        padding: 20px;
+      }
+
+      .info h1 {
+        font-size: 1.8rem;
+      }
+
+      .info p {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back to Gallery</a>
+  
+  <div class="info">
+    <h1>Shadow Clone Cursor</h1>
+    <p>Move your cursor to see shadow clones following with delay</p>
+  </div>
+
+  <div class="cursor" id="mainCursor"></div>
+
+  <script>
+    const mainCursor = document.getElementById('mainCursor');
+    const shadowClones = [];
+    const maxClones = 12;
+    const colors = ['#00f2ea', '#9333ea', '#ff006e', '#00ff88', '#ffaa00'];
+    
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let currentMouseX = mouseX;
+    let currentMouseY = mouseY;
+
+    // Create shadow clones
+    for (let i = 0; i < maxClones; i++) {
+      const clone = document.createElement('div');
+      clone.className = 'shadow-clone';
+      clone.style.background = colors[i % colors.length];
+      clone.style.boxShadow = `0 0 15px ${colors[i % colors.length]}`;
+      document.body.appendChild(clone);
+      
+      shadowClones.push({
+        element: clone,
+        x: mouseX,
+        y: mouseY,
+        delay: (i + 1) * 2,
+        opacity: 1 - (i / maxClones)
+      });
+    }
+
+    // Track mouse movement
+    document.addEventListener('mousemove', (e) => {
+      currentMouseX = e.clientX;
+      currentMouseY = e.clientY;
+    });
+
+    // Animation loop
+    function animate() {
+      // Smooth cursor movement
+      mouseX += (currentMouseX - mouseX) * 0.2;
+      mouseY += (currentMouseY - mouseY) * 0.2;
+      
+      mainCursor.style.left = mouseX + 'px';
+      mainCursor.style.top = mouseY + 'px';
+
+      // Update shadow clones with delay
+      shadowClones.forEach((clone, index) => {
+        const speed = 0.15 - (index * 0.008);
+        clone.x += (mouseX - clone.x) * speed;
+        clone.y += (mouseY - clone.y) * speed;
+        
+        clone.element.style.left = clone.x + 'px';
+        clone.element.style.top = clone.y + 'px';
+        clone.element.style.opacity = clone.opacity;
+        
+        // Scale down clones based on position
+        const scale = 1 - (index * 0.05);
+        clone.element.style.transform = `translate(-50%, -50%) scale(${scale})`;
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    // Start animation after a brief delay
+    setTimeout(() => {
+      shadowClones.forEach(clone => {
+        clone.element.style.opacity = clone.opacity;
+      });
+      animate();
+    }, 100);
+
+    // Hide cursor when leaving window
+    document.addEventListener('mouseleave', () => {
+      mainCursor.style.opacity = '0';
+      shadowClones.forEach(clone => {
+        clone.element.style.opacity = '0';
+      });
+    });
+
+    document.addEventListener('mouseenter', () => {
+      mainCursor.style.opacity = '1';
+      shadowClones.forEach(clone => {
+        clone.element.style.opacity = clone.opacity;
+      });
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      mouseX = window.innerWidth / 2;
+      mouseY = window.innerHeight / 2;
+      currentMouseX = mouseX;
+      currentMouseY = mouseY;
+    });
+  </script>
+</body>
+</html>

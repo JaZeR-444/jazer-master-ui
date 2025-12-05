@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalStorage Viewer - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: #0a0a0a;
+            min-height: 100vh; 
+            color: #e0e0e0;
+        }
+        .devtools-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .devtools-header {
+            background: #1a1a1a;
+            border-bottom: 2px solid var(--jazer-cyan);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.4rem 0.8rem;
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 4px;
+            background: rgba(0, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+        }
+        .header-title {
+            font-size: 1rem;
+            color: var(--jazer-cyan);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .header-title::before {
+            content: '💾';
+        }
+        .header-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-left: auto;
+            font-size: 0.75rem;
+        }
+        .header-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .header-stat-label { color: #666; }
+        .header-stat-value { color: var(--jazer-cyan); font-weight: 600; }
+
+        /* Toolbar */
+        .toolbar {
+            background: #141414;
+            border-bottom: 1px solid #333;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .search-input {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: inherit;
+            width: 250px;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+        .toolbar-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #1a1a1a;
+            color: #aaa;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .toolbar-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+        .toolbar-btn.danger:hover {
+            border-color: #ff4757;
+            color: #ff4757;
+        }
+        .toolbar-btn.primary {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+            color: #0a0a0a;
+            font-weight: 600;
+        }
+        .toolbar-spacer { flex: 1; }
+        .item-count {
+            font-size: 0.75rem;
+            color: #666;
+        }
+        .item-count span { color: var(--jazer-cyan); font-weight: 600; }
+
+        /* Main Layout */
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Storage Table */
+        .table-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .table-header {
+            display: flex;
+            background: #141414;
+            border-bottom: 1px solid #333;
+            font-size: 0.7rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .table-header-cell {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            user-select: none;
+            transition: color 0.2s ease;
+        }
+        .table-header-cell:hover {
+            color: #aaa;
+        }
+        .table-header-cell.sorted {
+            color: var(--jazer-cyan);
+        }
+        .table-header-cell.key { flex: 0 0 250px; }
+        .table-header-cell.value { flex: 1; }
+        .table-header-cell.size { flex: 0 0 100px; text-align: right; }
+        .table-header-cell.actions { flex: 0 0 100px; }
+        .sort-icon {
+            font-size: 0.6rem;
+        }
+
+        .table-body {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .table-row {
+            display: flex;
+            border-bottom: 1px solid #1a1a1a;
+            transition: background 0.15s ease;
+            cursor: pointer;
+        }
+        .table-row:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .table-row.selected {
+            background: rgba(0, 255, 255, 0.1);
+        }
+        .table-cell {
+            padding: 0.75rem 1rem;
+            font-size: 0.8rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .table-cell.key {
+            flex: 0 0 250px;
+            color: #ff79c6;
+            font-weight: 500;
+        }
+        .table-cell.value {
+            flex: 1;
+            color: #888;
+            font-family: 'Courier New', monospace;
+        }
+        .table-cell.size {
+            flex: 0 0 100px;
+            text-align: right;
+            color: #666;
+        }
+        .table-cell.actions {
+            flex: 0 0 100px;
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+        .table-row:hover .table-cell.actions {
+            opacity: 1;
+        }
+        .action-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+        }
+        .action-btn:hover { color: var(--jazer-cyan); background: rgba(0, 255, 255, 0.1); }
+        .action-btn.delete:hover { color: #ff4757; background: rgba(255, 71, 87, 0.1); }
+
+        /* Detail Panel */
+        .detail-panel {
+            width: 400px;
+            background: #141414;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .detail-panel.hidden { display: none; }
+        .detail-header {
+            padding: 1rem;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .detail-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        .close-btn:hover { color: #fff; }
+        .detail-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        .detail-section {
+            margin-bottom: 1.5rem;
+        }
+        .detail-section-title {
+            font-size: 0.7rem;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            font-size: 0.8rem;
+        }
+        .detail-label { color: #888; }
+        .detail-value { color: #fff; font-weight: 500; }
+        .detail-key-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: #0f0f0f;
+            color: #ff79c6;
+            font-family: inherit;
+            margin-bottom: 1rem;
+        }
+        .detail-key-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+        .detail-value-editor {
+            width: 100%;
+            min-height: 200px;
+            padding: 0.75rem;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        .detail-value-editor:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+        }
+        .detail-footer {
+            padding: 1rem;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+        .detail-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: transparent;
+            color: #aaa;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .detail-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+        .detail-btn.primary {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+            color: #0a0a0a;
+            font-weight: 600;
+        }
+        .detail-btn.danger {
+            border-color: #ff4757;
+            color: #ff4757;
+        }
+        .detail-btn.danger:hover {
+            background: rgba(255, 71, 87, 0.2);
+        }
+
+        /* JSON Viewer */
+        .json-viewer {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            background: #0f0f0f;
+            border-radius: 6px;
+            padding: 0.75rem;
+            max-height: 300px;
+            overflow: auto;
+        }
+        .json-key { color: #ff79c6; }
+        .json-string { color: #f1fa8c; }
+        .json-number { color: #bd93f9; }
+        .json-boolean { color: #ff79c6; }
+        .json-null { color: #666; }
+
+        /* Value Type Badge */
+        .type-badge {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .type-badge.string { background: rgba(241, 250, 140, 0.2); color: #f1fa8c; }
+        .type-badge.object { background: rgba(139, 233, 253, 0.2); color: #8be9fd; }
+        .type-badge.array { background: rgba(189, 147, 249, 0.2); color: #bd93f9; }
+        .type-badge.number { background: rgba(255, 121, 198, 0.2); color: #ff79c6; }
+        .type-badge.boolean { background: rgba(80, 250, 123, 0.2); color: #50fa7b; }
+
+        /* Status Bar */
+        .status-bar {
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.7rem;
+        }
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #666;
+        }
+        .status-item span:last-child {
+            color: var(--jazer-cyan);
+        }
+        .quota-bar {
+            width: 100px;
+            height: 6px;
+            background: #2a2a2a;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .quota-fill {
+            height: 100%;
+            background: var(--jazer-cyan);
+            border-radius: 3px;
+        }
+        .quota-fill.warning { background: #ffbe0b; }
+        .quota-fill.danger { background: #ff4757; }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #555;
+            text-align: center;
+            padding: 2rem;
+        }
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .detail-panel {
+                position: fixed;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 100%;
+                max-width: 400px;
+                z-index: 100;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            }
+            .detail-panel.visible {
+                transform: translateX(0);
+            }
+            .table-cell.size { display: none; }
+            .table-header-cell.size { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="devtools-container">
+        <header class="devtools-header">
+            <a href="index.html" class="back-button">← Back</a>
+            <div class="header-title">LocalStorage Viewer</div>
+            <div class="header-stats">
+                <div class="header-stat">
+                    <span class="header-stat-label">Items:</span>
+                    <span class="header-stat-value" id="totalItems">12</span>
+                </div>
+                <div class="header-stat">
+                    <span class="header-stat-label">Size:</span>
+                    <span class="header-stat-value" id="totalSize">4.2 KB</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="toolbar">
+            <input type="text" class="search-input" placeholder="Search keys or values..." id="searchInput" oninput="filterItems()">
+            <button class="toolbar-btn" onclick="refreshData()">↻ Refresh</button>
+            <button class="toolbar-btn" onclick="exportData()">⬇ Export</button>
+            <button class="toolbar-btn" onclick="importData()">⬆ Import</button>
+            <div class="toolbar-spacer"></div>
+            <div class="item-count">
+                Showing <span id="visibleCount">12</span> items
+            </div>
+            <button class="toolbar-btn danger" onclick="clearAll()">Clear All</button>
+            <button class="toolbar-btn primary" onclick="addItem()">+ Add Item</button>
+        </div>
+
+        <div class="main-content">
+            <div class="table-panel">
+                <div class="table-header">
+                    <div class="table-header-cell key sorted" onclick="sortBy('key')">
+                        Key <span class="sort-icon">▼</span>
+                    </div>
+                    <div class="table-header-cell value" onclick="sortBy('value')">
+                        Value <span class="sort-icon"></span>
+                    </div>
+                    <div class="table-header-cell size" onclick="sortBy('size')">
+                        Size <span class="sort-icon"></span>
+                    </div>
+                    <div class="table-header-cell actions">Actions</div>
+                </div>
+                <div class="table-body" id="tableBody">
+                    <!-- Items rendered here -->
+                </div>
+            </div>
+
+            <aside class="detail-panel hidden" id="detailPanel">
+                <div class="detail-header">
+                    <span class="detail-title" id="detailTitle">Edit Item</span>
+                    <button class="close-btn" onclick="closeDetail()">×</button>
+                </div>
+                <div class="detail-content">
+                    <div class="detail-section">
+                        <div class="detail-section-title">Key</div>
+                        <input type="text" class="detail-key-input" id="detailKey" placeholder="Enter key name">
+                    </div>
+                    <div class="detail-section">
+                        <div class="detail-section-title">Value</div>
+                        <textarea class="detail-value-editor" id="detailValue" placeholder="Enter value (JSON or string)"></textarea>
+                    </div>
+                    <div class="detail-section">
+                        <div class="detail-section-title">Info</div>
+                        <div class="detail-row">
+                            <span class="detail-label">Type</span>
+                            <span class="detail-value" id="detailType">--</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Size</span>
+                            <span class="detail-value" id="detailSize">--</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Last Modified</span>
+                            <span class="detail-value" id="detailModified">--</span>
+                        </div>
+                    </div>
+                    <div class="detail-section" id="jsonPreview" style="display: none;">
+                        <div class="detail-section-title">JSON Preview</div>
+                        <div class="json-viewer" id="jsonViewer"></div>
+                    </div>
+                </div>
+                <div class="detail-footer">
+                    <button class="detail-btn danger" onclick="deleteItem()" id="deleteBtn">Delete</button>
+                    <button class="detail-btn" onclick="closeDetail()">Cancel</button>
+                    <button class="detail-btn primary" onclick="saveItem()">Save</button>
+                </div>
+            </aside>
+        </div>
+
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Quota used:</span>
+                    <span id="quotaPercent">4.2%</span>
+                    <div class="quota-bar">
+                        <div class="quota-fill" id="quotaFill" style="width: 4.2%"></div>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <span>Available:</span>
+                    <span id="quotaAvailable">~5 MB</span>
+                </div>
+                <div class="status-item">
+                    <span>Last refreshed:</span>
+                    <span id="lastRefresh">--</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Sample localStorage data (simulated)
+        let storageItems = [
+            { key: 'user_preferences', value: JSON.stringify({ theme: 'dark', language: 'en', notifications: true, fontSize: 14 }), modified: Date.now() - 3600000 },
+            { key: 'auth_token', value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ', modified: Date.now() - 7200000 },
+            { key: 'cart_items', value: JSON.stringify([{ id: 1, name: 'Product A', qty: 2, price: 29.99 }, { id: 2, name: 'Product B', qty: 1, price: 49.99 }]), modified: Date.now() - 1800000 },
+            { key: 'recent_searches', value: JSON.stringify(['javascript', 'react hooks', 'css grid', 'typescript generics']), modified: Date.now() - 900000 },
+            { key: 'sidebar_collapsed', value: 'false', modified: Date.now() - 86400000 },
+            { key: 'last_visited_page', value: '/dashboard/analytics', modified: Date.now() - 300000 },
+            { key: 'notification_count', value: '5', modified: Date.now() - 600000 },
+            { key: 'user_session', value: JSON.stringify({ id: 'sess_abc123', userId: 'usr_456', createdAt: '2024-01-15T10:30:00Z', expiresAt: '2024-01-22T10:30:00Z' }), modified: Date.now() - 1200000 },
+            { key: 'feature_flags', value: JSON.stringify({ newDashboard: true, betaFeatures: false, darkMode: true, analytics: true }), modified: Date.now() - 172800000 },
+            { key: 'form_draft', value: JSON.stringify({ title: 'My Draft Post', content: 'This is a draft...', tags: ['tech', 'tutorial'] }), modified: Date.now() - 7200000 },
+            { key: 'api_cache_users', value: JSON.stringify({ data: [{ id: 1, name: 'John' }, { id: 2, name: 'Jane' }], timestamp: Date.now() }), modified: Date.now() - 60000 },
+            { key: 'debug_mode', value: 'true', modified: Date.now() - 259200000 }
+        ];
+
+        let filteredItems = [...storageItems];
+        let selectedItem = null;
+        let isNewItem = false;
+        let sortField = 'key';
+        let sortDirection = 'asc';
+
+        // Calculate size of a string in bytes
+        function getByteSize(str) {
+            return new Blob([str]).size;
+        }
+
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+
+        function getValueType(value) {
+            try {
+                const parsed = JSON.parse(value);
+                if (Array.isArray(parsed)) return 'array';
+                if (typeof parsed === 'object' && parsed !== null) return 'object';
+                if (typeof parsed === 'number') return 'number';
+                if (typeof parsed === 'boolean') return 'boolean';
+                return 'string';
+            } catch {
+                return 'string';
+            }
+        }
+
+        function formatTimeAgo(timestamp) {
+            const diff = Date.now() - timestamp;
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return Math.floor(diff / 60000) + ' min ago';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + ' hours ago';
+            return Math.floor(diff / 86400000) + ' days ago';
+        }
+
+        // Render table
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            
+            if (filteredItems.length === 0) {
+                tbody.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💾</div>
+                        <div>No items found</div>
+                    </div>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filteredItems.map((item, index) => {
+                const size = getByteSize(item.value);
+                const type = getValueType(item.value);
+                const displayValue = item.value.length > 100 ? item.value.substring(0, 100) + '...' : item.value;
+
+                return `
+                    <div class="table-row ${selectedItem?.key === item.key ? 'selected' : ''}" onclick="selectItem(${index})">
+                        <div class="table-cell key">${escapeHtml(item.key)}</div>
+                        <div class="table-cell value">
+                            <span class="type-badge ${type}">${type}</span>
+                            ${escapeHtml(displayValue)}
+                        </div>
+                        <div class="table-cell size">${formatBytes(size)}</div>
+                        <div class="table-cell actions">
+                            <button class="action-btn" onclick="event.stopPropagation(); editItem(${index})" title="Edit">✏️</button>
+                            <button class="action-btn" onclick="event.stopPropagation(); copyValue(${index})" title="Copy">📋</button>
+                            <button class="action-btn delete" onclick="event.stopPropagation(); deleteItemByIndex(${index})" title="Delete">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            updateStats();
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function updateStats() {
+            const totalSize = storageItems.reduce((sum, item) => sum + getByteSize(item.value), 0);
+            const quotaPercent = (totalSize / (5 * 1024 * 1024) * 100).toFixed(1);
+
+            document.getElementById('totalItems').textContent = storageItems.length;
+            document.getElementById('totalSize').textContent = formatBytes(totalSize);
+            document.getElementById('visibleCount').textContent = filteredItems.length;
+            document.getElementById('quotaPercent').textContent = quotaPercent + '%';
+            
+            const quotaFill = document.getElementById('quotaFill');
+            quotaFill.style.width = quotaPercent + '%';
+            quotaFill.className = 'quota-fill' + (quotaPercent > 80 ? ' danger' : quotaPercent > 50 ? ' warning' : '');
+        }
+
+        // Filter items
+        function filterItems() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            filteredItems = storageItems.filter(item => 
+                item.key.toLowerCase().includes(search) || 
+                item.value.toLowerCase().includes(search)
+            );
+            sortItems();
+            renderTable();
+        }
+
+        // Sort items
+        function sortBy(field) {
+            if (sortField === field) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortField = field;
+                sortDirection = 'asc';
+            }
+
+            document.querySelectorAll('.table-header-cell').forEach(cell => {
+                cell.classList.remove('sorted');
+                cell.querySelector('.sort-icon').textContent = '';
+            });
+
+            const header = document.querySelector(`.table-header-cell.${field}`);
+            header.classList.add('sorted');
+            header.querySelector('.sort-icon').textContent = sortDirection === 'asc' ? '▼' : '▲';
+
+            sortItems();
+            renderTable();
+        }
+
+        function sortItems() {
+            filteredItems.sort((a, b) => {
+                let aVal, bVal;
+                if (sortField === 'key') {
+                    aVal = a.key.toLowerCase();
+                    bVal = b.key.toLowerCase();
+                } else if (sortField === 'value') {
+                    aVal = a.value.toLowerCase();
+                    bVal = b.value.toLowerCase();
+                } else if (sortField === 'size') {
+                    aVal = getByteSize(a.value);
+                    bVal = getByteSize(b.value);
+                }
+                
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        // Select and edit items
+        function selectItem(index) {
+            selectedItem = filteredItems[index];
+            renderTable();
+            showDetail();
+        }
+
+        function editItem(index) {
+            isNewItem = false;
+            selectedItem = filteredItems[index];
+            showDetail();
+        }
+
+        function showDetail() {
+            document.getElementById('detailPanel').classList.remove('hidden');
+            document.getElementById('detailPanel').classList.add('visible');
+
+            if (selectedItem) {
+                document.getElementById('detailTitle').textContent = 'Edit Item';
+                document.getElementById('detailKey').value = selectedItem.key;
+                document.getElementById('detailKey').disabled = !isNewItem;
+                
+                // Try to format JSON
+                let displayValue = selectedItem.value;
+                try {
+                    const parsed = JSON.parse(selectedItem.value);
+                    displayValue = JSON.stringify(parsed, null, 2);
+                } catch {}
+                
+                document.getElementById('detailValue').value = displayValue;
+                document.getElementById('detailType').innerHTML = `<span class="type-badge ${getValueType(selectedItem.value)}">${getValueType(selectedItem.value)}</span>`;
+                document.getElementById('detailSize').textContent = formatBytes(getByteSize(selectedItem.value));
+                document.getElementById('detailModified').textContent = formatTimeAgo(selectedItem.modified);
+                document.getElementById('deleteBtn').style.display = 'block';
+
+                // Show JSON preview if applicable
+                const type = getValueType(selectedItem.value);
+                if (type === 'object' || type === 'array') {
+                    document.getElementById('jsonPreview').style.display = 'block';
+                    document.getElementById('jsonViewer').innerHTML = formatJSON(JSON.parse(selectedItem.value));
+                } else {
+                    document.getElementById('jsonPreview').style.display = 'none';
+                }
+            }
+        }
+
+        function formatJSON(obj, indent = 0) {
+            if (obj === null) return '<span class="json-null">null</span>';
+            if (typeof obj !== 'object') {
+                if (typeof obj === 'string') return `<span class="json-string">"${escapeHtml(obj)}"</span>`;
+                if (typeof obj === 'number') return `<span class="json-number">${obj}</span>`;
+                if (typeof obj === 'boolean') return `<span class="json-boolean">${obj}</span>`;
+            }
+
+            const isArray = Array.isArray(obj);
+            const entries = Object.entries(obj);
+            const spaces = '  '.repeat(indent);
+            const innerSpaces = '  '.repeat(indent + 1);
+
+            if (entries.length === 0) return isArray ? '[]' : '{}';
+
+            let html = `${isArray ? '[' : '{'}<br>`;
+            entries.forEach(([key, value], i) => {
+                const comma = i < entries.length - 1 ? ',' : '';
+                const keyStr = isArray ? '' : `<span class="json-key">"${escapeHtml(key)}"</span>: `;
+                html += `${innerSpaces}${keyStr}${formatJSON(value, indent + 1)}${comma}<br>`;
+            });
+            html += `${spaces}${isArray ? ']' : '}'}`;
+            return html;
+        }
+
+        function closeDetail() {
+            document.getElementById('detailPanel').classList.add('hidden');
+            document.getElementById('detailPanel').classList.remove('visible');
+            selectedItem = null;
+            isNewItem = false;
+            renderTable();
+        }
+
+        function addItem() {
+            isNewItem = true;
+            selectedItem = { key: '', value: '', modified: Date.now() };
+            document.getElementById('detailTitle').textContent = 'Add New Item';
+            document.getElementById('detailKey').value = '';
+            document.getElementById('detailKey').disabled = false;
+            document.getElementById('detailValue').value = '';
+            document.getElementById('detailType').textContent = '--';
+            document.getElementById('detailSize').textContent = '--';
+            document.getElementById('detailModified').textContent = 'Now';
+            document.getElementById('deleteBtn').style.display = 'none';
+            document.getElementById('jsonPreview').style.display = 'none';
+            document.getElementById('detailPanel').classList.remove('hidden');
+        }
+
+        function saveItem() {
+            const key = document.getElementById('detailKey').value.trim();
+            const value = document.getElementById('detailValue').value;
+
+            if (!key) {
+                alert('Please enter a key');
+                return;
+            }
+
+            if (isNewItem) {
+                if (storageItems.some(item => item.key === key)) {
+                    alert('Key already exists');
+                    return;
+                }
+                storageItems.push({ key, value, modified: Date.now() });
+            } else {
+                const item = storageItems.find(i => i.key === selectedItem.key);
+                if (item) {
+                    item.value = value;
+                    item.modified = Date.now();
+                }
+            }
+
+            filterItems();
+            closeDetail();
+        }
+
+        function deleteItem() {
+            if (confirm(`Delete "${selectedItem.key}"?`)) {
+                storageItems = storageItems.filter(i => i.key !== selectedItem.key);
+                filterItems();
+                closeDetail();
+            }
+        }
+
+        function deleteItemByIndex(index) {
+            const item = filteredItems[index];
+            if (confirm(`Delete "${item.key}"?`)) {
+                storageItems = storageItems.filter(i => i.key !== item.key);
+                filterItems();
+            }
+        }
+
+        function copyValue(index) {
+            const item = filteredItems[index];
+            navigator.clipboard.writeText(item.value);
+        }
+
+        // Toolbar actions
+        function refreshData() {
+            document.getElementById('lastRefresh').textContent = new Date().toLocaleTimeString();
+            renderTable();
+        }
+
+        function exportData() {
+            const data = {};
+            storageItems.forEach(item => data[item.key] = item.value);
+            console.log('LocalStorage Export:', data);
+            alert('Data exported to console.\nIn production, this would download a JSON file.');
+        }
+
+        function importData() {
+            alert('Import would allow uploading a JSON file to populate localStorage');
+        }
+
+        function clearAll() {
+            if (confirm('Clear ALL localStorage items? This cannot be undone.')) {
+                storageItems = [];
+                filterItems();
+            }
+        }
+
+        // Initialize
+        renderTable();
+        document.getElementById('lastRefresh').textContent = new Date().toLocaleTimeString();
+    </script>
+</body>
+</html>

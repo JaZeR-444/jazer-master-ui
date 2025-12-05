@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Model Selector - JaZeR Components</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .demo-container {
+            max-width: 600px;
+            margin: 2rem auto;
+        }
+
+        /* AI Model Selector Component */
+        .ai-model-selector {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            overflow: visible;
+            transition: all 0.3s ease;
+        }
+
+        .ai-model-selector::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 242, 234, 0.1), transparent);
+            transition: left 0.5s ease;
+            pointer-events: none;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .ai-model-selector:hover::before {
+            left: 100%;
+        }
+
+        .ai-model-selector:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: var(--shadow-cyan);
+        }
+
+        .selector-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .selector-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .selector-title {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text-light);
+        }
+
+        .model-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .model-dropdown__trigger {
+            width: 100%;
+            background: rgba(0, 242, 234, 0.05);
+            border: 2px solid var(--border-cyan);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            color: var(--text-light);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+
+        .model-dropdown__trigger:hover {
+            background: rgba(0, 242, 234, 0.1);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.3);
+        }
+
+        .model-dropdown__trigger.active {
+            border-color: var(--jazer-pink);
+            box-shadow: 0 0 25px rgba(255, 0, 110, 0.4);
+        }
+
+        .model-dropdown__selected {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+        }
+
+        .model-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--gradient-text);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+
+        .model-name {
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .model-version {
+            color: var(--text-gray);
+            font-size: 0.875rem;
+            margin-left: 0.5rem;
+        }
+
+        .dropdown-arrow {
+            color: var(--jazer-cyan);
+            transition: transform 0.3s ease;
+            font-size: 1.25rem;
+        }
+
+        .model-dropdown__trigger.active .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .model-dropdown__menu {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 20, 0.98);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            padding: 0.5rem;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 40px rgba(0, 242, 234, 0.3);
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .model-dropdown__menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .model-option {
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .model-option:hover {
+            background: rgba(0, 242, 234, 0.1);
+            border-color: var(--border-cyan);
+        }
+
+        .model-option.selected {
+            background: rgba(0, 242, 234, 0.15);
+            border-color: var(--jazer-cyan);
+        }
+
+        .model-details {
+            flex: 1;
+        }
+
+        .model-details__name {
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .model-details__desc {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+        }
+
+        .model-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .model-badge--fast {
+            background: rgba(0, 242, 234, 0.2);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--border-cyan);
+        }
+
+        .model-badge--powerful {
+            background: rgba(147, 51, 234, 0.2);
+            color: var(--jazer-purple);
+            border: 1px solid var(--border-purple);
+        }
+
+        .model-badge--balanced {
+            background: rgba(255, 0, 110, 0.2);
+            color: var(--jazer-pink);
+            border: 1px solid var(--border-pink);
+        }
+
+        .model-badge--multimodal {
+            background: rgba(255, 190, 11, 0.2);
+            color: var(--jazer-yellow);
+            border: 1px solid rgba(255, 190, 11, 0.3);
+        }
+
+        /* Info Section */
+        .model-info {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(0, 242, 234, 0.05);
+            border: 1px solid var(--border-cyan);
+            border-radius: 10px;
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            line-height: 1.6;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-icon {
+            color: var(--jazer-cyan);
+        }
+
+        /* Scrollbar styling */
+        .model-dropdown__menu::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .model-dropdown__menu::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        .model-dropdown__menu::-webkit-scrollbar-thumb {
+            background: var(--gradient-accent);
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to AI & Voice Interactions</a>
+    
+    <div class="demo-container">
+        <h1 class="gradient-text">AI Model Selector</h1>
+        <p style="color: var(--text-gray); margin-bottom: 2rem;">Dropdown selector for choosing AI models with detailed specifications</p>
+
+        <div class="ai-model-selector">
+            <div class="selector-header">
+                <div class="selector-icon">🤖</div>
+                <div class="selector-title">Select AI Model</div>
+            </div>
+
+            <div class="model-dropdown">
+                <div class="model-dropdown__trigger" id="dropdownTrigger">
+                    <div class="model-dropdown__selected">
+                        <div class="model-icon">🧠</div>
+                        <div>
+                            <span class="model-name" id="selectedModelName">GPT-4 Turbo</span>
+                            <span class="model-version" id="selectedModelVersion">v1.0</span>
+                        </div>
+                    </div>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+
+                <div class="model-dropdown__menu" id="dropdownMenu">
+                    <div class="model-option selected" data-model="gpt4-turbo" data-version="v1.0" data-speed="Fast" data-context="128K">
+                        <div class="model-icon">🧠</div>
+                        <div class="model-details">
+                            <div class="model-details__name">GPT-4 Turbo</div>
+                            <div class="model-details__desc">Most capable model, 128K context</div>
+                        </div>
+                        <span class="model-badge model-badge--powerful">Powerful</span>
+                    </div>
+
+                    <div class="model-option" data-model="gpt-3.5-turbo" data-version="v2.1" data-speed="Very Fast" data-context="16K">
+                        <div class="model-icon">⚡</div>
+                        <div class="model-details">
+                            <div class="model-details__name">GPT-3.5 Turbo</div>
+                            <div class="model-details__desc">Fast and efficient, great for most tasks</div>
+                        </div>
+                        <span class="model-badge model-badge--fast">Fast</span>
+                    </div>
+
+                    <div class="model-option" data-model="claude-3-opus" data-version="v3.0" data-speed="Moderate" data-context="200K">
+                        <div class="model-icon">🎭</div>
+                        <div class="model-details">
+                            <div class="model-details__name">Claude 3 Opus</div>
+                            <div class="model-details__desc">Best for analysis, 200K context</div>
+                        </div>
+                        <span class="model-badge model-badge--powerful">Powerful</span>
+                    </div>
+
+                    <div class="model-option" data-model="claude-3-sonnet" data-version="v3.0" data-speed="Fast" data-context="200K">
+                        <div class="model-icon">🎵</div>
+                        <div class="model-details">
+                            <div class="model-details__name">Claude 3 Sonnet</div>
+                            <div class="model-details__desc">Balanced speed and intelligence</div>
+                        </div>
+                        <span class="model-badge model-badge--balanced">Balanced</span>
+                    </div>
+
+                    <div class="model-option" data-model="gemini-pro" data-version="v1.5" data-speed="Fast" data-context="32K">
+                        <div class="model-icon">💎</div>
+                        <div class="model-details">
+                            <div class="model-details__name">Gemini Pro</div>
+                            <div class="model-details__desc">Google's advanced AI model</div>
+                        </div>
+                        <span class="model-badge model-badge--balanced">Balanced</span>
+                    </div>
+
+                    <div class="model-option" data-model="gpt-4-vision" data-version="v1.0" data-speed="Moderate" data-context="128K">
+                        <div class="model-icon">👁️</div>
+                        <div class="model-details">
+                            <div class="model-details__name">GPT-4 Vision</div>
+                            <div class="model-details__desc">Multimodal with image understanding</div>
+                        </div>
+                        <span class="model-badge model-badge--multimodal">Multimodal</span>
+                    </div>
+
+                    <div class="model-option" data-model="llama-3-70b" data-version="v3.0" data-speed="Fast" data-context="8K">
+                        <div class="model-icon">🦙</div>
+                        <div class="model-details">
+                            <div class="model-details__name">Llama 3 70B</div>
+                            <div class="model-details__desc">Open-source, powerful performance</div>
+                        </div>
+                        <span class="model-badge model-badge--balanced">Balanced</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="model-info" id="modelInfo">
+                <strong style="color: var(--jazer-cyan);">Model Information</strong>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-icon">⚡</span>
+                        <span>Speed: <strong id="infoSpeed">Fast</strong></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">📝</span>
+                        <span>Context: <strong id="infoContext">128K</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropdownTrigger = document.getElementById('dropdownTrigger');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        const selectedModelName = document.getElementById('selectedModelName');
+        const selectedModelVersion = document.getElementById('selectedModelVersion');
+        const infoSpeed = document.getElementById('infoSpeed');
+        const infoContext = document.getElementById('infoContext');
+
+        // Toggle dropdown
+        dropdownTrigger.addEventListener('click', () => {
+            dropdownTrigger.classList.toggle('active');
+            dropdownMenu.classList.toggle('active');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.model-dropdown')) {
+                dropdownTrigger.classList.remove('active');
+                dropdownMenu.classList.remove('active');
+            }
+        });
+
+        // Handle model selection
+        const modelOptions = document.querySelectorAll('.model-option');
+        modelOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                // Remove selected class from all options
+                modelOptions.forEach(opt => opt.classList.remove('selected'));
+                
+                // Add selected class to clicked option
+                option.classList.add('selected');
+
+                // Update selected model display
+                const modelName = option.querySelector('.model-details__name').textContent;
+                const modelVersion = option.dataset.version;
+                const speed = option.dataset.speed;
+                const context = option.dataset.context;
+
+                selectedModelName.textContent = modelName;
+                selectedModelVersion.textContent = modelVersion;
+                infoSpeed.textContent = speed;
+                infoContext.textContent = context;
+
+                // Close dropdown
+                dropdownTrigger.classList.remove('active');
+                dropdownMenu.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>

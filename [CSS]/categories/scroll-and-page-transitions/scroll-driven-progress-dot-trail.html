@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll-Driven Progress Dot Trail - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body, 'Inter', sans-serif);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);
+            color: #fff;
+            min-height: 500vh;
+            padding: 2rem;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan, #00f2ea);
+            text-decoration: none;
+            font-size: 1rem;
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            z-index: 1000;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+            background: rgba(10, 10, 10, 0.95);
+            border-color: rgba(0, 242, 234, 0.6);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.3);
+        }
+
+        /* Progress Dot Trail Container */
+        .dot-trail-container {
+            position: fixed;
+            right: 3rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .progress-dot::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+            background: var(--jazer-cyan, #00f2ea);
+            border-radius: 50%;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .progress-dot.active {
+            background: var(--jazer-cyan, #00f2ea);
+            border-color: var(--jazer-cyan, #00f2ea);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.8);
+            transform: scale(1.4);
+        }
+
+        .progress-dot.active::before {
+            width: 100%;
+            height: 100%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.8);
+                opacity: 0;
+            }
+        }
+
+        .progress-dot.passed {
+            background: var(--jazer-purple, #9333ea);
+            border-color: var(--jazer-purple, #9333ea);
+            box-shadow: 0 0 10px rgba(147, 51, 234, 0.5);
+        }
+
+        .progress-dot:hover {
+            transform: scale(1.2);
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .progress-dot.active:hover {
+            transform: scale(1.5);
+        }
+
+        /* Dot Labels */
+        .dot-label {
+            position: absolute;
+            right: 2.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            font-family: var(--font-secondary, 'Rajdhani', sans-serif);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .progress-dot:hover .dot-label,
+        .progress-dot.active .dot-label {
+            opacity: 1;
+            right: 2rem;
+        }
+
+        .progress-dot.active .dot-label {
+            color: var(--jazer-cyan, #00f2ea);
+        }
+
+        /* Connecting Line */
+        .progress-line {
+            position: absolute;
+            right: 3.5rem;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-line-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            background: linear-gradient(180deg, var(--jazer-cyan, #00f2ea), var(--jazer-purple, #9333ea), var(--jazer-pink, #ff006e));
+            box-shadow: 0 0 10px rgba(0, 242, 234, 0.5);
+            transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Scroll Progress Percentage */
+        .scroll-percentage {
+            position: fixed;
+            bottom: 3rem;
+            right: 3rem;
+            z-index: 100;
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 3rem;
+            font-weight: 700;
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 242, 234, 0.3);
+        }
+
+        .percentage-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            display: block;
+            margin-top: 0.5rem;
+        }
+
+        /* Header Section */
+        .header-section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .component-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            background: var(--gradient-text, linear-gradient(135deg, #00f2ea 0%, #9333ea 50%, #ff006e 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .component-description {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .scroll-hint {
+            font-size: 0.9rem;
+            color: var(--jazer-cyan, #00f2ea);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+
+        /* Content Sections */
+        .content-section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .section-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 242, 234, 0.2);
+            border-radius: 1.5rem;
+            padding: 3rem;
+            width: 100%;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .content-section.visible .section-card {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-number {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: 5rem;
+            color: rgba(0, 242, 234, 0.1);
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-family: var(--font-primary, 'Orbitron', sans-serif);
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            color: var(--jazer-cyan, #00f2ea);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 1rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-top: 2rem;
+        }
+
+        .feature-list li {
+            padding: 0.75rem 0;
+            padding-left: 2rem;
+            position: relative;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+        }
+
+        .feature-list li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--jazer-cyan, #00f2ea);
+            font-size: 1.2rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .dot-trail-container {
+                right: 1.5rem;
+                gap: 1rem;
+            }
+
+            .progress-dot {
+                width: 10px;
+                height: 10px;
+            }
+
+            .dot-label {
+                display: none;
+            }
+
+            .scroll-percentage {
+                bottom: 2rem;
+                right: 1.5rem;
+                font-size: 2rem;
+            }
+
+            .content-section {
+                padding: 3rem 1rem;
+            }
+
+            .section-card {
+                padding: 2rem;
+            }
+
+            body {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button">← Back</a>
+
+    <!-- Progress Dot Trail -->
+    <div class="dot-trail-container">
+        <div class="progress-line">
+            <div class="progress-line-fill" id="progressLineFill"></div>
+        </div>
+    </div>
+
+    <!-- Scroll Percentage Display -->
+    <div class="scroll-percentage">
+        <span id="scrollPercent">0</span>%
+        <span class="percentage-label">Scrolled</span>
+    </div>
+
+    <!-- Header Section -->
+    <div class="header-section">
+        <h1 class="component-title">Scroll-Driven Progress Dot Trail</h1>
+        <p class="component-description">
+            An elegant visual indicator that tracks your scroll progress through the page. 
+            Each dot represents a section, with a glowing trail showing how far you've scrolled. 
+            Click any dot to jump to that section instantly.
+        </p>
+        <div class="scroll-hint">Scroll Down to Explore ↓</div>
+    </div>
+
+    <!-- Content Sections -->
+    <div class="content-section" data-section="1" data-label="Overview">
+        <div class="section-card">
+            <div class="section-number">01</div>
+            <h2 class="section-title">Dynamic Progress Tracking</h2>
+            <p class="section-text">
+                The progress dot trail provides real-time visual feedback as you navigate through content. 
+                Each dot lights up as you scroll past its corresponding section, creating an intuitive 
+                navigation experience that helps users understand their position in the document.
+            </p>
+            <p class="section-text">
+                The active dot pulses with a glowing animation, while passed sections are marked with a 
+                subtle purple glow. This three-state system (inactive, active, passed) creates clear 
+                visual hierarchy and makes navigation effortless.
+            </p>
+        </div>
+    </div>
+
+    <div class="content-section" data-section="2" data-label="Features">
+        <div class="section-card">
+            <div class="section-number">02</div>
+            <h2 class="section-title">Interactive Navigation</h2>
+            <p class="section-text">
+                Hover over any dot to reveal its section label, or click to instantly jump to that section 
+                with smooth scrolling. The connecting line fills progressively, providing an additional 
+                visual cue for your reading progress.
+            </p>
+            <ul class="feature-list">
+                <li>Smooth scroll-to-section on click</li>
+                <li>Hover labels for quick reference</li>
+                <li>Progressive line fill animation</li>
+                <li>Responsive design for all devices</li>
+                <li>Hardware-accelerated animations</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="content-section" data-section="3" data-label="Design">
+        <div class="section-card">
+            <div class="section-number">03</div>
+            <h2 class="section-title">Cyberpunk Aesthetics</h2>
+            <p class="section-text">
+                The design embraces the JaZeR brand with vibrant cyan, purple, and pink accents. 
+                Glowing effects and smooth transitions create a futuristic feel that's both functional 
+                and visually striking. The dots scale and pulse when active, drawing attention without 
+                being distracting.
+            </p>
+            <p class="section-text">
+                Every animation is optimized for 60fps performance using CSS transforms and transitions. 
+                The backdrop blur and gradient effects add depth while maintaining excellent readability 
+                across different backgrounds.
+            </p>
+        </div>
+    </div>
+
+    <div class="content-section" data-section="4" data-label="Performance">
+        <div class="section-card">
+            <div class="section-number">04</div>
+            <h2 class="section-title">Optimized Performance</h2>
+            <p class="section-text">
+                Built with performance in mind, the scroll tracking uses Intersection Observer API for 
+                efficient viewport detection. Animations leverage GPU acceleration through CSS transforms, 
+                ensuring smooth performance even on mobile devices.
+            </p>
+            <p class="section-text">
+                Scroll events are throttled using requestAnimationFrame to prevent performance bottlenecks, 
+                while the visual updates remain buttery smooth. This approach balances visual richness with 
+                technical efficiency.
+            </p>
+        </div>
+    </div>
+
+    <div class="content-section" data-section="5" data-label="Implementation">
+        <div class="section-card">
+            <div class="section-number">05</div>
+            <h2 class="section-title">Easy Implementation</h2>
+            <p class="section-text">
+                The component is self-contained and easy to integrate into any project. Simply add your 
+                content sections with the appropriate data attributes, and the script automatically 
+                generates the progress dots and handles all interactions.
+            </p>
+            <p class="section-text">
+                The design is fully customizable through CSS variables, allowing you to match your brand 
+                colors and spacing preferences. The modular structure makes it simple to extend or modify 
+                the functionality to suit your specific needs.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Generate progress dots for each section
+        const sections = document.querySelectorAll('.content-section');
+        const dotContainer = document.querySelector('.dot-trail-container');
+        const progressLineFill = document.getElementById('progressLineFill');
+        const scrollPercentDisplay = document.getElementById('scrollPercent');
+
+        // Create dots
+        sections.forEach((section, index) => {
+            const dot = document.createElement('div');
+            dot.className = 'progress-dot';
+            dot.dataset.section = index;
+            
+            const label = document.createElement('span');
+            label.className = 'dot-label';
+            label.textContent = section.dataset.label || `Section ${index + 1}`;
+            dot.appendChild(label);
+            
+            // Click handler for smooth scroll
+            dot.addEventListener('click', () => {
+                section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+            
+            dotContainer.appendChild(dot);
+        });
+
+        // Update progress on scroll
+        function updateProgress() {
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight - windowHeight;
+            const scrolled = window.scrollY;
+            const scrollPercent = (scrolled / documentHeight) * 100;
+            
+            // Update percentage display
+            scrollPercentDisplay.textContent = Math.round(scrollPercent);
+            
+            // Update line fill
+            progressLineFill.style.height = `${scrollPercent}%`;
+            
+            // Update dot states
+            const dots = document.querySelectorAll('.progress-dot');
+            let activeIndex = -1;
+            
+            sections.forEach((section, index) => {
+                const rect = section.getBoundingClientRect();
+                const sectionMiddle = rect.top + rect.height / 2;
+                
+                if (sectionMiddle <= windowHeight / 2 && sectionMiddle >= -rect.height / 2) {
+                    activeIndex = index;
+                }
+            });
+            
+            dots.forEach((dot, index) => {
+                dot.classList.remove('active', 'passed');
+                
+                if (index === activeIndex) {
+                    dot.classList.add('active');
+                } else if (index < activeIndex) {
+                    dot.classList.add('passed');
+                }
+            });
+        }
+
+        // Intersection Observer for section visibility
+        const observerOptions = {
+            threshold: 0.3,
+            rootMargin: '-10% 0px'
+        };
+
+        const sectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => {
+            sectionObserver.observe(section);
+        });
+
+        // Throttled scroll handler
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    updateProgress();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        });
+
+        // Initialize
+        updateProgress();
+
+        // Performance monitoring
+        let frameCount = 0;
+        let lastTime = performance.now();
+        
+        function monitorPerformance() {
+            frameCount++;
+            const currentTime = performance.now();
+            
+            if (currentTime - lastTime >= 1000) {
+                const fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+            
+            requestAnimationFrame(monitorPerformance);
+        }
+        
+        monitorPerformance();
+    </script>
+</body>
+</html>

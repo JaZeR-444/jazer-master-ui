@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power-Up Collection Effect</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        h1 { 
+            background: var(--gradient-text); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            margin-bottom: 0.5rem; 
+            font-size: 2.5rem; 
+        }
+        
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .back-button { 
+            display: inline-block; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 12px; 
+            border: 2px solid var(--jazer-cyan); 
+            background: rgba(6, 182, 212, 0.1); 
+            margin-bottom: 2rem; 
+            transition: all 0.3s ease; 
+        }
+        
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: var(--bg-dark); 
+            transform: translateX(-5px); 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5); 
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .control-group label {
+            font-size: 0.85rem;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .control-group select {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--jazer-purple);
+            color: var(--text-light);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 160px;
+        }
+        
+        .control-group select:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+        
+        .demo-container {
+            position: relative;
+            border: 2px solid var(--jazer-pink);
+            border-radius: 16px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.9), rgba(30, 20, 50, 0.9));
+            min-height: 500px;
+        }
+        
+        /* Game area */
+        .game-area {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(147, 51, 234, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(0, 242, 234, 0.1) 0%, transparent 40%),
+                linear-gradient(180deg, #0a0a1a 0%, #1a0a2e 100%);
+            overflow: hidden;
+        }
+        
+        /* Grid lines */
+        .grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(147, 51, 234, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(147, 51, 234, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+        }
+        
+        /* Player character */
+        .player {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3rem;
+            filter: drop-shadow(0 0 10px var(--jazer-cyan));
+            z-index: 10;
+            transition: transform 0.3s ease;
+        }
+        
+        .player.powered-up {
+            animation: playerPowered 0.5s ease-out;
+            filter: drop-shadow(0 0 20px var(--jazer-cyan)) drop-shadow(0 0 40px var(--jazer-cyan));
+        }
+        
+        @keyframes playerPowered {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.3); }
+        }
+        
+        /* Power-up items */
+        .powerup {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 5;
+        }
+        
+        .powerup::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--glow-color, rgba(0, 242, 234, 0.4)) 0%, transparent 70%);
+            animation: powerupGlow 1.5s ease-in-out infinite;
+        }
+        
+        .powerup::after {
+            content: '';
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            border: 2px solid var(--glow-color, var(--jazer-cyan));
+            border-radius: 50%;
+            animation: powerupRing 2s linear infinite;
+            opacity: 0.5;
+        }
+        
+        @keyframes powerupGlow {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+        
+        @keyframes powerupRing {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .powerup:hover {
+            transform: scale(1.2);
+        }
+        
+        .powerup.collecting {
+            animation: collectPowerup 0.5s ease-out forwards;
+        }
+        
+        @keyframes collectPowerup {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.8; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        
+        /* Power-up types */
+        .powerup.speed { --glow-color: rgba(0, 255, 136, 0.5); }
+        .powerup.shield { --glow-color: rgba(0, 150, 255, 0.5); }
+        .powerup.attack { --glow-color: rgba(255, 68, 68, 0.5); }
+        .powerup.magnet { --glow-color: rgba(255, 0, 110, 0.5); }
+        .powerup.time { --glow-color: rgba(147, 51, 234, 0.5); }
+        .powerup.star { --glow-color: rgba(255, 215, 0, 0.5); }
+        
+        /* Collection effect overlay */
+        .collection-flash {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 20;
+        }
+        
+        .collection-flash.active {
+            animation: collectionFlash 0.4s ease-out;
+        }
+        
+        @keyframes collectionFlash {
+            0% { opacity: 0.6; }
+            100% { opacity: 0; }
+        }
+        
+        /* Particle burst */
+        .particle-burst {
+            position: absolute;
+            pointer-events: none;
+            z-index: 15;
+        }
+        
+        .burst-particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0;
+        }
+        
+        .burst-particle.active {
+            animation: particleFly 0.8s ease-out forwards;
+        }
+        
+        @keyframes particleFly {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--tx), var(--ty)) scale(0);
+            }
+        }
+        
+        /* Sparkle effect */
+        .sparkle {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            pointer-events: none;
+            z-index: 16;
+        }
+        
+        .sparkle::before,
+        .sparkle::after {
+            content: '';
+            position: absolute;
+            background: white;
+        }
+        
+        .sparkle::before {
+            width: 100%;
+            height: 2px;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+        }
+        
+        .sparkle::after {
+            width: 2px;
+            height: 100%;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+        }
+        
+        .sparkle.active {
+            animation: sparkleAnim 0.6s ease-out forwards;
+        }
+        
+        @keyframes sparkleAnim {
+            0% { transform: scale(0) rotate(0deg); opacity: 1; }
+            50% { transform: scale(1.5) rotate(90deg); opacity: 1; }
+            100% { transform: scale(0) rotate(180deg); opacity: 0; }
+        }
+        
+        /* Absorption trail */
+        .absorption-trail {
+            position: absolute;
+            pointer-events: none;
+            z-index: 14;
+        }
+        
+        .trail-segment {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            opacity: 0;
+        }
+        
+        .trail-segment.active {
+            animation: trailMove 0.4s ease-in forwards;
+        }
+        
+        @keyframes trailMove {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--tx), var(--ty)) scale(0.3);
+            }
+        }
+        
+        /* Shockwave ring */
+        .shockwave-ring {
+            position: absolute;
+            border: 3px solid var(--jazer-cyan);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 13;
+            opacity: 0;
+        }
+        
+        .shockwave-ring.active {
+            animation: ringExpand 0.6s ease-out forwards;
+        }
+        
+        @keyframes ringExpand {
+            0% {
+                width: 20px;
+                height: 20px;
+                opacity: 1;
+            }
+            100% {
+                width: 200px;
+                height: 200px;
+                opacity: 0;
+            }
+        }
+        
+        /* Power-up popup */
+        .powerup-popup {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            pointer-events: none;
+            z-index: 25;
+            opacity: 0;
+            transform: translateY(20px) scale(0.8);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .powerup-popup.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        
+        .powerup-popup .popup-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .powerup-popup .popup-name {
+            color: var(--jazer-cyan);
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .powerup-popup .popup-desc {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+        
+        /* Active power-ups display */
+        .active-powerups {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 30;
+        }
+        
+        .active-powerup-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--jazer-purple);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            animation: slideInRight 0.3s ease-out;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .active-powerup-item .item-icon {
+            font-size: 1.5rem;
+        }
+        
+        .active-powerup-item .item-info {
+            flex: 1;
+        }
+        
+        .active-powerup-item .item-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--jazer-cyan);
+            text-transform: uppercase;
+        }
+        
+        .active-powerup-item .item-timer {
+            width: 80px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            margin-top: 0.25rem;
+            overflow: hidden;
+        }
+        
+        .active-powerup-item .timer-fill {
+            height: 100%;
+            background: var(--jazer-cyan);
+            border-radius: 2px;
+            transition: width 0.1s linear;
+        }
+        
+        /* Power-up grid at bottom */
+        .powerup-selector {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            border-top: 1px solid var(--jazer-purple);
+        }
+        
+        .selector-item {
+            width: 70px;
+            height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(147, 51, 234, 0.1);
+            border: 2px solid var(--jazer-purple);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .selector-item:hover {
+            border-color: var(--jazer-cyan);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(6, 182, 212, 0.3);
+        }
+        
+        .selector-item .sel-icon {
+            font-size: 1.8rem;
+        }
+        
+        .selector-item .sel-name {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-top: 0.25rem;
+        }
+        
+        /* Effect style variations */
+        .effect-burst .burst-particle {
+            box-shadow: 0 0 10px var(--particle-color);
+        }
+        
+        .effect-spiral .burst-particle.active {
+            animation: spiralFly 1s ease-out forwards;
+        }
+        
+        @keyframes spiralFly {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) rotate(0deg) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--tx), var(--ty)) rotate(720deg) scale(0);
+            }
+        }
+        
+        .effect-implosion .burst-particle.active {
+            animation: implosionFly 0.6s ease-in forwards;
+        }
+        
+        @keyframes implosionFly {
+            0% {
+                opacity: 1;
+                transform: translate(var(--tx), var(--ty)) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(0, 0) scale(0);
+            }
+        }
+        
+        .keyboard-hint {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--jazer-purple);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .keyboard-hint kbd {
+            background: var(--jazer-purple);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-primary);
+            margin: 0 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .control-group select { min-width: 100%; }
+            .game-area { height: 400px; }
+            .selector-item { width: 55px; height: 55px; }
+            .selector-item .sel-icon { font-size: 1.4rem; }
+            .keyboard-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    <h1>Power-Up Collection Effect</h1>
+    <p class="subtitle">Satisfying visual feedback when collecting power-ups in games</p>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label>Effect Style</label>
+            <select id="effectStyle">
+                <option value="burst">Burst</option>
+                <option value="spiral">Spiral</option>
+                <option value="implosion">Implosion</option>
+                <option value="absorb">Absorb</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Particle Count</label>
+            <select id="particleCount">
+                <option value="15">Light (15)</option>
+                <option value="30" selected>Medium (30)</option>
+                <option value="50">Heavy (50)</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Animation Speed</label>
+            <select id="animSpeed">
+                <option value="0.5">Fast</option>
+                <option value="0.8" selected>Normal</option>
+                <option value="1.2">Slow</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="demo-container">
+        <div class="game-area" id="gameArea">
+            <div class="grid-lines"></div>
+            
+            <!-- Player -->
+            <div class="player" id="player">🚀</div>
+            
+            <!-- Power-ups -->
+            <div class="powerup speed" data-type="speed" style="top: 30%; left: 20%;">⚡</div>
+            <div class="powerup shield" data-type="shield" style="top: 25%; left: 50%;">🛡️</div>
+            <div class="powerup attack" data-type="attack" style="top: 35%; left: 75%;">🔥</div>
+            <div class="powerup magnet" data-type="magnet" style="top: 55%; left: 30%;">🧲</div>
+            <div class="powerup time" data-type="time" style="top: 50%; left: 60%;">⏰</div>
+            <div class="powerup star" data-type="star" style="top: 40%; left: 85%;">⭐</div>
+            
+            <!-- Collection flash overlay -->
+            <div class="collection-flash" id="collectionFlash"></div>
+            
+            <!-- Power-up popup -->
+            <div class="powerup-popup" id="powerupPopup">
+                <div class="popup-icon">⚡</div>
+                <div class="popup-name">Speed Boost</div>
+                <div class="popup-desc">+50% movement speed</div>
+            </div>
+            
+            <!-- Active power-ups -->
+            <div class="active-powerups" id="activePowerups"></div>
+        </div>
+        
+        <div class="powerup-selector">
+            <div class="selector-item" onclick="spawnPowerup('speed')">
+                <span class="sel-icon">⚡</span>
+                <span class="sel-name">Speed</span>
+            </div>
+            <div class="selector-item" onclick="spawnPowerup('shield')">
+                <span class="sel-icon">🛡️</span>
+                <span class="sel-name">Shield</span>
+            </div>
+            <div class="selector-item" onclick="spawnPowerup('attack')">
+                <span class="sel-icon">🔥</span>
+                <span class="sel-name">Attack</span>
+            </div>
+            <div class="selector-item" onclick="spawnPowerup('magnet')">
+                <span class="sel-icon">🧲</span>
+                <span class="sel-name">Magnet</span>
+            </div>
+            <div class="selector-item" onclick="spawnPowerup('time')">
+                <span class="sel-icon">⏰</span>
+                <span class="sel-name">Time</span>
+            </div>
+            <div class="selector-item" onclick="spawnPowerup('star')">
+                <span class="sel-icon">⭐</span>
+                <span class="sel-name">Star</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="keyboard-hint">
+        Press <kbd>Space</kbd> to collect random power-up
+    </div>
+    
+    <script>
+        const powerupData = {
+            speed: { icon: '⚡', name: 'Speed Boost', desc: '+50% movement speed', color: '#00ff88', duration: 10 },
+            shield: { icon: '🛡️', name: 'Shield', desc: 'Blocks 3 hits', color: '#0096ff', duration: 15 },
+            attack: { icon: '🔥', name: 'Fire Power', desc: '+100% damage', color: '#ff4444', duration: 8 },
+            magnet: { icon: '🧲', name: 'Coin Magnet', desc: 'Attract nearby coins', color: '#ff006e', duration: 12 },
+            time: { icon: '⏰', name: 'Time Slow', desc: 'Slow enemies 50%', color: '#9333ea', duration: 5 },
+            star: { icon: '⭐', name: 'Invincibility', desc: 'Cannot be hurt', color: '#ffd700', duration: 7 }
+        };
+        
+        let activePowerups = [];
+        
+        function createParticleBurst(x, y, type, style) {
+            const gameArea = document.getElementById('gameArea');
+            const count = parseInt(document.getElementById('particleCount').value);
+            const speed = parseFloat(document.getElementById('animSpeed').value);
+            const data = powerupData[type];
+            
+            const container = document.createElement('div');
+            container.className = `particle-burst effect-${style}`;
+            container.style.left = x + 'px';
+            container.style.top = y + 'px';
+            gameArea.appendChild(container);
+            
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'burst-particle';
+                
+                const size = 4 + Math.random() * 10;
+                const angle = (i / count) * Math.PI * 2;
+                const distance = 50 + Math.random() * 100;
+                
+                let tx, ty;
+                if (style === 'implosion') {
+                    // Start far, come to center
+                    tx = Math.cos(angle) * distance;
+                    ty = Math.sin(angle) * distance;
+                    particle.style.transform = `translate(${tx}px, ${ty}px)`;
+                    tx = 0;
+                    ty = 0;
+                } else {
+                    tx = Math.cos(angle) * distance;
+                    ty = Math.sin(angle) * distance;
+                }
+                
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.background = data.color;
+                particle.style.boxShadow = `0 0 ${size}px ${data.color}`;
+                particle.style.setProperty('--tx', tx + 'px');
+                particle.style.setProperty('--ty', ty + 'px');
+                particle.style.setProperty('--particle-color', data.color);
+                particle.style.animationDuration = speed + 's';
+                particle.style.animationDelay = (Math.random() * 0.1) + 's';
+                
+                container.appendChild(particle);
+                setTimeout(() => particle.classList.add('active'), 10);
+            }
+            
+            setTimeout(() => container.remove(), speed * 1000 + 200);
+        }
+        
+        function createSparkles(x, y, type) {
+            const gameArea = document.getElementById('gameArea');
+            const data = powerupData[type];
+            const count = 6;
+            
+            for (let i = 0; i < count; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                
+                const offsetX = (Math.random() - 0.5) * 80;
+                const offsetY = (Math.random() - 0.5) * 80;
+                
+                sparkle.style.left = (x + offsetX) + 'px';
+                sparkle.style.top = (y + offsetY) + 'px';
+                sparkle.style.animationDelay = (Math.random() * 0.3) + 's';
+                
+                sparkle.style.setProperty('--sparkle-color', data.color);
+                sparkle.querySelector
+                
+                gameArea.appendChild(sparkle);
+                setTimeout(() => sparkle.classList.add('active'), 10);
+                setTimeout(() => sparkle.remove(), 800);
+            }
+        }
+        
+        function createShockwave(x, y, type) {
+            const gameArea = document.getElementById('gameArea');
+            const data = powerupData[type];
+            
+            for (let i = 0; i < 3; i++) {
+                const ring = document.createElement('div');
+                ring.className = 'shockwave-ring';
+                ring.style.left = x + 'px';
+                ring.style.top = y + 'px';
+                ring.style.transform = 'translate(-50%, -50%)';
+                ring.style.borderColor = data.color;
+                ring.style.animationDelay = (i * 0.15) + 's';
+                
+                gameArea.appendChild(ring);
+                setTimeout(() => ring.classList.add('active'), 10);
+                setTimeout(() => ring.remove(), 800);
+            }
+        }
+        
+        function createAbsorptionTrail(x, y, type) {
+            const gameArea = document.getElementById('gameArea');
+            const player = document.getElementById('player');
+            const playerRect = player.getBoundingClientRect();
+            const gameRect = gameArea.getBoundingClientRect();
+            
+            const targetX = playerRect.left + playerRect.width / 2 - gameRect.left;
+            const targetY = playerRect.top + playerRect.height / 2 - gameRect.top;
+            
+            const data = powerupData[type];
+            const count = 8;
+            
+            for (let i = 0; i < count; i++) {
+                const segment = document.createElement('div');
+                segment.className = 'trail-segment';
+                segment.style.left = x + 'px';
+                segment.style.top = y + 'px';
+                segment.style.background = data.color;
+                segment.style.boxShadow = `0 0 10px ${data.color}`;
+                segment.style.setProperty('--tx', (targetX - x) + 'px');
+                segment.style.setProperty('--ty', (targetY - y) + 'px');
+                segment.style.animationDelay = (i * 0.05) + 's';
+                
+                gameArea.appendChild(segment);
+                setTimeout(() => segment.classList.add('active'), 10);
+                setTimeout(() => segment.remove(), 600);
+            }
+        }
+        
+        function showFlash(type) {
+            const flash = document.getElementById('collectionFlash');
+            const data = powerupData[type];
+            
+            flash.style.background = `radial-gradient(circle at center, ${data.color}66 0%, transparent 70%)`;
+            flash.classList.add('active');
+            
+            setTimeout(() => flash.classList.remove('active'), 400);
+        }
+        
+        function showPopup(x, y, type) {
+            const popup = document.getElementById('powerupPopup');
+            const data = powerupData[type];
+            
+            popup.querySelector('.popup-icon').textContent = data.icon;
+            popup.querySelector('.popup-name').textContent = data.name;
+            popup.querySelector('.popup-name').style.color = data.color;
+            popup.querySelector('.popup-desc').textContent = data.desc;
+            popup.style.borderColor = data.color;
+            
+            // Position popup
+            const gameArea = document.getElementById('gameArea');
+            const gameRect = gameArea.getBoundingClientRect();
+            
+            let popupX = Math.max(100, Math.min(x, gameRect.width - 200));
+            let popupY = Math.max(80, y - 100);
+            
+            popup.style.left = popupX + 'px';
+            popup.style.top = popupY + 'px';
+            popup.style.transform = 'translate(-50%, 0)';
+            
+            popup.classList.add('visible');
+            
+            setTimeout(() => popup.classList.remove('visible'), 2000);
+        }
+        
+        function addActivePowerup(type) {
+            const container = document.getElementById('activePowerups');
+            const data = powerupData[type];
+            
+            // Check if already active
+            const existing = activePowerups.find(p => p.type === type);
+            if (existing) {
+                existing.timeLeft = data.duration;
+                return;
+            }
+            
+            const item = document.createElement('div');
+            item.className = 'active-powerup-item';
+            item.dataset.type = type;
+            item.innerHTML = `
+                <span class="item-icon">${data.icon}</span>
+                <div class="item-info">
+                    <div class="item-name" style="color: ${data.color}">${data.name}</div>
+                    <div class="item-timer">
+                        <div class="timer-fill" style="width: 100%; background: ${data.color}"></div>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(item);
+            
+            const powerupObj = { type, timeLeft: data.duration, element: item };
+            activePowerups.push(powerupObj);
+            
+            // Start countdown
+            const interval = setInterval(() => {
+                powerupObj.timeLeft -= 0.1;
+                const percent = (powerupObj.timeLeft / data.duration) * 100;
+                item.querySelector('.timer-fill').style.width = percent + '%';
+                
+                if (powerupObj.timeLeft <= 0) {
+                    clearInterval(interval);
+                    item.style.animation = 'slideInRight 0.3s ease-out reverse forwards';
+                    setTimeout(() => {
+                        item.remove();
+                        activePowerups = activePowerups.filter(p => p !== powerupObj);
+                    }, 300);
+                }
+            }, 100);
+        }
+        
+        function collectPowerup(powerupElement) {
+            if (powerupElement.classList.contains('collecting')) return;
+            
+            const type = powerupElement.dataset.type;
+            const rect = powerupElement.getBoundingClientRect();
+            const gameArea = document.getElementById('gameArea');
+            const gameRect = gameArea.getBoundingClientRect();
+            
+            const x = rect.left + rect.width / 2 - gameRect.left;
+            const y = rect.top + rect.height / 2 - gameRect.top;
+            
+            const style = document.getElementById('effectStyle').value;
+            
+            // Start collection animation
+            powerupElement.classList.add('collecting');
+            
+            // Create effects
+            createParticleBurst(x, y, type, style);
+            createSparkles(x, y, type);
+            createShockwave(x, y, type);
+            
+            if (style === 'absorb') {
+                createAbsorptionTrail(x, y, type);
+            }
+            
+            showFlash(type);
+            showPopup(x, y, type);
+            
+            // Player effect
+            const player = document.getElementById('player');
+            player.classList.add('powered-up');
+            setTimeout(() => player.classList.remove('powered-up'), 500);
+            
+            // Add to active powerups
+            addActivePowerup(type);
+            
+            // Remove powerup after animation
+            setTimeout(() => {
+                powerupElement.remove();
+            }, 500);
+        }
+        
+        function spawnPowerup(type) {
+            const gameArea = document.getElementById('gameArea');
+            const data = powerupData[type];
+            
+            const powerup = document.createElement('div');
+            powerup.className = `powerup ${type}`;
+            powerup.dataset.type = type;
+            powerup.textContent = data.icon;
+            
+            // Random position
+            const x = 10 + Math.random() * 70;
+            const y = 20 + Math.random() * 40;
+            powerup.style.left = x + '%';
+            powerup.style.top = y + '%';
+            
+            powerup.addEventListener('click', () => collectPowerup(powerup));
+            
+            gameArea.appendChild(powerup);
+            
+            // Spawn animation
+            powerup.style.transform = 'scale(0)';
+            powerup.style.opacity = '0';
+            setTimeout(() => {
+                powerup.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                powerup.style.transform = 'scale(1)';
+                powerup.style.opacity = '1';
+            }, 10);
+        }
+        
+        function collectRandomPowerup() {
+            const powerups = document.querySelectorAll('.powerup:not(.collecting)');
+            if (powerups.length > 0) {
+                const randomPowerup = powerups[Math.floor(Math.random() * powerups.length)];
+                collectPowerup(randomPowerup);
+            } else {
+                // Spawn a random one
+                const types = Object.keys(powerupData);
+                const randomType = types[Math.floor(Math.random() * types.length)];
+                spawnPowerup(randomType);
+            }
+        }
+        
+        // Initialize click handlers for existing powerups
+        document.querySelectorAll('.powerup').forEach(powerup => {
+            powerup.addEventListener('click', () => collectPowerup(powerup));
+        });
+        
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !e.repeat) {
+                e.preventDefault();
+                collectRandomPowerup();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Scanline Overlay | JaZeR Background Effects</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0a2e 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Scanline effects container */
+        .scanline-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Horizontal scanlines */
+        .scanlines-horizontal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 242, 234, 0.05) 2px,
+                rgba(0, 242, 234, 0.05) 4px
+            );
+            pointer-events: none;
+        }
+
+        /* Vertical grid lines */
+        .scanlines-vertical {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 2px,
+                rgba(147, 51, 234, 0.05) 2px,
+                rgba(147, 51, 234, 0.05) 4px
+            );
+            pointer-events: none;
+        }
+
+        /* Rolling scanline */
+        .scanline-rolling {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                0deg,
+                transparent 0%,
+                rgba(0, 242, 234, 0.15) 50%,
+                transparent 100%
+            );
+            background-size: 100% 200px;
+            animation: scanRoll 4s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scanRoll {
+            0% { background-position: 0 -200px; }
+            100% { background-position: 0 100vh; }
+        }
+
+        /* Flicker overlay */
+        .scanline-flicker {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 242, 234, 0.02);
+            animation: flicker 0.15s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.85; }
+        }
+
+        /* CRT vignette */
+        .crt-vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                ellipse at center,
+                transparent 50%,
+                rgba(0, 0, 0, 0.5) 100%
+            );
+            pointer-events: none;
+        }
+
+        /* Back button - fixed top left */
+        .back-button {
+            position: fixed;
+            top: 1.5rem;
+            left: 1.5rem;
+            z-index: 100;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            font-family: var(--font-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.5);
+        }
+
+        /* Hero content - fixed top center */
+        .hero {
+            position: fixed;
+            top: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            text-align: center;
+            padding: 1.5rem 2.5rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(147, 51, 234, 0.5);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            max-width: 600px;
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: 1.75rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero p {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+
+        .hero .kbd-hint {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        .hero .kbd-hint kbd {
+            background: rgba(0, 242, 234, 0.2);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 4px;
+            padding: 0.15rem 0.4rem;
+            font-family: var(--font-body);
+            color: var(--jazer-cyan);
+        }
+
+        /* Control panel - fixed top right */
+        .controls {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 0, 110, 0.5);
+            border-radius: 16px;
+            padding: 1.25rem;
+            backdrop-filter: blur(10px);
+            min-width: 200px;
+        }
+
+        .controls h3 {
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            color: var(--jazer-pink);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Color theme buttons */
+        .color-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .color-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.15);
+        }
+
+        .color-btn.active {
+            border-color: #fff;
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        .color-btn.cyan { background: var(--jazer-cyan); }
+        .color-btn.purple { background: var(--jazer-purple); }
+        .color-btn.pink { background: var(--jazer-pink); }
+        .color-btn.rainbow { background: conic-gradient(#00f2ea, #9333ea, #ff006e, #ffbe0b, #00f2ea); }
+        .color-btn.mono { background: linear-gradient(135deg, #fff, #666); }
+
+        /* Slider controls */
+        .control-group {
+            margin-bottom: 1rem;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-group label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            margin-bottom: 0.4rem;
+        }
+
+        .control-group label span {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--jazer-cyan);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 242, 234, 0.5);
+        }
+
+        /* Toggle buttons */
+        .toggle-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .toggle-btn {
+            padding: 0.4rem 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: var(--text-gray);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+        }
+
+        .toggle-btn.active {
+            background: rgba(147, 51, 234, 0.3);
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+        }
+
+        /* Status indicator - fixed bottom left */
+        .status {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 1.5rem;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.25rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(0, 242, 234, 0.3);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--jazer-cyan);
+            animation: pulse-status 2s ease-in-out infinite;
+        }
+
+        .status-dot.paused {
+            background: var(--jazer-pink);
+            animation: none;
+        }
+
+        @keyframes pulse-status {
+            0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--jazer-cyan); }
+            50% { opacity: 0.5; box-shadow: 0 0 5px var(--jazer-cyan); }
+        }
+
+        .status-text {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            font-family: var(--font-body);
+        }
+
+        /* Demo content */
+        .demo-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 50;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .demo-content h2 {
+            font-family: 'Courier New', monospace;
+            font-size: 3rem;
+            color: var(--jazer-cyan);
+            text-shadow: 0 0 30px var(--jazer-cyan);
+            margin-bottom: 0.5rem;
+            animation: textGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes textGlow {
+            0%, 100% { text-shadow: 0 0 20px var(--jazer-cyan), 0 0 40px var(--jazer-cyan); }
+            50% { text-shadow: 0 0 40px var(--jazer-cyan), 0 0 80px var(--jazer-cyan); }
+        }
+
+        .demo-content p {
+            font-family: 'Courier New', monospace;
+            color: var(--text-gray);
+            font-size: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .hero {
+                top: auto;
+                bottom: 5rem;
+                max-width: 90%;
+                padding: 1rem 1.5rem;
+            }
+
+            .hero h1 {
+                font-size: 1.25rem;
+            }
+
+            .controls {
+                top: auto;
+                bottom: 1.5rem;
+                right: 1.5rem;
+                left: 1.5rem;
+                min-width: auto;
+            }
+
+            .status {
+                display: none;
+            }
+
+            .demo-content h2 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="scanline-bg" id="scanlineBg">
+        <div class="scanline-flicker" id="flickerLayer"></div>
+        <div class="scanlines-horizontal" id="horizontalLines"></div>
+        <div class="scanlines-vertical" id="verticalLines"></div>
+        <div class="scanline-rolling" id="rollingLine"></div>
+        <div class="crt-vignette" id="vignetteLayer"></div>
+    </div>
+
+    <div class="demo-content">
+        <h2>> TERMINAL ONLINE</h2>
+        <p>// Grid System Active</p>
+    </div>
+
+    <a href="index.html" class="back-button">
+        <span>←</span> Back to Backgrounds
+    </a>
+
+    <div class="hero">
+        <h1>Grid Scanline Overlay</h1>
+        <p>Retro CRT monitor effect with animated scanlines and grid overlays. Perfect for cyberpunk interfaces, terminal aesthetics, and retro-futuristic designs.</p>
+        <div class="kbd-hint">
+            <span><kbd>Space</kbd> Pause</span>
+            <span><kbd>R</kbd> Reset</span>
+            <span><kbd>F</kbd> Flicker</span>
+            <span><kbd>1-5</kbd> Colors</span>
+        </div>
+    </div>
+
+    <div class="controls">
+        <h3>Controls</h3>
+        
+        <div class="color-buttons">
+            <button class="color-btn cyan active" data-theme="cyan" title="Cyan"></button>
+            <button class="color-btn purple" data-theme="purple" title="Purple"></button>
+            <button class="color-btn pink" data-theme="pink" title="Pink"></button>
+            <button class="color-btn rainbow" data-theme="rainbow" title="Rainbow"></button>
+            <button class="color-btn mono" data-theme="mono" title="Monochrome"></button>
+        </div>
+
+        <div class="control-group">
+            <label>Scan Speed <span id="speedValue">1.0x</span></label>
+            <input type="range" id="speedSlider" min="0.2" max="3" step="0.1" value="1">
+        </div>
+
+        <div class="control-group">
+            <label>Line Density <span id="densityValue">4px</span></label>
+            <input type="range" id="densitySlider" min="2" max="10" step="1" value="4">
+        </div>
+
+        <div class="control-group">
+            <label>Intensity <span id="intensityValue">5%</span></label>
+            <input type="range" id="intensitySlider" min="2" max="15" step="1" value="5">
+        </div>
+
+        <div class="control-group">
+            <label>Effects</label>
+            <div class="toggle-buttons">
+                <button class="toggle-btn active" data-layer="horizontal">H-Lines</button>
+                <button class="toggle-btn active" data-layer="vertical">V-Lines</button>
+                <button class="toggle-btn active" data-layer="rolling">Rolling</button>
+                <button class="toggle-btn active" data-layer="flicker">Flicker</button>
+                <button class="toggle-btn active" data-layer="vignette">CRT</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="status">
+        <div class="status-dot" id="statusDot"></div>
+        <span class="status-text" id="statusText">Playing</span>
+    </div>
+
+    <script>
+        // Configuration
+        const config = {
+            theme: 'cyan',
+            speed: 1,
+            density: 4,
+            intensity: 5,
+            isPaused: false,
+            layers: {
+                horizontal: true,
+                vertical: true,
+                rolling: true,
+                flicker: true,
+                vignette: true
+            }
+        };
+
+        // Color themes
+        const themes = {
+            cyan: { primary: '0, 242, 234', secondary: '0, 180, 200' },
+            purple: { primary: '147, 51, 234', secondary: '124, 58, 237' },
+            pink: { primary: '255, 0, 110', secondary: '230, 0, 92' },
+            rainbow: { primary: '0, 242, 234', secondary: '147, 51, 234' },
+            mono: { primary: '200, 200, 200', secondary: '150, 150, 150' }
+        };
+
+        // Elements
+        const horizontalLines = document.getElementById('horizontalLines');
+        const verticalLines = document.getElementById('verticalLines');
+        const rollingLine = document.getElementById('rollingLine');
+        const flickerLayer = document.getElementById('flickerLayer');
+        const vignetteLayer = document.getElementById('vignetteLayer');
+
+        // Update scanline colors
+        function updateColors() {
+            const theme = themes[config.theme];
+            const intensity = config.intensity / 100;
+            const density = config.density;
+
+            horizontalLines.style.background = `repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent ${density / 2}px,
+                rgba(${theme.primary}, ${intensity}) ${density / 2}px,
+                rgba(${theme.primary}, ${intensity}) ${density}px
+            )`;
+
+            verticalLines.style.background = `repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent ${density / 2}px,
+                rgba(${theme.secondary}, ${intensity}) ${density / 2}px,
+                rgba(${theme.secondary}, ${intensity}) ${density}px
+            )`;
+
+            rollingLine.style.background = `linear-gradient(
+                0deg,
+                transparent 0%,
+                rgba(${theme.primary}, ${intensity * 3}) 50%,
+                transparent 100%
+            )`;
+
+            flickerLayer.style.background = `rgba(${theme.primary}, ${intensity * 0.4})`;
+        }
+
+        // Update animation speed
+        function updateSpeed() {
+            const duration = 4 / config.speed;
+            rollingLine.style.animationDuration = `${duration}s`;
+        }
+
+        // Toggle layer visibility
+        function toggleLayer(layer) {
+            config.layers[layer] = !config.layers[layer];
+            
+            switch (layer) {
+                case 'horizontal':
+                    horizontalLines.style.opacity = config.layers[layer] ? '1' : '0';
+                    break;
+                case 'vertical':
+                    verticalLines.style.opacity = config.layers[layer] ? '1' : '0';
+                    break;
+                case 'rolling':
+                    rollingLine.style.opacity = config.layers[layer] ? '1' : '0';
+                    break;
+                case 'flicker':
+                    flickerLayer.style.opacity = config.layers[layer] ? '1' : '0';
+                    break;
+                case 'vignette':
+                    vignetteLayer.style.opacity = config.layers[layer] ? '1' : '0';
+                    break;
+            }
+        }
+
+        // Toggle pause
+        function togglePause() {
+            config.isPaused = !config.isPaused;
+            rollingLine.style.animationPlayState = config.isPaused ? 'paused' : 'running';
+            flickerLayer.style.animationPlayState = config.isPaused ? 'paused' : 'running';
+            updateStatus();
+        }
+
+        // Reset
+        function reset() {
+            config.speed = 1;
+            config.density = 4;
+            config.intensity = 5;
+            config.isPaused = false;
+            config.layers = { horizontal: true, vertical: true, rolling: true, flicker: true, vignette: true };
+
+            document.getElementById('speedSlider').value = 1;
+            document.getElementById('densitySlider').value = 4;
+            document.getElementById('intensitySlider').value = 5;
+            document.getElementById('speedValue').textContent = '1.0x';
+            document.getElementById('densityValue').textContent = '4px';
+            document.getElementById('intensityValue').textContent = '5%';
+
+            // Reset toggles
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.classList.add('active');
+            });
+
+            // Reset layer visibility
+            horizontalLines.style.opacity = '1';
+            verticalLines.style.opacity = '1';
+            rollingLine.style.opacity = '1';
+            flickerLayer.style.opacity = '1';
+            vignetteLayer.style.opacity = '1';
+
+            rollingLine.style.animationPlayState = 'running';
+            flickerLayer.style.animationPlayState = 'running';
+
+            updateColors();
+            updateSpeed();
+            updateStatus();
+        }
+
+        // Update status display
+        function updateStatus() {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            
+            if (config.isPaused) {
+                dot.classList.add('paused');
+                text.textContent = 'Paused';
+            } else {
+                dot.classList.remove('paused');
+                text.textContent = 'Playing';
+            }
+        }
+
+        // Event listeners - Color buttons
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                config.theme = btn.dataset.theme;
+                updateColors();
+            });
+        });
+
+        // Toggle buttons
+        document.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.classList.toggle('active');
+                toggleLayer(btn.dataset.layer);
+            });
+        });
+
+        // Sliders
+        document.getElementById('speedSlider').addEventListener('input', (e) => {
+            config.speed = parseFloat(e.target.value);
+            document.getElementById('speedValue').textContent = config.speed.toFixed(1) + 'x';
+            updateSpeed();
+        });
+
+        document.getElementById('densitySlider').addEventListener('input', (e) => {
+            config.density = parseInt(e.target.value);
+            document.getElementById('densityValue').textContent = config.density + 'px';
+            updateColors();
+        });
+
+        document.getElementById('intensitySlider').addEventListener('input', (e) => {
+            config.intensity = parseInt(e.target.value);
+            document.getElementById('intensityValue').textContent = config.intensity + '%';
+            updateColors();
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            switch (e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    togglePause();
+                    break;
+                case 'KeyR':
+                    reset();
+                    break;
+                case 'KeyF':
+                    document.querySelector('[data-layer="flicker"]').click();
+                    break;
+                case 'Digit1':
+                    document.querySelector('.color-btn.cyan').click();
+                    break;
+                case 'Digit2':
+                    document.querySelector('.color-btn.purple').click();
+                    break;
+                case 'Digit3':
+                    document.querySelector('.color-btn.pink').click();
+                    break;
+                case 'Digit4':
+                    document.querySelector('.color-btn.rainbow').click();
+                    break;
+                case 'Digit5':
+                    document.querySelector('.color-btn.mono').click();
+                    break;
+            }
+        });
+
+        // Initialize
+        updateColors();
+        updateSpeed();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Deleted Undo Snackbar - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-body); 
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%); 
+            min-height: 100vh; 
+            padding: 2rem; 
+            color: white;
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        .back-button { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            color: var(--jazer-cyan); 
+            text-decoration: none; 
+            padding: 0.75rem 1.5rem; 
+            border: 2px solid var(--jazer-cyan); 
+            border-radius: 12px; 
+            background: rgba(0, 255, 255, 0.1); 
+            transition: all 0.3s ease; 
+            margin-bottom: 2rem; 
+        }
+        .back-button:hover { 
+            background: var(--jazer-cyan); 
+            color: #0a0a0a; 
+            transform: translateX(-5px); 
+        }
+        
+        .hero-section {
+            text-align: center;
+            padding: 2rem 0 3rem;
+        }
+        
+        h1 { 
+            font-family: var(--font-primary); 
+            font-size: clamp(2rem, 5vw, 3rem); 
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple), var(--jazer-pink)); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text; 
+            margin-bottom: 1rem;
+            text-shadow: 0 0 40px rgba(0, 242, 234, 0.3);
+        }
+        
+        .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .keyboard-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(147, 51, 234, 0.2);
+            border: 1px solid var(--jazer-purple);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--jazer-purple);
+        }
+        
+        .keyboard-hint kbd {
+            background: rgba(147, 51, 234, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-secondary);
+        }
+        
+        /* Controls Section */
+        .controls-section {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            font-family: var(--font-secondary);
+            font-size: 1.3rem;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .control-group label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: var(--font-secondary);
+        }
+        
+        .control-group select {
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .control-group select:hover,
+        .control-group select:focus {
+            border-color: var(--jazer-cyan);
+            outline: none;
+        }
+        
+        .control-group select option {
+            background: #1a1a2e;
+            color: white;
+        }
+        
+        .trigger-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .trigger-btn {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: 2px solid;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .trigger-btn.primary {
+            border-color: var(--jazer-pink);
+            background: rgba(255, 0, 110, 0.15);
+            color: var(--jazer-pink);
+        }
+        
+        .trigger-btn.primary:hover {
+            background: var(--jazer-pink);
+            color: white;
+            transform: translateY(-3px);
+        }
+        
+        .trigger-btn.secondary {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 242, 234, 0.15);
+            color: var(--jazer-cyan);
+        }
+        
+        .trigger-btn.secondary:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateY(-3px);
+        }
+        
+        /* Variants Grid */
+        .variants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .variant-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .variant-card:hover {
+            border-color: var(--jazer-purple);
+        }
+        
+        .variant-card h3 {
+            font-family: var(--font-secondary);
+            font-size: 1.1rem;
+            color: var(--jazer-purple);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .variant-preview {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-height: 120px;
+            justify-content: center;
+        }
+        
+        /* === SNACKBAR STYLES === */
+        
+        /* Base Snackbar */
+        .snackbar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem 1rem;
+            border-radius: 12px;
+            background: #2a2a3e;
+            color: white;
+            font-size: 0.9rem;
+            animation: snackbarIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        @keyframes snackbarIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px) scale(0.95); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+        
+        @keyframes snackbarOut {
+            from { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+            to { 
+                opacity: 0; 
+                transform: translateY(20px) scale(0.95); 
+            }
+        }
+        
+        .snackbar-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            background: rgba(255, 0, 110, 0.2);
+            color: var(--jazer-pink);
+        }
+        
+        .snackbar-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .snackbar-message {
+            font-family: var(--font-body);
+            line-height: 1.4;
+        }
+        
+        .snackbar-item-name {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+        
+        .snackbar-undo {
+            background: transparent;
+            border: none;
+            color: var(--jazer-cyan);
+            font-family: var(--font-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 6px;
+        }
+        
+        .snackbar-undo:hover {
+            background: rgba(0, 242, 234, 0.15);
+        }
+        
+        .snackbar-close {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            font-size: 1.25rem;
+            padding: 0.25rem;
+            transition: all 0.3s ease;
+            line-height: 1;
+        }
+        
+        .snackbar-close:hover {
+            color: white;
+        }
+        
+        .snackbar-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--jazer-cyan), var(--jazer-purple));
+            border-radius: 0 0 12px 12px;
+            animation: progress 5s linear forwards;
+        }
+        
+        @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+        
+        /* Style 1: Default Dark */
+        .snackbar.style-default {
+            background: #2a2a3e;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Style 2: Glassmorphic */
+        .snackbar.style-glass {
+            background: rgba(40, 40, 60, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Style 3: Neon Border */
+        .snackbar.style-neon {
+            background: rgba(10, 10, 30, 0.95);
+            border: 2px solid var(--jazer-pink);
+            box-shadow: 0 0 20px rgba(255, 0, 110, 0.3),
+                        inset 0 0 30px rgba(255, 0, 110, 0.05);
+        }
+        
+        .snackbar.style-neon .snackbar-progress {
+            background: var(--jazer-pink);
+            box-shadow: 0 0 10px var(--jazer-pink);
+        }
+        
+        /* Style 4: Gradient */
+        .snackbar.style-gradient {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.3), rgba(255, 0, 110, 0.3));
+            border: 1px solid rgba(147, 51, 234, 0.5);
+        }
+        
+        /* Style 5: Minimal */
+        .snackbar.style-minimal {
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+        }
+        
+        .snackbar.style-minimal .snackbar-icon {
+            width: 24px;
+            height: 24px;
+            background: transparent;
+            font-size: 1.1rem;
+        }
+        
+        /* Style 6: Elevated */
+        .snackbar.style-elevated {
+            background: #1e1e2e;
+            border: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5),
+                        0 2px 10px rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+        }
+        
+        /* Style 7: Pill */
+        .snackbar.style-pill {
+            background: linear-gradient(135deg, #2a2a3e, #1a1a2e);
+            border-radius: 50px;
+            padding: 0.75rem 1.25rem;
+        }
+        
+        .snackbar.style-pill .snackbar-icon {
+            border-radius: 50%;
+        }
+        
+        .snackbar.style-pill .snackbar-undo {
+            border-radius: 20px;
+        }
+        
+        /* Style 8: Cyber */
+        .snackbar.style-cyber {
+            background: #0a0a0a;
+            border: 1px solid var(--jazer-cyan);
+            clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+        }
+        
+        .snackbar.style-cyber::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 15px;
+            height: 15px;
+            background: var(--jazer-cyan);
+            clip-path: polygon(0 0, 100% 100%, 100% 0);
+        }
+        
+        .snackbar.style-cyber .snackbar-undo {
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+        }
+        
+        /* Snackbar Container for Fixed Positioning Demo */
+        .snackbar-container {
+            position: fixed;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-width: 420px;
+            width: calc(100% - 2rem);
+        }
+        
+        .snackbar-container.bottom-left {
+            bottom: 2rem;
+            left: 2rem;
+        }
+        
+        .snackbar-container.bottom-right {
+            bottom: 2rem;
+            right: 2rem;
+        }
+        
+        .snackbar-container.bottom-center {
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .snackbar-container.top-left {
+            top: 2rem;
+            left: 2rem;
+        }
+        
+        .snackbar-container.top-right {
+            top: 2rem;
+            right: 2rem;
+        }
+        
+        .snackbar-container.top-center {
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        /* Action States */
+        .snackbar.undo-success {
+            animation: undoSuccess 0.5s ease forwards;
+        }
+        
+        @keyframes undoSuccess {
+            0% { background: #2a2a3e; }
+            50% { background: rgba(0, 255, 136, 0.2); border-color: #00ff88; }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+        
+        /* Demo Section */
+        .demo-section {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-pink);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+        
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .item-row:hover {
+            border-color: rgba(255, 0, 110, 0.3);
+        }
+        
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .item-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--jazer-purple), var(--jazer-pink));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .item-name {
+            font-family: var(--font-secondary);
+            font-weight: 600;
+        }
+        
+        .item-meta {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .delete-btn {
+            background: rgba(255, 0, 110, 0.15);
+            border: 1px solid var(--jazer-pink);
+            color: var(--jazer-pink);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--font-secondary);
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .delete-btn:hover {
+            background: var(--jazer-pink);
+            color: white;
+        }
+        
+        @keyframes itemRemove {
+            to {
+                opacity: 0;
+                transform: translateX(-20px);
+                height: 0;
+                padding: 0;
+                margin: 0;
+            }
+        }
+        
+        /* Footer */
+        .footer-info {
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .footer-info h4 {
+            color: var(--jazer-cyan);
+            font-family: var(--font-secondary);
+            margin-bottom: 0.75rem;
+        }
+        
+        .footer-info ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0.5rem;
+        }
+        
+        .footer-info li {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+            padding-left: 1rem;
+            position: relative;
+        }
+        
+        .footer-info li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: var(--jazer-purple);
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .variants-grid { grid-template-columns: 1fr; }
+            .snackbar-container { 
+                left: 1rem !important; 
+                right: 1rem !important; 
+                transform: none !important;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back</a>
+        
+        <section class="hero-section">
+            <h1>Item Deleted Undo Snackbar</h1>
+            <p class="subtitle">Temporary notifications with undo capability for recoverable delete actions</p>
+            <div class="keyboard-hint">
+                <kbd>Space</kbd> to trigger delete · <kbd>U</kbd> to undo
+            </div>
+        </section>
+        
+        <!-- Controls -->
+        <section class="controls-section">
+            <h2 class="section-title">⚙️ Configuration</h2>
+            
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label>Snackbar Style</label>
+                    <select id="snackbar-style">
+                        <option value="default">Default Dark</option>
+                        <option value="glass">Glassmorphic</option>
+                        <option value="neon">Neon Border</option>
+                        <option value="gradient">Gradient</option>
+                        <option value="minimal">Minimal</option>
+                        <option value="elevated">Elevated</option>
+                        <option value="pill">Pill Shape</option>
+                        <option value="cyber">Cyberpunk</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>Position</label>
+                    <select id="snackbar-position">
+                        <option value="bottom-left">Bottom Left</option>
+                        <option value="bottom-right">Bottom Right</option>
+                        <option value="bottom-center">Bottom Center</option>
+                        <option value="top-left">Top Left</option>
+                        <option value="top-right">Top Right</option>
+                        <option value="top-center">Top Center</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>Duration (seconds)</label>
+                    <select id="snackbar-duration">
+                        <option value="3">3 seconds</option>
+                        <option value="5" selected>5 seconds</option>
+                        <option value="8">8 seconds</option>
+                        <option value="0">Persistent</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>Show Progress</label>
+                    <select id="show-progress">
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="trigger-section">
+                <button class="trigger-btn primary" onclick="simulateDelete()">
+                    🗑️ Delete Random Item
+                </button>
+                <button class="trigger-btn secondary" onclick="showCustomSnackbar()">
+                    📋 Show Snackbar Only
+                </button>
+            </div>
+        </section>
+        
+        <!-- Style Variants -->
+        <section class="variants-grid">
+            <div class="variant-card">
+                <h3>🌑 Default Dark</h3>
+                <div class="variant-preview">
+                    <div class="snackbar style-default">
+                        <div class="snackbar-icon">🗑️</div>
+                        <div class="snackbar-content">
+                            <span class="snackbar-message"><span class="snackbar-item-name">Project.zip</span> deleted</span>
+                        </div>
+                        <button class="snackbar-undo">Undo</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="variant-card">
+                <h3>🔮 Glassmorphic</h3>
+                <div class="variant-preview">
+                    <div class="snackbar style-glass">
+                        <div class="snackbar-icon">🗑️</div>
+                        <div class="snackbar-content">
+                            <span class="snackbar-message"><span class="snackbar-item-name">Document.pdf</span> deleted</span>
+                        </div>
+                        <button class="snackbar-undo">Undo</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="variant-card">
+                <h3>💗 Neon Border</h3>
+                <div class="variant-preview">
+                    <div class="snackbar style-neon">
+                        <div class="snackbar-icon">🗑️</div>
+                        <div class="snackbar-content">
+                            <span class="snackbar-message"><span class="snackbar-item-name">Image.png</span> deleted</span>
+                        </div>
+                        <button class="snackbar-undo">Undo</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="variant-card">
+                <h3>🌈 Gradient</h3>
+                <div class="variant-preview">
+                    <div class="snackbar style-gradient">
+                        <div class="snackbar-icon">🗑️</div>
+                        <div class="snackbar-content">
+                            <span class="snackbar-message"><span class="snackbar-item-name">Video.mp4</span> deleted</span>
+                        </div>
+                        <button class="snackbar-undo">Undo</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="variant-card">
+                <h3>✨ Minimal</h3>
+                <div class="variant-preview">
+                    <div class="snackbar style-minimal">
+                        <div class="snackbar-icon">🗑️</div>
+                        <div class="snackbar-content">
+                            <span class="snackbar-message"><span class="snackbar-item-name">Note.txt</span> deleted</span>
+                        </div>
+                        <button class="snackbar-undo">Undo</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="variant-card">
+                <h3>📦 Elevated</h3>
+                <div class="variant-preview">
+                    <div class="snackbar style-elevated">
+                        <div class="snackbar-icon">🗑️</div>
+                        <div class="snackbar-content">
+                            <span class="snackbar-message"><span class="snackbar-item-name">Archive.rar</span> deleted</span>
+                        </div>
+                        <button class="snackbar-undo">Undo</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="variant-card">
+                <h3>💊 Pill Shape</h3>
+                <div class="variant-preview">
+                    <div class="snackbar style-pill">
+                        <div class="snackbar-icon">🗑️</div>
+                        <div class="snackbar-content">
+                            <span class="snackbar-message"><span class="snackbar-item-name">Music.mp3</span> deleted</span>
+                        </div>
+                        <button class="snackbar-undo">Undo</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="variant-card">
+                <h3>🤖 Cyberpunk</h3>
+                <div class="variant-preview">
+                    <div class="snackbar style-cyber">
+                        <div class="snackbar-icon">🗑️</div>
+                        <div class="snackbar-content">
+                            <span class="snackbar-message"><span class="snackbar-item-name">Data.json</span> deleted</span>
+                        </div>
+                        <button class="snackbar-undo">Undo</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Interactive Demo -->
+        <section class="demo-section">
+            <h2 class="section-title">🎮 Interactive Demo - File Manager</h2>
+            <p style="color: rgba(255,255,255,0.6); margin-bottom: 1rem;">Click delete on any item to see the undo snackbar in action</p>
+            
+            <div class="item-list" id="item-list">
+                <div class="item-row" data-id="1">
+                    <div class="item-info">
+                        <div class="item-icon">📄</div>
+                        <div>
+                            <div class="item-name">Project_Final.docx</div>
+                            <div class="item-meta">2.4 MB · Modified today</div>
+                        </div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteItem(this, 'Project_Final.docx')">
+                        🗑️ Delete
+                    </button>
+                </div>
+                
+                <div class="item-row" data-id="2">
+                    <div class="item-info">
+                        <div class="item-icon">📊</div>
+                        <div>
+                            <div class="item-name">Analytics_Report.xlsx</div>
+                            <div class="item-meta">1.8 MB · Modified yesterday</div>
+                        </div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteItem(this, 'Analytics_Report.xlsx')">
+                        🗑️ Delete
+                    </button>
+                </div>
+                
+                <div class="item-row" data-id="3">
+                    <div class="item-info">
+                        <div class="item-icon">🖼️</div>
+                        <div>
+                            <div class="item-name">Hero_Banner.png</div>
+                            <div class="item-meta">4.2 MB · Modified 3 days ago</div>
+                        </div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteItem(this, 'Hero_Banner.png')">
+                        🗑️ Delete
+                    </button>
+                </div>
+                
+                <div class="item-row" data-id="4">
+                    <div class="item-info">
+                        <div class="item-icon">🎵</div>
+                        <div>
+                            <div class="item-name">Background_Music.mp3</div>
+                            <div class="item-meta">5.1 MB · Modified last week</div>
+                        </div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteItem(this, 'Background_Music.mp3')">
+                        🗑️ Delete
+                    </button>
+                </div>
+                
+                <div class="item-row" data-id="5">
+                    <div class="item-info">
+                        <div class="item-icon">📦</div>
+                        <div>
+                            <div class="item-name">Source_Code.zip</div>
+                            <div class="item-meta">12.7 MB · Modified last month</div>
+                        </div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteItem(this, 'Source_Code.zip')">
+                        🗑️ Delete
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+        <div class="footer-info">
+            <h4>Features</h4>
+            <ul>
+                <li>8 distinct snackbar styles</li>
+                <li>6 position options (corners + centers)</li>
+                <li>Configurable auto-dismiss duration</li>
+                <li>Progress bar countdown indicator</li>
+                <li>Undo action with visual feedback</li>
+                <li>Smooth slide-in/out animations</li>
+                <li>Stackable multiple notifications</li>
+                <li>Keyboard shortcuts (Space, U)</li>
+                <li>Item restore on undo action</li>
+                <li>Responsive design</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Snackbar Container -->
+    <div class="snackbar-container bottom-left" id="snackbar-container"></div>
+    
+    <script>
+        // State management
+        let deletedItems = [];
+        let snackbarCounter = 0;
+        
+        const itemNames = [
+            'Important_Notes.txt',
+            'Presentation.pptx',
+            'Database_Backup.sql',
+            'Config.json',
+            'Readme.md',
+            'Screenshot.jpg',
+            'Invoice_2024.pdf',
+            'Meeting_Recording.mp4'
+        ];
+        
+        function getSettings() {
+            return {
+                style: document.getElementById('snackbar-style').value,
+                position: document.getElementById('snackbar-position').value,
+                duration: parseInt(document.getElementById('snackbar-duration').value) * 1000,
+                showProgress: document.getElementById('show-progress').value === 'yes'
+            };
+        }
+        
+        function updateContainerPosition() {
+            const container = document.getElementById('snackbar-container');
+            const position = document.getElementById('snackbar-position').value;
+            container.className = `snackbar-container ${position}`;
+        }
+        
+        document.getElementById('snackbar-position').addEventListener('change', updateContainerPosition);
+        
+        function createSnackbar(itemName, itemElement = null) {
+            const settings = getSettings();
+            const container = document.getElementById('snackbar-container');
+            const id = ++snackbarCounter;
+            
+            const snackbar = document.createElement('div');
+            snackbar.className = `snackbar style-${settings.style}`;
+            snackbar.id = `snackbar-${id}`;
+            
+            snackbar.innerHTML = `
+                <div class="snackbar-icon">🗑️</div>
+                <div class="snackbar-content">
+                    <span class="snackbar-message"><span class="snackbar-item-name">${itemName}</span> deleted</span>
+                </div>
+                <button class="snackbar-undo" onclick="undoDelete(${id}, '${itemName}')">Undo</button>
+                <button class="snackbar-close" onclick="dismissSnackbar(${id})">×</button>
+                ${settings.showProgress && settings.duration > 0 ? `<div class="snackbar-progress" style="animation-duration: ${settings.duration}ms"></div>` : ''}
+            `;
+            
+            // Store reference to item element for restoration
+            deletedItems.push({ id, itemName, element: itemElement });
+            
+            container.appendChild(snackbar);
+            
+            // Auto-dismiss
+            if (settings.duration > 0) {
+                setTimeout(() => dismissSnackbar(id), settings.duration);
+            }
+            
+            return id;
+        }
+        
+        function dismissSnackbar(id) {
+            const snackbar = document.getElementById(`snackbar-${id}`);
+            if (snackbar) {
+                snackbar.style.animation = 'snackbarOut 0.3s ease forwards';
+                setTimeout(() => snackbar.remove(), 300);
+            }
+            // Remove from deleted items
+            deletedItems = deletedItems.filter(item => item.id !== id);
+        }
+        
+        function undoDelete(id, itemName) {
+            const snackbar = document.getElementById(`snackbar-${id}`);
+            const deletedItem = deletedItems.find(item => item.id === id);
+            
+            if (snackbar) {
+                // Success animation
+                snackbar.classList.add('undo-success');
+                snackbar.querySelector('.snackbar-message').innerHTML = `<span class="snackbar-item-name">${itemName}</span> restored!`;
+                snackbar.querySelector('.snackbar-undo').style.display = 'none';
+                
+                // Restore item if element exists
+                if (deletedItem && deletedItem.element) {
+                    const itemList = document.getElementById('item-list');
+                    deletedItem.element.style.display = 'flex';
+                    deletedItem.element.style.animation = 'snackbarIn 0.4s ease';
+                }
+                
+                setTimeout(() => {
+                    snackbar.remove();
+                    deletedItems = deletedItems.filter(item => item.id !== id);
+                }, 500);
+            }
+        }
+        
+        function deleteItem(button, itemName) {
+            const itemRow = button.closest('.item-row');
+            
+            // Animate removal
+            itemRow.style.animation = 'itemRemove 0.3s ease forwards';
+            
+            setTimeout(() => {
+                itemRow.style.display = 'none';
+                createSnackbar(itemName, itemRow);
+            }, 300);
+        }
+        
+        function simulateDelete() {
+            const itemList = document.getElementById('item-list');
+            const visibleItems = Array.from(itemList.querySelectorAll('.item-row')).filter(
+                item => item.style.display !== 'none'
+            );
+            
+            if (visibleItems.length > 0) {
+                const randomItem = visibleItems[Math.floor(Math.random() * visibleItems.length)];
+                const itemName = randomItem.querySelector('.item-name').textContent;
+                const deleteBtn = randomItem.querySelector('.delete-btn');
+                deleteItem(deleteBtn, itemName);
+            } else {
+                // All items deleted, use random name
+                const randomName = itemNames[Math.floor(Math.random() * itemNames.length)];
+                createSnackbar(randomName);
+            }
+        }
+        
+        function showCustomSnackbar() {
+            const randomName = itemNames[Math.floor(Math.random() * itemNames.length)];
+            createSnackbar(randomName);
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'SELECT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+            
+            if (e.code === 'Space') {
+                e.preventDefault();
+                simulateDelete();
+            }
+            
+            if (e.code === 'KeyU' && deletedItems.length > 0) {
+                e.preventDefault();
+                const lastDeleted = deletedItems[deletedItems.length - 1];
+                undoDelete(lastDeleted.id, lastDeleted.itemName);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lighthouse Score Display - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Back Button */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-orange);
+            text-decoration: none;
+            padding: 0.6rem 1.2rem;
+            border: 2px solid rgba(255, 136, 0, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 136, 0, 0.1);
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-orange);
+            color: white;
+            box-shadow: 0 5px 20px rgba(255, 136, 0, 0.3);
+            transform: translateX(-3px);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(255, 136, 0, 0.08) 0%, rgba(255, 190, 11, 0.08) 50%, rgba(34, 197, 94, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 136, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--jazer-orange), var(--jazer-yellow), #22c55e);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--jazer-orange), var(--jazer-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr 350px;
+            }
+        }
+
+        /* Score Panel */
+        .score-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-default);
+        }
+
+        .panel-title {
+            font-family: var(--font-primary);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .audit-date {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 136, 0, 0.1);
+            border: 2px solid rgba(255, 136, 0, 0.3);
+            border-radius: 8px;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--jazer-orange);
+        }
+
+        /* Score Circles Grid */
+        .scores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .score-circle-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .score-circle-container:hover {
+            border-color: var(--jazer-orange);
+            box-shadow: 0 0 20px rgba(255, 136, 0, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .score-circle {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 1rem;
+        }
+
+        .circle-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .circle-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 8;
+        }
+
+        .circle-progress {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .circle-progress.good {
+            stroke: #22c55e;
+        }
+
+        .circle-progress.average {
+            stroke: var(--jazer-yellow);
+        }
+
+        .circle-progress.poor {
+            stroke: #ef4444;
+        }
+
+        .score-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: var(--font-primary);
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-light);
+        }
+
+        .score-label {
+            font-family: var(--font-secondary);
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-light);
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .score-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* Overall Score */
+        .overall-score {
+            background: linear-gradient(135deg, rgba(255, 136, 0, 0.1), rgba(255, 190, 11, 0.1));
+            border: 2px solid rgba(255, 136, 0, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .overall-label {
+            font-family: var(--font-secondary);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            margin-bottom: 1rem;
+        }
+
+        .overall-value {
+            font-family: var(--font-primary);
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--jazer-orange), var(--jazer-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .overall-grade {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--jazer-yellow);
+        }
+
+        /* Metrics Details */
+        .metrics-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-family: var(--font-secondary);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .metric-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .metric-item:hover {
+            border-color: var(--jazer-orange);
+            background: rgba(255, 136, 0, 0.05);
+        }
+
+        .metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .metric-name {
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .metric-score {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .metric-score.good {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .metric-score.average {
+            background: rgba(255, 190, 11, 0.2);
+            color: var(--jazer-yellow);
+            border: 1px solid rgba(255, 190, 11, 0.3);
+        }
+
+        .metric-score.poor {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .metric-value {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .metric-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 1s ease;
+        }
+
+        .metric-bar-fill.good {
+            background: linear-gradient(90deg, #22c55e, #10b981);
+        }
+
+        .metric-bar-fill.average {
+            background: linear-gradient(90deg, var(--jazer-yellow), var(--jazer-orange));
+        }
+
+        .metric-bar-fill.poor {
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .controls-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .controls-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            border: 2px solid var(--border-default);
+            background: var(--bg-card);
+            color: var(--text-light);
+            cursor: pointer;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .btn:hover {
+            border-color: var(--jazer-orange);
+            color: var(--jazer-orange);
+            box-shadow: 0 0 15px rgba(255, 136, 0, 0.2);
+        }
+
+        .btn.btn-primary {
+            background: linear-gradient(135deg, var(--jazer-orange), var(--jazer-yellow));
+            border: none;
+            color: white;
+        }
+
+        .btn.btn-primary:hover {
+            box-shadow: 0 5px 20px rgba(255, 136, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Device Selector */
+        .device-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .device-btn {
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 2px solid var(--border-default);
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-gray);
+            cursor: pointer;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .device-btn:hover {
+            border-color: var(--jazer-orange);
+            color: var(--jazer-orange);
+        }
+
+        .device-btn.active {
+            background: rgba(255, 136, 0, 0.2);
+            border-color: var(--jazer-orange);
+            color: var(--jazer-orange);
+        }
+
+        /* History List */
+        .history-list {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .history-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 136, 0, 0.1);
+        }
+
+        .history-date {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-family: var(--font-secondary);
+        }
+
+        .history-score {
+            padding: 0.25rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: rgba(255, 136, 0, 0.2);
+            color: var(--jazer-orange);
+        }
+
+        /* Status Bar Footer */
+        .status-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 2rem;
+        }
+
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-orange);
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-orange);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { 
+                opacity: 1; 
+                box-shadow: 0 0 8px var(--jazer-orange);
+            }
+            50% { 
+                opacity: 0.6; 
+                box-shadow: 0 0 16px var(--jazer-orange);
+            }
+        }
+
+        /* Scrollbar Styling */
+        .history-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .history-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .history-list::-webkit-scrollbar-thumb {
+            background: var(--jazer-orange);
+            border-radius: 4px;
+        }
+
+        .history-list::-webkit-scrollbar-thumb:hover {
+            background: var(--jazer-yellow);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .hero h1 {
+                font-size: 1.75rem;
+            }
+
+            .scores-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .status-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .status-info {
+                width: 100%;
+            }
+        }
+
+        /* Loading Animation */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .loading {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back to DevTools</a>
+
+        <!-- Hero Section -->
+        <header class="hero">
+            <h1>🗼 Lighthouse Score Display</h1>
+            <p class="hero-description">Visualize Google Lighthouse audit scores with performance, accessibility, best practices, SEO, and PWA metrics</p>
+        </header>
+
+        <!-- Main Content Grid -->
+        <div class="main-grid">
+            <!-- Left Column: Scores & Metrics -->
+            <div>
+                <!-- Score Panel -->
+                <div class="score-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Lighthouse Audit Results</h2>
+                        <div class="audit-date" id="auditDate">Today</div>
+                    </div>
+
+                    <!-- Overall Score -->
+                    <div class="overall-score">
+                        <div class="overall-label">Overall Performance Score</div>
+                        <div class="overall-value" id="overallScore">85</div>
+                        <div class="overall-grade" id="overallGrade">B+</div>
+                    </div>
+
+                    <!-- Score Circles Grid -->
+                    <div class="scores-grid" id="scoresGrid">
+                        <!-- Performance -->
+                        <div class="score-circle-container">
+                            <div class="score-circle">
+                                <svg class="circle-svg" viewBox="0 0 120 120">
+                                    <circle class="circle-bg" cx="60" cy="60" r="54"></circle>
+                                    <circle class="circle-progress good" cx="60" cy="60" r="54" 
+                                            stroke-dasharray="339.292" stroke-dashoffset="67.858" id="perfCircle"></circle>
+                                </svg>
+                                <div class="score-value" id="perfScore">85</div>
+                            </div>
+                            <div class="score-label">Performance</div>
+                            <div class="score-subtitle">Speed & Optimization</div>
+                        </div>
+
+                        <!-- Accessibility -->
+                        <div class="score-circle-container">
+                            <div class="score-circle">
+                                <svg class="circle-svg" viewBox="0 0 120 120">
+                                    <circle class="circle-bg" cx="60" cy="60" r="54"></circle>
+                                    <circle class="circle-progress good" cx="60" cy="60" r="54" 
+                                            stroke-dasharray="339.292" stroke-dashoffset="33.929" id="a11yCircle"></circle>
+                                </svg>
+                                <div class="score-value" id="a11yScore">92</div>
+                            </div>
+                            <div class="score-label">Accessibility</div>
+                            <div class="score-subtitle">WCAG Compliance</div>
+                        </div>
+
+                        <!-- Best Practices -->
+                        <div class="score-circle-container">
+                            <div class="score-circle">
+                                <svg class="circle-svg" viewBox="0 0 120 120">
+                                    <circle class="circle-bg" cx="60" cy="60" r="54"></circle>
+                                    <circle class="circle-progress average" cx="60" cy="60" r="54" 
+                                            stroke-dasharray="339.292" stroke-dashoffset="101.788" id="bpCircle"></circle>
+                                </svg>
+                                <div class="score-value" id="bpScore">78</div>
+                            </div>
+                            <div class="score-label">Best Practices</div>
+                            <div class="score-subtitle">Code Quality</div>
+                        </div>
+
+                        <!-- SEO -->
+                        <div class="score-circle-container">
+                            <div class="score-circle">
+                                <svg class="circle-svg" viewBox="0 0 120 120">
+                                    <circle class="circle-bg" cx="60" cy="60" r="54"></circle>
+                                    <circle class="circle-progress good" cx="60" cy="60" r="54" 
+                                            stroke-dasharray="339.292" stroke-dashoffset="16.965" id="seoCircle"></circle>
+                                </svg>
+                                <div class="score-value" id="seoScore">95</div>
+                            </div>
+                            <div class="score-label">SEO</div>
+                            <div class="score-subtitle">Search Optimization</div>
+                        </div>
+
+                        <!-- PWA -->
+                        <div class="score-circle-container">
+                            <div class="score-circle">
+                                <svg class="circle-svg" viewBox="0 0 120 120">
+                                    <circle class="circle-bg" cx="60" cy="60" r="54"></circle>
+                                    <circle class="circle-progress average" cx="60" cy="60" r="54" 
+                                            stroke-dasharray="339.292" stroke-dashoffset="203.575" id="pwaCircle"></circle>
+                                </svg>
+                                <div class="score-value" id="pwaScore">60</div>
+                            </div>
+                            <div class="score-label">PWA</div>
+                            <div class="score-subtitle">Progressive Web App</div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Metrics Details -->
+                    <div class="metrics-section">
+                        <h3 class="section-title">⚡ Performance Metrics</h3>
+                        <div id="performanceMetrics"></div>
+                    </div>
+
+                    <!-- Opportunities -->
+                    <div class="metrics-section">
+                        <h3 class="section-title">💡 Opportunities</h3>
+                        <div id="opportunities"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Controls -->
+            <div>
+                <!-- Controls Panel -->
+                <div class="controls-panel">
+                    <div class="controls-section">
+                        <h3 class="section-title">Audit Controls</h3>
+                        <button class="btn btn-primary" onclick="runAudit()">
+                            🚀 Run New Audit
+                        </button>
+                        <button class="btn" onclick="refreshScores()">
+                            🔄 Refresh Scores
+                        </button>
+                        <button class="btn" onclick="exportReport()">
+                            💾 Export Report
+                        </button>
+                    </div>
+
+                    <div class="controls-section">
+                        <h3 class="section-title">Device Type</h3>
+                        <div class="device-selector">
+                            <button class="device-btn active" onclick="selectDevice('mobile')">
+                                📱 Mobile
+                            </button>
+                            <button class="device-btn" onclick="selectDevice('desktop')">
+                                💻 Desktop
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="controls-section">
+                        <h3 class="section-title">Audit History</h3>
+                        <div class="history-list" id="historyList">
+                            <div class="history-item">
+                                <span class="history-date">Today, 2:30 PM</span>
+                                <span class="history-score">85</span>
+                            </div>
+                            <div class="history-item">
+                                <span class="history-date">Yesterday, 4:15 PM</span>
+                                <span class="history-score">82</span>
+                            </div>
+                            <div class="history-item">
+                                <span class="history-date">2 days ago</span>
+                                <span class="history-score">79</span>
+                            </div>
+                            <div class="history-item">
+                                <span class="history-date">1 week ago</span>
+                                <span class="history-score">76</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar Footer -->
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Device:</span>
+                    <span id="statusDevice">Mobile</span>
+                </div>
+                <div class="status-item">
+                    <span>URL Tested:</span>
+                    <span>https://example.com</span>
+                </div>
+                <div class="status-item">
+                    <span>Last Audit:</span>
+                    <span id="lastAudit">Just now</span>
+                </div>
+                <div class="status-item">
+                    <span>Version:</span>
+                    <span>Lighthouse 11.0</span>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Audit Complete</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // State management
+        const state = {
+            device: 'mobile',
+            scores: {
+                performance: 85,
+                accessibility: 92,
+                bestPractices: 78,
+                seo: 95,
+                pwa: 60
+            },
+            metrics: [
+                { name: 'First Contentful Paint', value: '1.8s', score: 85, category: 'good' },
+                { name: 'Speed Index', value: '2.4s', score: 78, category: 'average' },
+                { name: 'Largest Contentful Paint', value: '3.2s', score: 72, category: 'average' },
+                { name: 'Time to Interactive', value: '4.1s', score: 68, category: 'average' },
+                { name: 'Total Blocking Time', value: '250ms', score: 82, category: 'good' },
+                { name: 'Cumulative Layout Shift', value: '0.08', score: 90, category: 'good' }
+            ],
+            opportunities: [
+                { name: 'Eliminate render-blocking resources', savings: '1.2s', category: 'poor' },
+                { name: 'Properly size images', savings: '0.8s', category: 'average' },
+                { name: 'Enable text compression', savings: '0.5s', category: 'good' },
+                { name: 'Reduce unused CSS', savings: '0.4s', category: 'good' }
+            ]
+        };
+
+        // Calculate circle offset
+        function calculateOffset(score) {
+            const circumference = 2 * Math.PI * 54; // radius = 54
+            return circumference - (score / 100) * circumference;
+        }
+
+        // Get score category
+        function getScoreCategory(score) {
+            if (score >= 90) return 'good';
+            if (score >= 50) return 'average';
+            return 'poor';
+        }
+
+        // Get grade letter
+        function getGrade(score) {
+            if (score >= 95) return 'A+';
+            if (score >= 90) return 'A';
+            if (score >= 85) return 'B+';
+            if (score >= 80) return 'B';
+            if (score >= 75) return 'C+';
+            if (score >= 70) return 'C';
+            if (score >= 65) return 'D+';
+            if (score >= 60) return 'D';
+            return 'F';
+        }
+
+        // Update circle progress
+        function updateCircle(id, score) {
+            const circle = document.getElementById(id);
+            const offset = calculateOffset(score);
+            circle.style.strokeDashoffset = offset;
+            
+            const category = getScoreCategory(score);
+            circle.className = `circle-progress ${category}`;
+        }
+
+        // Render performance metrics
+        function renderMetrics() {
+            const metricsContainer = document.getElementById('performanceMetrics');
+            metricsContainer.innerHTML = state.metrics.map(metric => `
+                <div class="metric-item">
+                    <div class="metric-header">
+                        <span class="metric-name">${metric.name}</span>
+                        <span class="metric-score ${metric.category}">${metric.score}</span>
+                    </div>
+                    <div class="metric-value">${metric.value}</div>
+                    <div class="metric-bar">
+                        <div class="metric-bar-fill ${metric.category}" style="width: ${metric.score}%"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render opportunities
+        function renderOpportunities() {
+            const opportunitiesContainer = document.getElementById('opportunities');
+            opportunitiesContainer.innerHTML = state.opportunities.map(opp => `
+                <div class="metric-item">
+                    <div class="metric-header">
+                        <span class="metric-name">${opp.name}</span>
+                        <span class="metric-score ${opp.category}">Save ${opp.savings}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update overall score
+        function updateOverallScore() {
+            const avg = Math.round(
+                (state.scores.performance + state.scores.accessibility + 
+                 state.scores.bestPractices + state.scores.seo + state.scores.pwa) / 5
+            );
+            
+            document.getElementById('overallScore').textContent = avg;
+            document.getElementById('overallGrade').textContent = getGrade(avg);
+        }
+
+        // Run audit
+        function runAudit() {
+            // Simulate audit running
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Running Audit...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                // Randomize scores slightly
+                state.scores.performance = Math.max(60, Math.min(100, state.scores.performance + Math.floor(Math.random() * 10) - 5));
+                state.scores.accessibility = Math.max(60, Math.min(100, state.scores.accessibility + Math.floor(Math.random() * 6) - 3));
+                state.scores.bestPractices = Math.max(60, Math.min(100, state.scores.bestPractices + Math.floor(Math.random() * 8) - 4));
+                state.scores.seo = Math.max(60, Math.min(100, state.scores.seo + Math.floor(Math.random() * 4) - 2));
+                state.scores.pwa = Math.max(40, Math.min(100, state.scores.pwa + Math.floor(Math.random() * 12) - 6));
+
+                refreshScores();
+                
+                document.getElementById('lastAudit').textContent = 'Just now';
+                
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 2000);
+        }
+
+        // Refresh scores
+        function refreshScores() {
+            document.getElementById('perfScore').textContent = state.scores.performance;
+            document.getElementById('a11yScore').textContent = state.scores.accessibility;
+            document.getElementById('bpScore').textContent = state.scores.bestPractices;
+            document.getElementById('seoScore').textContent = state.scores.seo;
+            document.getElementById('pwaScore').textContent = state.scores.pwa;
+
+            updateCircle('perfCircle', state.scores.performance);
+            updateCircle('a11yCircle', state.scores.accessibility);
+            updateCircle('bpCircle', state.scores.bestPractices);
+            updateCircle('seoCircle', state.scores.seo);
+            updateCircle('pwaCircle', state.scores.pwa);
+
+            updateOverallScore();
+        }
+
+        // Export report
+        function exportReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                device: state.device,
+                scores: state.scores,
+                metrics: state.metrics,
+                opportunities: state.opportunities
+            };
+            
+            console.log('Lighthouse Report:', report);
+            alert('Report exported to console (check developer tools)');
+        }
+
+        // Select device
+        function selectDevice(device) {
+            state.device = device;
+            
+            document.querySelectorAll('.device-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            document.getElementById('statusDevice').textContent = 
+                device.charAt(0).toUpperCase() + device.slice(1);
+        }
+
+        // Initialize
+        renderMetrics();
+        renderOpportunities();
+        updateOverallScore();
+    </script>
+</body>
+</html>
