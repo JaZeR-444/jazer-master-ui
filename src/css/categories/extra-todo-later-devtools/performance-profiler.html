@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Profiler - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 1.5rem;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        /* Back Button */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-purple);
+            text-decoration: none;
+            padding: 0.6rem 1.2rem;
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            background: var(--bg-card);
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .back-button:hover {
+            border-color: var(--jazer-purple);
+            box-shadow: var(--shadow-purple);
+            transform: translateX(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.08) 0%, rgba(236, 72, 153, 0.08) 50%, rgba(255, 190, 11, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(147, 51, 234, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-accent);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--jazer-purple) 0%, var(--jazer-pink) 50%, var(--jazer-yellow) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main Grid Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 1400px) {
+            .main-grid {
+                grid-template-columns: 1fr 380px;
+            }
+        }
+
+        /* Metrics Dashboard */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            border-color: var(--jazer-purple);
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.2);
+        }
+
+        .metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .metric-title {
+            font-family: var(--font-secondary);
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-icon {
+            font-size: 1.5rem;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            font-family: var(--font-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value.fps {
+            color: var(--jazer-cyan);
+        }
+
+        .metric-value.memory {
+            color: var(--jazer-purple);
+        }
+
+        .metric-value.cpu {
+            color: var(--jazer-pink);
+        }
+
+        .metric-value.load {
+            color: var(--jazer-yellow);
+        }
+
+        .metric-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .metric-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 0.75rem;
+        }
+
+        .metric-bar-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+
+        .metric-bar-fill.fps {
+            background: var(--gradient-primary);
+        }
+
+        .metric-bar-fill.memory {
+            background: var(--gradient-accent);
+        }
+
+        .metric-bar-fill.cpu {
+            background: linear-gradient(90deg, var(--jazer-pink), var(--jazer-orange));
+        }
+
+        /* Chart Panel */
+        .chart-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .chart-panel:hover {
+            border-color: var(--jazer-purple);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-default);
+        }
+
+        .panel-title {
+            font-family: var(--font-secondary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--jazer-purple);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .chart-tab {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            border: 2px solid var(--border-default);
+            background: rgba(147, 51, 234, 0.05);
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+        }
+
+        .chart-tab:hover {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+        }
+
+        .chart-tab.active {
+            background: rgba(147, 51, 234, 0.2);
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+            box-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
+        }
+
+        /* Canvas Chart */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Timeline Events */
+        .timeline-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .timeline-events {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .timeline-event {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 4px solid var(--jazer-purple);
+            border-radius: 6px;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .timeline-event:hover {
+            background: rgba(147, 51, 234, 0.1);
+            border-left-color: var(--jazer-cyan);
+            transform: translateX(4px);
+        }
+
+        .timeline-event.warning {
+            border-left-color: var(--jazer-yellow);
+        }
+
+        .timeline-event.error {
+            border-left-color: var(--jazer-pink);
+        }
+
+        .timeline-time {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            min-width: 80px;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-desc {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+        }
+
+        .timeline-duration {
+            font-size: 0.75rem;
+            color: var(--jazer-purple);
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        details {
+            margin-bottom: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+        }
+
+        details:hover {
+            border-color: var(--jazer-purple);
+        }
+
+        details[open] {
+            border-color: var(--jazer-purple);
+        }
+
+        summary {
+            padding: 0.875rem 1rem;
+            cursor: pointer;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            background: rgba(147, 51, 234, 0.05);
+            transition: all 0.2s ease;
+            user-select: none;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        summary::after {
+            content: '▼';
+            font-size: 0.7rem;
+            color: var(--jazer-purple);
+            transition: transform 0.2s ease;
+        }
+
+        details[open] summary::after {
+            transform: rotate(-180deg);
+        }
+
+        summary:hover {
+            background: rgba(147, 51, 234, 0.15);
+            color: var(--jazer-purple);
+        }
+
+        .details-content {
+            padding: 1rem;
+        }
+
+        /* Control Groups */
+        .control-group {
+            margin-bottom: 1rem;
+        }
+
+        .control-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            margin-bottom: 0.4rem;
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Action Buttons */
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.75rem;
+            background: rgba(147, 51, 234, 0.1);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .action-btn:hover {
+            border-color: var(--jazer-purple);
+            background: rgba(147, 51, 234, 0.2);
+            box-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
+        }
+
+        .action-btn.active {
+            background: rgba(147, 51, 234, 0.3);
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+        }
+
+        /* Checkbox Toggle */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .checkbox-wrapper:hover {
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--jazer-purple);
+        }
+
+        .checkbox-label {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            cursor: pointer;
+            flex: 1;
+        }
+
+        /* Slider Controls */
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--jazer-purple);
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(147, 51, 234, 0.5);
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--jazer-pink);
+            box-shadow: 0 0 12px rgba(236, 72, 153, 0.6);
+            transform: scale(1.1);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: var(--jazer-purple);
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(147, 51, 234, 0.5);
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]::-moz-range-thumb:hover {
+            background: var(--jazer-pink);
+            box-shadow: 0 0 12px rgba(236, 72, 153, 0.6);
+            transform: scale(1.1);
+        }
+
+        .range-value {
+            display: inline-block;
+            min-width: 60px;
+            text-align: right;
+            color: var(--jazer-purple);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        /* Stats Table */
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .stats-table th {
+            text-align: left;
+            padding: 0.75rem;
+            background: rgba(147, 51, 234, 0.1);
+            color: var(--jazer-purple);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border-default);
+        }
+
+        .stats-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-default);
+            font-size: 0.875rem;
+        }
+
+        .stats-table tr:hover {
+            background: rgba(147, 51, 234, 0.05);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-purple);
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-purple);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% {
+                opacity: 1;
+                box-shadow: 0 0 4px var(--jazer-purple);
+            }
+            50% {
+                opacity: 0.5;
+                box-shadow: 0 0 8px var(--jazer-purple);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1400px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+
+            .hero {
+                padding: 1.5rem 1rem;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-panel,
+            .controls-panel {
+                padding: 1rem;
+            }
+
+            .status-bar {
+                padding: 0.75rem 1rem;
+            }
+
+            .status-info {
+                gap: 0.75rem;
+            }
+        }
+
+        /* Performance Badge */
+        .perf-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .perf-badge.good {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+        }
+
+        .perf-badge.warning {
+            background: rgba(255, 190, 11, 0.2);
+            color: var(--jazer-yellow);
+            border: 1px solid var(--jazer-yellow);
+        }
+
+        .perf-badge.critical {
+            background: rgba(236, 72, 153, 0.2);
+            color: var(--jazer-pink);
+            border: 1px solid var(--jazer-pink);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back to DevTools</a>
+
+        <header class="hero">
+            <h1>Performance Profiler</h1>
+            <p class="hero-description">Real-time FPS monitoring, memory tracking, CPU profiling, and render performance analysis</p>
+        </header>
+
+        <div class="main-grid">
+            <!-- Left Column: Metrics & Charts -->
+            <div>
+                <!-- Real-time Metrics -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-title">FPS</span>
+                            <span class="metric-icon">⚡</span>
+                        </div>
+                        <div class="metric-value fps" id="fpsValue">60</div>
+                        <div class="metric-subtitle">Frames Per Second</div>
+                        <div class="metric-bar">
+                            <div class="metric-bar-fill fps" id="fpsBar" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-title">Memory</span>
+                            <span class="metric-icon">💾</span>
+                        </div>
+                        <div class="metric-value memory" id="memoryValue">45</div>
+                        <div class="metric-subtitle">MB Used</div>
+                        <div class="metric-bar">
+                            <div class="metric-bar-fill memory" id="memoryBar" style="width: 60%"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-title">CPU</span>
+                            <span class="metric-icon">🔥</span>
+                        </div>
+                        <div class="metric-value cpu" id="cpuValue">32</div>
+                        <div class="metric-subtitle">Percent Usage</div>
+                        <div class="metric-bar">
+                            <div class="metric-bar-fill cpu" id="cpuBar" style="width: 32%"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-title">Load Time</span>
+                            <span class="metric-icon">⏱️</span>
+                        </div>
+                        <div class="metric-value load" id="loadValue">1.2</div>
+                        <div class="metric-subtitle">Seconds</div>
+                        <div class="metric-bar">
+                            <div class="metric-bar-fill" style="width: 40%; background: linear-gradient(90deg, var(--jazer-yellow), var(--jazer-orange))"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Chart -->
+                <div class="chart-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <span>📊</span>
+                            <span>Performance Graph</span>
+                        </div>
+                        <div class="chart-tabs">
+                            <button class="chart-tab active" onclick="switchChart('fps')">FPS</button>
+                            <button class="chart-tab" onclick="switchChart('memory')">Memory</button>
+                            <button class="chart-tab" onclick="switchChart('cpu')">CPU</button>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="perfChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Timeline Events -->
+                <div class="timeline-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <span>🕐</span>
+                            <span>Performance Timeline</span>
+                        </div>
+                        <span class="perf-badge good" id="perfStatus">Good</span>
+                    </div>
+
+                    <div class="timeline-events" id="timelineEvents"></div>
+                </div>
+
+                <!-- Performance Metrics Table -->
+                <div class="chart-panel" style="margin-top: 1.5rem;">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <span>📈</span>
+                            <span>Detailed Statistics</span>
+                        </div>
+                    </div>
+
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Current</th>
+                                <th>Average</th>
+                                <th>Peak</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statsTableBody">
+                            <tr>
+                                <td>Frame Rate</td>
+                                <td id="statFpsCurrent">60 fps</td>
+                                <td id="statFpsAvg">58 fps</td>
+                                <td id="statFpsPeak">60 fps</td>
+                            </tr>
+                            <tr>
+                                <td>Memory Usage</td>
+                                <td id="statMemCurrent">45 MB</td>
+                                <td id="statMemAvg">42 MB</td>
+                                <td id="statMemPeak">52 MB</td>
+                            </tr>
+                            <tr>
+                                <td>CPU Usage</td>
+                                <td id="statCpuCurrent">32%</td>
+                                <td id="statCpuAvg">28%</td>
+                                <td id="statCpuPeak">45%</td>
+                            </tr>
+                            <tr>
+                                <td>Render Time</td>
+                                <td id="statRenderCurrent">8 ms</td>
+                                <td id="statRenderAvg">10 ms</td>
+                                <td id="statRenderPeak">16 ms</td>
+                            </tr>
+                            <tr>
+                                <td>DOM Nodes</td>
+                                <td id="statDomCurrent">1,247</td>
+                                <td id="statDomAvg">1,200</td>
+                                <td id="statDomPeak">1,320</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Right Column: Controls -->
+            <div class="controls-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span>⚙️</span>
+                        <span>Profiler Controls</span>
+                    </div>
+                </div>
+
+                <details open>
+                    <summary>Recording</summary>
+                    <div class="details-content">
+                        <div class="action-grid">
+                            <button class="action-btn active" id="recordBtn" onclick="toggleRecording()">
+                                <span>🔴 Recording</span>
+                                <span id="recordTime">00:00</span>
+                            </button>
+                            <button class="action-btn" onclick="takeSnapshot()">
+                                <span>📸 Take Snapshot</span>
+                            </button>
+                            <button class="action-btn" onclick="clearData()">
+                                <span>🗑️ Clear Data</span>
+                            </button>
+                            <button class="action-btn" onclick="exportReport()">
+                                <span>💾 Export Report</span>
+                            </button>
+                        </div>
+                    </div>
+                </details>
+
+                <details open>
+                    <summary>Monitoring Options</summary>
+                    <div class="details-content">
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('monitorFps')">
+                            <input type="checkbox" id="monitorFps" checked>
+                            <label class="checkbox-label">Track FPS</label>
+                        </div>
+
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('monitorMemory')">
+                            <input type="checkbox" id="monitorMemory" checked>
+                            <label class="checkbox-label">Track Memory</label>
+                        </div>
+
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('monitorCpu')">
+                            <input type="checkbox" id="monitorCpu" checked>
+                            <label class="checkbox-label">Track CPU Usage</label>
+                        </div>
+
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('monitorNetwork')">
+                            <input type="checkbox" id="monitorNetwork">
+                            <label class="checkbox-label">Track Network</label>
+                        </div>
+
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('trackRenders')">
+                            <input type="checkbox" id="trackRenders" checked>
+                            <label class="checkbox-label">Track Renders</label>
+                        </div>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Thresholds</summary>
+                    <div class="details-content">
+                        <div class="control-group">
+                            <label class="control-label">FPS Warning: <span class="range-value" id="fpsThresholdValue">30 fps</span></label>
+                            <input type="range" id="fpsThreshold" min="15" max="60" value="30" oninput="updateThreshold('fps', this.value)">
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Memory Warning: <span class="range-value" id="memThresholdValue">100 MB</span></label>
+                            <input type="range" id="memThreshold" min="50" max="500" value="100" step="10" oninput="updateThreshold('mem', this.value)">
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">CPU Warning: <span class="range-value" id="cpuThresholdValue">70%</span></label>
+                            <input type="range" id="cpuThreshold" min="30" max="100" value="70" oninput="updateThreshold('cpu', this.value)">
+                        </div>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Sampling Rate</summary>
+                    <div class="details-content">
+                        <div class="control-group">
+                            <label class="control-label">Update Interval: <span class="range-value" id="sampleRateValue">500 ms</span></label>
+                            <input type="range" id="sampleRate" min="100" max="2000" value="500" step="100" oninput="updateSampleRate(this.value)">
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Chart History: <span class="range-value" id="historyValue">60 points</span></label>
+                            <input type="range" id="historySize" min="20" max="120" value="60" step="10" oninput="updateHistory(this.value)">
+                        </div>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Stress Test</summary>
+                    <div class="details-content">
+                        <div class="action-grid">
+                            <button class="action-btn" onclick="stressTest('dom')">
+                                <span>📦 DOM Stress</span>
+                            </button>
+                            <button class="action-btn" onclick="stressTest('memory')">
+                                <span>💾 Memory Stress</span>
+                            </button>
+                            <button class="action-btn" onclick="stressTest('cpu')">
+                                <span>🔥 CPU Stress</span>
+                            </button>
+                            <button class="action-btn" onclick="stressTest('animation')">
+                                <span>✨ Animation Stress</span>
+                            </button>
+                        </div>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Presets</summary>
+                    <div class="details-content">
+                        <div class="action-grid">
+                            <button class="action-btn" onclick="loadPreset('gaming')">🎮 Gaming Profile</button>
+                            <button class="action-btn" onclick="loadPreset('dev')">👨‍💻 Development</button>
+                            <button class="action-btn" onclick="loadPreset('production')">🚀 Production</button>
+                            <button class="action-btn" onclick="loadPreset('mobile')">📱 Mobile</button>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Status:</span>
+                    <span id="statusText">Recording</span>
+                </div>
+                <div class="status-item">
+                    <span>Duration:</span>
+                    <span id="statusDuration">00:00</span>
+                </div>
+                <div class="status-item">
+                    <span>Samples:</span>
+                    <span id="statusSamples">0</span>
+                </div>
+                <div class="status-item">
+                    <span>Events:</span>
+                    <span id="statusEvents">0</span>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Profiler Active</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // State Management
+        const state = {
+            recording: true,
+            currentChart: 'fps',
+            startTime: Date.now(),
+            sampleRate: 500,
+            historySize: 60,
+            thresholds: {
+                fps: 30,
+                memory: 100,
+                cpu: 70
+            },
+            data: {
+                fps: [],
+                memory: [],
+                cpu: []
+            },
+            stats: {
+                fps: { sum: 0, count: 0, peak: 0 },
+                memory: { sum: 0, count: 0, peak: 0 },
+                cpu: { sum: 0, count: 0, peak: 0 }
+            },
+            events: [],
+            sampleCount: 0
+        };
+
+        // DOM References
+        const canvas = document.getElementById('perfChart');
+        const ctx = canvas.getContext('2d');
+        const fpsValue = document.getElementById('fpsValue');
+        const memoryValue = document.getElementById('memoryValue');
+        const cpuValue = document.getElementById('cpuValue');
+        const fpsBar = document.getElementById('fpsBar');
+        const memoryBar = document.getElementById('memoryBar');
+        const cpuBar = document.getElementById('cpuBar');
+        const timelineEvents = document.getElementById('timelineEvents');
+        const recordTime = document.getElementById('recordTime');
+        const statusDuration = document.getElementById('statusDuration');
+        const statusSamples = document.getElementById('statusSamples');
+        const statusEvents = document.getElementById('statusEvents');
+        const perfStatus = document.getElementById('perfStatus');
+
+        // Initialize Canvas
+        function initCanvas() {
+            canvas.width = canvas.offsetWidth * 2;
+            canvas.height = canvas.offsetHeight * 2;
+            ctx.scale(2, 2);
+        }
+
+        initCanvas();
+        window.addEventListener('resize', initCanvas);
+
+        // Generate Performance Data
+        function generateMetrics() {
+            // Simulate FPS (50-60 with occasional drops)
+            const fps = Math.random() > 0.9 ? Math.floor(Math.random() * 20 + 30) : Math.floor(Math.random() * 5 + 55);
+            
+            // Simulate Memory (gradually increasing with occasional GC)
+            const memBase = 40 + (state.sampleCount % 50);
+            const memory = Math.random() > 0.85 ? 35 : memBase + Math.random() * 10;
+            
+            // Simulate CPU (20-50% with spikes)
+            const cpu = Math.random() > 0.92 ? Math.floor(Math.random() * 30 + 60) : Math.floor(Math.random() * 30 + 20);
+
+            return { fps, memory, cpu };
+        }
+
+        // Update Metrics
+        function updateMetrics() {
+            if (!state.recording) return;
+
+            const metrics = generateMetrics();
+            
+            // Update values
+            fpsValue.textContent = metrics.fps;
+            memoryValue.textContent = metrics.memory.toFixed(0);
+            cpuValue.textContent = metrics.cpu;
+
+            // Update bars
+            fpsBar.style.width = (metrics.fps / 60 * 100) + '%';
+            memoryBar.style.width = (metrics.memory / 100 * 100) + '%';
+            cpuBar.style.width = metrics.cpu + '%';
+
+            // Store data
+            state.data.fps.push(metrics.fps);
+            state.data.memory.push(metrics.memory);
+            state.data.cpu.push(metrics.cpu);
+
+            // Limit history
+            if (state.data.fps.length > state.historySize) {
+                state.data.fps.shift();
+                state.data.memory.shift();
+                state.data.cpu.shift();
+            }
+
+            // Update stats
+            ['fps', 'memory', 'cpu'].forEach(metric => {
+                state.stats[metric].sum += metrics[metric];
+                state.stats[metric].count++;
+                state.stats[metric].peak = Math.max(state.stats[metric].peak, metrics[metric]);
+            });
+
+            // Check thresholds and generate events
+            if (metrics.fps < state.thresholds.fps) {
+                addTimelineEvent('warning', 'Low FPS Detected', `Frame rate dropped to ${metrics.fps} fps`, `${metrics.fps} fps`);
+            }
+
+            if (metrics.memory > state.thresholds.memory) {
+                addTimelineEvent('error', 'High Memory Usage', `Memory usage at ${metrics.memory.toFixed(0)} MB`, `${metrics.memory.toFixed(0)} MB`);
+            }
+
+            if (metrics.cpu > state.thresholds.cpu) {
+                addTimelineEvent('warning', 'High CPU Load', `CPU usage spiked to ${metrics.cpu}%`, `${metrics.cpu}%`);
+            }
+
+            // Update stats table
+            updateStatsTable();
+
+            // Redraw chart
+            drawChart();
+
+            // Update status
+            state.sampleCount++;
+            statusSamples.textContent = state.sampleCount;
+
+            // Update duration
+            const duration = Math.floor((Date.now() - state.startTime) / 1000);
+            const minutes = Math.floor(duration / 60).toString().padStart(2, '0');
+            const seconds = (duration % 60).toString().padStart(2, '0');
+            recordTime.textContent = `${minutes}:${seconds}`;
+            statusDuration.textContent = `${minutes}:${seconds}`;
+
+            // Update performance status
+            updatePerfStatus(metrics);
+        }
+
+        // Draw Chart
+        function drawChart() {
+            const width = canvas.offsetWidth;
+            const height = canvas.offsetHeight;
+            
+            ctx.clearRect(0, 0, width, height);
+
+            const data = state.data[state.currentChart];
+            if (data.length < 2) return;
+
+            // Draw grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = (height / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+
+            // Determine max value for scaling
+            let maxValue;
+            if (state.currentChart === 'fps') maxValue = 60;
+            else if (state.currentChart === 'memory') maxValue = 150;
+            else maxValue = 100;
+
+            // Draw line
+            const gradient = ctx.createLinearGradient(0, 0, width, 0);
+            if (state.currentChart === 'fps') {
+                gradient.addColorStop(0, '#00f2ea');
+                gradient.addColorStop(1, '#9333ea');
+            } else if (state.currentChart === 'memory') {
+                gradient.addColorStop(0, '#9333ea');
+                gradient.addColorStop(1, '#ec4899');
+            } else {
+                gradient.addColorStop(0, '#ec4899');
+                gradient.addColorStop(1, '#ff8800');
+            }
+
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = 3;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+
+            ctx.beginPath();
+            data.forEach((value, index) => {
+                const x = (width / (data.length - 1)) * index;
+                const y = height - (value / maxValue * height);
+                if (index === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // Draw area fill
+            ctx.lineTo(width, height);
+            ctx.lineTo(0, height);
+            ctx.closePath();
+            
+            const areaGradient = ctx.createLinearGradient(0, 0, 0, height);
+            if (state.currentChart === 'fps') {
+                areaGradient.addColorStop(0, 'rgba(0, 242, 234, 0.2)');
+                areaGradient.addColorStop(1, 'rgba(0, 242, 234, 0)');
+            } else if (state.currentChart === 'memory') {
+                areaGradient.addColorStop(0, 'rgba(147, 51, 234, 0.2)');
+                areaGradient.addColorStop(1, 'rgba(147, 51, 234, 0)');
+            } else {
+                areaGradient.addColorStop(0, 'rgba(236, 72, 153, 0.2)');
+                areaGradient.addColorStop(1, 'rgba(236, 72, 153, 0)');
+            }
+            ctx.fillStyle = areaGradient;
+            ctx.fill();
+        }
+
+        // Add Timeline Event
+        function addTimelineEvent(type, title, desc, duration) {
+            // Prevent duplicates
+            if (state.events.length > 0) {
+                const lastEvent = state.events[state.events.length - 1];
+                if (lastEvent.title === title && Date.now() - lastEvent.timestamp < 5000) {
+                    return;
+                }
+            }
+
+            const event = { type, title, desc, duration, timestamp: Date.now() };
+            state.events.push(event);
+            
+            const time = new Date().toLocaleTimeString();
+            const eventHTML = `
+                <div class="timeline-event ${type}">
+                    <div class="timeline-time">${time}</div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">${title}</div>
+                        <div class="timeline-desc">${desc}</div>
+                        <div class="timeline-duration">${duration}</div>
+                    </div>
+                </div>
+            `;
+            
+            timelineEvents.insertAdjacentHTML('afterbegin', eventHTML);
+            
+            // Limit events display
+            const eventElements = timelineEvents.querySelectorAll('.timeline-event');
+            if (eventElements.length > 10) {
+                eventElements[eventElements.length - 1].remove();
+            }
+
+            statusEvents.textContent = state.events.length;
+        }
+
+        // Update Stats Table
+        function updateStatsTable() {
+            const fpsAvg = (state.stats.fps.sum / state.stats.fps.count).toFixed(0);
+            const memAvg = (state.stats.memory.sum / state.stats.memory.count).toFixed(0);
+            const cpuAvg = (state.stats.cpu.sum / state.stats.cpu.count).toFixed(0);
+
+            document.getElementById('statFpsCurrent').textContent = fpsValue.textContent + ' fps';
+            document.getElementById('statFpsAvg').textContent = fpsAvg + ' fps';
+            document.getElementById('statFpsPeak').textContent = state.stats.fps.peak + ' fps';
+
+            document.getElementById('statMemCurrent').textContent = memoryValue.textContent + ' MB';
+            document.getElementById('statMemAvg').textContent = memAvg + ' MB';
+            document.getElementById('statMemPeak').textContent = state.stats.memory.peak.toFixed(0) + ' MB';
+
+            document.getElementById('statCpuCurrent').textContent = cpuValue.textContent + '%';
+            document.getElementById('statCpuAvg').textContent = cpuAvg + '%';
+            document.getElementById('statCpuPeak').textContent = state.stats.cpu.peak + '%';
+
+            // Simulated render time
+            const renderTime = (16.67 - (parseInt(fpsValue.textContent) / 60 * 16.67)).toFixed(0);
+            document.getElementById('statRenderCurrent').textContent = renderTime + ' ms';
+
+            // Simulated DOM nodes
+            const domNodes = (1200 + Math.floor(Math.random() * 100)).toLocaleString();
+            document.getElementById('statDomCurrent').textContent = domNodes;
+        }
+
+        // Update Performance Status
+        function updatePerfStatus(metrics) {
+            if (metrics.fps > 50 && metrics.cpu < 60 && metrics.memory < 80) {
+                perfStatus.textContent = 'Good';
+                perfStatus.className = 'perf-badge good';
+            } else if (metrics.fps > 30 && metrics.cpu < 80) {
+                perfStatus.textContent = 'Warning';
+                perfStatus.className = 'perf-badge warning';
+            } else {
+                perfStatus.textContent = 'Critical';
+                perfStatus.className = 'perf-badge critical';
+            }
+        }
+
+        // Switch Chart
+        function switchChart(chart) {
+            state.currentChart = chart;
+            
+            document.querySelectorAll('.chart-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            drawChart();
+        }
+
+        // Toggle Recording
+        function toggleRecording() {
+            state.recording = !state.recording;
+            const btn = document.getElementById('recordBtn');
+            
+            if (state.recording) {
+                btn.classList.add('active');
+                btn.innerHTML = '<span>🔴 Recording</span><span id="recordTime">00:00</span>';
+                document.getElementById('statusText').textContent = 'Recording';
+                state.startTime = Date.now();
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '<span>⏸️ Paused</span><span></span>';
+                document.getElementById('statusText').textContent = 'Paused';
+            }
+        }
+
+        // Take Snapshot
+        function takeSnapshot() {
+            const snapshot = {
+                timestamp: new Date().toISOString(),
+                fps: fpsValue.textContent,
+                memory: memoryValue.textContent,
+                cpu: cpuValue.textContent
+            };
+            addTimelineEvent('', 'Snapshot Taken', `FPS: ${snapshot.fps}, Memory: ${snapshot.memory} MB, CPU: ${snapshot.cpu}%`, 'Manual');
+        }
+
+        // Clear Data
+        function clearData() {
+            state.data = { fps: [], memory: [], cpu: [] };
+            state.stats = {
+                fps: { sum: 0, count: 0, peak: 0 },
+                memory: { sum: 0, count: 0, peak: 0 },
+                cpu: { sum: 0, count: 0, peak: 0 }
+            };
+            state.events = [];
+            state.sampleCount = 0;
+            timelineEvents.innerHTML = '';
+            statusSamples.textContent = '0';
+            statusEvents.textContent = '0';
+            addTimelineEvent('', 'Data Cleared', 'All performance data has been cleared', 'System');
+        }
+
+        // Export Report
+        function exportReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                duration: statusDuration.textContent,
+                samples: state.sampleCount,
+                events: state.events.length,
+                stats: {
+                    fps: {
+                        current: parseInt(fpsValue.textContent),
+                        average: (state.stats.fps.sum / state.stats.fps.count).toFixed(2),
+                        peak: state.stats.fps.peak
+                    },
+                    memory: {
+                        current: parseInt(memoryValue.textContent),
+                        average: (state.stats.memory.sum / state.stats.memory.count).toFixed(2),
+                        peak: state.stats.memory.peak.toFixed(2)
+                    },
+                    cpu: {
+                        current: parseInt(cpuValue.textContent),
+                        average: (state.stats.cpu.sum / state.stats.cpu.count).toFixed(2),
+                        peak: state.stats.cpu.peak
+                    }
+                },
+                events: state.events
+            };
+
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `performance-report-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            addTimelineEvent('', 'Report Exported', 'Performance report exported successfully', 'System');
+        }
+
+        // Update Threshold
+        function updateThreshold(type, value) {
+            if (type === 'fps') {
+                state.thresholds.fps = parseInt(value);
+                document.getElementById('fpsThresholdValue').textContent = value + ' fps';
+            } else if (type === 'mem') {
+                state.thresholds.memory = parseInt(value);
+                document.getElementById('memThresholdValue').textContent = value + ' MB';
+            } else if (type === 'cpu') {
+                state.thresholds.cpu = parseInt(value);
+                document.getElementById('cpuThresholdValue').textContent = value + '%';
+            }
+        }
+
+        // Update Sample Rate
+        function updateSampleRate(value) {
+            state.sampleRate = parseInt(value);
+            document.getElementById('sampleRateValue').textContent = value + ' ms';
+            clearInterval(metricsInterval);
+            metricsInterval = setInterval(updateMetrics, state.sampleRate);
+        }
+
+        // Update History
+        function updateHistory(value) {
+            state.historySize = parseInt(value);
+            document.getElementById('historyValue').textContent = value + ' points';
+        }
+
+        // Toggle Checkbox
+        function toggleCheckbox(id) {
+            const checkbox = document.getElementById(id);
+            checkbox.checked = !checkbox.checked;
+        }
+
+        // Stress Test
+        function stressTest(type) {
+            addTimelineEvent('warning', `${type.toUpperCase()} Stress Test Started`, `Running ${type} stress test for 5 seconds`, '5s');
+            
+            // Simulate stress
+            setTimeout(() => {
+                addTimelineEvent('', `${type.toUpperCase()} Stress Test Complete`, `Stress test finished`, '5s');
+            }, 5000);
+        }
+
+        // Load Preset
+        function loadPreset(preset) {
+            const presets = {
+                gaming: { fps: 30, memory: 150, cpu: 90 },
+                dev: { fps: 25, memory: 200, cpu: 80 },
+                production: { fps: 40, memory: 100, cpu: 70 },
+                mobile: { fps: 20, memory: 80, cpu: 60 }
+            };
+
+            const config = presets[preset];
+            state.thresholds.fps = config.fps;
+            state.thresholds.memory = config.memory;
+            state.thresholds.cpu = config.cpu;
+
+            document.getElementById('fpsThreshold').value = config.fps;
+            document.getElementById('memThreshold').value = config.memory;
+            document.getElementById('cpuThreshold').value = config.cpu;
+            document.getElementById('fpsThresholdValue').textContent = config.fps + ' fps';
+            document.getElementById('memThresholdValue').textContent = config.memory + ' MB';
+            document.getElementById('cpuThresholdValue').textContent = config.cpu + '%';
+
+            addTimelineEvent('', 'Preset Loaded', `Applied ${preset} preset configuration`, preset);
+        }
+
+        // Initialize
+        let metricsInterval = setInterval(updateMetrics, state.sampleRate);
+
+        // Add initial events
+        addTimelineEvent('', 'Profiler Started', 'Performance profiling session initiated', 'System');
+    </script>
+</body>
+</html>

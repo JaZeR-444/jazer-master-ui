@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Leak Detector - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 1.5rem;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        /* Back Button */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-pink);
+            text-decoration: none;
+            padding: 0.6rem 1.2rem;
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            background: var(--bg-card);
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .back-button:hover {
+            border-color: var(--jazer-pink);
+            box-shadow: var(--shadow-pink);
+            transform: translateX(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.08) 0%, rgba(255, 136, 0, 0.08) 50%, rgba(147, 51, 234, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(236, 72, 153, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--jazer-pink), var(--jazer-orange));
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--jazer-pink) 0%, var(--jazer-orange) 50%, var(--jazer-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main Grid Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 1400px) {
+            .main-grid {
+                grid-template-columns: 1fr 380px;
+            }
+        }
+
+        /* Memory Overview Cards */
+        .memory-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .memory-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .memory-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--gradient-accent);
+        }
+
+        .memory-card:hover {
+            border-color: var(--jazer-pink);
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.2);
+        }
+
+        .memory-card.warning::before {
+            background: var(--jazer-yellow);
+        }
+
+        .memory-card.critical::before {
+            background: var(--jazer-pink);
+        }
+
+        .memory-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .memory-title {
+            font-family: var(--font-secondary);
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .memory-icon {
+            font-size: 1.5rem;
+        }
+
+        .memory-value {
+            font-size: 2.25rem;
+            font-weight: 800;
+            font-family: var(--font-primary);
+            color: var(--jazer-pink);
+            margin-bottom: 0.25rem;
+        }
+
+        .memory-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .memory-trend {
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .trend-up {
+            color: var(--jazer-pink);
+        }
+
+        .trend-down {
+            color: var(--jazer-cyan);
+        }
+
+        .trend-stable {
+            color: var(--text-muted);
+        }
+
+        /* Snapshot Panel */
+        .snapshot-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .snapshot-panel:hover {
+            border-color: var(--jazer-pink);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-default);
+        }
+
+        .panel-title {
+            font-family: var(--font-secondary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--jazer-pink);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Snapshot List */
+        .snapshot-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .snapshot-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .snapshot-item:hover {
+            border-color: var(--jazer-pink);
+            background: rgba(236, 72, 153, 0.1);
+            transform: translateX(4px);
+        }
+
+        .snapshot-item.active {
+            border-color: var(--jazer-pink);
+            background: rgba(236, 72, 153, 0.15);
+            box-shadow: 0 0 12px rgba(236, 72, 153, 0.3);
+        }
+
+        .snapshot-info {
+            flex: 1;
+        }
+
+        .snapshot-name {
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .snapshot-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .snapshot-size {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--jazer-pink);
+        }
+
+        /* Leak Analysis */
+        .leak-analysis {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .leak-item {
+            padding: 1rem;
+            background: rgba(236, 72, 153, 0.05);
+            border-left: 4px solid var(--jazer-pink);
+            border-radius: 6px;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .leak-item:hover {
+            background: rgba(236, 72, 153, 0.1);
+            transform: translateX(4px);
+        }
+
+        .leak-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .leak-title {
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .leak-severity {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .leak-severity.high {
+            background: rgba(236, 72, 153, 0.2);
+            color: var(--jazer-pink);
+            border: 1px solid var(--jazer-pink);
+        }
+
+        .leak-severity.medium {
+            background: rgba(255, 190, 11, 0.2);
+            color: var(--jazer-yellow);
+            border: 1px solid var(--jazer-yellow);
+        }
+
+        .leak-severity.low {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+        }
+
+        .leak-desc {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .leak-location {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            color: var(--jazer-purple);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }
+
+        /* Heap Chart */
+        .heap-chart {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        details {
+            margin-bottom: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+        }
+
+        details:hover {
+            border-color: var(--jazer-pink);
+        }
+
+        details[open] {
+            border-color: var(--jazer-pink);
+        }
+
+        summary {
+            padding: 0.875rem 1rem;
+            cursor: pointer;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            background: rgba(236, 72, 153, 0.05);
+            transition: all 0.2s ease;
+            user-select: none;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        summary::after {
+            content: '▼';
+            font-size: 0.7rem;
+            color: var(--jazer-pink);
+            transition: transform 0.2s ease;
+        }
+
+        details[open] summary::after {
+            transform: rotate(-180deg);
+        }
+
+        summary:hover {
+            background: rgba(236, 72, 153, 0.15);
+            color: var(--jazer-pink);
+        }
+
+        .details-content {
+            padding: 1rem;
+        }
+
+        /* Action Buttons */
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.75rem;
+            background: rgba(236, 72, 153, 0.1);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .action-btn:hover {
+            border-color: var(--jazer-pink);
+            background: rgba(236, 72, 153, 0.2);
+            box-shadow: 0 0 12px rgba(236, 72, 153, 0.3);
+        }
+
+        .action-btn.primary {
+            background: var(--gradient-accent);
+            border-color: var(--jazer-pink);
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Checkbox Toggle */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .checkbox-wrapper:hover {
+            background: rgba(236, 72, 153, 0.1);
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--jazer-pink);
+        }
+
+        .checkbox-label {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            cursor: pointer;
+            flex: 1;
+        }
+
+        /* Control Groups */
+        .control-group {
+            margin-bottom: 1rem;
+        }
+
+        .control-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            margin-bottom: 0.4rem;
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Slider Controls */
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--jazer-pink);
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(236, 72, 153, 0.5);
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--jazer-orange);
+            box-shadow: 0 0 12px rgba(255, 136, 0, 0.6);
+            transform: scale(1.1);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: var(--jazer-pink);
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(236, 72, 153, 0.5);
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]::-moz-range-thumb:hover {
+            background: var(--jazer-orange);
+            box-shadow: 0 0 12px rgba(255, 136, 0, 0.6);
+            transform: scale(1.1);
+        }
+
+        .range-value {
+            display: inline-block;
+            min-width: 60px;
+            text-align: right;
+            color: var(--jazer-pink);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-pink);
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-pink);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% {
+                opacity: 1;
+                box-shadow: 0 0 4px var(--jazer-pink);
+            }
+            50% {
+                opacity: 0.5;
+                box-shadow: 0 0 8px var(--jazer-pink);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1400px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+
+            .hero {
+                padding: 1.5rem 1rem;
+            }
+
+            .memory-overview {
+                grid-template-columns: 1fr;
+            }
+
+            .snapshot-panel,
+            .controls-panel {
+                padding: 1rem;
+            }
+
+            .status-bar {
+                padding: 0.75rem 1rem;
+            }
+
+            .status-info {
+                gap: 0.75rem;
+            }
+        }
+
+        /* Progress Ring */
+        .progress-ring {
+            width: 100px;
+            height: 100px;
+            margin: 1rem auto;
+        }
+
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.5s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* Comparison View */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 800px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .comparison-item {
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+        }
+
+        .comparison-title {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .comparison-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--jazer-pink);
+        }
+
+        .comparison-delta {
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back to DevTools</a>
+
+        <header class="hero">
+            <h1>Memory Leak Detector</h1>
+            <p class="hero-description">Heap snapshots, memory profiling, leak detection, and allocation tracking</p>
+        </header>
+
+        <div class="main-grid">
+            <!-- Left Column: Analysis -->
+            <div>
+                <!-- Memory Overview -->
+                <div class="memory-overview">
+                    <div class="memory-card">
+                        <div class="memory-header">
+                            <span class="memory-title">Heap Size</span>
+                            <span class="memory-icon">💾</span>
+                        </div>
+                        <div class="memory-value" id="heapSize">42.3</div>
+                        <div class="memory-subtitle">MB Used</div>
+                        <div class="memory-trend trend-up">
+                            <span>↑ 12.5%</span>
+                            <span style="color: var(--text-muted);">from last snapshot</span>
+                        </div>
+                    </div>
+
+                    <div class="memory-card warning">
+                        <div class="memory-header">
+                            <span class="memory-title">Objects</span>
+                            <span class="memory-icon">📦</span>
+                        </div>
+                        <div class="memory-value" id="objectCount">8,432</div>
+                        <div class="memory-subtitle">Total Objects</div>
+                        <div class="memory-trend trend-up">
+                            <span>↑ 24.7%</span>
+                            <span style="color: var(--text-muted);">potential leak</span>
+                        </div>
+                    </div>
+
+                    <div class="memory-card critical">
+                        <div class="memory-header">
+                            <span class="memory-title">Detached DOM</span>
+                            <span class="memory-icon">🔴</span>
+                        </div>
+                        <div class="memory-value" id="detachedCount">247</div>
+                        <div class="memory-subtitle">Nodes</div>
+                        <div class="memory-trend trend-up">
+                            <span>↑ 35.2%</span>
+                            <span style="color: var(--text-muted);">needs attention</span>
+                        </div>
+                    </div>
+
+                    <div class="memory-card">
+                        <div class="memory-header">
+                            <span class="memory-title">Event Listeners</span>
+                            <span class="memory-icon">🎧</span>
+                        </div>
+                        <div class="memory-value" id="listenerCount">1,523</div>
+                        <div class="memory-subtitle">Active Listeners</div>
+                        <div class="memory-trend trend-stable">
+                            <span>→ 0.3%</span>
+                            <span style="color: var(--text-muted);">stable</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Snapshots -->
+                <div class="snapshot-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <span>📸</span>
+                            <span>Heap Snapshots</span>
+                        </div>
+                        <button class="action-btn primary" onclick="takeSnapshot()" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                            <span>Take Snapshot</span>
+                        </button>
+                    </div>
+
+                    <div class="snapshot-list" id="snapshotList"></div>
+                </div>
+
+                <!-- Leak Analysis -->
+                <div class="leak-analysis">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <span>🔍</span>
+                            <span>Detected Memory Leaks</span>
+                        </div>
+                        <span class="leak-severity high">3 Critical</span>
+                    </div>
+
+                    <div id="leakList">
+                        <div class="leak-item">
+                            <div class="leak-header">
+                                <div class="leak-title">Detached DOM Nodes</div>
+                                <div class="leak-severity high">High</div>
+                            </div>
+                            <div class="leak-desc">247 DOM nodes are detached but still referenced in memory</div>
+                            <div class="leak-location">Component: UserProfileCard.jsx:87</div>
+                        </div>
+
+                        <div class="leak-item">
+                            <div class="leak-header">
+                                <div class="leak-title">Event Listener Accumulation</div>
+                                <div class="leak-severity medium">Medium</div>
+                            </div>
+                            <div class="leak-desc">Event listeners not properly cleaned up on component unmount</div>
+                            <div class="leak-location">Module: EventBus.js:142</div>
+                        </div>
+
+                        <div class="leak-item">
+                            <div class="leak-header">
+                                <div class="leak-title">Closure Retention</div>
+                                <div class="leak-severity high">High</div>
+                            </div>
+                            <div class="leak-desc">Large objects retained in closure scope unnecessarily</div>
+                            <div class="leak-location">Function: handleDataFetch():234</div>
+                        </div>
+
+                        <div class="leak-item">
+                            <div class="leak-header">
+                                <div class="leak-title">Timer References</div>
+                                <div class="leak-severity low">Low</div>
+                            </div>
+                            <div class="leak-desc">Active setInterval/setTimeout not cleared on cleanup</div>
+                            <div class="leak-location">Component: AnimationController.js:56</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Heap Chart -->
+                <div class="heap-chart">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <span>📊</span>
+                            <span>Memory Timeline</span>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="memoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Snapshot Comparison -->
+                <div class="snapshot-panel" style="margin-top: 1.5rem;">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <span>🔄</span>
+                            <span>Snapshot Comparison</span>
+                        </div>
+                    </div>
+
+                    <div class="comparison-grid">
+                        <div class="comparison-item">
+                            <div class="comparison-title">Heap Size Δ</div>
+                            <div class="comparison-value">+5.2 MB</div>
+                            <div class="comparison-delta" style="color: var(--jazer-pink);">↑ 12.5% increase</div>
+                        </div>
+
+                        <div class="comparison-item">
+                            <div class="comparison-title">Object Count Δ</div>
+                            <div class="comparison-value">+1,687</div>
+                            <div class="comparison-delta" style="color: var(--jazer-pink);">↑ 24.7% increase</div>
+                        </div>
+
+                        <div class="comparison-item">
+                            <div class="comparison-title">Detached Nodes Δ</div>
+                            <div class="comparison-value">+64</div>
+                            <div class="comparison-delta" style="color: var(--jazer-pink);">↑ 35.2% increase</div>
+                        </div>
+
+                        <div class="comparison-item">
+                            <div class="comparison-title">Listeners Δ</div>
+                            <div class="comparison-value">+5</div>
+                            <div class="comparison-delta" style="color: var(--jazer-cyan);">↑ 0.3% stable</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Controls -->
+            <div class="controls-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span>⚙️</span>
+                        <span>Detector Controls</span>
+                    </div>
+                </div>
+
+                <details open>
+                    <summary>Snapshot Actions</summary>
+                    <div class="details-content">
+                        <div class="action-grid">
+                            <button class="action-btn primary" onclick="takeSnapshot()">
+                                <span>📸 Take Snapshot</span>
+                            </button>
+                            <button class="action-btn" onclick="compareSnapshots()">
+                                <span>🔄 Compare Selected</span>
+                            </button>
+                            <button class="action-btn" onclick="exportSnapshot()">
+                                <span>💾 Export Data</span>
+                            </button>
+                            <button class="action-btn" onclick="clearSnapshots()">
+                                <span>🗑️ Clear All</span>
+                            </button>
+                        </div>
+                    </div>
+                </details>
+
+                <details open>
+                    <summary>Detection Settings</summary>
+                    <div class="details-content">
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('detectDetached')">
+                            <input type="checkbox" id="detectDetached" checked>
+                            <label class="checkbox-label">Detect Detached DOM</label>
+                        </div>
+
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('detectListeners')">
+                            <input type="checkbox" id="detectListeners" checked>
+                            <label class="checkbox-label">Track Event Listeners</label>
+                        </div>
+
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('detectClosures')">
+                            <input type="checkbox" id="detectClosures" checked>
+                            <label class="checkbox-label">Analyze Closures</label>
+                        </div>
+
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('detectTimers')">
+                            <input type="checkbox" id="detectTimers" checked>
+                            <label class="checkbox-label">Monitor Timers</label>
+                        </div>
+
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('autoSnapshot')">
+                            <input type="checkbox" id="autoSnapshot">
+                            <label class="checkbox-label">Auto Snapshot</label>
+                        </div>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Thresholds</summary>
+                    <div class="details-content">
+                        <div class="control-group">
+                            <label class="control-label">Memory Warning: <span class="range-value" id="memThresholdValue">100 MB</span></label>
+                            <input type="range" id="memThreshold" min="50" max="500" value="100" step="10" oninput="updateThreshold('mem', this.value)">
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Object Growth: <span class="range-value" id="objThresholdValue">20%</span></label>
+                            <input type="range" id="objThreshold" min="5" max="50" value="20" oninput="updateThreshold('obj', this.value)">
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Detached Nodes: <span class="range-value" id="nodeThresholdValue">100</span></label>
+                            <input type="range" id="nodeThreshold" min="10" max="500" value="100" step="10" oninput="updateThreshold('node', this.value)">
+                        </div>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Auto Snapshot</summary>
+                    <div class="details-content">
+                        <div class="control-group">
+                            <label class="control-label">Interval: <span class="range-value" id="intervalValue">30 sec</span></label>
+                            <input type="range" id="snapshotInterval" min="10" max="120" value="30" step="10" oninput="updateInterval(this.value)">
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Max Snapshots: <span class="range-value" id="maxSnapshotsValue">10</span></label>
+                            <input type="range" id="maxSnapshots" min="5" max="50" value="10" step="5" oninput="updateMaxSnapshots(this.value)">
+                        </div>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Analysis Filters</summary>
+                    <div class="details-content">
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('showHigh')">
+                            <input type="checkbox" id="showHigh" checked>
+                            <label class="checkbox-label">Show High Severity</label>
+                        </div>
+
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('showMedium')">
+                            <input type="checkbox" id="showMedium" checked>
+                            <label class="checkbox-label">Show Medium Severity</label>
+                        </div>
+
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('showLow')">
+                            <input type="checkbox" id="showLow" checked>
+                            <label class="checkbox-label">Show Low Severity</label>
+                        </div>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Quick Actions</summary>
+                    <div class="details-content">
+                        <div class="action-grid">
+                            <button class="action-btn" onclick="forceGC()">
+                                <span>🧹 Force GC</span>
+                            </button>
+                            <button class="action-btn" onclick="generateReport()">
+                                <span>📄 Generate Report</span>
+                            </button>
+                            <button class="action-btn" onclick="runFullAnalysis()">
+                                <span>🔬 Full Analysis</span>
+                            </button>
+                            <button class="action-btn" onclick="resetDetector()">
+                                <span>🔄 Reset Detector</span>
+                            </button>
+                        </div>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Export Options</summary>
+                    <div class="details-content">
+                        <div class="action-grid">
+                            <button class="action-btn" onclick="exportFormat('json')">📄 Export JSON</button>
+                            <button class="action-btn" onclick="exportFormat('csv')">📊 Export CSV</button>
+                            <button class="action-btn" onclick="exportFormat('pdf')">📕 Export PDF</button>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Status:</span>
+                    <span id="statusText">Monitoring</span>
+                </div>
+                <div class="status-item">
+                    <span>Snapshots:</span>
+                    <span id="statusSnapshots">5</span>
+                </div>
+                <div class="status-item">
+                    <span>Leaks Found:</span>
+                    <span id="statusLeaks">3</span>
+                </div>
+                <div class="status-item">
+                    <span>Last Check:</span>
+                    <span id="statusLastCheck">2s ago</span>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Detector Active</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // State Management
+        const state = {
+            snapshots: [],
+            selectedSnapshots: [],
+            activeSnapshot: null,
+            snapshotCount: 0,
+            autoSnapshotEnabled: false,
+            autoSnapshotInterval: null,
+            thresholds: {
+                memory: 100,
+                objects: 20,
+                nodes: 100
+            },
+            settings: {
+                interval: 30,
+                maxSnapshots: 10
+            }
+        };
+
+        // DOM References
+        const canvas = document.getElementById('memoryChart');
+        const ctx = canvas.getContext('2d');
+        const snapshotList = document.getElementById('snapshotList');
+        const heapSize = document.getElementById('heapSize');
+        const objectCount = document.getElementById('objectCount');
+        const detachedCount = document.getElementById('detachedCount');
+        const listenerCount = document.getElementById('listenerCount');
+        const statusSnapshots = document.getElementById('statusSnapshots');
+        const statusLeaks = document.getElementById('statusLeaks');
+        const statusLastCheck = document.getElementById('statusLastCheck');
+
+        // Initialize Canvas
+        function initCanvas() {
+            canvas.width = canvas.offsetWidth * 2;
+            canvas.height = canvas.offsetHeight * 2;
+            ctx.scale(2, 2);
+        }
+
+        initCanvas();
+        window.addEventListener('resize', initCanvas);
+
+        // Generate Snapshot Data
+        function generateSnapshotData() {
+            const baseHeap = 35 + (state.snapshotCount * 1.5);
+            const baseObjects = 6500 + (state.snapshotCount * 300);
+            const baseDetached = 180 + (state.snapshotCount * 13);
+            const baseListeners = 1500 + (state.snapshotCount * 5);
+
+            return {
+                heapSize: baseHeap + Math.random() * 5,
+                objects: baseObjects + Math.floor(Math.random() * 200),
+                detached: baseDetached + Math.floor(Math.random() * 20),
+                listeners: baseListeners + Math.floor(Math.random() * 30),
+                timestamp: Date.now()
+            };
+        }
+
+        // Take Snapshot
+        function takeSnapshot() {
+            const snapshot = generateSnapshotData();
+            snapshot.id = state.snapshotCount++;
+            snapshot.name = `Snapshot #${snapshot.id + 1}`;
+            
+            state.snapshots.push(snapshot);
+            
+            // Limit snapshots
+            if (state.snapshots.length > state.settings.maxSnapshots) {
+                state.snapshots.shift();
+            }
+
+            // Update UI
+            updateMetrics(snapshot);
+            renderSnapshotList();
+            drawChart();
+            
+            statusSnapshots.textContent = state.snapshots.length;
+            document.getElementById('statusText').textContent = 'Snapshot Taken';
+
+            setTimeout(() => {
+                document.getElementById('statusText').textContent = 'Monitoring';
+            }, 2000);
+        }
+
+        // Update Metrics
+        function updateMetrics(snapshot) {
+            heapSize.textContent = snapshot.heapSize.toFixed(1);
+            objectCount.textContent = snapshot.objects.toLocaleString();
+            detachedCount.textContent = snapshot.detached;
+            listenerCount.textContent = snapshot.listeners.toLocaleString();
+        }
+
+        // Render Snapshot List
+        function renderSnapshotList() {
+            snapshotList.innerHTML = '';
+            
+            state.snapshots.forEach((snapshot, index) => {
+                const time = new Date(snapshot.timestamp).toLocaleTimeString();
+                const itemHTML = `
+                    <div class="snapshot-item" onclick="selectSnapshot(${index})">
+                        <div class="snapshot-info">
+                            <div class="snapshot-name">${snapshot.name}</div>
+                            <div class="snapshot-meta">${time} • ${snapshot.objects.toLocaleString()} objects</div>
+                        </div>
+                        <div class="snapshot-size">${snapshot.heapSize.toFixed(1)} MB</div>
+                    </div>
+                `;
+                snapshotList.insertAdjacentHTML('beforeend', itemHTML);
+            });
+        }
+
+        // Select Snapshot
+        function selectSnapshot(index) {
+            state.activeSnapshot = index;
+            const snapshot = state.snapshots[index];
+            updateMetrics(snapshot);
+
+            // Update UI
+            const items = snapshotList.querySelectorAll('.snapshot-item');
+            items.forEach((item, i) => {
+                item.classList.toggle('active', i === index);
+            });
+        }
+
+        // Draw Chart
+        function drawChart() {
+            const width = canvas.offsetWidth;
+            const height = canvas.offsetHeight;
+            
+            ctx.clearRect(0, 0, width, height);
+
+            if (state.snapshots.length < 2) return;
+
+            // Draw grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = (height / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+
+            // Get max value
+            const maxHeap = Math.max(...state.snapshots.map(s => s.heapSize));
+
+            // Draw line
+            const gradient = ctx.createLinearGradient(0, 0, width, 0);
+            gradient.addColorStop(0, '#ec4899');
+            gradient.addColorStop(1, '#ff8800');
+
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = 3;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+
+            ctx.beginPath();
+            state.snapshots.forEach((snapshot, index) => {
+                const x = (width / (state.snapshots.length - 1)) * index;
+                const y = height - (snapshot.heapSize / maxHeap * height);
+                if (index === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // Draw area fill
+            ctx.lineTo(width, height);
+            ctx.lineTo(0, height);
+            ctx.closePath();
+            
+            const areaGradient = ctx.createLinearGradient(0, 0, 0, height);
+            areaGradient.addColorStop(0, 'rgba(236, 72, 153, 0.2)');
+            areaGradient.addColorStop(1, 'rgba(236, 72, 153, 0)');
+            ctx.fillStyle = areaGradient;
+            ctx.fill();
+        }
+
+        // Compare Snapshots
+        function compareSnapshots() {
+            if (state.snapshots.length < 2) {
+                alert('Need at least 2 snapshots to compare');
+                return;
+            }
+
+            const latest = state.snapshots[state.snapshots.length - 1];
+            const previous = state.snapshots[state.snapshots.length - 2];
+
+            console.log('Comparison:', {
+                heapDelta: (latest.heapSize - previous.heapSize).toFixed(2),
+                objectsDelta: latest.objects - previous.objects,
+                detachedDelta: latest.detached - previous.detached
+            });
+
+            document.getElementById('statusText').textContent = 'Comparison Complete';
+        }
+
+        // Export Snapshot
+        function exportSnapshot() {
+            if (state.snapshots.length === 0) {
+                alert('No snapshots to export');
+                return;
+            }
+
+            const data = {
+                snapshots: state.snapshots,
+                timestamp: new Date().toISOString(),
+                summary: {
+                    totalSnapshots: state.snapshots.length,
+                    avgHeapSize: (state.snapshots.reduce((sum, s) => sum + s.heapSize, 0) / state.snapshots.length).toFixed(2),
+                    peakMemory: Math.max(...state.snapshots.map(s => s.heapSize)).toFixed(2)
+                }
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `memory-leak-analysis-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            document.getElementById('statusText').textContent = 'Export Complete';
+        }
+
+        // Clear Snapshots
+        function clearSnapshots() {
+            state.snapshots = [];
+            state.snapshotCount = 0;
+            state.activeSnapshot = null;
+            snapshotList.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-muted);">No snapshots available</div>';
+            statusSnapshots.textContent = '0';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('statusText').textContent = 'Snapshots Cleared';
+        }
+
+        // Update Threshold
+        function updateThreshold(type, value) {
+            if (type === 'mem') {
+                state.thresholds.memory = parseInt(value);
+                document.getElementById('memThresholdValue').textContent = value + ' MB';
+            } else if (type === 'obj') {
+                state.thresholds.objects = parseInt(value);
+                document.getElementById('objThresholdValue').textContent = value + '%';
+            } else if (type === 'node') {
+                state.thresholds.nodes = parseInt(value);
+                document.getElementById('nodeThresholdValue').textContent = value;
+            }
+        }
+
+        // Update Interval
+        function updateInterval(value) {
+            state.settings.interval = parseInt(value);
+            document.getElementById('intervalValue').textContent = value + ' sec';
+
+            if (state.autoSnapshotEnabled) {
+                clearInterval(state.autoSnapshotInterval);
+                state.autoSnapshotInterval = setInterval(takeSnapshot, state.settings.interval * 1000);
+            }
+        }
+
+        // Update Max Snapshots
+        function updateMaxSnapshots(value) {
+            state.settings.maxSnapshots = parseInt(value);
+            document.getElementById('maxSnapshotsValue').textContent = value;
+        }
+
+        // Toggle Checkbox
+        function toggleCheckbox(id) {
+            const checkbox = document.getElementById(id);
+            checkbox.checked = !checkbox.checked;
+
+            if (id === 'autoSnapshot') {
+                state.autoSnapshotEnabled = checkbox.checked;
+                if (checkbox.checked) {
+                    state.autoSnapshotInterval = setInterval(takeSnapshot, state.settings.interval * 1000);
+                } else {
+                    clearInterval(state.autoSnapshotInterval);
+                }
+            }
+        }
+
+        // Force Garbage Collection
+        function forceGC() {
+            document.getElementById('statusText').textContent = 'GC Requested';
+            setTimeout(() => {
+                document.getElementById('statusText').textContent = 'Monitoring';
+            }, 2000);
+        }
+
+        // Generate Report
+        function generateReport() {
+            document.getElementById('statusText').textContent = 'Generating Report...';
+            setTimeout(() => {
+                exportSnapshot();
+                document.getElementById('statusText').textContent = 'Report Generated';
+            }, 1000);
+        }
+
+        // Run Full Analysis
+        function runFullAnalysis() {
+            document.getElementById('statusText').textContent = 'Running Analysis...';
+            setTimeout(() => {
+                takeSnapshot();
+                document.getElementById('statusText').textContent = 'Analysis Complete';
+            }, 1500);
+        }
+
+        // Reset Detector
+        function resetDetector() {
+            clearSnapshots();
+            document.getElementById('statusText').textContent = 'Detector Reset';
+        }
+
+        // Export Format
+        function exportFormat(format) {
+            exportSnapshot();
+        }
+
+        // Initialize with some sample data
+        for (let i = 0; i < 5; i++) {
+            takeSnapshot();
+        }
+
+        // Update "last check" timer
+        setInterval(() => {
+            const seconds = Math.floor((Date.now() - state.snapshots[state.snapshots.length - 1]?.timestamp || Date.now()) / 1000);
+            statusLastCheck.textContent = seconds < 60 ? `${seconds}s ago` : `${Math.floor(seconds / 60)}m ago`;
+        }, 1000);
+    </script>
+</body>
+</html>

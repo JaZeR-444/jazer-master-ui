@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Diff Viewer - JaZeR CSS Patterns</title>
+    <link rel="stylesheet" href="../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            padding: 2rem;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Back Button */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-light);
+            text-decoration: none;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            margin-bottom: 2rem;
+        }
+
+        .back-button:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            box-shadow: var(--shadow-cyan);
+            transform: translateX(-4px);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(147, 51, 234, 0.08) 50%, rgba(236, 72, 153, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main Grid Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 1100px) {
+            .main-grid {
+                grid-template-columns: 280px 1fr;
+            }
+        }
+
+        /* File Tree Panel */
+        .file-tree-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: fit-content;
+            max-height: 700px;
+            overflow-y: auto;
+        }
+
+        .file-tree-title {
+            font-family: var(--font-secondary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--jazer-purple);
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .file-tree-summary {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            font-size: 0.75rem;
+        }
+
+        .file-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .file-stat-add {
+            color: #39ff14;
+            font-weight: 700;
+        }
+
+        .file-stat-remove {
+            color: var(--jazer-pink);
+            font-weight: 700;
+        }
+
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .file-item {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-mono, 'Courier New', monospace);
+            font-size: 0.8rem;
+        }
+
+        .file-item:hover {
+            border-color: var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.05);
+            transform: translateX(4px);
+        }
+
+        .file-item.active {
+            border-color: var(--jazer-purple);
+            background: rgba(147, 51, 234, 0.15);
+            box-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
+        }
+
+        .file-item-name {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-light);
+        }
+
+        .file-item-icon {
+            font-size: 0.9rem;
+        }
+
+        .file-item-status {
+            margin-left: auto;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
+        .file-item-status.modified {
+            background: rgba(255, 190, 11, 0.15);
+            color: var(--jazer-yellow);
+        }
+
+        .file-item-status.added {
+            background: rgba(57, 255, 20, 0.15);
+            color: #39ff14;
+        }
+
+        .file-item-status.deleted {
+            background: rgba(255, 0, 110, 0.15);
+            color: var(--jazer-pink);
+        }
+
+        .file-item-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .file-item-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        /* Diff Viewer */
+        .diff-viewer {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .diff-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .diff-file-info {
+            flex: 1;
+        }
+
+        .diff-file-name {
+            font-family: var(--font-mono, 'Courier New', monospace);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            margin-bottom: 0.5rem;
+        }
+
+        .diff-file-path {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono, 'Courier New', monospace);
+        }
+
+        .diff-controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            border: 2px solid var(--border-default);
+            background: var(--bg-card);
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            box-shadow: var(--shadow-cyan);
+        }
+
+        .btn.active {
+            border-color: var(--jazer-purple);
+            background: rgba(147, 51, 234, 0.15);
+            color: var(--jazer-purple);
+            box-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
+        }
+
+        /* Diff Stats */
+        .diff-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            flex-wrap: wrap;
+        }
+
+        .diff-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .diff-stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: var(--font-secondary);
+        }
+
+        .diff-stat-value {
+            font-size: 1.25rem;
+            font-weight: 800;
+            font-family: var(--font-primary);
+        }
+
+        .diff-stat.additions .diff-stat-value {
+            color: #39ff14;
+        }
+
+        .diff-stat.deletions .diff-stat-value {
+            color: var(--jazer-pink);
+        }
+
+        .diff-stat.changes .diff-stat-value {
+            color: var(--jazer-yellow);
+        }
+
+        /* Diff Content */
+        .diff-content {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .diff-mode-tabs {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .diff-mode-tab {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            border: 2px solid var(--border-default);
+            background: transparent;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+        }
+
+        .diff-mode-tab:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        .diff-mode-tab.active {
+            border-color: var(--jazer-purple);
+            background: rgba(147, 51, 234, 0.2);
+            color: var(--jazer-purple);
+        }
+
+        .diff-view {
+            display: none;
+        }
+
+        .diff-view.active {
+            display: block;
+        }
+
+        /* Unified View */
+        .unified-view {
+            font-family: var(--font-mono, 'Courier New', monospace);
+            font-size: 0.8rem;
+        }
+
+        .diff-line {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .diff-line:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .diff-line-number {
+            padding: 0.5rem 0.75rem;
+            text-align: right;
+            min-width: 50px;
+            color: var(--text-muted);
+            background: rgba(0, 0, 0, 0.3);
+            user-select: none;
+            font-size: 0.7rem;
+        }
+
+        .diff-line-content {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .diff-line.addition {
+            background: rgba(57, 255, 20, 0.08);
+        }
+
+        .diff-line.addition .diff-line-content {
+            color: #39ff14;
+        }
+
+        .diff-line.addition::before {
+            content: '';
+            width: 3px;
+            background: #39ff14;
+            margin-right: 0;
+        }
+
+        .diff-line.deletion {
+            background: rgba(255, 0, 110, 0.08);
+        }
+
+        .diff-line.deletion .diff-line-content {
+            color: var(--jazer-pink);
+        }
+
+        .diff-line.deletion::before {
+            content: '';
+            width: 3px;
+            background: var(--jazer-pink);
+            margin-right: 0;
+        }
+
+        .diff-line.context {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .diff-line.context .diff-line-content {
+            color: var(--text-gray);
+        }
+
+        /* Split View */
+        .split-view {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .split-pane {
+            font-family: var(--font-mono, 'Courier New', monospace);
+            font-size: 0.8rem;
+        }
+
+        .split-pane.left {
+            border-right: 2px solid var(--border-default);
+        }
+
+        .split-pane-header {
+            padding: 0.75rem 1rem;
+            background: rgba(255, 0, 110, 0.1);
+            border-bottom: 1px solid var(--border-default);
+            font-weight: 700;
+            color: var(--jazer-pink);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .split-pane.right .split-pane-header {
+            background: rgba(57, 255, 20, 0.1);
+            color: #39ff14;
+        }
+
+        /* Chunk Header */
+        .chunk-header {
+            padding: 0.75rem 1rem;
+            background: rgba(147, 51, 234, 0.1);
+            border-top: 1px solid var(--border-default);
+            border-bottom: 1px solid var(--border-default);
+            color: var(--jazer-purple);
+            font-size: 0.75rem;
+            font-family: var(--font-mono, 'Courier New', monospace);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            color: var(--text-gray);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state-message {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state-hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .controls-title {
+            font-family: var(--font-secondary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: var(--font-secondary);
+        }
+
+        select {
+            width: 100%;
+            padding: 0.6rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        select:hover {
+            border-color: var(--jazer-purple);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: var(--shadow-cyan);
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--jazer-cyan);
+        }
+
+        .checkbox-item label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid var(--jazer-cyan);
+            border-radius: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        .status-indicator span {
+            font-size: 0.75rem;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            font-family: var(--font-secondary);
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--jazer-cyan); }
+            50% { opacity: 0.5; box-shadow: 0 0 8px var(--jazer-cyan); }
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 900px) {
+            body {
+                padding: 1rem;
+            }
+
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+
+            .split-view {
+                grid-template-columns: 1fr;
+            }
+
+            .split-pane.left {
+                border-right: none;
+                border-bottom: 2px solid var(--border-default);
+            }
+
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back to DevTools</a>
+
+        <header class="hero">
+            <h1>Git Diff Viewer</h1>
+            <p class="hero-description">Side-by-side code comparison with syntax highlighting, line-by-line changes, and intelligent file tree navigation</p>
+        </header>
+
+        <div class="controls-panel">
+            <h3 class="controls-title">🔧 View Options</h3>
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label class="control-label">Commit Comparison</label>
+                    <select id="commitComparison">
+                        <option value="latest">Latest Changes (HEAD vs Working)</option>
+                        <option value="staged">Staged Changes</option>
+                        <option value="commits">Between Commits</option>
+                        <option value="branches">Between Branches</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Context Lines</label>
+                    <select id="contextLines">
+                        <option value="1">1 line</option>
+                        <option value="3" selected>3 lines</option>
+                        <option value="5">5 lines</option>
+                        <option value="10">10 lines</option>
+                        <option value="full">Full file</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Display Options</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showWhitespace">
+                            <label for="showWhitespace">Show whitespace</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="ignoreWhitespace">
+                            <label for="ignoreWhitespace">Ignore whitespace changes</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Actions</label>
+                    <button class="btn" id="exportBtn" style="width: 100%; margin-bottom: 0.5rem;">Export Patch</button>
+                    <button class="btn" id="refreshBtn" style="width: 100%;">Refresh Diff</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <aside class="file-tree-panel">
+                <h3 class="file-tree-title">📁 Changed Files</h3>
+                <div class="file-tree-summary">
+                    <div class="file-stat">
+                        <span class="file-stat-add">+45</span>
+                        <span style="color: var(--text-muted)">additions</span>
+                    </div>
+                    <div class="file-stat">
+                        <span class="file-stat-remove">-12</span>
+                        <span style="color: var(--text-muted)">deletions</span>
+                    </div>
+                </div>
+                <div class="file-list" id="fileList">
+                    <!-- File items will be generated here -->
+                </div>
+            </aside>
+
+            <div class="diff-viewer">
+                <div class="diff-header">
+                    <div class="diff-file-info">
+                        <div class="diff-file-name" id="diffFileName">Select a file to view diff</div>
+                        <div class="diff-file-path" id="diffFilePath"></div>
+                    </div>
+                    <div class="diff-controls">
+                        <button class="btn" id="prevChunkBtn">← Prev Change</button>
+                        <button class="btn" id="nextChunkBtn">Next Change →</button>
+                        <button class="btn" id="copyDiffBtn">Copy Diff</button>
+                    </div>
+                </div>
+
+                <div class="diff-stats" id="diffStats" style="display: none;">
+                    <div class="diff-stat additions">
+                        <div class="diff-stat-label">Additions</div>
+                        <div class="diff-stat-value" id="additionsCount">0</div>
+                    </div>
+                    <div class="diff-stat deletions">
+                        <div class="diff-stat-label">Deletions</div>
+                        <div class="diff-stat-value" id="deletionsCount">0</div>
+                    </div>
+                    <div class="diff-stat changes">
+                        <div class="diff-stat-label">Changes</div>
+                        <div class="diff-stat-value" id="changesCount">0</div>
+                    </div>
+                </div>
+
+                <div class="diff-content" id="diffContent">
+                    <div class="diff-mode-tabs">
+                        <button class="diff-mode-tab active" data-mode="unified">Unified View</button>
+                        <button class="diff-mode-tab" data-mode="split">Split View</button>
+                    </div>
+
+                    <div class="diff-view unified-view active" id="unifiedView">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📄</div>
+                            <div class="empty-state-message">No file selected</div>
+                            <div class="empty-state-hint">Select a file from the list to view changes</div>
+                        </div>
+                    </div>
+
+                    <div class="diff-view split-view" id="splitView">
+                        <div class="split-pane left">
+                            <div class="split-pane-header">Before (Original)</div>
+                            <div id="splitLeft"></div>
+                        </div>
+                        <div class="split-pane right">
+                            <div class="split-pane-header">After (Modified)</div>
+                            <div id="splitRight"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Files Changed:</span>
+                    <span id="statusFiles">6</span>
+                </div>
+                <div class="status-item">
+                    <span>Total Changes:</span>
+                    <span id="statusChanges">+45 / -12</span>
+                </div>
+                <div class="status-item">
+                    <span>View Mode:</span>
+                    <span id="statusMode">Unified</span>
+                </div>
+                <div class="status-item">
+                    <span>Comparison:</span>
+                    <span id="statusComparison">HEAD vs Working</span>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Diff Ready</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // State management
+        const state = {
+            files: [],
+            currentFile: null,
+            viewMode: 'unified',
+            contextLines: 3,
+            showWhitespace: false,
+            ignoreWhitespace: false,
+            commitComparison: 'latest'
+        };
+
+        // Sample file data
+        const sampleFiles = [
+            {
+                name: 'auth.service.ts',
+                path: 'src/services/auth.service.ts',
+                status: 'modified',
+                additions: 12,
+                deletions: 3,
+                changes: [
+                    { type: 'context', oldLine: 23, newLine: 23, content: 'export class AuthService {' },
+                    { type: 'context', oldLine: 24, newLine: 24, content: '  private apiUrl = process.env.API_URL;' },
+                    { type: 'deletion', oldLine: 25, newLine: null, content: '  private timeout = 3000;' },
+                    { type: 'addition', oldLine: null, newLine: 25, content: '  private timeout = 5000; // Increased timeout' },
+                    { type: 'addition', oldLine: null, newLine: 26, content: '  private retryCount = 3;' },
+                    { type: 'context', oldLine: 26, newLine: 27, content: '' },
+                    { type: 'context', oldLine: 27, newLine: 28, content: '  async login(credentials: LoginDto) {' },
+                    { type: 'deletion', oldLine: 28, newLine: null, content: '    return this.http.post("/auth/login", credentials);' },
+                    { type: 'addition', oldLine: null, newLine: 29, content: '    const response = await this.http.post("/auth/login", credentials);' },
+                    { type: 'addition', oldLine: null, newLine: 30, content: '    this.setAuthToken(response.token);' },
+                    { type: 'addition', oldLine: null, newLine: 31, content: '    return response;' },
+                    { type: 'context', oldLine: 29, newLine: 32, content: '  }' }
+                ]
+            },
+            {
+                name: 'user.controller.ts',
+                path: 'src/controllers/user.controller.ts',
+                status: 'modified',
+                additions: 8,
+                deletions: 2,
+                changes: [
+                    { type: 'context', oldLine: 45, newLine: 45, content: '@Get("/profile")' },
+                    { type: 'context', oldLine: 46, newLine: 46, content: 'async getProfile(@Req() req: Request) {' },
+                    { type: 'deletion', oldLine: 47, newLine: null, content: '  const userId = req.user.id;' },
+                    { type: 'addition', oldLine: null, newLine: 47, content: '  const userId = req.user?.id;' },
+                    { type: 'addition', oldLine: null, newLine: 48, content: '  if (!userId) throw new UnauthorizedException();' },
+                    { type: 'context', oldLine: 48, newLine: 49, content: '  return this.userService.findById(userId);' },
+                    { type: 'context', oldLine: 49, newLine: 50, content: '}' }
+                ]
+            },
+            {
+                name: 'validation.middleware.ts',
+                path: 'src/middleware/validation.middleware.ts',
+                status: 'added',
+                additions: 15,
+                deletions: 0,
+                changes: [
+                    { type: 'addition', oldLine: null, newLine: 1, content: 'import { Request, Response, NextFunction } from "express";' },
+                    { type: 'addition', oldLine: null, newLine: 2, content: 'import { validationResult } from "express-validator";' },
+                    { type: 'addition', oldLine: null, newLine: 3, content: '' },
+                    { type: 'addition', oldLine: null, newLine: 4, content: 'export const validateRequest = (req: Request, res: Response, next: NextFunction) => {' },
+                    { type: 'addition', oldLine: null, newLine: 5, content: '  const errors = validationResult(req);' },
+                    { type: 'addition', oldLine: null, newLine: 6, content: '  if (!errors.isEmpty()) {' },
+                    { type: 'addition', oldLine: null, newLine: 7, content: '    return res.status(400).json({ errors: errors.array() });' },
+                    { type: 'addition', oldLine: null, newLine: 8, content: '  }' },
+                    { type: 'addition', oldLine: null, newLine: 9, content: '  next();' },
+                    { type: 'addition', oldLine: null, newLine: 10, content: '};' }
+                ]
+            },
+            {
+                name: 'database.config.ts',
+                path: 'src/config/database.config.ts',
+                status: 'modified',
+                additions: 6,
+                deletions: 4,
+                changes: [
+                    { type: 'context', oldLine: 12, newLine: 12, content: 'export const databaseConfig = {' },
+                    { type: 'deletion', oldLine: 13, newLine: null, content: '  host: "localhost",' },
+                    { type: 'deletion', oldLine: 14, newLine: null, content: '  port: 5432,' },
+                    { type: 'addition', oldLine: null, newLine: 13, content: '  host: process.env.DB_HOST || "localhost",' },
+                    { type: 'addition', oldLine: null, newLine: 14, content: '  port: parseInt(process.env.DB_PORT) || 5432,' },
+                    { type: 'context', oldLine: 15, newLine: 15, content: '  database: "myapp",' },
+                    { type: 'deletion', oldLine: 16, newLine: null, content: '  ssl: false' },
+                    { type: 'addition', oldLine: null, newLine: 16, content: '  ssl: process.env.NODE_ENV === "production",' },
+                    { type: 'addition', oldLine: null, newLine: 17, content: '  poolSize: 20' },
+                    { type: 'context', oldLine: 17, newLine: 18, content: '};' }
+                ]
+            },
+            {
+                name: 'legacy-utils.ts',
+                path: 'src/utils/legacy-utils.ts',
+                status: 'deleted',
+                additions: 0,
+                deletions: 3,
+                changes: [
+                    { type: 'deletion', oldLine: 1, newLine: null, content: 'export function oldFormatDate(date: Date) {' },
+                    { type: 'deletion', oldLine: 2, newLine: null, content: '  return date.toLocaleDateString();' },
+                    { type: 'deletion', oldLine: 3, newLine: null, content: '}' }
+                ]
+            },
+            {
+                name: 'types.ts',
+                path: 'src/types/types.ts',
+                status: 'modified',
+                additions: 4,
+                deletions: 0,
+                changes: [
+                    { type: 'context', oldLine: 34, newLine: 34, content: 'export interface User {' },
+                    { type: 'context', oldLine: 35, newLine: 35, content: '  id: string;' },
+                    { type: 'context', oldLine: 36, newLine: 36, content: '  email: string;' },
+                    { type: 'addition', oldLine: null, newLine: 37, content: '  firstName?: string;' },
+                    { type: 'addition', oldLine: null, newLine: 38, content: '  lastName?: string;' },
+                    { type: 'addition', oldLine: null, newLine: 39, content: '  role: UserRole;' },
+                    { type: 'context', oldLine: 37, newLine: 40, content: '}' }
+                ]
+            }
+        ];
+
+        // DOM references
+        const fileList = document.getElementById('fileList');
+        const diffFileName = document.getElementById('diffFileName');
+        const diffFilePath = document.getElementById('diffFilePath');
+        const diffStats = document.getElementById('diffStats');
+        const additionsCount = document.getElementById('additionsCount');
+        const deletionsCount = document.getElementById('deletionsCount');
+        const changesCount = document.getElementById('changesCount');
+        const unifiedView = document.getElementById('unifiedView');
+        const splitView = document.getElementById('splitView');
+        const splitLeft = document.getElementById('splitLeft');
+        const splitRight = document.getElementById('splitRight');
+        const statusFiles = document.getElementById('statusFiles');
+        const statusChanges = document.getElementById('statusChanges');
+        const statusMode = document.getElementById('statusMode');
+        const statusComparison = document.getElementById('statusComparison');
+
+        // Initialize
+        function init() {
+            state.files = sampleFiles;
+            attachEventListeners();
+            renderFileList();
+            updateStatus();
+        }
+
+        // Event listeners
+        function attachEventListeners() {
+            document.querySelectorAll('.diff-mode-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => switchViewMode(e.target.dataset.mode));
+            });
+
+            document.getElementById('commitComparison').addEventListener('change', (e) => {
+                state.commitComparison = e.target.value;
+                updateStatus();
+            });
+
+            document.getElementById('contextLines').addEventListener('change', (e) => {
+                state.contextLines = e.target.value === 'full' ? 'full' : parseInt(e.target.value);
+                if (state.currentFile) renderDiff(state.currentFile);
+            });
+
+            document.getElementById('showWhitespace').addEventListener('change', (e) => {
+                state.showWhitespace = e.target.checked;
+                if (state.currentFile) renderDiff(state.currentFile);
+            });
+
+            document.getElementById('ignoreWhitespace').addEventListener('change', (e) => {
+                state.ignoreWhitespace = e.target.checked;
+                if (state.currentFile) renderDiff(state.currentFile);
+            });
+
+            document.getElementById('exportBtn').addEventListener('click', exportPatch);
+            document.getElementById('refreshBtn').addEventListener('click', refreshDiff);
+            document.getElementById('copyDiffBtn').addEventListener('click', copyDiff);
+            document.getElementById('prevChunkBtn').addEventListener('click', prevChunk);
+            document.getElementById('nextChunkBtn').addEventListener('click', nextChunk);
+        }
+
+        // Render file list
+        function renderFileList() {
+            fileList.innerHTML = state.files.map(file => `
+                <div class="file-item ${state.currentFile?.name === file.name ? 'active' : ''}" data-file="${file.name}">
+                    <div class="file-item-name">
+                        <span class="file-item-icon">📄</span>
+                        <span>${file.name}</span>
+                        <span class="file-item-status ${file.status}">${file.status.toUpperCase()}</span>
+                    </div>
+                    <div class="file-item-stats">
+                        <div class="file-item-stat" style="color: #39ff14">+${file.additions}</div>
+                        <div class="file-item-stat" style="color: var(--jazer-pink)">-${file.deletions}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Attach click handlers
+            document.querySelectorAll('.file-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const fileName = item.dataset.file;
+                    const file = state.files.find(f => f.name === fileName);
+                    if (file) selectFile(file);
+                });
+            });
+        }
+
+        // Select file
+        function selectFile(file) {
+            state.currentFile = file;
+            renderFileList();
+            renderDiff(file);
+            updateDiffStats(file);
+        }
+
+        // Render diff
+        function renderDiff(file) {
+            diffFileName.textContent = file.name;
+            diffFilePath.textContent = file.path;
+
+            if (state.viewMode === 'unified') {
+                renderUnifiedDiff(file);
+            } else {
+                renderSplitDiff(file);
+            }
+        }
+
+        // Render unified diff
+        function renderUnifiedDiff(file) {
+            let html = '<div class="chunk-header">@@ Changes in ' + file.name + ' @@</div>';
+            
+            file.changes.forEach(change => {
+                const lineNum = change.type === 'deletion' ? change.oldLine : change.newLine;
+                html += `
+                    <div class="diff-line ${change.type}">
+                        <div class="diff-line-number">${lineNum || ''}</div>
+                        <div class="diff-line-content">${escapeHtml(change.content)}</div>
+                    </div>
+                `;
+            });
+
+            unifiedView.innerHTML = html;
+        }
+
+        // Render split diff
+        function renderSplitDiff(file) {
+            let leftHtml = '';
+            let rightHtml = '';
+
+            file.changes.forEach(change => {
+                if (change.type === 'deletion') {
+                    leftHtml += `
+                        <div class="diff-line deletion">
+                            <div class="diff-line-number">${change.oldLine}</div>
+                            <div class="diff-line-content">${escapeHtml(change.content)}</div>
+                        </div>
+                    `;
+                    rightHtml += `<div class="diff-line" style="visibility: hidden; height: 2.5rem;"></div>`;
+                } else if (change.type === 'addition') {
+                    rightHtml += `
+                        <div class="diff-line addition">
+                            <div class="diff-line-number">${change.newLine}</div>
+                            <div class="diff-line-content">${escapeHtml(change.content)}</div>
+                        </div>
+                    `;
+                    leftHtml += `<div class="diff-line" style="visibility: hidden; height: 2.5rem;"></div>`;
+                } else {
+                    leftHtml += `
+                        <div class="diff-line context">
+                            <div class="diff-line-number">${change.oldLine}</div>
+                            <div class="diff-line-content">${escapeHtml(change.content)}</div>
+                        </div>
+                    `;
+                    rightHtml += `
+                        <div class="diff-line context">
+                            <div class="diff-line-number">${change.newLine}</div>
+                            <div class="diff-line-content">${escapeHtml(change.content)}</div>
+                        </div>
+                    `;
+                }
+            });
+
+            splitLeft.innerHTML = leftHtml;
+            splitRight.innerHTML = rightHtml;
+        }
+
+        // Update diff stats
+        function updateDiffStats(file) {
+            additionsCount.textContent = '+' + file.additions;
+            deletionsCount.textContent = '-' + file.deletions;
+            changesCount.textContent = file.additions + file.deletions;
+            diffStats.style.display = 'flex';
+        }
+
+        // Switch view mode
+        function switchViewMode(mode) {
+            state.viewMode = mode;
+            
+            document.querySelectorAll('.diff-mode-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.mode === mode);
+            });
+
+            document.querySelectorAll('.diff-view').forEach(view => {
+                view.classList.remove('active');
+            });
+
+            if (mode === 'unified') {
+                unifiedView.classList.add('active');
+            } else {
+                splitView.classList.add('active');
+            }
+
+            statusMode.textContent = mode === 'unified' ? 'Unified' : 'Split';
+
+            if (state.currentFile) {
+                renderDiff(state.currentFile);
+            }
+        }
+
+        // Update status
+        function updateStatus() {
+            const totalAdditions = state.files.reduce((sum, f) => sum + f.additions, 0);
+            const totalDeletions = state.files.reduce((sum, f) => sum + f.deletions, 0);
+            
+            statusFiles.textContent = state.files.length;
+            statusChanges.textContent = `+${totalAdditions} / -${totalDeletions}`;
+
+            const comparisonText = {
+                'latest': 'HEAD vs Working',
+                'staged': 'Staged Changes',
+                'commits': 'Commit Comparison',
+                'branches': 'Branch Comparison'
+            };
+            statusComparison.textContent = comparisonText[state.commitComparison];
+        }
+
+        // Export patch
+        function exportPatch() {
+            let patch = `diff --git\n\n`;
+            
+            state.files.forEach(file => {
+                patch += `diff --git a/${file.path} b/${file.path}\n`;
+                patch += `--- a/${file.path}\n`;
+                patch += `+++ b/${file.path}\n`;
+                patch += `@@ -1,${file.deletions} +1,${file.additions} @@\n`;
+                
+                file.changes.forEach(change => {
+                    const prefix = change.type === 'addition' ? '+' : change.type === 'deletion' ? '-' : ' ';
+                    patch += `${prefix}${change.content}\n`;
+                });
+                patch += '\n';
+            });
+
+            const blob = new Blob([patch], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `changes-${Date.now()}.patch`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Copy diff
+        function copyDiff() {
+            if (!state.currentFile) return;
+
+            let text = state.currentFile.changes.map(change => {
+                const prefix = change.type === 'addition' ? '+' : change.type === 'deletion' ? '-' : ' ';
+                return `${prefix}${change.content}`;
+            }).join('\n');
+
+            navigator.clipboard.writeText(text);
+        }
+
+        // Navigate chunks
+        function prevChunk() {
+            // Placeholder - would scroll to previous change
+            console.log('Navigate to previous chunk');
+        }
+
+        function nextChunk() {
+            // Placeholder - would scroll to next change
+            console.log('Navigate to next chunk');
+        }
+
+        // Refresh diff
+        function refreshDiff() {
+            if (state.currentFile) {
+                renderDiff(state.currentFile);
+            }
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize on load
+        init();
+        
+        // Auto-select first file
+        if (state.files.length > 0) {
+            selectFile(state.files[0]);
+        }
+    </script>
+</body>
+</html>

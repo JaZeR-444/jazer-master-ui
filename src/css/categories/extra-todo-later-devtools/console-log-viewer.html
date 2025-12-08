@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Console Log Viewer - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 2rem;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid rgba(6, 182, 212, 0.3);
+            background: rgba(6, 182, 212, 0.05);
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-family: var(--font-secondary);
+        }
+
+        .back-button:hover {
+            border-color: var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.15);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(147, 51, 234, 0.08) 50%, rgba(236, 72, 153, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(6, 182, 212, 0.2);
+        }
+
+        .stat-card.log {
+            border-color: var(--jazer-cyan);
+        }
+
+        .stat-card.error {
+            border-color: var(--jazer-pink);
+        }
+
+        .stat-card.warn {
+            border-color: var(--jazer-yellow);
+        }
+
+        .stat-card.info {
+            border-color: var(--jazer-purple);
+        }
+
+        .stat-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            font-family: var(--font-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card.log .stat-value {
+            color: var(--jazer-cyan);
+        }
+
+        .stat-card.error .stat-value {
+            color: var(--jazer-pink);
+        }
+
+        .stat-card.warn .stat-value {
+            color: var(--jazer-yellow);
+        }
+
+        .stat-card.info .stat-value {
+            color: var(--jazer-purple);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr 320px;
+            }
+        }
+
+        .console-container {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .console-header {
+            background: rgba(6, 182, 212, 0.1);
+            border-bottom: 2px solid var(--border-default);
+            padding: 1rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .console-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .console-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .control-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--jazer-cyan);
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+        }
+
+        .control-btn:hover {
+            background: rgba(6, 182, 212, 0.2);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .filter-bar {
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 2px solid var(--border-default);
+            padding: 1rem 1.25rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 0.875rem;
+            border: 2px solid var(--border-default);
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text-gray);
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--text-light);
+        }
+
+        .filter-btn.active {
+            background: rgba(6, 182, 212, 0.2);
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.3);
+        }
+
+        .filter-badge {
+            background: rgba(6, 182, 212, 0.3);
+            padding: 0.15rem 0.4rem;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+
+        .console-output {
+            padding: 1rem;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .console-output::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .console-output::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .console-output::-webkit-scrollbar-thumb {
+            background: var(--jazer-cyan);
+            border-radius: 4px;
+        }
+
+        .log-entry {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 6px;
+            border-left: 3px solid var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.05);
+            transition: all 0.2s ease;
+            display: flex;
+            gap: 0.75rem;
+            align-items: start;
+        }
+
+        .log-entry:hover {
+            background: rgba(6, 182, 212, 0.1);
+            box-shadow: 0 2px 8px rgba(6, 182, 212, 0.2);
+        }
+
+        .log-entry.hidden {
+            display: none;
+        }
+
+        .log-entry.log {
+            border-left-color: var(--jazer-cyan);
+        }
+
+        .log-entry.error {
+            border-left-color: var(--jazer-pink);
+            background: rgba(236, 72, 153, 0.05);
+        }
+
+        .log-entry.error:hover {
+            background: rgba(236, 72, 153, 0.1);
+        }
+
+        .log-entry.warn {
+            border-left-color: var(--jazer-yellow);
+            background: rgba(255, 190, 11, 0.05);
+        }
+
+        .log-entry.warn:hover {
+            background: rgba(255, 190, 11, 0.1);
+        }
+
+        .log-entry.info {
+            border-left-color: var(--jazer-purple);
+            background: rgba(147, 51, 234, 0.05);
+        }
+
+        .log-entry.info:hover {
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .log-icon {
+            font-size: 1rem;
+            min-width: 20px;
+        }
+
+        .log-entry.log .log-icon {
+            color: var(--jazer-cyan);
+        }
+
+        .log-entry.error .log-icon {
+            color: var(--jazer-pink);
+        }
+
+        .log-entry.warn .log-icon {
+            color: var(--jazer-yellow);
+        }
+
+        .log-entry.info .log-icon {
+            color: var(--jazer-purple);
+        }
+
+        .log-content {
+            flex: 1;
+        }
+
+        .log-timestamp {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .log-message {
+            color: var(--text-light);
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .log-stack {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            font-size: 0.7rem;
+            color: var(--text-gray);
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .log-source {
+            margin-top: 0.25rem;
+            font-size: 0.7rem;
+            color: var(--jazer-purple);
+        }
+
+        .console-input {
+            border-top: 2px solid var(--border-default);
+            padding: 1rem 1.25rem;
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .input-prompt {
+            color: var(--jazer-cyan);
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+
+        .input-field {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+            color: var(--text-light);
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+        }
+
+        .sidebar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        .sidebar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            margin-bottom: 1.5rem;
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        details {
+            margin-bottom: 1rem;
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+        }
+
+        details:hover {
+            border-color: var(--jazer-cyan);
+        }
+
+        details[open] {
+            border-color: var(--jazer-cyan);
+        }
+
+        summary {
+            padding: 0.875rem 1rem;
+            cursor: pointer;
+            background: rgba(6, 182, 212, 0.05);
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            transition: all 0.2s ease;
+            user-select: none;
+            font-family: var(--font-secondary);
+        }
+
+        summary:hover {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--jazer-cyan);
+        }
+
+        .details-content {
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .option-group {
+            margin-bottom: 1rem;
+        }
+
+        .option-label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: var(--font-secondary);
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-item:hover {
+            background: rgba(6, 182, 212, 0.05);
+        }
+
+        .checkbox-item input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            flex: 1;
+            font-size: 0.75rem;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-size: 0.8rem;
+            transition: border-color 0.2s ease;
+            font-family: var(--font-body);
+        }
+
+        select:hover {
+            border-color: var(--jazer-cyan);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.3);
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            padding: 0.6rem;
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--jazer-cyan);
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+        }
+
+        .action-btn:hover {
+            background: rgba(6, 182, 212, 0.2);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+        }
+
+        .status-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        .status-indicator-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--jazer-cyan); }
+            50% { opacity: 0.5; box-shadow: 0 0 8px var(--jazer-cyan); }
+        }
+
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .example-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .example-card:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 8px 24px rgba(6, 182, 212, 0.2);
+            transform: translateY(-4px);
+        }
+
+        .example-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--jazer-purple);
+            margin-bottom: 1rem;
+            font-family: var(--font-secondary);
+        }
+
+        .example-desc {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .example-code {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-default);
+            border-radius: 6px;
+            padding: 0.75rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            color: var(--jazer-cyan);
+            overflow-x: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .filter-bar {
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to DevTools</a>
+
+    <header class="hero">
+        <h1>Console Log Viewer</h1>
+        <p class="hero-description">Real-time console monitoring with filtering, search, and log level management for debugging JavaScript applications</p>
+    </header>
+
+    <div class="stats-grid">
+        <div class="stat-card log">
+            <div class="stat-icon">📝</div>
+            <div class="stat-value" id="logCount">127</div>
+            <div class="stat-label">Total Logs</div>
+        </div>
+
+        <div class="stat-card error">
+            <div class="stat-icon">❌</div>
+            <div class="stat-value" id="errorCount">8</div>
+            <div class="stat-label">Errors</div>
+        </div>
+
+        <div class="stat-card warn">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-value" id="warnCount">15</div>
+            <div class="stat-label">Warnings</div>
+        </div>
+
+        <div class="stat-card info">
+            <div class="stat-icon">ℹ️</div>
+            <div class="stat-value" id="infoCount">12</div>
+            <div class="stat-label">Info</div>
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <div class="console-container">
+            <div class="console-header">
+                <h3 class="console-title">Console Output</h3>
+                <div class="console-controls">
+                    <button class="control-btn" id="pauseBtn">⏸ Pause</button>
+                    <button class="control-btn" id="clearBtn">🗑 Clear</button>
+                    <button class="control-btn" id="exportBtn">💾 Export</button>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <button class="filter-btn active" data-type="all">
+                    <span>All</span>
+                    <span class="filter-badge" id="allBadge">127</span>
+                </button>
+                <button class="filter-btn active" data-type="log">
+                    <span>📝 Log</span>
+                    <span class="filter-badge" id="logBadge">92</span>
+                </button>
+                <button class="filter-btn active" data-type="error">
+                    <span>❌ Error</span>
+                    <span class="filter-badge" id="errorBadge">8</span>
+                </button>
+                <button class="filter-btn active" data-type="warn">
+                    <span>⚠️ Warn</span>
+                    <span class="filter-badge" id="warnBadge">15</span>
+                </button>
+                <button class="filter-btn active" data-type="info">
+                    <span>ℹ️ Info</span>
+                    <span class="filter-badge" id="infoBadge">12</span>
+                </button>
+            </div>
+
+            <div class="console-output" id="consoleOutput">
+                <!-- Sample log entries -->
+                <div class="log-entry log" data-type="log">
+                    <div class="log-icon">📝</div>
+                    <div class="log-content">
+                        <div class="log-timestamp">2024-12-05 14:32:15.234</div>
+                        <div class="log-message">Application initialized successfully</div>
+                        <div class="log-source">at App.js:23</div>
+                    </div>
+                </div>
+
+                <div class="log-entry info" data-type="info">
+                    <div class="log-icon">ℹ️</div>
+                    <div class="log-content">
+                        <div class="log-timestamp">2024-12-05 14:32:16.120</div>
+                        <div class="log-message">Connected to WebSocket server: ws://localhost:3000</div>
+                        <div class="log-source">at connection.js:45</div>
+                    </div>
+                </div>
+
+                <div class="log-entry log" data-type="log">
+                    <div class="log-icon">📝</div>
+                    <div class="log-content">
+                        <div class="log-timestamp">2024-12-05 14:32:17.456</div>
+                        <div class="log-message">User authenticated: { id: 1234, username: "john_doe" }</div>
+                        <div class="log-source">at auth.js:89</div>
+                    </div>
+                </div>
+
+                <div class="log-entry warn" data-type="warn">
+                    <div class="log-icon">⚠️</div>
+                    <div class="log-content">
+                        <div class="log-timestamp">2024-12-05 14:32:18.789</div>
+                        <div class="log-message">Deprecated API usage detected: useOldMethod() will be removed in v3.0</div>
+                        <div class="log-source">at legacy.js:156</div>
+                    </div>
+                </div>
+
+                <div class="log-entry error" data-type="error">
+                    <div class="log-icon">❌</div>
+                    <div class="log-content">
+                        <div class="log-timestamp">2024-12-05 14:32:19.234</div>
+                        <div class="log-message">TypeError: Cannot read property 'map' of undefined</div>
+                        <div class="log-stack">at Dashboard.render (dashboard.js:67:18)
+at Component.update (react.js:234:12)
+at updateQueue.flush (react.js:891:23)</div>
+                        <div class="log-source">at dashboard.js:67</div>
+                    </div>
+                </div>
+
+                <div class="log-entry log" data-type="log">
+                    <div class="log-icon">📝</div>
+                    <div class="log-content">
+                        <div class="log-timestamp">2024-12-05 14:32:20.567</div>
+                        <div class="log-message">API Request: GET /api/users?page=1&limit=20</div>
+                        <div class="log-source">at api.js:234</div>
+                    </div>
+                </div>
+
+                <div class="log-entry info" data-type="info">
+                    <div class="log-icon">ℹ️</div>
+                    <div class="log-content">
+                        <div class="log-timestamp">2024-12-05 14:32:21.890</div>
+                        <div class="log-message">Response received: 200 OK (245ms)</div>
+                        <div class="log-source">at api.js:289</div>
+                    </div>
+                </div>
+
+                <div class="log-entry warn" data-type="warn">
+                    <div class="log-icon">⚠️</div>
+                    <div class="log-content">
+                        <div class="log-timestamp">2024-12-05 14:32:22.123</div>
+                        <div class="log-message">Memory usage high: 487MB / 512MB (95%)</div>
+                        <div class="log-source">at monitor.js:45</div>
+                    </div>
+                </div>
+
+                <div class="log-entry log" data-type="log">
+                    <div class="log-icon">📝</div>
+                    <div class="log-content">
+                        <div class="log-timestamp">2024-12-05 14:32:23.456</div>
+                        <div class="log-message">Component rendered: UserList (12 items)</div>
+                        <div class="log-source">at UserList.js:156</div>
+                    </div>
+                </div>
+
+                <div class="log-entry error" data-type="error">
+                    <div class="log-icon">❌</div>
+                    <div class="log-content">
+                        <div class="log-timestamp">2024-12-05 14:32:24.789</div>
+                        <div class="log-message">Failed to fetch: Network request failed</div>
+                        <div class="log-stack">at fetch (api.js:45:12)
+at getData (services.js:23:8)
+at async loadUsers (dashboard.js:89:5)</div>
+                        <div class="log-source">at api.js:45</div>
+                    </div>
+                </div>
+
+                <div class="log-entry info" data-type="info">
+                    <div class="log-icon">ℹ️</div>
+                    <div class="log-content">
+                        <div class="log-timestamp">2024-12-05 14:32:25.012</div>
+                        <div class="log-message">Cache hit: user_data_1234 (saved 156ms)</div>
+                        <div class="log-source">at cache.js:78</div>
+                    </div>
+                </div>
+
+                <div class="log-entry warn" data-type="warn">
+                    <div class="log-icon">⚠️</div>
+                    <div class="log-content">
+                        <div class="log-timestamp">2024-12-05 14:32:26.345</div>
+                        <div class="log-message">Slow render detected: UserProfile took 1.2s</div>
+                        <div class="log-source">at profiler.js:234</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="console-input">
+                <span class="input-prompt">&gt;</span>
+                <input type="text" class="input-field" id="consoleInput" placeholder="Type JavaScript expression...">
+            </div>
+        </div>
+
+        <aside class="sidebar">
+            <h3 class="sidebar-title">Settings</h3>
+
+            <details open>
+                <summary>Filter Options</summary>
+                <div class="details-content">
+                    <div class="option-group">
+                        <label class="option-label">Log Levels</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showLog" checked>
+                                <label for="showLog">Show Logs</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showError" checked>
+                                <label for="showError">Show Errors</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showWarn" checked>
+                                <label for="showWarn">Show Warnings</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showInfo" checked>
+                                <label for="showInfo">Show Info</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <details open>
+                <summary>Display Options</summary>
+                <div class="details-content">
+                    <div class="option-group">
+                        <label class="option-label">Max Logs</label>
+                        <select id="maxLogs">
+                            <option value="50">50 entries</option>
+                            <option value="100" selected>100 entries</option>
+                            <option value="200">200 entries</option>
+                            <option value="500">500 entries</option>
+                            <option value="-1">Unlimited</option>
+                        </select>
+                    </div>
+
+                    <div class="option-group">
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showTimestamp" checked>
+                                <label for="showTimestamp">Show Timestamps</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showSource" checked>
+                                <label for="showSource">Show Source</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="autoScroll" checked>
+                                <label for="autoScroll">Auto-scroll</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <details>
+                <summary>Advanced</summary>
+                <div class="details-content">
+                    <div class="option-group">
+                        <label class="option-label">Theme</label>
+                        <select id="theme">
+                            <option value="dark" selected>Dark</option>
+                            <option value="light">Light</option>
+                            <option value="high-contrast">High Contrast</option>
+                        </select>
+                    </div>
+
+                    <div class="option-group">
+                        <label class="option-label">Font Size</label>
+                        <select id="fontSize">
+                            <option value="0.7rem">Small</option>
+                            <option value="0.8rem" selected>Medium</option>
+                            <option value="0.9rem">Large</option>
+                        </select>
+                    </div>
+                </div>
+            </details>
+
+            <div class="quick-actions">
+                <button class="action-btn" id="clearAllBtn">Clear All Logs</button>
+                <button class="action-btn" id="exportJsonBtn">Export as JSON</button>
+                <button class="action-btn" id="copyBtn">Copy to Clipboard</button>
+            </div>
+        </aside>
+    </div>
+
+    <div class="examples-grid">
+        <div class="example-card">
+            <h4 class="example-title">Basic Logging</h4>
+            <p class="example-desc">Standard console methods for different log levels</p>
+            <div class="example-code">console.log('Debug message');
+console.error('Error occurred');
+console.warn('Warning message');
+console.info('Info message');</div>
+        </div>
+
+        <div class="example-card">
+            <h4 class="example-title">Object Logging</h4>
+            <p class="example-desc">Log complex objects and arrays</p>
+            <div class="example-code">const user = {
+  id: 123,
+  name: 'John'
+};
+console.log('User:', user);</div>
+        </div>
+
+        <div class="example-card">
+            <h4 class="example-title">Table Display</h4>
+            <p class="example-desc">Display data in table format</p>
+            <div class="example-code">const users = [
+  {id: 1, name: 'Alice'},
+  {id: 2, name: 'Bob'}
+];
+console.table(users);</div>
+        </div>
+
+        <div class="example-card">
+            <h4 class="example-title">Performance Timing</h4>
+            <p class="example-desc">Measure code execution time</p>
+            <div class="example-code">console.time('operation');
+// your code here
+console.timeEnd('operation');
+// Output: operation: 234ms</div>
+        </div>
+
+        <div class="example-card">
+            <h4 class="example-title">Stack Traces</h4>
+            <p class="example-desc">Display call stack information</p>
+            <div class="example-code">function foo() {
+  console.trace('Trace');
+}
+foo();
+// Shows full call stack</div>
+        </div>
+
+        <div class="example-card">
+            <h4 class="example-title">Grouping</h4>
+            <p class="example-desc">Organize related logs together</p>
+            <div class="example-code">console.group('User Info');
+console.log('Name: John');
+console.log('Age: 30');
+console.groupEnd();</div>
+        </div>
+    </div>
+
+    <footer class="status-bar">
+        <div class="status-info">
+            <div class="status-item">
+                <span>Total:</span>
+                <span id="statusTotal">127</span>
+            </div>
+            <div class="status-item">
+                <span>Visible:</span>
+                <span id="statusVisible">127</span>
+            </div>
+            <div class="status-item">
+                <span>Paused:</span>
+                <span id="statusPaused">No</span>
+            </div>
+            <div class="status-item">
+                <span>Auto-scroll:</span>
+                <span id="statusScroll">On</span>
+            </div>
+        </div>
+        <div class="status-indicator-group">
+            <span class="status-dot"></span>
+            <span style="font-size: 0.75rem; color: var(--text-gray);">Console Active</span>
+        </div>
+    </footer>
+
+    <script>
+        // State management
+        const state = {
+            paused: false,
+            filters: {
+                log: true,
+                error: true,
+                warn: true,
+                info: true
+            },
+            maxLogs: 100,
+            autoScroll: true,
+            logCount: {
+                total: 127,
+                log: 92,
+                error: 8,
+                warn: 15,
+                info: 12
+            }
+        };
+
+        // DOM references
+        const consoleOutput = document.getElementById('consoleOutput');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const consoleInput = document.getElementById('consoleInput');
+
+        // Filter buttons
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const type = btn.dataset.type;
+                
+                if (type === 'all') {
+                    const allActive = btn.classList.contains('active');
+                    filterButtons.forEach(b => {
+                        if (allActive) {
+                            b.classList.remove('active');
+                        } else {
+                            b.classList.add('active');
+                        }
+                    });
+                    
+                    state.filters.log = !allActive;
+                    state.filters.error = !allActive;
+                    state.filters.warn = !allActive;
+                    state.filters.info = !allActive;
+                } else {
+                    btn.classList.toggle('active');
+                    state.filters[type] = btn.classList.contains('active');
+                }
+                
+                applyFilters();
+            });
+        });
+
+        // Apply filters
+        function applyFilters() {
+            const entries = consoleOutput.querySelectorAll('.log-entry');
+            let visible = 0;
+            
+            entries.forEach(entry => {
+                const type = entry.dataset.type;
+                if (state.filters[type]) {
+                    entry.classList.remove('hidden');
+                    visible++;
+                } else {
+                    entry.classList.add('hidden');
+                }
+            });
+            
+            document.getElementById('statusVisible').textContent = visible;
+        }
+
+        // Pause/Resume
+        pauseBtn.addEventListener('click', () => {
+            state.paused = !state.paused;
+            pauseBtn.innerHTML = state.paused ? '▶️ Resume' : '⏸ Pause';
+            document.getElementById('statusPaused').textContent = state.paused ? 'Yes' : 'No';
+        });
+
+        // Clear logs
+        clearBtn.addEventListener('click', () => {
+            if (confirm('Clear all console logs?')) {
+                consoleOutput.innerHTML = '';
+                state.logCount = { total: 0, log: 0, error: 0, warn: 0, info: 0 };
+                updateCounts();
+            }
+        });
+
+        // Export logs
+        exportBtn.addEventListener('click', () => {
+            const logs = [];
+            consoleOutput.querySelectorAll('.log-entry').forEach(entry => {
+                logs.push({
+                    type: entry.dataset.type,
+                    timestamp: entry.querySelector('.log-timestamp').textContent,
+                    message: entry.querySelector('.log-message').textContent,
+                    source: entry.querySelector('.log-source')?.textContent || ''
+                });
+            });
+            
+            const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `console-logs-${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('Logs exported successfully!');
+        });
+
+        // Console input
+        consoleInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const input = consoleInput.value.trim();
+                if (input) {
+                    addLog('log', `> ${input}`);
+                    
+                    try {
+                        const result = eval(input);
+                        addLog('log', `← ${JSON.stringify(result)}`);
+                    } catch (err) {
+                        addLog('error', `Error: ${err.message}`);
+                    }
+                    
+                    consoleInput.value = '';
+                }
+            }
+        });
+
+        // Add log entry
+        function addLog(type, message) {
+            if (state.paused) return;
+            
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.dataset.type = type;
+            
+            const icons = {
+                log: '📝',
+                error: '❌',
+                warn: '⚠️',
+                info: 'ℹ️'
+            };
+            
+            const timestamp = new Date().toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                fractionalSecondDigits: 3
+            });
+            
+            entry.innerHTML = `
+                <div class="log-icon">${icons[type]}</div>
+                <div class="log-content">
+                    <div class="log-timestamp">${timestamp}</div>
+                    <div class="log-message">${message}</div>
+                </div>
+            `;
+            
+            consoleOutput.appendChild(entry);
+            
+            // Update counts
+            state.logCount.total++;
+            state.logCount[type]++;
+            updateCounts();
+            
+            // Auto-scroll
+            if (state.autoScroll) {
+                consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            }
+            
+            // Limit max logs
+            const entries = consoleOutput.querySelectorAll('.log-entry');
+            if (state.maxLogs > 0 && entries.length > state.maxLogs) {
+                entries[0].remove();
+                state.logCount.total--;
+            }
+        }
+
+        // Update counts
+        function updateCounts() {
+            document.getElementById('logCount').textContent = state.logCount.total;
+            document.getElementById('errorCount').textContent = state.logCount.error;
+            document.getElementById('warnCount').textContent = state.logCount.warn;
+            document.getElementById('infoCount').textContent = state.logCount.info;
+            
+            document.getElementById('allBadge').textContent = state.logCount.total;
+            document.getElementById('logBadge').textContent = state.logCount.log;
+            document.getElementById('errorBadge').textContent = state.logCount.error;
+            document.getElementById('warnBadge').textContent = state.logCount.warn;
+            document.getElementById('infoBadge').textContent = state.logCount.info;
+            
+            document.getElementById('statusTotal').textContent = state.logCount.total;
+        }
+
+        // Simulate live logs
+        const logMessages = [
+            { type: 'log', msg: 'Component mounted' },
+            { type: 'info', msg: 'State updated successfully' },
+            { type: 'log', msg: 'API call completed' },
+            { type: 'warn', msg: 'Cache miss, fetching from network' },
+            { type: 'error', msg: 'Failed to parse JSON response' },
+            { type: 'log', msg: 'User action: button clicked' },
+            { type: 'info', msg: 'Navigation: /dashboard → /profile' }
+        ];
+
+        setInterval(() => {
+            if (!state.paused && Math.random() > 0.3) {
+                const random = logMessages[Math.floor(Math.random() * logMessages.length)];
+                addLog(random.type, random.msg);
+            }
+        }, 3000);
+
+        // Settings
+        document.getElementById('autoScroll').addEventListener('change', (e) => {
+            state.autoScroll = e.target.checked;
+            document.getElementById('statusScroll').textContent = state.autoScroll ? 'On' : 'Off';
+        });
+
+        document.getElementById('maxLogs').addEventListener('change', (e) => {
+            state.maxLogs = parseInt(e.target.value);
+        });
+
+        document.getElementById('fontSize').addEventListener('change', (e) => {
+            consoleOutput.style.fontSize = e.target.value;
+        });
+
+        // Quick actions
+        document.getElementById('clearAllBtn').addEventListener('click', () => {
+            clearBtn.click();
+        });
+
+        document.getElementById('exportJsonBtn').addEventListener('click', () => {
+            exportBtn.click();
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const text = Array.from(consoleOutput.querySelectorAll('.log-entry'))
+                .map(e => e.querySelector('.log-message').textContent)
+                .join('\n');
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Logs copied to clipboard!');
+            });
+        });
+    </script>
+</body>
+</html>

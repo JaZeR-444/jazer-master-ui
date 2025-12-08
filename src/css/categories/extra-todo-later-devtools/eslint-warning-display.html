@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESLint Warning Display - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 2rem;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid rgba(255, 190, 11, 0.3);
+            background: rgba(255, 190, 11, 0.05);
+            color: var(--jazer-yellow);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-family: var(--font-secondary);
+        }
+
+        .back-button:hover {
+            border-color: var(--jazer-yellow);
+            background: rgba(255, 190, 11, 0.15);
+            box-shadow: 0 0 20px rgba(255, 190, 11, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(147, 51, 234, 0.08) 50%, rgba(236, 72, 153, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 190, 11, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .summary-card.error {
+            border-color: var(--jazer-pink);
+        }
+
+        .summary-card.error:hover {
+            box-shadow: 0 8px 24px rgba(236, 72, 153, 0.3);
+        }
+
+        .summary-card.warning {
+            border-color: var(--jazer-yellow);
+        }
+
+        .summary-card.warning:hover {
+            box-shadow: 0 8px 24px rgba(255, 190, 11, 0.3);
+        }
+
+        .summary-card.info {
+            border-color: var(--jazer-cyan);
+        }
+
+        .summary-card.info:hover {
+            box-shadow: 0 8px 24px rgba(6, 182, 212, 0.3);
+        }
+
+        .summary-card.success {
+            border-color: #22c55e;
+        }
+
+        .summary-card.success:hover {
+            box-shadow: 0 8px 24px rgba(34, 197, 94, 0.3);
+        }
+
+        .summary-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-value {
+            font-size: 2rem;
+            font-weight: 800;
+            font-family: var(--font-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-card.error .summary-value {
+            color: var(--jazer-pink);
+        }
+
+        .summary-card.warning .summary-value {
+            color: var(--jazer-yellow);
+        }
+
+        .summary-card.info .summary-value {
+            color: var(--jazer-cyan);
+        }
+
+        .summary-card.success .summary-value {
+            color: #22c55e;
+        }
+
+        .summary-label {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 900px) {
+            .main-grid {
+                grid-template-columns: 280px 1fr;
+            }
+        }
+
+        .sidebar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        .sidebar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--jazer-yellow);
+            margin-bottom: 1.5rem;
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .file-tree {
+            list-style: none;
+        }
+
+        .file-item {
+            padding: 0.6rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .file-item:hover {
+            background: rgba(255, 190, 11, 0.1);
+        }
+
+        .file-item.active {
+            background: rgba(255, 190, 11, 0.2);
+            border-left: 3px solid var(--jazer-yellow);
+            box-shadow: 0 0 12px rgba(255, 190, 11, 0.3);
+        }
+
+        .file-icon {
+            font-size: 0.9rem;
+        }
+
+        .file-name {
+            flex: 1;
+            color: var(--text-light);
+        }
+
+        .file-count {
+            background: var(--jazer-pink);
+            color: white;
+            font-size: 0.65rem;
+            padding: 0.2rem 0.4rem;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        .file-count.warning {
+            background: var(--jazer-yellow);
+            color: var(--bg-dark);
+        }
+
+        .filter-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid var(--border-default);
+        }
+
+        .filter-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-gray);
+            margin-bottom: 0.75rem;
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-checkbox:hover {
+            background: rgba(255, 190, 11, 0.05);
+        }
+
+        .filter-checkbox input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .filter-checkbox label {
+            flex: 1;
+            font-size: 0.75rem;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        .filter-count {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .content-area {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .content-header {
+            background: rgba(255, 190, 11, 0.1);
+            border-bottom: 2px solid var(--border-default);
+            padding: 1rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .content-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--jazer-yellow);
+            font-family: var(--font-secondary);
+        }
+
+        .content-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            background: rgba(255, 190, 11, 0.1);
+            color: var(--jazer-yellow);
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 190, 11, 0.2);
+            border-color: var(--jazer-yellow);
+            box-shadow: 0 0 12px rgba(255, 190, 11, 0.3);
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        .search-bar {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            color: var(--text-light);
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+            width: 250px;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: var(--jazer-yellow);
+            box-shadow: 0 0 12px rgba(255, 190, 11, 0.3);
+        }
+
+        .lint-results {
+            padding: 1.5rem;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .lint-results::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .lint-results::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .lint-results::-webkit-scrollbar-thumb {
+            background: var(--jazer-yellow);
+            border-radius: 4px;
+        }
+
+        .lint-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .lint-item:hover {
+            border-color: var(--jazer-yellow);
+            box-shadow: 0 4px 16px rgba(255, 190, 11, 0.2);
+        }
+
+        .lint-item.error {
+            border-left: 4px solid var(--jazer-pink);
+        }
+
+        .lint-item.warning {
+            border-left: 4px solid var(--jazer-yellow);
+        }
+
+        .lint-item.info {
+            border-left: 4px solid var(--jazer-cyan);
+        }
+
+        .lint-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.75rem;
+            gap: 1rem;
+        }
+
+        .lint-severity {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .lint-severity.error {
+            background: rgba(236, 72, 153, 0.2);
+            color: var(--jazer-pink);
+            border: 1px solid var(--jazer-pink);
+        }
+
+        .lint-severity.warning {
+            background: rgba(255, 190, 11, 0.2);
+            color: var(--jazer-yellow);
+            border: 1px solid var(--jazer-yellow);
+        }
+
+        .lint-severity.info {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+        }
+
+        .lint-rule {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: 'Courier New', monospace;
+        }
+
+        .lint-message {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .lint-location {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .location-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .location-icon {
+            color: var(--jazer-purple);
+        }
+
+        .lint-code {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        .code-line {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .code-line-number {
+            color: var(--text-muted);
+            user-select: none;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .code-line-content {
+            color: var(--text-light);
+            flex: 1;
+        }
+
+        .code-line.highlight {
+            background: rgba(255, 190, 11, 0.1);
+            margin: 0 -1rem;
+            padding: 0 1rem;
+        }
+
+        .code-line.highlight .code-line-number {
+            color: var(--jazer-yellow);
+            font-weight: 700;
+        }
+
+        .lint-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .lint-action-btn {
+            padding: 0.4rem 0.75rem;
+            border: 1px solid var(--border-default);
+            border-radius: 6px;
+            background: rgba(255, 190, 11, 0.05);
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+        }
+
+        .lint-action-btn:hover {
+            background: rgba(255, 190, 11, 0.15);
+            border-color: var(--jazer-yellow);
+            color: var(--jazer-yellow);
+        }
+
+        .lint-action-btn.fix {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+
+        .lint-action-btn.fix:hover {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: #22c55e;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-message {
+            font-size: 1.1rem;
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-submessage {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .status-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-yellow);
+            font-weight: 600;
+        }
+
+        .status-indicator-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-yellow);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--jazer-yellow); }
+            50% { opacity: 0.5; box-shadow: 0 0 8px var(--jazer-yellow); }
+        }
+
+        .rule-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .rule-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .rule-card:hover {
+            border-color: var(--jazer-yellow);
+            box-shadow: 0 8px 24px rgba(255, 190, 11, 0.2);
+            transform: translateY(-4px);
+        }
+
+        .rule-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            margin-bottom: 0.5rem;
+            font-family: var(--font-secondary);
+        }
+
+        .rule-description {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .rule-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-default);
+        }
+
+        .rule-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .rule-stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--jazer-yellow);
+        }
+
+        .rule-stat-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+
+            .summary-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .search-bar {
+                width: 100%;
+            }
+
+            .content-actions {
+                width: 100%;
+            }
+
+            .action-btn {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to DevTools</a>
+
+    <header class="hero">
+        <h1>ESLint Warning Display</h1>
+        <p class="hero-description">Comprehensive ESLint error and warning visualization with file navigation, quick fixes, and rule documentation</p>
+    </header>
+
+    <div class="summary-cards">
+        <div class="summary-card error">
+            <div class="summary-icon">🔴</div>
+            <div class="summary-value" id="errorCount">8</div>
+            <div class="summary-label">Errors</div>
+        </div>
+
+        <div class="summary-card warning">
+            <div class="summary-icon">⚠️</div>
+            <div class="summary-value" id="warningCount">15</div>
+            <div class="summary-label">Warnings</div>
+        </div>
+
+        <div class="summary-card info">
+            <div class="summary-icon">ℹ️</div>
+            <div class="summary-value" id="infoCount">3</div>
+            <div class="summary-label">Info</div>
+        </div>
+
+        <div class="summary-card success">
+            <div class="summary-icon">✅</div>
+            <div class="summary-value" id="filesChecked">42</div>
+            <div class="summary-label">Files Checked</div>
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <aside class="sidebar">
+            <h3 class="sidebar-title">Files</h3>
+            <ul class="file-tree" id="fileTree">
+                <li class="file-item active" data-file="App.jsx">
+                    <span class="file-icon">📄</span>
+                    <span class="file-name">App.jsx</span>
+                    <span class="file-count">4</span>
+                </li>
+                <li class="file-item" data-file="Dashboard.jsx">
+                    <span class="file-icon">📄</span>
+                    <span class="file-name">Dashboard.jsx</span>
+                    <span class="file-count">3</span>
+                </li>
+                <li class="file-item" data-file="Header.jsx">
+                    <span class="file-icon">📄</span>
+                    <span class="file-name">Header.jsx</span>
+                    <span class="file-count warning">2</span>
+                </li>
+                <li class="file-item" data-file="utils.js">
+                    <span class="file-icon">📄</span>
+                    <span class="file-name">utils.js</span>
+                    <span class="file-count">6</span>
+                </li>
+                <li class="file-item" data-file="api.js">
+                    <span class="file-icon">📄</span>
+                    <span class="file-name">api.js</span>
+                    <span class="file-count">5</span>
+                </li>
+                <li class="file-item" data-file="components/Button.jsx">
+                    <span class="file-icon">📄</span>
+                    <span class="file-name">Button.jsx</span>
+                    <span class="file-count warning">1</span>
+                </li>
+                <li class="file-item" data-file="components/Modal.jsx">
+                    <span class="file-icon">📄</span>
+                    <span class="file-name">Modal.jsx</span>
+                    <span class="file-count warning">2</span>
+                </li>
+                <li class="file-item" data-file="hooks/useAuth.js">
+                    <span class="file-icon">📄</span>
+                    <span class="file-name">useAuth.js</span>
+                    <span class="file-count">3</span>
+                </li>
+            </ul>
+
+            <div class="filter-section">
+                <h4 class="filter-title">Filter by Severity</h4>
+                <div class="filter-options">
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="filterError" checked>
+                        <label for="filterError">Errors</label>
+                        <span class="filter-count" id="filterErrorCount">(8)</span>
+                    </div>
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="filterWarning" checked>
+                        <label for="filterWarning">Warnings</label>
+                        <span class="filter-count" id="filterWarningCount">(15)</span>
+                    </div>
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="filterInfo" checked>
+                        <label for="filterInfo">Info</label>
+                        <span class="filter-count" id="filterInfoCount">(3)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h4 class="filter-title">Options</h4>
+                <div class="filter-options">
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="autoFix" checked>
+                        <label for="autoFix">Show Auto-fix</label>
+                    </div>
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="showContext" checked>
+                        <label for="showContext">Show Code Context</label>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="content-area">
+            <div class="content-header">
+                <div>
+                    <h3 class="content-title">Lint Results: <span id="currentFile">App.jsx</span></h3>
+                </div>
+                <div class="content-actions">
+                    <input type="text" class="search-bar" id="searchInput" placeholder="Search issues...">
+                    <button class="action-btn" id="fixAllBtn">Fix All</button>
+                    <button class="action-btn" id="refreshBtn">Refresh</button>
+                </div>
+            </div>
+
+            <div class="lint-results" id="lintResults">
+                <!-- Error 1 -->
+                <div class="lint-item error" data-severity="error">
+                    <div class="lint-header">
+                        <div>
+                            <div class="lint-severity error">
+                                <span>🔴</span>
+                                <span>Error</span>
+                            </div>
+                        </div>
+                        <div class="lint-rule">no-unused-vars</div>
+                    </div>
+                    <div class="lint-message">
+                        'useState' is defined but never used
+                    </div>
+                    <div class="lint-location">
+                        <div class="location-item">
+                            <span class="location-icon">📁</span>
+                            <span>App.jsx</span>
+                        </div>
+                        <div class="location-item">
+                            <span class="location-icon">📍</span>
+                            <span>Line 5:10</span>
+                        </div>
+                    </div>
+                    <div class="lint-code">
+                        <div class="code-line">
+                            <span class="code-line-number">4</span>
+                            <span class="code-line-content">import React, { useEffect, useCallback } from 'react';</span>
+                        </div>
+                        <div class="code-line highlight">
+                            <span class="code-line-number">5</span>
+                            <span class="code-line-content">import { useState } from 'react';</span>
+                        </div>
+                        <div class="code-line">
+                            <span class="code-line-number">6</span>
+                            <span class="code-line-content"></span>
+                        </div>
+                    </div>
+                    <div class="lint-actions">
+                        <button class="lint-action-btn fix">🔧 Auto-fix</button>
+                        <button class="lint-action-btn">View Rule</button>
+                        <button class="lint-action-btn">Ignore</button>
+                    </div>
+                </div>
+
+                <!-- Error 2 -->
+                <div class="lint-item error" data-severity="error">
+                    <div class="lint-header">
+                        <div>
+                            <div class="lint-severity error">
+                                <span>🔴</span>
+                                <span>Error</span>
+                            </div>
+                        </div>
+                        <div class="lint-rule">react-hooks/exhaustive-deps</div>
+                    </div>
+                    <div class="lint-message">
+                        React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array.
+                    </div>
+                    <div class="lint-location">
+                        <div class="location-item">
+                            <span class="location-icon">📁</span>
+                            <span>App.jsx</span>
+                        </div>
+                        <div class="location-item">
+                            <span class="location-icon">📍</span>
+                            <span>Line 24:6</span>
+                        </div>
+                    </div>
+                    <div class="lint-code">
+                        <div class="code-line">
+                            <span class="code-line-number">23</span>
+                            <span class="code-line-content">    fetchData();</span>
+                        </div>
+                        <div class="code-line highlight">
+                            <span class="code-line-number">24</span>
+                            <span class="code-line-content">  }, []);</span>
+                        </div>
+                        <div class="code-line">
+                            <span class="code-line-number">25</span>
+                            <span class="code-line-content"></span>
+                        </div>
+                    </div>
+                    <div class="lint-actions">
+                        <button class="lint-action-btn fix">🔧 Auto-fix</button>
+                        <button class="lint-action-btn">View Rule</button>
+                        <button class="lint-action-btn">Ignore</button>
+                    </div>
+                </div>
+
+                <!-- Warning 1 -->
+                <div class="lint-item warning" data-severity="warning">
+                    <div class="lint-header">
+                        <div>
+                            <div class="lint-severity warning">
+                                <span>⚠️</span>
+                                <span>Warning</span>
+                            </div>
+                        </div>
+                        <div class="lint-rule">no-console</div>
+                    </div>
+                    <div class="lint-message">
+                        Unexpected console statement
+                    </div>
+                    <div class="lint-location">
+                        <div class="location-item">
+                            <span class="location-icon">📁</span>
+                            <span>App.jsx</span>
+                        </div>
+                        <div class="location-item">
+                            <span class="location-icon">📍</span>
+                            <span>Line 18:5</span>
+                        </div>
+                    </div>
+                    <div class="lint-code">
+                        <div class="code-line">
+                            <span class="code-line-number">17</span>
+                            <span class="code-line-content">  const handleSubmit = () => {</span>
+                        </div>
+                        <div class="code-line highlight">
+                            <span class="code-line-number">18</span>
+                            <span class="code-line-content">    console.log('Form submitted');</span>
+                        </div>
+                        <div class="code-line">
+                            <span class="code-line-number">19</span>
+                            <span class="code-line-content">  };</span>
+                        </div>
+                    </div>
+                    <div class="lint-actions">
+                        <button class="lint-action-btn fix">🔧 Remove</button>
+                        <button class="lint-action-btn">View Rule</button>
+                        <button class="lint-action-btn">Disable for line</button>
+                    </div>
+                </div>
+
+                <!-- Warning 2 -->
+                <div class="lint-item warning" data-severity="warning">
+                    <div class="lint-header">
+                        <div>
+                            <div class="lint-severity warning">
+                                <span>⚠️</span>
+                                <span>Warning</span>
+                            </div>
+                        </div>
+                        <div class="lint-rule">prefer-const</div>
+                    </div>
+                    <div class="lint-message">
+                        'data' is never reassigned. Use 'const' instead
+                    </div>
+                    <div class="lint-location">
+                        <div class="location-item">
+                            <span class="location-icon">📁</span>
+                            <span>App.jsx</span>
+                        </div>
+                        <div class="location-item">
+                            <span class="location-icon">📍</span>
+                            <span>Line 32:5</span>
+                        </div>
+                    </div>
+                    <div class="lint-code">
+                        <div class="code-line">
+                            <span class="code-line-number">31</span>
+                            <span class="code-line-content">  const fetchData = async () => {</span>
+                        </div>
+                        <div class="code-line highlight">
+                            <span class="code-line-number">32</span>
+                            <span class="code-line-content">    let data = await api.get('/users');</span>
+                        </div>
+                        <div class="code-line">
+                            <span class="code-line-number">33</span>
+                            <span class="code-line-content">    return data;</span>
+                        </div>
+                    </div>
+                    <div class="lint-actions">
+                        <button class="lint-action-btn fix">🔧 Use const</button>
+                        <button class="lint-action-btn">View Rule</button>
+                        <button class="lint-action-btn">Ignore</button>
+                    </div>
+                </div>
+
+                <!-- Info 1 -->
+                <div class="lint-item info" data-severity="info">
+                    <div class="lint-header">
+                        <div>
+                            <div class="lint-severity info">
+                                <span>ℹ️</span>
+                                <span>Info</span>
+                            </div>
+                        </div>
+                        <div class="lint-rule">react/jsx-no-target-blank</div>
+                    </div>
+                    <div class="lint-message">
+                        Using target="_blank" without rel="noopener noreferrer" is a security risk
+                    </div>
+                    <div class="lint-location">
+                        <div class="location-item">
+                            <span class="location-icon">📁</span>
+                            <span>App.jsx</span>
+                        </div>
+                        <div class="location-item">
+                            <span class="location-icon">📍</span>
+                            <span>Line 45:9</span>
+                        </div>
+                    </div>
+                    <div class="lint-code">
+                        <div class="code-line">
+                            <span class="code-line-number">44</span>
+                            <span class="code-line-content">  &lt;footer&gt;</span>
+                        </div>
+                        <div class="code-line highlight">
+                            <span class="code-line-number">45</span>
+                            <span class="code-line-content">    &lt;a href="https://example.com" target="_blank"&gt;Visit Site&lt;/a&gt;</span>
+                        </div>
+                        <div class="code-line">
+                            <span class="code-line-number">46</span>
+                            <span class="code-line-content">  &lt;/footer&gt;</span>
+                        </div>
+                    </div>
+                    <div class="lint-actions">
+                        <button class="lint-action-btn fix">🔧 Add rel attribute</button>
+                        <button class="lint-action-btn">View Rule</button>
+                        <button class="lint-action-btn">Ignore</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="rule-details">
+        <div class="rule-card">
+            <h4 class="rule-title">no-unused-vars</h4>
+            <p class="rule-description">
+                Disallow unused variables. Variables that are declared but never used clutter the codebase and can lead to confusion.
+            </p>
+            <div class="rule-stats">
+                <div class="rule-stat">
+                    <div class="rule-stat-value">3</div>
+                    <div class="rule-stat-label">Violations</div>
+                </div>
+                <div class="rule-stat">
+                    <div class="rule-stat-value">Yes</div>
+                    <div class="rule-stat-label">Auto-fixable</div>
+                </div>
+                <div class="rule-stat">
+                    <div class="rule-stat-value">Error</div>
+                    <div class="rule-stat-label">Severity</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="rule-card">
+            <h4 class="rule-title">react-hooks/exhaustive-deps</h4>
+            <p class="rule-description">
+                Verifies the list of dependencies for Hooks like useEffect and similar are correct. Missing dependencies can cause stale closures.
+            </p>
+            <div class="rule-stats">
+                <div class="rule-stat">
+                    <div class="rule-stat-value">2</div>
+                    <div class="rule-stat-label">Violations</div>
+                </div>
+                <div class="rule-stat">
+                    <div class="rule-stat-value">Yes</div>
+                    <div class="rule-stat-label">Auto-fixable</div>
+                </div>
+                <div class="rule-stat">
+                    <div class="rule-stat-value">Error</div>
+                    <div class="rule-stat-label">Severity</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="rule-card">
+            <h4 class="rule-title">no-console</h4>
+            <p class="rule-description">
+                Disallow the use of console statements in production code. Console statements should be removed before deploying to production.
+            </p>
+            <div class="rule-stats">
+                <div class="rule-stat">
+                    <div class="rule-stat-value">8</div>
+                    <div class="rule-stat-label">Violations</div>
+                </div>
+                <div class="rule-stat">
+                    <div class="rule-stat-value">Yes</div>
+                    <div class="rule-stat-label">Auto-fixable</div>
+                </div>
+                <div class="rule-stat">
+                    <div class="rule-stat-value">Warning</div>
+                    <div class="rule-stat-label">Severity</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="rule-card">
+            <h4 class="rule-title">prefer-const</h4>
+            <p class="rule-description">
+                Require const declarations for variables that are never reassigned. Using const makes code more predictable and easier to understand.
+            </p>
+            <div class="rule-stats">
+                <div class="rule-stat">
+                    <div class="rule-stat-value">5</div>
+                    <div class="rule-stat-label">Violations</div>
+                </div>
+                <div class="rule-stat">
+                    <div class="rule-stat-value">Yes</div>
+                    <div class="rule-stat-label">Auto-fixable</div>
+                </div>
+                <div class="rule-stat">
+                    <div class="rule-stat-value">Warning</div>
+                    <div class="rule-stat-label">Severity</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="rule-card">
+            <h4 class="rule-title">react/jsx-no-target-blank</h4>
+            <p class="rule-description">
+                Prevent usage of unsafe target='_blank' without rel="noopener noreferrer". This prevents tab-napping security vulnerabilities.
+            </p>
+            <div class="rule-stats">
+                <div class="rule-stat">
+                    <div class="rule-stat-value">3</div>
+                    <div class="rule-stat-label">Violations</div>
+                </div>
+                <div class="rule-stat">
+                    <div class="rule-stat-value">Yes</div>
+                    <div class="rule-stat-label">Auto-fixable</div>
+                </div>
+                <div class="rule-stat">
+                    <div class="rule-stat-value">Info</div>
+                    <div class="rule-stat-label">Severity</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="rule-card">
+            <h4 class="rule-title">eqeqeq</h4>
+            <p class="rule-description">
+                Require === and !== instead of == and !=. Using strict equality prevents type coercion bugs and makes code behavior more predictable.
+            </p>
+            <div class="rule-stats">
+                <div class="rule-stat">
+                    <div class="rule-stat-value">4</div>
+                    <div class="rule-stat-label">Violations</div>
+                </div>
+                <div class="rule-stat">
+                    <div class="rule-stat-value">Yes</div>
+                    <div class="rule-stat-label">Auto-fixable</div>
+                </div>
+                <div class="rule-stat">
+                    <div class="rule-stat-value">Warning</div>
+                    <div class="rule-stat-label">Severity</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="status-bar">
+        <div class="status-info">
+            <div class="status-item">
+                <span>Active File:</span>
+                <span id="statusFile">App.jsx</span>
+            </div>
+            <div class="status-item">
+                <span>Total Issues:</span>
+                <span id="statusTotal">26</span>
+            </div>
+            <div class="status-item">
+                <span>Visible:</span>
+                <span id="statusVisible">5</span>
+            </div>
+            <div class="status-item">
+                <span>Auto-fixable:</span>
+                <span id="statusFixable">21</span>
+            </div>
+        </div>
+        <div class="status-indicator-group">
+            <span class="status-dot"></span>
+            <span style="font-size: 0.75rem; color: var(--text-gray);">ESLint Active</span>
+        </div>
+    </footer>
+
+    <script>
+        // State management
+        const state = {
+            currentFile: 'App.jsx',
+            filters: {
+                error: true,
+                warning: true,
+                info: true
+            },
+            searchQuery: '',
+            totalIssues: 26,
+            visibleIssues: 5
+        };
+
+        // DOM references
+        const fileItems = document.querySelectorAll('.file-item');
+        const filterError = document.getElementById('filterError');
+        const filterWarning = document.getElementById('filterWarning');
+        const filterInfo = document.getElementById('filterInfo');
+        const searchInput = document.getElementById('searchInput');
+        const lintResults = document.getElementById('lintResults');
+        const lintItems = document.querySelectorAll('.lint-item');
+        const fixAllBtn = document.getElementById('fixAllBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+
+        // Status elements
+        const statusFile = document.getElementById('statusFile');
+        const statusTotal = document.getElementById('statusTotal');
+        const statusVisible = document.getElementById('statusVisible');
+        const statusFixable = document.getElementById('statusFixable');
+
+        // File switching
+        fileItems.forEach(item => {
+            item.addEventListener('click', () => {
+                state.currentFile = item.dataset.file;
+                
+                fileItems.forEach(f => f.classList.remove('active'));
+                item.classList.add('active');
+                
+                document.getElementById('currentFile').textContent = state.currentFile;
+                statusFile.textContent = state.currentFile;
+                
+                // Simulate loading different file results
+                showLoadingState();
+            });
+        });
+
+        // Filter functionality
+        function updateFilters() {
+            state.filters.error = filterError.checked;
+            state.filters.warning = filterWarning.checked;
+            state.filters.info = filterInfo.checked;
+            applyFilters();
+        }
+
+        filterError.addEventListener('change', updateFilters);
+        filterWarning.addEventListener('change', updateFilters);
+        filterInfo.addEventListener('change', updateFilters);
+
+        // Apply filters
+        function applyFilters() {
+            let visibleCount = 0;
+            
+            lintItems.forEach(item => {
+                const severity = item.dataset.severity;
+                const matchesSeverity = state.filters[severity];
+                const matchesSearch = state.searchQuery === '' || 
+                    item.textContent.toLowerCase().includes(state.searchQuery.toLowerCase());
+                
+                if (matchesSeverity && matchesSearch) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            state.visibleIssues = visibleCount;
+            statusVisible.textContent = visibleCount;
+            
+            if (visibleCount === 0) {
+                showEmptyState();
+            } else {
+                hideEmptyState();
+            }
+        }
+
+        // Search functionality
+        searchInput.addEventListener('input', (e) => {
+            state.searchQuery = e.target.value;
+            applyFilters();
+        });
+
+        // Fix all functionality
+        fixAllBtn.addEventListener('click', () => {
+            if (confirm('Apply all auto-fixes? This will modify your code.')) {
+                const fixableItems = document.querySelectorAll('.lint-action-btn.fix');
+                let fixed = 0;
+                
+                fixableItems.forEach(btn => {
+                    if (btn.closest('.lint-item').style.display !== 'none') {
+                        fixed++;
+                    }
+                });
+                
+                setTimeout(() => {
+                    alert(`Fixed ${fixed} issues!`);
+                    // Simulate removing fixed items
+                    lintItems.forEach(item => {
+                        if (item.querySelector('.lint-action-btn.fix') && item.style.display !== 'none') {
+                            item.style.animation = 'fadeOut 0.3s ease';
+                            setTimeout(() => {
+                                item.style.display = 'none';
+                                state.visibleIssues--;
+                                statusVisible.textContent = state.visibleIssues;
+                            }, 300);
+                        }
+                    });
+                }, 500);
+            }
+        });
+
+        // Refresh functionality
+        refreshBtn.addEventListener('click', () => {
+            refreshBtn.textContent = 'Refreshing...';
+            refreshBtn.style.opacity = '0.6';
+            
+            setTimeout(() => {
+                refreshBtn.textContent = 'Refresh';
+                refreshBtn.style.opacity = '1';
+                alert('Lint results refreshed!');
+            }, 1000);
+        });
+
+        // Individual lint action buttons
+        document.querySelectorAll('.lint-action-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const action = btn.textContent.trim();
+                
+                if (action.includes('Auto-fix') || action.includes('Remove') || action.includes('Use const') || action.includes('Add rel')) {
+                    btn.textContent = '✓ Fixed';
+                    btn.style.background = 'rgba(34, 197, 94, 0.2)';
+                    btn.style.borderColor = '#22c55e';
+                    btn.style.color = '#22c55e';
+                    btn.disabled = true;
+                    
+                    setTimeout(() => {
+                        const lintItem = btn.closest('.lint-item');
+                        lintItem.style.animation = 'fadeOut 0.3s ease';
+                        setTimeout(() => {
+                            lintItem.style.display = 'none';
+                            state.visibleIssues--;
+                            statusVisible.textContent = state.visibleIssues;
+                        }, 300);
+                    }, 1000);
+                } else if (action.includes('View Rule')) {
+                    alert('Opening rule documentation...');
+                } else if (action.includes('Ignore') || action.includes('Disable')) {
+                    const lintItem = btn.closest('.lint-item');
+                    lintItem.style.opacity = '0.5';
+                    btn.textContent = '✓ Ignored';
+                    btn.disabled = true;
+                }
+            });
+        });
+
+        // Loading state
+        function showLoadingState() {
+            lintResults.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-message">Loading lint results...</div></div>';
+            
+            setTimeout(() => {
+                location.reload(); // Simulate loading new file data
+            }, 800);
+        }
+
+        // Empty state
+        function showEmptyState() {
+            if (lintResults.querySelector('.empty-state')) return;
+            
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'empty-state';
+            emptyDiv.innerHTML = `
+                <div class="empty-icon">✨</div>
+                <div class="empty-message">No issues found</div>
+                <div class="empty-submessage">All code quality checks passed!</div>
+            `;
+            lintResults.appendChild(emptyDiv);
+        }
+
+        function hideEmptyState() {
+            const emptyState = lintResults.querySelector('.empty-state');
+            if (emptyState && emptyState.querySelector('.empty-icon').textContent === '✨') {
+                emptyState.remove();
+            }
+        }
+
+        // Fade out animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from { opacity: 1; transform: translateX(0); }
+                to { opacity: 0; transform: translateX(-20px); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize
+        applyFilters();
+    </script>
+</body>
+</html>

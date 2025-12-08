@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Runner Panel - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 1.5rem;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        /* Back Button */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.6rem 1.2rem;
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            background: var(--bg-card);
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .back-button:hover {
+            border-color: var(--jazer-cyan);
+            box-shadow: var(--shadow-cyan);
+            transform: translateX(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(57, 255, 20, 0.08) 50%, rgba(255, 190, 11, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--jazer-cyan), #39ff14);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--jazer-cyan) 0%, #39ff14 50%, var(--jazer-yellow) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main Grid Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 1400px) {
+            .main-grid {
+                grid-template-columns: 1fr 380px;
+            }
+        }
+
+        /* Test Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .summary-card.passed::before {
+            background: #39ff14;
+        }
+
+        .summary-card.failed::before {
+            background: var(--jazer-pink);
+        }
+
+        .summary-card.skipped::before {
+            background: var(--jazer-yellow);
+        }
+
+        .summary-card.running::before {
+            background: var(--jazer-cyan);
+        }
+
+        .summary-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(6, 182, 212, 0.2);
+        }
+
+        .summary-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .summary-title {
+            font-family: var(--font-secondary);
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-icon {
+            font-size: 1.5rem;
+        }
+
+        .summary-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            font-family: var(--font-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-value.passed {
+            color: #39ff14;
+        }
+
+        .summary-value.failed {
+            color: var(--jazer-pink);
+        }
+
+        .summary-value.skipped {
+            color: var(--jazer-yellow);
+        }
+
+        .summary-value.running {
+            color: var(--jazer-cyan);
+        }
+
+        .summary-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Test List Panel */
+        .test-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .test-panel:hover {
+            border-color: var(--jazer-cyan);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-default);
+        }
+
+        .panel-title {
+            font-family: var(--font-secondary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--jazer-cyan);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Test Filter Tabs */
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            border: 2px solid var(--border-default);
+            background: rgba(6, 182, 212, 0.05);
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+        }
+
+        .filter-tab:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+        }
+
+        .filter-tab.active {
+            background: rgba(6, 182, 212, 0.2);
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+        }
+
+        /* Test List */
+        .test-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .test-item {
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 4px solid var(--border-default);
+            border-radius: 6px;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .test-item:hover {
+            background: rgba(6, 182, 212, 0.05);
+            transform: translateX(4px);
+        }
+
+        .test-item.passed {
+            border-left-color: #39ff14;
+        }
+
+        .test-item.failed {
+            border-left-color: var(--jazer-pink);
+        }
+
+        .test-item.skipped {
+            border-left-color: var(--jazer-yellow);
+        }
+
+        .test-item.running {
+            border-left-color: var(--jazer-cyan);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .test-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .test-name {
+            font-weight: 600;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .test-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .test-status.passed {
+            background: rgba(57, 255, 20, 0.2);
+            color: #39ff14;
+            border: 1px solid #39ff14;
+        }
+
+        .test-status.failed {
+            background: rgba(236, 72, 153, 0.2);
+            color: var(--jazer-pink);
+            border: 1px solid var(--jazer-pink);
+        }
+
+        .test-status.skipped {
+            background: rgba(255, 190, 11, 0.2);
+            color: var(--jazer-yellow);
+            border: 1px solid var(--jazer-yellow);
+        }
+
+        .test-status.running {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+        }
+
+        .test-info {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .test-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .test-duration {
+            color: var(--jazer-cyan);
+        }
+
+        .test-file {
+            font-family: 'Courier New', monospace;
+            color: var(--jazer-purple);
+        }
+
+        /* Test Details */
+        .test-details {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 0.75rem;
+            display: none;
+        }
+
+        .test-item.expanded .test-details {
+            display: block;
+        }
+
+        .test-details-title {
+            font-weight: 600;
+            color: var(--jazer-cyan);
+            margin-bottom: 0.5rem;
+        }
+
+        .test-details-content {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .test-error {
+            color: var(--jazer-pink);
+        }
+
+        /* Coverage Panel */
+        .coverage-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .coverage-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .coverage-item {
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 2px solid var(--border-default);
+        }
+
+        .coverage-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .coverage-bar-container {
+            width: 100%;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .coverage-bar {
+            height: 100%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .coverage-bar.high {
+            background: linear-gradient(90deg, #39ff14, var(--jazer-cyan));
+        }
+
+        .coverage-bar.medium {
+            background: linear-gradient(90deg, var(--jazer-yellow), var(--jazer-orange));
+        }
+
+        .coverage-bar.low {
+            background: linear-gradient(90deg, var(--jazer-pink), var(--jazer-orange));
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        details {
+            margin-bottom: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+        }
+
+        details:hover {
+            border-color: var(--jazer-cyan);
+        }
+
+        details[open] {
+            border-color: var(--jazer-cyan);
+        }
+
+        summary {
+            padding: 0.875rem 1rem;
+            cursor: pointer;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            background: rgba(6, 182, 212, 0.05);
+            transition: all 0.2s ease;
+            user-select: none;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        summary::after {
+            content: '▼';
+            font-size: 0.7rem;
+            color: var(--jazer-cyan);
+            transition: transform 0.2s ease;
+        }
+
+        details[open] summary::after {
+            transform: rotate(-180deg);
+        }
+
+        summary:hover {
+            background: rgba(6, 182, 212, 0.15);
+            color: var(--jazer-cyan);
+        }
+
+        .details-content {
+            padding: 1rem;
+        }
+
+        /* Action Buttons */
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.75rem;
+            background: rgba(6, 182, 212, 0.1);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .action-btn:hover {
+            border-color: var(--jazer-cyan);
+            background: rgba(6, 182, 212, 0.2);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+        }
+
+        .action-btn.primary {
+            background: var(--gradient-primary);
+            border-color: var(--jazer-cyan);
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Checkbox Toggle */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .checkbox-wrapper:hover {
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--jazer-cyan);
+        }
+
+        .checkbox-label {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            cursor: pointer;
+            flex: 1;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .status-info {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% {
+                opacity: 1;
+                box-shadow: 0 0 4px var(--jazer-cyan);
+            }
+            50% {
+                opacity: 0.5;
+                box-shadow: 0 0 8px var(--jazer-cyan);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1400px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+
+            .hero {
+                padding: 1.5rem 1rem;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .coverage-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .test-panel,
+            .controls-panel {
+                padding: 1rem;
+            }
+
+            .status-bar {
+                padding: 0.75rem 1rem;
+            }
+
+            .status-info {
+                gap: 0.75rem;
+            }
+        }
+
+        /* Progress Indicator */
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--gradient-primary);
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back to DevTools</a>
+
+        <header class="hero">
+            <h1>Test Runner Panel</h1>
+            <p class="hero-description">Test execution, coverage reporting, and result analysis dashboard</p>
+        </header>
+
+        <div class="main-grid">
+            <!-- Left Column: Tests -->
+            <div>
+                <!-- Summary Cards -->
+                <div class="summary-grid">
+                    <div class="summary-card passed">
+                        <div class="summary-header">
+                            <span class="summary-title">Passed</span>
+                            <span class="summary-icon">✓</span>
+                        </div>
+                        <div class="summary-value passed" id="passedCount">127</div>
+                        <div class="summary-subtitle">Tests Successful</div>
+                    </div>
+
+                    <div class="summary-card failed">
+                        <div class="summary-header">
+                            <span class="summary-title">Failed</span>
+                            <span class="summary-icon">✗</span>
+                        </div>
+                        <div class="summary-value failed" id="failedCount">3</div>
+                        <div class="summary-subtitle">Tests Failed</div>
+                    </div>
+
+                    <div class="summary-card skipped">
+                        <div class="summary-header">
+                            <span class="summary-title">Skipped</span>
+                            <span class="summary-icon">⊘</span>
+                        </div>
+                        <div class="summary-value skipped" id="skippedCount">8</div>
+                        <div class="summary-subtitle">Tests Skipped</div>
+                    </div>
+
+                    <div class="summary-card running">
+                        <div class="summary-header">
+                            <span class="summary-title">Duration</span>
+                            <span class="summary-icon">⏱️</span>
+                        </div>
+                        <div class="summary-value running" id="durationValue">12.5s</div>
+                        <div class="summary-subtitle">Total Time</div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar" style="width: 92%"></div>
+                </div>
+
+                <!-- Test List -->
+                <div class="test-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <span>🧪</span>
+                            <span>Test Results</span>
+                        </div>
+                        <div class="filter-tabs">
+                            <button class="filter-tab active" onclick="filterTests('all')">All</button>
+                            <button class="filter-tab" onclick="filterTests('passed')">Passed</button>
+                            <button class="filter-tab" onclick="filterTests('failed')">Failed</button>
+                            <button class="filter-tab" onclick="filterTests('skipped')">Skipped</button>
+                        </div>
+                    </div>
+
+                    <div class="test-list" id="testList"></div>
+                </div>
+
+                <!-- Coverage Panel -->
+                <div class="coverage-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <span>📊</span>
+                            <span>Code Coverage</span>
+                        </div>
+                    </div>
+
+                    <div class="coverage-grid">
+                        <div class="coverage-item">
+                            <div class="coverage-label">Statements</div>
+                            <div class="coverage-bar-container">
+                                <div class="coverage-bar high" style="width: 87%">87%</div>
+                            </div>
+                        </div>
+
+                        <div class="coverage-item">
+                            <div class="coverage-label">Branches</div>
+                            <div class="coverage-bar-container">
+                                <div class="coverage-bar high" style="width: 76%">76%</div>
+                            </div>
+                        </div>
+
+                        <div class="coverage-item">
+                            <div class="coverage-label">Functions</div>
+                            <div class="coverage-bar-container">
+                                <div class="coverage-bar medium" style="width: 68%">68%</div>
+                            </div>
+                        </div>
+
+                        <div class="coverage-item">
+                            <div class="coverage-label">Lines</div>
+                            <div class="coverage-bar-container">
+                                <div class="coverage-bar high" style="width: 84%">84%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Controls -->
+            <div class="controls-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span>⚙️</span>
+                        <span>Test Controls</span>
+                    </div>
+                </div>
+
+                <details open>
+                    <summary>Run Tests</summary>
+                    <div class="details-content">
+                        <div class="action-grid">
+                            <button class="action-btn primary" onclick="runAllTests()">
+                                <span>▶️ Run All Tests</span>
+                            </button>
+                            <button class="action-btn" onclick="runFailedTests()">
+                                <span>🔄 Re-run Failed</span>
+                            </button>
+                            <button class="action-btn" onclick="runChangedTests()">
+                                <span>📝 Run Changed</span>
+                            </button>
+                            <button class="action-btn" onclick="stopTests()">
+                                <span>⏹️ Stop Tests</span>
+                            </button>
+                        </div>
+                    </div>
+                </details>
+
+                <details open>
+                    <summary>Test Options</summary>
+                    <div class="details-content">
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('watchMode')">
+                            <input type="checkbox" id="watchMode">
+                            <label class="checkbox-label">Watch Mode</label>
+                        </div>
+
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('coverage')">
+                            <input type="checkbox" id="coverage" checked>
+                            <label class="checkbox-label">Collect Coverage</label>
+                        </div>
+
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('verbose')">
+                            <input type="checkbox" id="verbose">
+                            <label class="checkbox-label">Verbose Output</label>
+                        </div>
+
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('parallel')">
+                            <input type="checkbox" id="parallel" checked>
+                            <label class="checkbox-label">Run in Parallel</label>
+                        </div>
+
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('bail')">
+                            <input type="checkbox" id="bail">
+                            <label class="checkbox-label">Bail on Failure</label>
+                        </div>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Filter by Suite</summary>
+                    <div class="details-content">
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('unitTests')">
+                            <input type="checkbox" id="unitTests" checked>
+                            <label class="checkbox-label">Unit Tests</label>
+                        </div>
+
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('integrationTests')">
+                            <input type="checkbox" id="integrationTests" checked>
+                            <label class="checkbox-label">Integration Tests</label>
+                        </div>
+
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('e2eTests')">
+                            <input type="checkbox" id="e2eTests">
+                            <label class="checkbox-label">E2E Tests</label>
+                        </div>
+
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox('componentTests')">
+                            <input type="checkbox" id="componentTests" checked>
+                            <label class="checkbox-label">Component Tests</label>
+                        </div>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Reporters</summary>
+                    <div class="details-content">
+                        <div class="action-grid">
+                            <button class="action-btn" onclick="setReporter('default')">📄 Default</button>
+                            <button class="action-btn" onclick="setReporter('verbose')">📝 Verbose</button>
+                            <button class="action-btn" onclick="setReporter('json')">📊 JSON</button>
+                            <button class="action-btn" onclick="setReporter('html')">🌐 HTML</button>
+                        </div>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Export Results</summary>
+                    <div class="details-content">
+                        <div class="action-grid">
+                            <button class="action-btn" onclick="exportResults('json')">📄 Export JSON</button>
+                            <button class="action-btn" onclick="exportResults('xml')">📊 Export XML</button>
+                            <button class="action-btn" onclick="exportResults('html')">🌐 Export HTML</button>
+                            <button class="action-btn" onclick="exportResults('csv')">📈 Export CSV</button>
+                        </div>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>Quick Actions</summary>
+                    <div class="details-content">
+                        <div class="action-grid">
+                            <button class="action-btn" onclick="clearResults()">
+                                <span>🗑️ Clear Results</span>
+                            </button>
+                            <button class="action-btn" onclick="openReport()">
+                                <span>📊 Open Report</span>
+                            </button>
+                            <button class="action-btn" onclick="refreshTests()">
+                                <span>🔄 Refresh</span>
+                            </button>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Status:</span>
+                    <span id="statusText">Idle</span>
+                </div>
+                <div class="status-item">
+                    <span>Total Tests:</span>
+                    <span id="statusTotal">138</span>
+                </div>
+                <div class="status-item">
+                    <span>Pass Rate:</span>
+                    <span id="statusRate">92%</span>
+                </div>
+                <div class="status-item">
+                    <span>Coverage:</span>
+                    <span id="statusCoverage">79%</span>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Runner Ready</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Test Data
+        const tests = [
+            { name: 'UserAuthentication › login with valid credentials', status: 'passed', duration: '245ms', file: 'auth.test.js:12', suite: 'unit' },
+            { name: 'UserAuthentication › logout clears session', status: 'passed', duration: '89ms', file: 'auth.test.js:28', suite: 'unit' },
+            { name: 'ShoppingCart › add item to cart', status: 'passed', duration: '134ms', file: 'cart.test.js:15', suite: 'integration' },
+            { name: 'ShoppingCart › remove item from cart', status: 'failed', duration: '67ms', file: 'cart.test.js:34', error: 'Expected cart.length to be 0 but got 1', suite: 'integration' },
+            { name: 'ShoppingCart › update item quantity', status: 'passed', duration: '112ms', file: 'cart.test.js:52', suite: 'integration' },
+            { name: 'PaymentGateway › process payment', status: 'passed', duration: '456ms', file: 'payment.test.js:20', suite: 'integration' },
+            { name: 'PaymentGateway › handle payment failure', status: 'failed', duration: '198ms', file: 'payment.test.js:45', error: 'Error handler not called', suite: 'integration' },
+            { name: 'ProductCatalog › search products', status: 'passed', duration: '321ms', file: 'catalog.test.js:18', suite: 'unit' },
+            { name: 'ProductCatalog › filter by category', status: 'skipped', duration: '--', file: 'catalog.test.js:39', suite: 'unit' },
+            { name: 'UserProfile › update profile information', status: 'passed', duration: '178ms', file: 'profile.test.js:25', suite: 'unit' },
+            { name: 'UserProfile › upload avatar', status: 'passed', duration: '623ms', file: 'profile.test.js:48', suite: 'unit' },
+            { name: 'OrderManagement › create new order', status: 'passed', duration: '234ms', file: 'orders.test.js:12', suite: 'integration' },
+            { name: 'OrderManagement › cancel order', status: 'failed', duration: '145ms', file: 'orders.test.js:37', error: 'Order status not updated correctly', suite: 'integration' },
+            { name: 'OrderManagement › track order status', status: 'skipped', duration: '--', file: 'orders.test.js:62', suite: 'integration' },
+            { name: 'NotificationService › send email notification', status: 'passed', duration: '412ms', file: 'notifications.test.js:15', suite: 'unit' },
+            { name: 'NotificationService › send SMS notification', status: 'skipped', duration: '--', file: 'notifications.test.js:34', suite: 'unit' }
+        ];
+
+        let currentFilter = 'all';
+
+        // Render Tests
+        function renderTests() {
+            const testList = document.getElementById('testList');
+            const filtered = currentFilter === 'all' ? tests : tests.filter(t => t.status === currentFilter);
+            
+            testList.innerHTML = filtered.map((test, index) => `
+                <div class="test-item ${test.status}" onclick="toggleTestDetails(${index})">
+                    <div class="test-header">
+                        <div class="test-name">
+                            <span>${test.status === 'passed' ? '✓' : test.status === 'failed' ? '✗' : test.status === 'skipped' ? '⊘' : '⟳'}</span>
+                            <span>${test.name}</span>
+                        </div>
+                        <div class="test-status ${test.status}">${test.status}</div>
+                    </div>
+                    <div class="test-info">Test suite: ${test.suite}</div>
+                    <div class="test-meta">
+                        <span class="test-duration">${test.duration}</span>
+                        <span class="test-file">${test.file}</span>
+                    </div>
+                    ${test.error ? `
+                        <div class="test-details">
+                            <div class="test-details-title">Error Details:</div>
+                            <div class="test-details-content test-error">${test.error}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Toggle Test Details
+        function toggleTestDetails(index) {
+            const items = document.querySelectorAll('.test-item');
+            items[index].classList.toggle('expanded');
+        }
+
+        // Filter Tests
+        function filterTests(filter) {
+            currentFilter = filter;
+            renderTests();
+            
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        // Run All Tests
+        function runAllTests() {
+            document.getElementById('statusText').textContent = 'Running Tests...';
+            setTimeout(() => {
+                document.getElementById('statusText').textContent = 'Complete';
+                setTimeout(() => {
+                    document.getElementById('statusText').textContent = 'Idle';
+                }, 2000);
+            }, 3000);
+        }
+
+        // Run Failed Tests
+        function runFailedTests() {
+            document.getElementById('statusText').textContent = 'Re-running Failed Tests...';
+            setTimeout(() => {
+                document.getElementById('statusText').textContent = 'Complete';
+            }, 2000);
+        }
+
+        // Run Changed Tests
+        function runChangedTests() {
+            document.getElementById('statusText').textContent = 'Running Changed Tests...';
+            setTimeout(() => {
+                document.getElementById('statusText').textContent = 'Complete';
+            }, 1500);
+        }
+
+        // Stop Tests
+        function stopTests() {
+            document.getElementById('statusText').textContent = 'Stopped';
+        }
+
+        // Toggle Checkbox
+        function toggleCheckbox(id) {
+            const checkbox = document.getElementById(id);
+            checkbox.checked = !checkbox.checked;
+        }
+
+        // Set Reporter
+        function setReporter(type) {
+            document.getElementById('statusText').textContent = `Reporter: ${type}`;
+        }
+
+        // Export Results
+        function exportResults(format) {
+            const data = {
+                summary: {
+                    total: 138,
+                    passed: 127,
+                    failed: 3,
+                    skipped: 8,
+                    duration: '12.5s'
+                },
+                tests: tests,
+                coverage: {
+                    statements: 87,
+                    branches: 76,
+                    functions: 68,
+                    lines: 84
+                }
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `test-results.${format}`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            document.getElementById('statusText').textContent = `Exported as ${format.toUpperCase()}`;
+        }
+
+        // Clear Results
+        function clearResults() {
+            document.getElementById('statusText').textContent = 'Results Cleared';
+        }
+
+        // Open Report
+        function openReport() {
+            document.getElementById('statusText').textContent = 'Opening Report...';
+        }
+
+        // Refresh Tests
+        function refreshTests() {
+            document.getElementById('statusText').textContent = 'Refreshing...';
+            renderTests();
+            setTimeout(() => {
+                document.getElementById('statusText').textContent = 'Idle';
+            }, 1000);
+        }
+
+        // Initialize
+        renderTests();
+    </script>
+</body>
+</html>

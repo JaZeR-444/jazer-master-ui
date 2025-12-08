@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Diff Checker - JaZeR CSS Patterns</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        /* ==================== BASE STYLES ==================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 242, 234, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(147, 51, 234, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(255, 0, 110, 0.05) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(-3%, 3%) rotate(1deg); }
+            66% { transform: translate(3%, -3%) rotate(-1deg); }
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* ==================== BACK BUTTON ==================== */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-gray);
+            text-decoration: none;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 2px solid var(--border-default);
+            background: var(--bg-card);
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .back-button:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.3);
+        }
+
+        /* ==================== HERO SECTION ==================== */
+        .hero {
+            text-align: center;
+            padding: 2.5rem 2rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(147, 51, 234, 0.08) 50%, rgba(236, 72, 153, 0.08) 100%);
+            border-radius: 20px;
+            border: 2px solid rgba(6, 182, 212, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-primary);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* ==================== CONTROLS BAR ==================== */
+        .controls-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .view-modes {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .view-btn {
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            border: 2px solid var(--border-default);
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.813rem;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .view-btn:hover {
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .view-btn.active {
+            border-color: var(--jazer-cyan);
+            background: rgba(0, 242, 234, 0.2);
+            color: var(--jazer-cyan);
+            box-shadow: 0 0 12px rgba(0, 242, 234, 0.3);
+        }
+
+        .diff-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            border: 2px solid var(--border-default);
+            background: var(--bg-card);
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.813rem;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .action-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            box-shadow: 0 0 16px rgba(0, 242, 234, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--jazer-cyan) 0%, var(--jazer-purple) 100%);
+            border: none;
+            color: var(--bg-dark);
+        }
+
+        /* ==================== INPUT SECTION ==================== */
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-panel:hover {
+            border-color: var(--jazer-cyan);
+        }
+
+        .input-panel.original {
+            border-color: rgba(255, 0, 110, 0.3);
+        }
+
+        .input-panel.modified {
+            border-color: rgba(0, 242, 234, 0.3);
+        }
+
+        .input-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .input-header h2 {
+            font-family: var(--font-secondary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-panel.original h2 {
+            color: var(--jazer-pink);
+        }
+
+        .input-panel.modified h2 {
+            color: var(--jazer-cyan);
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .icon-btn {
+            padding: 0.4rem 0.7rem;
+            border-radius: 6px;
+            border: 2px solid var(--border-default);
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.7rem;
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .icon-btn:hover {
+            border-color: var(--jazer-cyan);
+            color: var(--jazer-cyan);
+            background: rgba(0, 242, 234, 0.1);
+        }
+
+        .input-area textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            color: var(--text-light);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            resize: vertical;
+            transition: all 0.2s ease;
+        }
+
+        .input-area textarea:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 242, 234, 0.2);
+        }
+
+        /* ==================== DIFF OUTPUT ==================== */
+        .diff-output {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .diff-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .diff-header h2 {
+            font-family: var(--font-secondary);
+            font-size: 1.25rem;
+            color: var(--jazer-purple);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .diff-stats {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.813rem;
+        }
+
+        .diff-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .diff-stat.additions {
+            color: var(--jazer-cyan);
+        }
+
+        .diff-stat.deletions {
+            color: var(--jazer-pink);
+        }
+
+        .diff-stat.changes {
+            color: var(--jazer-purple);
+        }
+
+        .diff-stat strong {
+            font-weight: 700;
+            font-family: var(--font-secondary);
+        }
+
+        /* Side-by-side diff view */
+        .side-by-side {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .diff-column {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .diff-column-header {
+            padding: 0.75rem 1rem;
+            font-family: var(--font-secondary);
+            font-size: 0.875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border-default);
+        }
+
+        .diff-column.original .diff-column-header {
+            background: rgba(255, 0, 110, 0.1);
+            color: var(--jazer-pink);
+        }
+
+        .diff-column.modified .diff-column-header {
+            background: rgba(0, 242, 234, 0.1);
+            color: var(--jazer-cyan);
+        }
+
+        .diff-content {
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.8;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .diff-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .diff-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .diff-content::-webkit-scrollbar-thumb {
+            background: var(--jazer-cyan);
+            border-radius: 4px;
+        }
+
+        .diff-line {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 2px;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .line-number {
+            color: var(--text-muted);
+            min-width: 40px;
+            text-align: right;
+            user-select: none;
+        }
+
+        .line-content {
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .diff-line.added {
+            background: rgba(0, 242, 234, 0.15);
+            border-left: 3px solid var(--jazer-cyan);
+        }
+
+        .diff-line.added .line-content {
+            color: var(--jazer-cyan);
+        }
+
+        .diff-line.removed {
+            background: rgba(255, 0, 110, 0.15);
+            border-left: 3px solid var(--jazer-pink);
+        }
+
+        .diff-line.removed .line-content {
+            color: var(--jazer-pink);
+        }
+
+        .diff-line.unchanged {
+            background: transparent;
+        }
+
+        .diff-line.unchanged .line-content {
+            color: var(--text-gray);
+        }
+
+        /* Unified diff view */
+        .unified-diff {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.8;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .unified-diff::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .unified-diff::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .unified-diff::-webkit-scrollbar-thumb {
+            background: var(--jazer-cyan);
+            border-radius: 4px;
+        }
+
+        /* Character-level diff */
+        .char-added {
+            background: rgba(0, 242, 234, 0.3);
+            color: var(--jazer-cyan);
+            font-weight: 700;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+
+        .char-removed {
+            background: rgba(255, 0, 110, 0.3);
+            color: var(--jazer-pink);
+            font-weight: 700;
+            padding: 0 2px;
+            border-radius: 2px;
+            text-decoration: line-through;
+        }
+
+        /* ==================== DIFF SUMMARY ==================== */
+        .diff-summary {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-header {
+            font-family: var(--font-secondary);
+            font-size: 1.1rem;
+            color: var(--jazer-yellow);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .summary-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .summary-card:hover {
+            border-color: var(--jazer-yellow);
+            background: rgba(255, 190, 11, 0.05);
+            transform: translateY(-3px);
+        }
+
+        .summary-card h3 {
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            font-family: var(--font-primary);
+        }
+
+        .summary-card.additions .summary-value {
+            color: var(--jazer-cyan);
+        }
+
+        .summary-card.deletions .summary-value {
+            color: var(--jazer-pink);
+        }
+
+        .summary-card.changes .summary-value {
+            color: var(--jazer-purple);
+        }
+
+        .summary-card.similarity .summary-value {
+            color: var(--jazer-yellow);
+        }
+
+        /* ==================== STATUS BAR ==================== */
+        .status-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .status-info {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.813rem;
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-cyan);
+            font-weight: 700;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.813rem;
+            font-weight: 600;
+            color: var(--text-light);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { 
+                opacity: 1;
+                box-shadow: 0 0 8px var(--jazer-cyan);
+            }
+            50% { 
+                opacity: 0.5;
+                box-shadow: 0 0 16px var(--jazer-cyan);
+            }
+        }
+
+        /* ==================== RESPONSIVE DESIGN ==================== */
+        @media (max-width: 1200px) {
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .side-by-side {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 899px) {
+            body {
+                padding: 1rem;
+            }
+
+            .hero {
+                padding: 1.5rem 1rem;
+            }
+
+            .hero h1 {
+                font-size: 1.75rem;
+            }
+
+            .controls-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .view-modes, .diff-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .view-btn, .action-btn {
+                flex: 1;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* ==================== ANIMATIONS ==================== */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .diff-line {
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        /* ==================== EMPTY STATE ==================== */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state h3 {
+            font-family: var(--font-secondary);
+            font-size: 1.25rem;
+            color: var(--text-gray);
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* ==================== KEYBOARD SHORTCUTS ==================== */
+        .shortcuts-hint {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-top: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .shortcuts-hint strong {
+            color: var(--jazer-cyan);
+            font-family: var(--font-secondary);
+        }
+
+        .kbd {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-default);
+            border-radius: 4px;
+            font-family: var(--font-secondary);
+            font-size: 0.7rem;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Back Button -->
+        <a href="index.html" class="back-button">← Back to Utilities</a>
+
+        <!-- Hero Section -->
+        <header class="hero">
+            <h1>Text Diff Checker</h1>
+            <p class="hero-description">Compare two text versions and visualize differences with side-by-side or unified diff views. Highlight additions, deletions, and changes with character-level precision.</p>
+        </header>
+
+        <!-- Controls Bar -->
+        <section class="controls-bar">
+            <div class="view-modes">
+                <button class="view-btn active" onclick="switchView('sidebyside')" id="viewSideBySide">Side by Side</button>
+                <button class="view-btn" onclick="switchView('unified')" id="viewUnified">Unified</button>
+                <button class="view-btn" onclick="switchView('inline')" id="viewInline">Inline</button>
+            </div>
+            <div class="diff-actions">
+                <button class="action-btn" onclick="swapTexts()">Swap ⇄</button>
+                <button class="action-btn" onclick="clearAll()">Clear</button>
+                <button class="action-btn" onclick="loadSample()">Sample</button>
+                <button class="action-btn primary" onclick="computeDiff()">Compare</button>
+            </div>
+        </section>
+
+        <!-- Input Grid -->
+        <div class="input-grid">
+            <!-- Original Text -->
+            <div class="input-panel original">
+                <div class="input-header">
+                    <h2>Original Text</h2>
+                    <div class="input-actions">
+                        <button class="icon-btn" onclick="pasteText('original')">Paste</button>
+                        <button class="icon-btn" onclick="clearText('original')">Clear</button>
+                    </div>
+                </div>
+                <div class="input-area">
+                    <textarea id="originalText" placeholder="Enter original text here..."></textarea>
+                </div>
+                <div class="shortcuts-hint">
+                    <strong>Tip:</strong> Use <span class="kbd">Ctrl</span> + <span class="kbd">V</span> to paste quickly.
+                </div>
+            </div>
+
+            <!-- Modified Text -->
+            <div class="input-panel modified">
+                <div class="input-header">
+                    <h2>Modified Text</h2>
+                    <div class="input-actions">
+                        <button class="icon-btn" onclick="pasteText('modified')">Paste</button>
+                        <button class="icon-btn" onclick="clearText('modified')">Clear</button>
+                    </div>
+                </div>
+                <div class="input-area">
+                    <textarea id="modifiedText" placeholder="Enter modified text here..."></textarea>
+                </div>
+                <div class="shortcuts-hint">
+                    <strong>Tip:</strong> Press <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span> to compare.
+                </div>
+            </div>
+        </div>
+
+        <!-- Diff Summary -->
+        <section class="diff-summary" id="diffSummary" style="display: none;">
+            <div class="summary-header">Diff Summary</div>
+            <div class="summary-grid">
+                <div class="summary-card additions">
+                    <h3>Lines Added</h3>
+                    <div class="summary-value" id="summaryAdded">0</div>
+                </div>
+                <div class="summary-card deletions">
+                    <h3>Lines Removed</h3>
+                    <div class="summary-value" id="summaryRemoved">0</div>
+                </div>
+                <div class="summary-card changes">
+                    <h3>Lines Changed</h3>
+                    <div class="summary-value" id="summaryChanged">0</div>
+                </div>
+                <div class="summary-card similarity">
+                    <h3>Similarity</h3>
+                    <div class="summary-value" id="summarySimilarity">0%</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Diff Output -->
+        <section class="diff-output" id="diffOutput" style="display: none;">
+            <div class="diff-header">
+                <h2>Comparison Result</h2>
+                <div class="diff-stats">
+                    <div class="diff-stat additions">
+                        <strong>+<span id="statsAdded">0</span></strong> additions
+                    </div>
+                    <div class="diff-stat deletions">
+                        <strong>-<span id="statsRemoved">0</span></strong> deletions
+                    </div>
+                    <div class="diff-stat changes">
+                        <strong>~<span id="statsChanged">0</span></strong> changes
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side by Side View -->
+            <div class="side-by-side" id="sideBySideView">
+                <div class="diff-column original">
+                    <div class="diff-column-header">Original</div>
+                    <div class="diff-content" id="originalDiff"></div>
+                </div>
+                <div class="diff-column modified">
+                    <div class="diff-column-header">Modified</div>
+                    <div class="diff-content" id="modifiedDiff"></div>
+                </div>
+            </div>
+
+            <!-- Unified View -->
+            <div class="unified-diff" id="unifiedView" style="display: none;"></div>
+
+            <!-- Inline View -->
+            <div class="unified-diff" id="inlineView" style="display: none;"></div>
+        </section>
+
+        <!-- Empty State -->
+        <section class="diff-output" id="emptyState">
+            <div class="empty-state">
+                <h3>Ready to Compare</h3>
+                <p>Enter text in both panels above and click "Compare" to see the differences.<br>
+                Or click "Sample" to load example text.</p>
+            </div>
+        </section>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <span>Original Lines:</span>
+                    <span id="statusOriginal">0</span>
+                </div>
+                <div class="status-item">
+                    <span>Modified Lines:</span>
+                    <span id="statusModified">0</span>
+                </div>
+                <div class="status-item">
+                    <span>View Mode:</span>
+                    <span id="statusViewMode">Side by Side</span>
+                </div>
+                <div class="status-item">
+                    <span>Total Changes:</span>
+                    <span id="statusTotalChanges">0</span>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Ready</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // ==================== STATE MANAGEMENT ====================
+        let currentView = 'sidebyside';
+        let diffData = null;
+
+        // ==================== DOM REFERENCES ====================
+        const originalText = document.getElementById('originalText');
+        const modifiedText = document.getElementById('modifiedText');
+        const diffOutput = document.getElementById('diffOutput');
+        const emptyState = document.getElementById('emptyState');
+        const diffSummary = document.getElementById('diffSummary');
+
+        // ==================== DIFF ALGORITHM ====================
+        function computeLCS(text1, text2) {
+            const lines1 = text1.split('\n');
+            const lines2 = text2.split('\n');
+            const m = lines1.length;
+            const n = lines2.length;
+            
+            // Create LCS table
+            const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+            
+            for (let i = 1; i <= m; i++) {
+                for (let j = 1; j <= n; j++) {
+                    if (lines1[i - 1] === lines2[j - 1]) {
+                        dp[i][j] = dp[i - 1][j - 1] + 1;
+                    } else {
+                        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                    }
+                }
+            }
+            
+            // Backtrack to find diff
+            const diff = [];
+            let i = m, j = n;
+            
+            while (i > 0 || j > 0) {
+                if (i > 0 && j > 0 && lines1[i - 1] === lines2[j - 1]) {
+                    diff.unshift({ type: 'unchanged', line: lines1[i - 1], oldLine: i, newLine: j });
+                    i--;
+                    j--;
+                } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+                    diff.unshift({ type: 'added', line: lines2[j - 1], newLine: j });
+                    j--;
+                } else if (i > 0) {
+                    diff.unshift({ type: 'removed', line: lines1[i - 1], oldLine: i });
+                    i--;
+                }
+            }
+            
+            return diff;
+        }
+
+        function computeCharDiff(str1, str2) {
+            // Simple character-level diff for inline changes
+            let result = '';
+            const maxLen = Math.max(str1.length, str2.length);
+            
+            for (let i = 0; i < maxLen; i++) {
+                const c1 = str1[i] || '';
+                const c2 = str2[i] || '';
+                
+                if (c1 === c2) {
+                    result += c1;
+                } else {
+                    if (c1) result += `<span class="char-removed">${c1}</span>`;
+                    if (c2) result += `<span class="char-added">${c2}</span>`;
+                }
+            }
+            
+            return result;
+        }
+
+        // ==================== COMPUTE DIFF ====================
+        function computeDiff() {
+            const text1 = originalText.value;
+            const text2 = modifiedText.value;
+
+            if (!text1 && !text2) {
+                showNotification('Please enter text in both fields');
+                return;
+            }
+
+            diffData = computeLCS(text1, text2);
+            
+            // Calculate statistics
+            const stats = {
+                added: diffData.filter(d => d.type === 'added').length,
+                removed: diffData.filter(d => d.type === 'removed').length,
+                changed: 0,
+                total: diffData.length,
+                originalLines: text1.split('\n').length,
+                modifiedLines: text2.split('\n').length
+            };
+
+            // Calculate similarity percentage
+            const unchanged = diffData.filter(d => d.type === 'unchanged').length;
+            const totalPossible = Math.max(stats.originalLines, stats.modifiedLines);
+            const similarity = totalPossible > 0 ? Math.round((unchanged / totalPossible) * 100) : 0;
+
+            // Update UI
+            emptyState.style.display = 'none';
+            diffOutput.style.display = 'block';
+            diffSummary.style.display = 'block';
+
+            // Update summary
+            document.getElementById('summaryAdded').textContent = stats.added;
+            document.getElementById('summaryRemoved').textContent = stats.removed;
+            document.getElementById('summaryChanged').textContent = stats.added + stats.removed;
+            document.getElementById('summarySimilarity').textContent = similarity + '%';
+
+            // Update stats
+            document.getElementById('statsAdded').textContent = stats.added;
+            document.getElementById('statsRemoved').textContent = stats.removed;
+            document.getElementById('statsChanged').textContent = stats.added + stats.removed;
+
+            // Update status
+            document.getElementById('statusOriginal').textContent = stats.originalLines;
+            document.getElementById('statusModified').textContent = stats.modifiedLines;
+            document.getElementById('statusTotalChanges').textContent = stats.added + stats.removed;
+
+            // Render diff based on current view
+            renderDiff();
+            
+            showNotification('Comparison complete!');
+        }
+
+        // ==================== RENDER DIFF ====================
+        function renderDiff() {
+            if (!diffData) return;
+
+            if (currentView === 'sidebyside') {
+                renderSideBySide();
+            } else if (currentView === 'unified') {
+                renderUnified();
+            } else if (currentView === 'inline') {
+                renderInline();
+            }
+        }
+
+        function renderSideBySide() {
+            const originalDiff = document.getElementById('originalDiff');
+            const modifiedDiff = document.getElementById('modifiedDiff');
+            
+            let originalHTML = '';
+            let modifiedHTML = '';
+            let oldLineNum = 1;
+            let newLineNum = 1;
+
+            diffData.forEach(item => {
+                if (item.type === 'unchanged') {
+                    originalHTML += `
+                        <div class="diff-line unchanged">
+                            <span class="line-number">${oldLineNum++}</span>
+                            <span class="line-content">${escapeHtml(item.line)}</span>
+                        </div>
+                    `;
+                    modifiedHTML += `
+                        <div class="diff-line unchanged">
+                            <span class="line-number">${newLineNum++}</span>
+                            <span class="line-content">${escapeHtml(item.line)}</span>
+                        </div>
+                    `;
+                } else if (item.type === 'removed') {
+                    originalHTML += `
+                        <div class="diff-line removed">
+                            <span class="line-number">${oldLineNum++}</span>
+                            <span class="line-content">${escapeHtml(item.line)}</span>
+                        </div>
+                    `;
+                    modifiedHTML += `<div class="diff-line" style="height: 2.5em; opacity: 0.3;"></div>`;
+                } else if (item.type === 'added') {
+                    originalHTML += `<div class="diff-line" style="height: 2.5em; opacity: 0.3;"></div>`;
+                    modifiedHTML += `
+                        <div class="diff-line added">
+                            <span class="line-number">${newLineNum++}</span>
+                            <span class="line-content">${escapeHtml(item.line)}</span>
+                        </div>
+                    `;
+                }
+            });
+
+            originalDiff.innerHTML = originalHTML;
+            modifiedDiff.innerHTML = modifiedHTML;
+        }
+
+        function renderUnified() {
+            const unifiedView = document.getElementById('unifiedView');
+            let html = '';
+            let oldLineNum = 1;
+            let newLineNum = 1;
+
+            diffData.forEach(item => {
+                if (item.type === 'unchanged') {
+                    html += `
+                        <div class="diff-line unchanged">
+                            <span class="line-number">${oldLineNum++}/${newLineNum++}</span>
+                            <span class="line-content">${escapeHtml(item.line)}</span>
+                        </div>
+                    `;
+                } else if (item.type === 'removed') {
+                    html += `
+                        <div class="diff-line removed">
+                            <span class="line-number">${oldLineNum++}/-</span>
+                            <span class="line-content">- ${escapeHtml(item.line)}</span>
+                        </div>
+                    `;
+                } else if (item.type === 'added') {
+                    html += `
+                        <div class="diff-line added">
+                            <span class="line-number">-/${newLineNum++}</span>
+                            <span class="line-content">+ ${escapeHtml(item.line)}</span>
+                        </div>
+                    `;
+                }
+            });
+
+            unifiedView.innerHTML = html;
+        }
+
+        function renderInline() {
+            const inlineView = document.getElementById('inlineView');
+            let html = '';
+
+            // Group consecutive changes
+            let i = 0;
+            while (i < diffData.length) {
+                const item = diffData[i];
+                
+                if (item.type === 'unchanged') {
+                    html += `
+                        <div class="diff-line unchanged">
+                            <span class="line-content">${escapeHtml(item.line)}</span>
+                        </div>
+                    `;
+                    i++;
+                } else if (item.type === 'removed' && i + 1 < diffData.length && diffData[i + 1].type === 'added') {
+                    // Show inline changes
+                    const charDiff = computeCharDiff(item.line, diffData[i + 1].line);
+                    html += `
+                        <div class="diff-line changed">
+                            <span class="line-content">${charDiff}</span>
+                        </div>
+                    `;
+                    i += 2;
+                } else if (item.type === 'removed') {
+                    html += `
+                        <div class="diff-line removed">
+                            <span class="line-content">- ${escapeHtml(item.line)}</span>
+                        </div>
+                    `;
+                    i++;
+                } else if (item.type === 'added') {
+                    html += `
+                        <div class="diff-line added">
+                            <span class="line-content">+ ${escapeHtml(item.line)}</span>
+                        </div>
+                    `;
+                    i++;
+                }
+            }
+
+            inlineView.innerHTML = html;
+        }
+
+        // ==================== VIEW SWITCHING ====================
+        function switchView(view) {
+            currentView = view;
+
+            // Update button states
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            
+            if (view === 'sidebyside') {
+                document.getElementById('viewSideBySide').classList.add('active');
+                document.getElementById('sideBySideView').style.display = 'grid';
+                document.getElementById('unifiedView').style.display = 'none';
+                document.getElementById('inlineView').style.display = 'none';
+                document.getElementById('statusViewMode').textContent = 'Side by Side';
+            } else if (view === 'unified') {
+                document.getElementById('viewUnified').classList.add('active');
+                document.getElementById('sideBySideView').style.display = 'none';
+                document.getElementById('unifiedView').style.display = 'block';
+                document.getElementById('inlineView').style.display = 'none';
+                document.getElementById('statusViewMode').textContent = 'Unified';
+            } else if (view === 'inline') {
+                document.getElementById('viewInline').classList.add('active');
+                document.getElementById('sideBySideView').style.display = 'none';
+                document.getElementById('unifiedView').style.display = 'none';
+                document.getElementById('inlineView').style.display = 'block';
+                document.getElementById('statusViewMode').textContent = 'Inline';
+            }
+
+            if (diffData) {
+                renderDiff();
+            }
+        }
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function swapTexts() {
+            const temp = originalText.value;
+            originalText.value = modifiedText.value;
+            modifiedText.value = temp;
+            
+            if (diffData) {
+                computeDiff();
+            }
+            
+            showNotification('Texts swapped!');
+        }
+
+        function clearAll() {
+            originalText.value = '';
+            modifiedText.value = '';
+            diffData = null;
+            diffOutput.style.display = 'none';
+            diffSummary.style.display = 'none';
+            emptyState.style.display = 'block';
+            updateStatus();
+            showNotification('Cleared all text');
+        }
+
+        function clearText(which) {
+            if (which === 'original') {
+                originalText.value = '';
+            } else {
+                modifiedText.value = '';
+            }
+            updateStatus();
+        }
+
+        async function pasteText(which) {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (which === 'original') {
+                    originalText.value = text;
+                } else {
+                    modifiedText.value = text;
+                }
+                updateStatus();
+                showNotification('Text pasted!');
+            } catch (err) {
+                console.error('Failed to paste:', err);
+            }
+        }
+
+        function loadSample() {
+            originalText.value = `function calculateTotal(items) {
+    let total = 0;
+    for (let i = 0; i < items.length; i++) {
+        total += items[i].price;
+    }
+    return total;
+}
+
+const result = calculateTotal(cart);
+console.log(result);`;
+
+            modifiedText.value = `function calculateTotal(items, discount = 0) {
+    let total = 0;
+    for (const item of items) {
+        total += item.price * item.quantity;
+    }
+    return total - discount;
+}
+
+const cart = getCartItems();
+const result = calculateTotal(cart, 10);
+console.log('Total:', result);`;
+
+            updateStatus();
+            computeDiff();
+            showNotification('Sample loaded!');
+        }
+
+        function updateStatus() {
+            const lines1 = originalText.value.split('\n').length;
+            const lines2 = modifiedText.value.split('\n').length;
+            
+            document.getElementById('statusOriginal').textContent = lines1;
+            document.getElementById('statusModified').textContent = lines2;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 2rem;
+                right: 2rem;
+                background: rgba(0, 242, 234, 0.95);
+                color: var(--bg-dark);
+                padding: 1rem 1.5rem;
+                border-radius: 12px;
+                font-family: var(--font-secondary);
+                font-weight: 700;
+                font-size: 0.875rem;
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+                box-shadow: 0 10px 30px rgba(0, 242, 234, 0.4);
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+
+        // ==================== KEYBOARD SHORTCUTS ====================
+        document.addEventListener('keydown', (e) => {
+            // Ctrl + Enter: Compare
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                computeDiff();
+            }
+            // Ctrl + Shift + S: Swap
+            else if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+                e.preventDefault();
+                swapTexts();
+            }
+        });
+
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStatus();
+            
+            // Auto-update status on input
+            originalText.addEventListener('input', updateStatus);
+            modifiedText.addEventListener('input', updateStatus);
+        });
+
+        // Add slide animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Request Monitor - JaZeR DevTools</title>
+    <link rel="stylesheet" href="../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 2rem;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid rgba(147, 51, 234, 0.3);
+            background: rgba(147, 51, 234, 0.05);
+            color: var(--jazer-purple);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-family: var(--font-secondary);
+        }
+
+        .back-button:hover {
+            border-color: var(--jazer-purple);
+            background: rgba(147, 51, 234, 0.15);
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(147, 51, 234, 0.08) 50%, rgba(236, 72, 153, 0.08) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(147, 51, 234, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+        }
+
+        .hero h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-description {
+            color: var(--text-gray);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(147, 51, 234, 0.2);
+        }
+
+        .stat-card.requests {
+            border-color: var(--jazer-purple);
+        }
+
+        .stat-card.success {
+            border-color: #22c55e;
+        }
+
+        .stat-card.failed {
+            border-color: var(--jazer-pink);
+        }
+
+        .stat-card.pending {
+            border-color: var(--jazer-yellow);
+        }
+
+        .stat-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            font-family: var(--font-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card.requests .stat-value {
+            color: var(--jazer-purple);
+        }
+
+        .stat-card.success .stat-value {
+            color: #22c55e;
+        }
+
+        .stat-card.failed .stat-value {
+            color: var(--jazer-pink);
+        }
+
+        .stat-card.pending .stat-value {
+            color: var(--jazer-yellow);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .main-container {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .toolbar {
+            background: rgba(147, 51, 234, 0.1);
+            border-bottom: 2px solid var(--border-default);
+            padding: 1rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .toolbar-left {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            background: rgba(147, 51, 234, 0.1);
+            color: var(--jazer-purple);
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+        }
+
+        .toolbar-btn:hover {
+            background: rgba(147, 51, 234, 0.2);
+            border-color: var(--jazer-purple);
+            box-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
+        }
+
+        .toolbar-btn.active {
+            background: rgba(147, 51, 234, 0.3);
+            border-color: var(--jazer-purple);
+            box-shadow: 0 0 8px rgba(147, 51, 234, 0.3);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            color: var(--text-light);
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--jazer-purple);
+            box-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
+        }
+
+        .requests-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .requests-table thead {
+            background: rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .requests-table th {
+            padding: 1rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--jazer-purple);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border-default);
+            font-family: var(--font-secondary);
+        }
+
+        .requests-table tbody {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+        }
+
+        .requests-table tr {
+            border-bottom: 1px solid var(--border-default);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .requests-table tr:hover {
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .requests-table tr.selected {
+            background: rgba(147, 51, 234, 0.2);
+            box-shadow: inset 3px 0 0 var(--jazer-purple);
+        }
+
+        .requests-table td {
+            padding: 0.875rem 1rem;
+        }
+
+        .method-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-align: center;
+            min-width: 50px;
+        }
+
+        .method-get {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid #22c55e;
+        }
+
+        .method-post {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--jazer-cyan);
+            border: 1px solid var(--jazer-cyan);
+        }
+
+        .method-put {
+            background: rgba(255, 190, 11, 0.2);
+            color: var(--jazer-yellow);
+            border: 1px solid var(--jazer-yellow);
+        }
+
+        .method-delete {
+            background: rgba(236, 72, 153, 0.2);
+            color: var(--jazer-pink);
+            border: 1px solid var(--jazer-pink);
+        }
+
+        .method-patch {
+            background: rgba(147, 51, 234, 0.2);
+            color: var(--jazer-purple);
+            border: 1px solid var(--jazer-purple);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .status-2xx {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .status-3xx {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--jazer-cyan);
+        }
+
+        .status-4xx {
+            background: rgba(255, 190, 11, 0.2);
+            color: var(--jazer-yellow);
+        }
+
+        .status-5xx {
+            background: rgba(236, 72, 153, 0.2);
+            color: var(--jazer-pink);
+        }
+
+        .status-pending {
+            background: rgba(147, 51, 234, 0.2);
+            color: var(--jazer-purple);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .timing-cell {
+            color: var(--text-gray);
+        }
+
+        .timing-fast {
+            color: #22c55e;
+        }
+
+        .timing-medium {
+            color: var(--jazer-yellow);
+        }
+
+        .timing-slow {
+            color: var(--jazer-pink);
+        }
+
+        .request-details {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-default);
+        }
+
+        .details-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--jazer-purple);
+            font-family: var(--font-secondary);
+        }
+
+        .details-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--border-default);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--text-gray);
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-family: var(--font-secondary);
+        }
+
+        .tab-btn:hover {
+            border-color: var(--jazer-purple);
+            color: var(--text-light);
+        }
+
+        .tab-btn.active {
+            background: rgba(147, 51, 234, 0.2);
+            border-color: var(--jazer-purple);
+            color: var(--jazer-purple);
+            box-shadow: 0 0 8px rgba(147, 51, 234, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .info-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: var(--font-secondary);
+        }
+
+        .info-value {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+
+        .headers-list {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .header-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-default);
+            display: flex;
+            gap: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+        }
+
+        .header-item:last-child {
+            border-bottom: none;
+        }
+
+        .header-key {
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            min-width: 150px;
+        }
+
+        .header-value {
+            color: var(--text-gray);
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .json-viewer {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .json-viewer pre {
+            margin: 0;
+            color: var(--text-light);
+        }
+
+        .json-key {
+            color: var(--jazer-cyan);
+        }
+
+        .json-string {
+            color: #22c55e;
+        }
+
+        .json-number {
+            color: var(--jazer-yellow);
+        }
+
+        .json-boolean {
+            color: var(--jazer-pink);
+        }
+
+        .status-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .status-item span:first-child {
+            color: var(--text-muted);
+            font-family: var(--font-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item span:last-child {
+            color: var(--jazer-purple);
+            font-weight: 600;
+        }
+
+        .status-indicator-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-purple);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--jazer-purple); }
+            50% { opacity: 0.5; box-shadow: 0 0 8px var(--jazer-purple); }
+        }
+
+        .waterfall-chart {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .waterfall-item {
+            margin-bottom: 0.75rem;
+        }
+
+        .waterfall-label {
+            font-size: 0.7rem;
+            color: var(--text-gray);
+            margin-bottom: 0.25rem;
+            font-family: var(--font-secondary);
+        }
+
+        .waterfall-bar {
+            height: 20px;
+            background: rgba(147, 51, 234, 0.3);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .waterfall-fill {
+            height: 100%;
+            background: var(--jazer-purple);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 0.5rem;
+            font-size: 0.65rem;
+            color: white;
+            font-weight: 700;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .requests-table {
+                font-size: 0.7rem;
+            }
+
+            .requests-table th,
+            .requests-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to DevTools</a>
+
+    <header class="hero">
+        <h1>Network Request Monitor</h1>
+        <p class="hero-description">Track and analyze HTTP requests with detailed timing, headers, and payload inspection for API debugging</p>
+    </header>
+
+    <div class="stats-grid">
+        <div class="stat-card requests">
+            <div class="stat-icon">🌐</div>
+            <div class="stat-value" id="totalRequests">47</div>
+            <div class="stat-label">Total Requests</div>
+        </div>
+
+        <div class="stat-card success">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value" id="successCount">39</div>
+            <div class="stat-label">Success (2xx)</div>
+        </div>
+
+        <div class="stat-card failed">
+            <div class="stat-icon">❌</div>
+            <div class="stat-value" id="failedCount">5</div>
+            <div class="stat-label">Failed (4xx/5xx)</div>
+        </div>
+
+        <div class="stat-card pending">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-value" id="pendingCount">3</div>
+            <div class="stat-label">Pending</div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <button class="toolbar-btn active" data-filter="all">All</button>
+                <button class="toolbar-btn" data-filter="xhr">XHR</button>
+                <button class="toolbar-btn" data-filter="fetch">Fetch</button>
+                <button class="toolbar-btn" data-filter="ws">WebSocket</button>
+                <button class="toolbar-btn" id="clearBtn">Clear</button>
+            </div>
+            <input type="text" class="search-box" id="searchBox" placeholder="Filter by URL...">
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="requests-table">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>URL</th>
+                        <th>Status</th>
+                        <th>Type</th>
+                        <th>Size</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody id="requestsBody">
+                    <tr data-id="1">
+                        <td><span class="method-badge method-get">GET</span></td>
+                        <td>/api/users?page=1&limit=20</td>
+                        <td><span class="status-badge status-2xx">200</span></td>
+                        <td>json</td>
+                        <td>12.4 KB</td>
+                        <td class="timing-cell timing-fast">145ms</td>
+                    </tr>
+                    <tr data-id="2">
+                        <td><span class="method-badge method-post">POST</span></td>
+                        <td>/api/auth/login</td>
+                        <td><span class="status-badge status-2xx">201</span></td>
+                        <td>json</td>
+                        <td>892 B</td>
+                        <td class="timing-cell timing-fast">234ms</td>
+                    </tr>
+                    <tr data-id="3">
+                        <td><span class="method-badge method-get">GET</span></td>
+                        <td>/api/products/featured</td>
+                        <td><span class="status-badge status-2xx">200</span></td>
+                        <td>json</td>
+                        <td>45.2 KB</td>
+                        <td class="timing-cell timing-medium">567ms</td>
+                    </tr>
+                    <tr data-id="4">
+                        <td><span class="method-badge method-delete">DELETE</span></td>
+                        <td>/api/items/123</td>
+                        <td><span class="status-badge status-4xx">404</span></td>
+                        <td>json</td>
+                        <td>156 B</td>
+                        <td class="timing-cell timing-fast">89ms</td>
+                    </tr>
+                    <tr data-id="5">
+                        <td><span class="method-badge method-put">PUT</span></td>
+                        <td>/api/users/456</td>
+                        <td><span class="status-badge status-2xx">200</span></td>
+                        <td>json</td>
+                        <td>2.3 KB</td>
+                        <td class="timing-cell timing-fast">178ms</td>
+                    </tr>
+                    <tr data-id="6">
+                        <td><span class="method-badge method-get">GET</span></td>
+                        <td>/api/analytics/dashboard</td>
+                        <td><span class="status-badge status-2xx">200</span></td>
+                        <td>json</td>
+                        <td>89.5 KB</td>
+                        <td class="timing-cell timing-slow">1234ms</td>
+                    </tr>
+                    <tr data-id="7">
+                        <td><span class="method-badge method-post">POST</span></td>
+                        <td>/api/orders</td>
+                        <td><span class="status-badge status-5xx">500</span></td>
+                        <td>json</td>
+                        <td>345 B</td>
+                        <td class="timing-cell timing-medium">456ms</td>
+                    </tr>
+                    <tr data-id="8">
+                        <td><span class="method-badge method-get">GET</span></td>
+                        <td>/api/notifications</td>
+                        <td><span class="status-badge status-pending">Pending</span></td>
+                        <td>json</td>
+                        <td>—</td>
+                        <td class="timing-cell">—</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="request-details" id="requestDetails" style="display: none;">
+        <div class="details-header">
+            <h3 class="details-title">Request Details</h3>
+            <button class="toolbar-btn" id="closeDetailsBtn">✕ Close</button>
+        </div>
+
+        <div class="details-tabs">
+            <button class="tab-btn active" data-tab="general">General</button>
+            <button class="tab-btn" data-tab="headers">Headers</button>
+            <button class="tab-btn" data-tab="payload">Payload</button>
+            <button class="tab-btn" data-tab="response">Response</button>
+            <button class="tab-btn" data-tab="timing">Timing</button>
+        </div>
+
+        <div class="tab-content active" id="generalTab">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Request URL</div>
+                    <div class="info-value" id="detailUrl">https://api.example.com/users?page=1</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Request Method</div>
+                    <div class="info-value" id="detailMethod">GET</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Status Code</div>
+                    <div class="info-value" id="detailStatus">200 OK</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Remote Address</div>
+                    <div class="info-value">192.168.1.1:443</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Content Type</div>
+                    <div class="info-value">application/json</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Content Length</div>
+                    <div class="info-value" id="detailSize">12.4 KB</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="headersTab">
+            <h4 style="color: var(--jazer-purple); margin-bottom: 1rem; font-size: 0.9rem;">Request Headers</h4>
+            <div class="headers-list">
+                <div class="header-item">
+                    <div class="header-key">Accept:</div>
+                    <div class="header-value">application/json, text/plain, */*</div>
+                </div>
+                <div class="header-item">
+                    <div class="header-key">Authorization:</div>
+                    <div class="header-value">Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</div>
+                </div>
+                <div class="header-item">
+                    <div class="header-key">Content-Type:</div>
+                    <div class="header-value">application/json</div>
+                </div>
+                <div class="header-item">
+                    <div class="header-key">User-Agent:</div>
+                    <div class="header-value">Mozilla/5.0 (Windows NT 10.0; Win64; x64)</div>
+                </div>
+            </div>
+
+            <h4 style="color: var(--jazer-purple); margin: 1.5rem 0 1rem; font-size: 0.9rem;">Response Headers</h4>
+            <div class="headers-list">
+                <div class="header-item">
+                    <div class="header-key">Content-Type:</div>
+                    <div class="header-value">application/json; charset=utf-8</div>
+                </div>
+                <div class="header-item">
+                    <div class="header-key">Cache-Control:</div>
+                    <div class="header-value">no-cache, no-store, must-revalidate</div>
+                </div>
+                <div class="header-item">
+                    <div class="header-key">X-RateLimit-Limit:</div>
+                    <div class="header-value">1000</div>
+                </div>
+                <div class="header-item">
+                    <div class="header-key">X-RateLimit-Remaining:</div>
+                    <div class="header-value">987</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="payloadTab">
+            <div class="json-viewer">
+                <pre>{
+  <span class="json-key">"email"</span>: <span class="json-string">"user@example.com"</span>,
+  <span class="json-key">"password"</span>: <span class="json-string">"********"</span>,
+  <span class="json-key">"rememberMe"</span>: <span class="json-boolean">true</span>
+}</pre>
+            </div>
+        </div>
+
+        <div class="tab-content" id="responseTab">
+            <div class="json-viewer">
+                <pre>{
+  <span class="json-key">"success"</span>: <span class="json-boolean">true</span>,
+  <span class="json-key">"data"</span>: {
+    <span class="json-key">"users"</span>: [
+      {
+        <span class="json-key">"id"</span>: <span class="json-number">1</span>,
+        <span class="json-key">"name"</span>: <span class="json-string">"John Doe"</span>,
+        <span class="json-key">"email"</span>: <span class="json-string">"john@example.com"</span>,
+        <span class="json-key">"active"</span>: <span class="json-boolean">true</span>
+      },
+      {
+        <span class="json-key">"id"</span>: <span class="json-number">2</span>,
+        <span class="json-key">"name"</span>: <span class="json-string">"Jane Smith"</span>,
+        <span class="json-key">"email"</span>: <span class="json-string">"jane@example.com"</span>,
+        <span class="json-key">"active"</span>: <span class="json-boolean">true</span>
+      }
+    ],
+    <span class="json-key">"total"</span>: <span class="json-number">47</span>,
+    <span class="json-key">"page"</span>: <span class="json-number">1</span>,
+    <span class="json-key">"limit"</span>: <span class="json-number">20</span>
+  },
+  <span class="json-key">"timestamp"</span>: <span class="json-string">"2024-12-05T14:32:15.234Z"</span>
+}</pre>
+            </div>
+        </div>
+
+        <div class="tab-content" id="timingTab">
+            <div class="waterfall-chart">
+                <div class="waterfall-item">
+                    <div class="waterfall-label">DNS Lookup</div>
+                    <div class="waterfall-bar">
+                        <div class="waterfall-fill" style="width: 15%;">12ms</div>
+                    </div>
+                </div>
+                <div class="waterfall-item">
+                    <div class="waterfall-label">Initial Connection</div>
+                    <div class="waterfall-bar">
+                        <div class="waterfall-fill" style="width: 25%;">23ms</div>
+                    </div>
+                </div>
+                <div class="waterfall-item">
+                    <div class="waterfall-label">SSL/TLS Handshake</div>
+                    <div class="waterfall-bar">
+                        <div class="waterfall-fill" style="width: 35%;">34ms</div>
+                    </div>
+                </div>
+                <div class="waterfall-item">
+                    <div class="waterfall-label">Request Sent</div>
+                    <div class="waterfall-bar">
+                        <div class="waterfall-fill" style="width: 8%;">5ms</div>
+                    </div>
+                </div>
+                <div class="waterfall-item">
+                    <div class="waterfall-label">Waiting (TTFB)</div>
+                    <div class="waterfall-bar">
+                        <div class="waterfall-fill" style="width: 45%;">56ms</div>
+                    </div>
+                </div>
+                <div class="waterfall-item">
+                    <div class="waterfall-label">Content Download</div>
+                    <div class="waterfall-bar">
+                        <div class="waterfall-fill" style="width: 20%;">15ms</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Total Time</div>
+                    <div class="info-value">145ms</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Queued</div>
+                    <div class="info-value">2ms</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Stalled</div>
+                    <div class="info-value">0ms</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="status-bar">
+        <div class="status-info">
+            <div class="status-item">
+                <span>Requests:</span>
+                <span id="statusTotal">47</span>
+            </div>
+            <div class="status-item">
+                <span>Transferred:</span>
+                <span>234 KB</span>
+            </div>
+            <div class="status-item">
+                <span>Resources:</span>
+                <span>189 KB</span>
+            </div>
+            <div class="status-item">
+                <span>Finish:</span>
+                <span>2.34s</span>
+            </div>
+        </div>
+        <div class="status-indicator-group">
+            <span class="status-dot"></span>
+            <span style="font-size: 0.75rem; color: var(--text-gray);">Monitoring Active</span>
+        </div>
+    </footer>
+
+    <script>
+        // State
+        const state = {
+            selectedRequest: null,
+            activeTab: 'general'
+        };
+
+        // DOM references
+        const requestsBody = document.getElementById('requestsBody');
+        const requestDetails = document.getElementById('requestDetails');
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const filterButtons = document.querySelectorAll('[data-filter]');
+        const searchBox = document.getElementById('searchBox');
+        const clearBtn = document.getElementById('clearBtn');
+        const closeDetailsBtn = document.getElementById('closeDetailsBtn');
+
+        // Request row clicks
+        requestsBody.addEventListener('click', (e) => {
+            const row = e.target.closest('tr');
+            if (!row) return;
+
+            // Deselect all
+            requestsBody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+            
+            // Select clicked
+            row.classList.add('selected');
+            
+            // Show details
+            requestDetails.style.display = 'block';
+            requestDetails.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+
+        // Tab switching
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                
+                tabButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                document.getElementById(tab + 'Tab').classList.add('active');
+            });
+        });
+
+        // Filter buttons
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Apply filter logic here
+            });
+        });
+
+        // Search
+        searchBox.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            requestsBody.querySelectorAll('tr').forEach(row => {
+                const url = row.cells[1]?.textContent.toLowerCase() || '';
+                row.style.display = url.includes(query) ? '' : 'none';
+            });
+        });
+
+        // Clear
+        clearBtn.addEventListener('click', () => {
+            if (confirm('Clear all network requests?')) {
+                requestsBody.innerHTML = '';
+                requestDetails.style.display = 'none';
+            }
+        });
+
+        // Close details
+        closeDetailsBtn.addEventListener('click', () => {
+            requestDetails.style.display = 'none';
+            requestsBody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+        });
+
+        // Simulate new requests
+        const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
+        const urls = [
+            '/api/users',
+            '/api/products',
+            '/api/orders',
+            '/api/auth/refresh',
+            '/api/analytics'
+        ];
+        const statuses = [200, 201, 204, 400, 404, 500];
+
+        setInterval(() => {
+            if (Math.random() > 0.7) {
+                const method = methods[Math.floor(Math.random() * methods.length)];
+                const url = urls[Math.floor(Math.random() * urls.length)];
+                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                const time = Math.floor(Math.random() * 1000) + 50;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="method-badge method-${method.toLowerCase()}">${method}</span></td>
+                    <td>${url}</td>
+                    <td><span class="status-badge status-${Math.floor(status/100)}xx">${status}</span></td>
+                    <td>json</td>
+                    <td>${(Math.random() * 50).toFixed(1)} KB</td>
+                    <td class="timing-cell ${time < 300 ? 'timing-fast' : time < 600 ? 'timing-medium' : 'timing-slow'}">${time}ms</td>
+                `;
+                
+                requestsBody.appendChild(row);
+                
+                // Update counts
+                const total = parseInt(document.getElementById('totalRequests').textContent) + 1;
+                document.getElementById('totalRequests').textContent = total;
+                document.getElementById('statusTotal').textContent = total;
+                
+                if (status >= 200 && status < 300) {
+                    const success = parseInt(document.getElementById('successCount').textContent) + 1;
+                    document.getElementById('successCount').textContent = success;
+                } else if (status >= 400) {
+                    const failed = parseInt(document.getElementById('failedCount').textContent) + 1;
+                    document.getElementById('failedCount').textContent = failed;
+                }
+            }
+        }, 4000);
+    </script>
+</body>
+</html>
