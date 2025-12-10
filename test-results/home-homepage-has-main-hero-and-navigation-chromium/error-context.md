@@ -1,0 +1,104 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "▶ PLAY" [ref=e6] [cursor=pointer]
+      - button "⏹ STOP" [ref=e7] [cursor=pointer]
+      - button "📊 GRAPH" [ref=e9] [cursor=pointer]
+      - button "🎛️ RACK" [ref=e10] [cursor=pointer]
+      - button "🎚️ MIXER" [ref=e11] [cursor=pointer]
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e14]: BPM
+        - generic [ref=e15]: "140"
+      - generic [ref=e16]:
+        - generic [ref=e17]: SWING
+        - generic [ref=e18]: 0%
+      - generic [ref=e19]:
+        - generic [ref=e20]: MASTER
+        - generic "Master Volume" [ref=e21]
+    - generic [ref=e24]:
+      - generic [ref=e25]: GENRE / PRESET
+      - combobox [ref=e26] [cursor=pointer]:
+        - option "Trap (140)" [selected]
+        - option "Hip Hop (140)"
+        - option "UK Drill (142)"
+        - option "Lo-Fi (85)"
+        - option "House (124)"
+        - option "Techno (132)"
+        - option "Jazz (120)"
+        - option "Empty"
+    - generic [ref=e27]: "Space: Play | M: Mute | S: Solo | Ctrl+R: Rack"
+  - generic [ref=e29]:
+    - generic [ref=e30]:
+      - generic [ref=e31]: Channel
+      - generic [ref=e32]:
+        - generic [ref=e33]: Step Sequencer (32 Steps)
+        - generic [ref=e34] [cursor=pointer]: PAGE 1/2
+    - generic [ref=e35]:
+      - generic [ref=e37]:
+        - generic "Mute/Unmute (M)" [ref=e39] [cursor=pointer]
+        - generic "Solo (S)" [ref=e40] [cursor=pointer]: S
+        - generic "Pan" [ref=e41]
+        - generic "Volume" [ref=e44]
+        - generic [ref=e47] [cursor=pointer]: Kick
+        - generic [ref=e48] [cursor=pointer]: ▼
+      - generic [ref=e73]:
+        - generic "Mute/Unmute (M)" [ref=e75] [cursor=pointer]
+        - generic "Solo (S)" [ref=e76] [cursor=pointer]: S
+        - generic "Pan" [ref=e77]
+        - generic "Volume" [ref=e80]
+        - generic [ref=e83] [cursor=pointer]: "808"
+        - generic [ref=e84] [cursor=pointer]: ▼
+      - generic [ref=e107]:
+        - generic "Mute/Unmute (M)" [ref=e109] [cursor=pointer]
+        - generic "Solo (S)" [ref=e110] [cursor=pointer]: S
+        - generic "Pan" [ref=e111]
+        - generic "Volume" [ref=e114]
+        - generic [ref=e117] [cursor=pointer]: Clap
+        - generic [ref=e118] [cursor=pointer]: ▼
+      - generic [ref=e142]:
+        - generic "Mute/Unmute (M)" [ref=e144] [cursor=pointer]
+        - generic "Solo (S)" [ref=e145] [cursor=pointer]: S
+        - generic "Pan" [ref=e146]
+        - generic "Volume" [ref=e149]
+        - generic [ref=e152] [cursor=pointer]: Snare
+        - generic [ref=e153] [cursor=pointer]: ▼
+      - generic [ref=e175]:
+        - generic [ref=e176]:
+          - generic "Mute/Unmute (M)" [ref=e178] [cursor=pointer]
+          - generic "Solo (S)" [ref=e179] [cursor=pointer]: S
+          - generic "Pan" [ref=e180]
+          - generic "Volume" [ref=e183]
+          - generic [ref=e186] [cursor=pointer]: HiHat
+          - generic [ref=e187] [cursor=pointer]: ▼
+        - generic [ref=e188]:
+          - generic [ref=e202] [cursor=pointer]: x3
+          - generic [ref=e215] [cursor=pointer]: x4
+      - generic [ref=e220]:
+        - generic "Mute/Unmute (M)" [ref=e222] [cursor=pointer]
+        - generic "Solo (S)" [ref=e223] [cursor=pointer]: S
+        - generic "Pan" [ref=e224]
+        - generic "Volume" [ref=e227]
+        - generic [ref=e230] [cursor=pointer]: OpenHat
+        - generic [ref=e231] [cursor=pointer]: ▼
+      - generic [ref=e254]:
+        - generic "Mute/Unmute (M)" [ref=e256] [cursor=pointer]
+        - generic "Solo (S)" [ref=e257] [cursor=pointer]: S
+        - generic "Pan" [ref=e258]
+        - generic "Volume" [ref=e261]
+        - generic [ref=e264] [cursor=pointer]: Perc
+        - generic [ref=e265] [cursor=pointer]: ▼
+      - generic [ref=e288]:
+        - generic "Mute/Unmute (M)" [ref=e290] [cursor=pointer]
+        - generic "Solo (S)" [ref=e291] [cursor=pointer]: S
+        - generic "Pan" [ref=e292]
+        - generic "Volume" [ref=e295]
+        - generic [ref=e298] [cursor=pointer]: Rim
+        - generic [ref=e299] [cursor=pointer]: ▼
+  - generic [ref=e321]:
+    - generic [ref=e322]: Loaded TRAP
+    - generic [ref=e323]: FL Studio Web Pro v2.1 (React)
+```

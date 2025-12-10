@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chiptune Pixel Grid</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: monospace;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .info {
+            position: relative;
+            z-index: 2;
+            color: #0ff;
+            text-align: center;
+            text-shadow: 0 0 10px #0ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h1>Chiptune Pixel Grid</h1>
+        <p>Retrowave chiptune grid with 8-bit aesthetics</p>
+    </div>
+    
+    <canvas id="chiptuneCanvas"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('chiptuneCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas to full window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Chiptune pixel class
+        class ChiptunePixel {
+            constructor(x, y, size) {
+                this.x = x;
+                this.y = y;
+                this.size = size;
+                
+                // Color properties (classic chiptune palette)
+                this.hue = Math.floor(Math.random() * 360);
+                this.saturation = 80 + Math.random() * 20;
+                this.lightness = 50 + Math.random() * 30;
+                
+                // Animation properties
+                this.originalLightness = this.lightness;
+                this.pulseSpeed = 0.02 + Math.random() * 0.04;
+                this.pulsePhase = Math.random() * Math.PI * 2;
+                
+                // Audio response
+                this.frequency = Math.random(); // 0 to 1 (bass to treble)
+                this.response = 0.1 + Math.random() * 0.9;
+                
+                // Flicker effect
+                this.flickerTimer = 0;
+                this.flickerInterval = Math.floor(5 + Math.random() * 20);
+            }
+            
+            update() {
+                const time = Date.now() * 0.001;
+                
+                // Simulate audio input
+                const bassLevel = Math.abs(Math.sin(time * 0.5)) * 0.8 + Math.random() * 0.2;
+                const trebleLevel = Math.abs(Math.sin(time * 3.7)) * 0.6 + Math.random() * 0.3;
+                
+                // Adjust lightness based on frequency
+                let audioEffect = 1;
+                if (this.frequency < 0.33) {
+                    audioEffect = bassLevel * this.response;
+                } else if (this.frequency < 0.66) {
+                    audioEffect = (bassLevel + trebleLevel) / 2 * this.response;
+                } else {
+                    audioEffect = trebleLevel * this.response;
+                }
+                
+                // Apply pulse effect
+                this.lightness = this.originalLightness * (0.7 + 0.3 * Math.sin(time * this.pulseSpeed + this.pulsePhase) * audioEffect);
+                
+                // Random flicker effect
+                this.flickerTimer++;
+                if (this.flickerTimer > this.flickerInterval) {
+                    if (Math.random() < 0.1) {
+                        this.lightness = 90; // Bright flicker
+                        this.flickerInterval = 1; // Reset to normal
+                    } else {
+                        this.flickerInterval = Math.floor(10 + Math.random() * 30);
+                    }
+                    this.flickerTimer = 0;
+                }
+            }
+            
+            draw() {
+                // Create the pixel with retro color
+                ctx.fillStyle = `hsl(${this.hue}, ${this.saturation}%, ${this.lightness}%)`;
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+                
+                // Add scanline effect occasionally
+                if (Math.random() < 0.05) {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                    ctx.fillRect(this.x, this.y, this.size, 1);
+                }
+            }
+        }
+        
+        // Create the chiptune grid
+        class ChiptuneGrid {
+            constructor() {
+                this.gridSize = 10; // Size of each pixel
+                this.columns = Math.ceil(canvas.width / this.gridSize);
+                this.rows = Math.ceil(canvas.height / this.gridSize);
+                this.pixels = [];
+                
+                // Initialize grid
+                this.initGrid();
+            }
+            
+            initGrid() {
+                for (let y = 0; y < this.rows; y++) {
+                    for (let x = 0; x < this.columns; x++) {
+                        // Create chiptune pixel
+                        this.pixels.push(new ChiptunePixel(
+                            x * this.gridSize,
+                            y * this.gridSize,
+                            this.gridSize
+                        ));
+                    }
+                }
+            }
+            
+            update() {
+                // Update all pixels
+                this.pixels.forEach(pixel => {
+                    pixel.update();
+                });
+                
+                // Occasionally change colors for more dynamic effect
+                if (Math.random() < 0.001) {
+                    const randomPixel = this.pixels[Math.floor(Math.random() * this.pixels.length)];
+                    randomPixel.hue = (randomPixel.hue + 30) % 360;
+                }
+            }
+            
+            draw() {
+                // Draw all pixels
+                this.pixels.forEach(pixel => {
+                    pixel.draw();
+                });
+            }
+        }
+        
+        // Create chiptune grid
+        const chiptuneGrid = new ChiptuneGrid();
+        
+        // Draw scanlines for retro effect
+        function drawScanlines() {
+            for (let y = 0; y < canvas.height; y += 4) {
+                ctx.fillStyle = `rgba(0, 30, 60, ${0.1 + Math.sin(Date.now() * 0.002 + y * 0.1) * 0.05})`;
+                ctx.fillRect(0, y, canvas.width, 2);
+            }
+        }
+        
+        // Draw classic chiptune waveforms
+        function drawWaveforms() {
+            const time = Date.now() * 0.002;
+            
+            // Draw square wave
+            ctx.beginPath();
+            for (let x = 0; x < canvas.width; x += 5) {
+                const y = canvas.height * 0.1 + (Math.floor(x / 30) % 2 === 0 ? 20 : -20);
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.strokeStyle = 'hsl(180, 100%, 70%)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw sawtooth wave
+            ctx.beginPath();
+            for (let x = 0; x < canvas.width; x += 5) {
+                const y = canvas.height * 0.2 + (x % 40) - 20;
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.strokeStyle = 'hsl(280, 100%, 70%)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw triangle wave
+            ctx.beginPath();
+            for (let x = 0; x < canvas.width; x += 5) {
+                const y = canvas.height * 0.3 + 20 * Math.abs((x % 40) / 20 - 1) - 10;
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.strokeStyle = 'hsl(60, 100%, 70%)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        
+        // Draw retro border
+        function drawRetroBorder() {
+            ctx.strokeStyle = 'hsl(200, 100%, 50%)';
+            ctx.lineWidth = 6;
+            ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+            
+            // Corner details
+            ctx.strokeStyle = 'hsl(280, 100%, 50%)';
+            ctx.lineWidth = 2;
+            
+            // Top-left
+            ctx.strokeRect(0, 0, 20, 5);
+            ctx.strokeRect(0, 0, 5, 20);
+            
+            // Top-right
+            ctx.strokeRect(canvas.width - 20, 0, 20, 5);
+            ctx.strokeRect(canvas.width - 5, 0, 5, 20);
+            
+            // Bottom-left
+            ctx.strokeRect(0, canvas.height - 5, 20, 5);
+            ctx.strokeRect(0, canvas.height - 20, 5, 20);
+            
+            // Bottom-right
+            ctx.strokeRect(canvas.width - 20, canvas.height - 5, 20, 5);
+            ctx.strokeRect(canvas.width - 5, canvas.height - 20, 5, 20);
+        }
+        
+        // Animation loop
+        function animate() {
+            // Clear with retro fade effect
+            ctx.fillStyle = 'rgba(0, 5, 10, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Update and draw grid
+            chiptuneGrid.update();
+            chiptuneGrid.draw();
+            
+            // Draw additional retro effects
+            drawScanlines();
+            drawWaveforms();
+            drawRetroBorder();
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>

@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Command Palette Search - Navigation & Menus - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #ffffff;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            container-type: inline-size;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            outline: none;
+            width: fit-content;
+            /* Accessibility improvements */
+            min-height: 44px;
+        }
+
+        .back-button:hover,
+        .back-button:focus {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            outline: 2px solid var(--jazer-cyan);
+            outline-offset: 3px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        h1 {
+            font-family: var(--font-primary);
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            margin-bottom: 1rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .description {
+            color: #a0a0a0;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+        }
+
+        .demo-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .command-palette {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 600px;
+            background: rgba(10, 10, 10, 0.95);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.3);
+            z-index: 1000;
+            backdrop-filter: blur(15px);
+            opacity: 0;
+            visibility: hidden;
+            transform: translate(-50%, -50%) scale(0.8);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: flex;
+            flex-direction: column;
+            /* Accessibility improvements */
+            outline: none;
+        }
+
+        .command-palette.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .command-palette-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .command-palette-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .palette-header {
+            padding: 1.5rem;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .palette-icon {
+            color: var(--jazer-cyan);
+            font-size: 1.2rem;
+        }
+
+        .palette-title {
+            color: var(--jazer-cyan);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .palette-search {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 1rem;
+            font-family: var(--font-body);
+            outline: none;
+            transition: all 0.3s ease;
+            will-change: border-color, box-shadow;
+            /* Accessibility improvements */
+            min-height: 44px;
+        }
+
+        .search-input:focus {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .search-loading {
+            position: absolute;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: none;
+            color: var(--jazer-cyan);
+        }
+
+        .search-loading.active {
+            display: block;
+            animation: pulse 1.5s infinite;
+        }
+
+        .palette-results {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 0.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            /* Accessibility improvements */
+            outline: none;
+        }
+
+        .command-option {
+            padding: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.05);
+            will-change: background, transform;
+            /* Accessibility improvements */
+            outline: none;
+            position: relative;
+        }
+
+        .command-option:last-child {
+            border-bottom: none;
+        }
+
+        .command-option:hover,
+        .command-option:focus,
+        .command-option.selected {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: var(--jazer-cyan);
+            outline: none;
+        }
+
+        .command-option.selected {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .command-option:focus {
+            outline: 2px solid var(--jazer-cyan);
+            outline-offset: 2px;
+        }
+
+        .command-icon {
+            color: var(--jazer-cyan);
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .command-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .command-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .command-description {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .command-shortcut {
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.7);
+            flex-shrink: 0;
+        }
+
+        .command-category {
+            font-size: 0.75rem;
+            background: rgba(177, 0, 255, 0.2);
+            padding: 0.15rem 0.5rem;
+            border-radius: 6px;
+            color: #b100ff;
+            margin-top: 0.25rem;
+            display: inline-block;
+        }
+
+        .palette-footer {
+            padding: 1rem;
+            border-top: 1px solid rgba(0, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .trigger-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+            width: fit-content;
+            /* Accessibility improvements */
+            min-height: 44px;
+        }
+
+        .trigger-button:hover,
+        .trigger-button:focus {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            outline: 2px solid var(--jazer-cyan);
+            outline-offset: 3px;
+        }
+
+        .usage-instructions {
+            background: rgba(0, 255, 255, 0.05);
+            border-left: 3px solid var(--jazer-cyan);
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            margin-top: 1rem;
+        }
+
+        .usage-instructions h3 {
+            color: var(--jazer-cyan);
+            margin-bottom: 0.5rem;
+        }
+
+        .usage-instructions ul {
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .usage-instructions li {
+            margin-bottom: 0.25rem;
+        }
+
+        .usage-instructions code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+            color: var(--jazer-cyan);
+        }
+
+        /* Enhanced cyberpunk effects */
+        .command-palette::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--jazer-cyan), #b100ff, var(--jazer-purple), #00d9ff);
+            z-index: -1;
+            border-radius: 22px;
+            animation: gradientShift 4s linear infinite;
+            background-size: 400% 400%;
+        }
+
+        .command-palette.active::before {
+            opacity: 0.7;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        /* Container queries for responsive adjustments */
+        @container (max-width: 600px) {
+            .command-option {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .command-shortcut {
+                align-self: flex-end;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: clamp(1.5rem, 4vw, 2rem);
+            }
+
+            .command-palette {
+                width: 95%;
+                max-width: 95%;
+            }
+
+            .palette-results {
+                max-height: 300px;
+            }
+
+            .palette-footer {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .command-palette {
+                border: 2px solid;
+            }
+
+            .command-option {
+                border-bottom: 1px solid;
+            }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            .command-palette,
+            .search-input,
+            .command-option {
+                transition: none;
+                animation: none;
+            }
+            
+            .command-option.selected {
+                transform: none;
+            }
+        }
+
+        /* Loading skeleton for results */
+        .skeleton-option {
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .skeleton-icon {
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .skeleton-text {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .skeleton-line {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .skeleton-line:first-child {
+            width: 70%;
+        }
+
+        .skeleton-line:last-child {
+            width: 50%;
+        }
+
+        .skeleton-shortcut {
+            width: 60px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .empty-state {
+            padding: 2rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .empty-state-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-button" aria-label="Back to Navigation">← Back to Navigation</a>
+
+        <h1>Enhanced Command Palette Search</h1>
+        <p class="description">
+            A powerful command palette with search functionality, keyboard navigation, and modern glass morphism design.
+            Perfect for application navigation, quick actions, and command execution.
+        </p>
+
+        <div class="demo-card">
+            <button class="trigger-button" id="openPalette" aria-haspopup="dialog" aria-expanded="false">
+                <span>⌨️</span>
+                <span>Open Command Palette</span>
+            </button>
+
+            <div class="usage-instructions">
+                <h3>Usage Instructions:</h3>
+                <ul>
+                    <li>Press <code>Ctrl + K</code> or <code>Cmd + K</code> to open the palette</li>
+                    <li>Use <code>↑</code> and <code>↓</code> arrow keys to navigate</li>
+                    <li>Press <code>Enter</code> to execute the selected command</li>
+                    <li>Press <code>Esc</code> to close the palette</li>
+                    <li>Press <code>Tab</code> to cycle through options</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="command-palette-overlay" id="paletteOverlay" aria-hidden="true"></div>
+
+    <div class="command-palette" id="commandPalette" role="dialog" aria-labelledby="paletteTitle" aria-modal="true" aria-hidden="true">
+        <div class="palette-header">
+            <div class="palette-icon">🔍</div>
+            <div class="palette-title" id="paletteTitle">Search Commands</div>
+        </div>
+
+        <div class="palette-search">
+            <input
+                type="text"
+                class="search-input"
+                id="paletteSearch"
+                placeholder="Type a command or search..."
+                aria-label="Search commands"
+                autocomplete="off"
+                aria-describedby="paletteResults"
+            >
+            <div class="search-loading" id="searchLoading">⏳</div>
+        </div>
+
+        <div class="palette-results" id="paletteResults" role="listbox" aria-label="Command options">
+            <!-- Results will be populated dynamically -->
+        </div>
+
+        <div class="palette-footer">
+            <div>↑↓ to navigate • Enter to select</div>
+            <div>Esc to close</div>
+        </div>
+    </div>
+
+    <script>
+        class EnhancedCommandPalette {
+            constructor() {
+                this.isOpen = false;
+                this.selectedIndex = 0;
+                this.filteredCommands = [];
+                this.isFirstOpen = true;
+                this.searchTimeout = null;
+                this.lastSearchQuery = '';
+
+                this.commands = [
+                    { id: 1, name: 'New Document', description: 'Create a new document', icon: '📄', category: 'documents', shortcut: 'Ctrl+N' },
+                    { id: 2, name: 'Open Document', description: 'Open an existing document', icon: '📂', category: 'documents', shortcut: 'Ctrl+O' },
+                    { id: 3, name: 'Save Document', description: 'Save the current document', icon: '💾', category: 'documents', shortcut: 'Ctrl+S' },
+                    { id: 4, name: 'Settings', description: 'Open application settings', icon: '⚙️', category: 'settings', shortcut: 'Ctrl+,' },
+                    { id: 5, name: 'Search Files', description: 'Search through all files', icon: '🔍', category: 'search', shortcut: 'Ctrl+P' },
+                    { id: 6, name: 'User Profile', description: 'View and edit your profile', icon: '👤', category: 'user', shortcut: 'Ctrl+U' },
+                    { id: 7, name: 'Help Center', description: 'Get help and support', icon: '❓', category: 'help', shortcut: 'F1' },
+                    { id: 8, name: 'Keyboard Shortcuts', description: 'View all keyboard shortcuts', icon: '⌨️', category: 'help', shortcut: 'Ctrl+K' },
+                    { id: 9, name: 'Export Data', description: 'Export your data as JSON', icon: '📤', category: 'documents', shortcut: 'Ctrl+E' },
+                    { id: 10, name: 'Import Data', description: 'Import data from file', icon: '📥', category: 'documents', shortcut: 'Ctrl+I' },
+                    { id: 11, name: 'Share Document', description: 'Share the current document', icon: '🔗', category: 'documents', shortcut: 'Ctrl+Shift+S' },
+                    { id: 12, name: 'Print Document', description: 'Print the current document', icon: '🖨️', category: 'documents', shortcut: 'Ctrl+P' },
+                    { id: 13, name: 'Dark Mode', description: 'Toggle dark/light mode', icon: '🌙', category: 'settings', shortcut: 'Ctrl+D' },
+                    { id: 14, name: 'Notifications', description: 'Manage notification settings', icon: '🔔', category: 'settings', shortcut: 'Ctrl+N' },
+                    { id: 15, name: 'Account Settings', description: 'Manage your account', icon: '👤', category: 'user', shortcut: 'Ctrl+A' },
+                    { id: 16, name: 'Dashboard', description: 'Navigate to your dashboard', icon: '📊', category: 'navigation', shortcut: 'Ctrl+D' },
+                    { id: 17, name: 'Calendar', description: 'View your calendar', icon: '📅', category: 'productivity', shortcut: 'Ctrl+C' },
+                    { id: 18, name: 'Messages', description: 'Check your messages', icon: '💬', category: 'communication', shortcut: 'Ctrl+M' },
+                    { id: 19, name: 'Tasks', description: 'View your tasks', icon: '✅', category: 'productivity', shortcut: 'Ctrl+T' },
+                    { id: 20, name: 'Projects', description: 'Manage your projects', icon: '🏗️', category: 'work', shortcut: 'Ctrl+J' }
+                ];
+
+                this.init();
+            }
+
+            init() {
+                this.palette = document.getElementById('commandPalette');
+                this.overlay = document.getElementById('paletteOverlay');
+                this.searchInput = document.getElementById('paletteSearch');
+                this.resultsContainer = document.getElementById('paletteResults');
+                this.openButton = document.getElementById('openPalette');
+                this.searchLoading = document.getElementById('searchLoading');
+
+                // Event listeners
+                this.openButton.addEventListener('click', () => this.open());
+                this.overlay.addEventListener('click', () => this.close());
+
+                this.searchInput.addEventListener('input', (e) => {
+                    // Debounce search to improve performance
+                    clearTimeout(this.searchTimeout);
+                    this.searchTimeout = setTimeout(() => {
+                        this.filterCommands(e.target.value);
+                    }, 300);
+                });
+                
+                this.searchInput.addEventListener('keydown', (e) => this.handleKeydown(e));
+
+                // Global keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    // Ctrl+K or Cmd+K to open palette
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'k' && !this.isOpen) {
+                        e.preventDefault();
+                        this.open();
+                    }
+
+                    // Escape to close
+                    if (e.key === 'Escape' && this.isOpen) {
+                        e.preventDefault();
+                        this.close();
+                    }
+
+                    // Tab to cycle through options when palette is open
+                    if (e.key === 'Tab' && this.isOpen) {
+                        e.preventDefault();
+                        this.moveSelection(e.shiftKey ? -1 : 1);
+                    }
+                });
+
+                // Initial render
+                this.renderCommands(this.commands);
+            }
+
+            open() {
+                this.isOpen = true;
+                this.palette.classList.add('active');
+                this.overlay.classList.add('active');
+                this.palette.setAttribute('aria-hidden', 'false');
+                this.overlay.setAttribute('aria-hidden', 'false');
+                this.openButton.setAttribute('aria-expanded', 'true');
+
+                this.searchInput.focus();
+                this.renderCommands(this.commands);
+                this.selectedIndex = 0;
+                this.updateSelection();
+
+                // Add event listener for clicks outside the palette
+                document.addEventListener('click', this.handleClickOutside.bind(this), true);
+            }
+
+            close() {
+                this.isOpen = false;
+                this.palette.classList.remove('active');
+                this.overlay.classList.remove('active');
+                this.palette.setAttribute('aria-hidden', 'true');
+                this.overlay.setAttribute('aria-hidden', 'true');
+                this.openButton.setAttribute('aria-expanded', 'false');
+
+                this.searchInput.value = '';
+                this.renderCommands(this.commands);
+
+                // Remove event listener for clicks outside the palette
+                document.removeEventListener('click', this.handleClickOutside.bind(this), true);
+            }
+
+            toggle() {
+                if (this.isOpen) {
+                    this.close();
+                } else {
+                    this.open();
+                }
+            }
+
+            handleClickOutside(e) {
+                if (this.isOpen &&
+                    !this.palette.contains(e.target) &&
+                    !this.openButton.contains(e.target)) {
+                    this.close();
+                }
+            }
+
+            filterCommands(query) {
+                this.lastSearchQuery = query;
+                
+                if (!query.trim()) {
+                    this.filteredCommands = this.commands;
+                    this.renderCommands(this.filteredCommands);
+                    this.selectedIndex = 0;
+                    this.updateSelection();
+                    return;
+                }
+
+                // Show loading indicator
+                this.searchLoading.classList.add('active');
+                
+                // Simulate async search for better UX
+                setTimeout(() => {
+                    const term = query.toLowerCase();
+                    this.filteredCommands = this.commands.filter(cmd =>
+                        cmd.name.toLowerCase().includes(term) ||
+                        cmd.description.toLowerCase().includes(term) ||
+                        cmd.category.toLowerCase().includes(term)
+                    );
+                    
+                    this.renderCommands(this.filteredCommands);
+                    this.selectedIndex = 0;
+                    this.updateSelection();
+                    
+                    // Hide loading indicator
+                    this.searchLoading.classList.remove('active');
+                }, 300);
+            }
+
+            renderCommands(commands) {
+                if (commands.length === 0) {
+                    this.resultsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🔍</div>
+                            <div>No commands found</div>
+                            <div class="command-description">Try a different search term</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                this.resultsContainer.innerHTML = commands.map((cmd, index) => `
+                    <div
+                        class="command-option"
+                        data-index="${index}"
+                        role="option"
+                        aria-selected="${index === this.selectedIndex}"
+                        tabindex="-1"
+                    >
+                        <div class="command-icon">${cmd.icon}</div>
+                        <div class="command-text">
+                            <div class="command-name">${cmd.name}</div>
+                            <div class="command-description">${cmd.description}</div>
+                            <div class="command-category">${cmd.category}</div>
+                        </div>
+                        <div class="command-shortcut">${cmd.shortcut}</div>
+                    </div>
+                `).join('');
+
+                // Add event listeners to options
+                this.resultsContainer.querySelectorAll('.command-option').forEach((option, index) => {
+                    option.addEventListener('click', () => this.selectCommand(index));
+                    option.addEventListener('keydown', (e) => {
+                        switch(e.key) {
+                            case 'Enter':
+                            case ' ':
+                                e.preventDefault();
+                                this.selectCommand(index);
+                                break;
+                            case 'ArrowUp':
+                                e.preventDefault();
+                                this.moveSelection(-1);
+                                break;
+                            case 'ArrowDown':
+                                e.preventDefault();
+                                this.moveSelection(1);
+                                break;
+                            case 'Home':
+                                e.preventDefault();
+                                this.moveSelectionToStart();
+                                break;
+                            case 'End':
+                                e.preventDefault();
+                                this.moveSelectionToEnd();
+                                break;
+                        }
+                    });
+                });
+            }
+
+            handleKeydown(e) {
+                switch(e.key) {
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        this.moveSelection(1);
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        this.moveSelection(-1);
+                        break;
+                    case 'Enter':
+                        e.preventDefault();
+                        this.selectCommand(this.selectedIndex);
+                        break;
+                    case 'Home':
+                        e.preventDefault();
+                        this.moveSelectionToStart();
+                        break;
+                    case 'End':
+                        e.preventDefault();
+                        this.moveSelectionToEnd();
+                        break;
+                }
+            }
+
+            moveSelection(direction) {
+                const total = this.filteredCommands.length;
+                if (total === 0) return;
+
+                this.selectedIndex = (this.selectedIndex + direction + total) % total;
+                this.updateSelection();
+            }
+
+            moveSelectionToStart() {
+                this.selectedIndex = 0;
+                this.updateSelection();
+            }
+
+            moveSelectionToEnd() {
+                this.selectedIndex = this.filteredCommands.length - 1;
+                this.updateSelection();
+            }
+
+            updateSelection() {
+                const options = this.resultsContainer.querySelectorAll('.command-option');
+
+                // Remove selected state from all options
+                options.forEach(option => {
+                    option.classList.remove('selected');
+                    option.setAttribute('aria-selected', 'false');
+                });
+
+                // Add selected state to current option if options exist
+                if (options.length > 0 && this.selectedIndex >= 0 && this.selectedIndex < options.length) {
+                    const selectedOption = options[this.selectedIndex];
+                    selectedOption.classList.add('selected');
+                    selectedOption.setAttribute('aria-selected', 'true');
+
+                    // Scroll to make the selected option visible
+                    selectedOption.scrollIntoView({
+                        block: 'nearest',
+                        behavior: 'smooth'
+                    });
+                }
+            }
+
+            selectCommand(index) {
+                const command = this.filteredCommands[index];
+                if (command) {
+                    console.log(`Executing command: ${command.name}`);
+                    // In a real app, you would execute the command here
+                    this.close();
+
+                    // Show feedback
+                    this.showFeedback(command);
+                }
+            }
+
+            showFeedback(command) {
+                // Create feedback element
+                const feedback = document.createElement('div');
+                feedback.className = 'command-feedback';
+                feedback.setAttribute('role', 'status');
+                feedback.setAttribute('aria-live', 'polite');
+                feedback.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(0, 255, 255, 0.2);
+                    border: 2px solid var(--jazer-cyan);
+                    border-radius: 12px;
+                    padding: 1rem 2rem;
+                    color: var(--jazer-cyan);
+                    font-weight: 600;
+                    z-index: 2000;
+                    animation: fadeInOut 2s ease-in-out;
+                    backdrop-filter: blur(10px);
+                `;
+                feedback.textContent = `Executed: ${command.name}`;
+
+                document.body.appendChild(feedback);
+
+                // Remove feedback after animation
+                setTimeout(() => {
+                    feedback.remove();
+                }, 2000);
+            }
+        }
+
+        // Initialize command palette when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new EnhancedCommandPalette();
+        });
+    </script>
+</body>
+</html>

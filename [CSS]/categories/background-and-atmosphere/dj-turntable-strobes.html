@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DJ Turntable Strobes</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .info {
+            position: relative;
+            z-index: 2;
+            color: white;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h1>DJ Turntable Strobes</h1>
+        <p>Intense strobe lighting synchronized to DJ beats</p>
+    </div>
+    
+    <canvas id="strobeCanvas"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('strobeCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas to full window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Strobe light class
+        class StrobeLight {
+            constructor(x, y, color, size, angle) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.size = size;
+                this.originalSize = size;
+                this.angle = angle;
+                
+                // Strobe properties
+                this.isActive = false;
+                this.intensity = 0;
+                this.maxIntensity = 1;
+                this.pulseSpeed = 0.1 + Math.random() * 0.2;
+                this.pulsePhase = Math.random() * Math.PI * 2;
+                
+                // Beat synchronization
+                this.beatTimer = 0;
+                this.beatInterval = 10 + Math.random() * 30; // Frames between beats
+            }
+            
+            update() {
+                const time = Date.now() * 0.001;
+                
+                // Simulate beat detection
+                this.beatTimer++;
+                
+                if (this.beatTimer >= this.beatInterval) {
+                    this.isActive = true;
+                    this.intensity = 1;
+                    this.size = this.originalSize * 3; // Expand when hitting
+                    this.beatTimer = 0;
+                    this.beatInterval = 10 + Math.random() * 20; // Random interval
+                } else {
+                    this.isActive = false;
+                    this.intensity = Math.max(0, this.intensity - 0.05);
+                    this.size = this.originalSize + (this.intensity * this.originalSize * 2);
+                }
+                
+                // Add some pulsing to simulate strobe effect
+                if (!this.isActive) {
+                    this.intensity = Math.max(0, this.intensity * 0.95);
+                }
+                
+                // Apply additional pulse based on audio
+                this.intensity *= (Math.sin(time * 10 + this.pulsePhase) * 0.1 + 0.9);
+            }
+            
+            draw() {
+                if (this.intensity > 0) {
+                    // Create radial gradient for the strobe
+                    const gradient = ctx.createRadialGradient(
+                        this.x, this.y, 0,
+                        this.x, this.y, this.size
+                    );
+                    
+                    gradient.addColorStop(0, `hsla(${this.color}, 100%, 90%, ${this.intensity})`);
+                    gradient.addColorStop(0.7, `hsla(${this.color}, 100%, 70%, ${this.intensity * 0.7})`);
+                    gradient.addColorStop(1, `hsla(${this.color}, 100%, 50%, 0)`);
+                    
+                    ctx.fillStyle = gradient;
+                    
+                    // Draw the strobe light
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Add glow effect
+                    ctx.shadowColor = `hsla(${this.color}, 100%, 80%, ${this.intensity * 0.8})`;
+                    ctx.shadowBlur = 30;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+        }
+        
+        // Create strobe lights around the canvas
+        const strobeLights = [];
+        const numStrobes = 12;
+        
+        for (let i = 0; i < numStrobes; i++) {
+            const angle = (i / numStrobes) * Math.PI * 2;
+            const distance = Math.min(canvas.width, canvas.height) * 0.4;
+            const x = canvas.width / 2 + Math.cos(angle) * distance;
+            const y = canvas.height / 2 + Math.sin(angle) * distance;
+            
+            // Assign colors based on position (red, blue, green pattern)
+            const color = (i % 3) * 120; // Red (0), Green (120), Blue (240)
+            strobeLights.push(new StrobeLight(x, y, color, 30, angle));
+        }
+        
+        // Add some center strobes
+        for (let i = 0; i < 6; i++) {
+            const angle = (i / 6) * Math.PI * 2;
+            const distance = 30 + i * 20;
+            const x = canvas.width / 2 + Math.cos(angle) * distance;
+            const y = canvas.height / 2 + Math.sin(angle) * distance;
+            const color = (i * 60) % 360; // Rainbow colors
+            strobeLights.push(new StrobeLight(x, y, color, 20, angle));
+        }
+        
+        // DJ turntable effect
+        class DJTurntable {
+            constructor() {
+                this.centerX = canvas.width / 2;
+                this.centerY = canvas.height / 2;
+                this.radius = Math.min(canvas.width, canvas.height) * 0.15;
+                this.rotation = 0;
+                this.rotationSpeed = 0.01;
+            }
+            
+            update() {
+                // Rotate with beat synchronization
+                const time = Date.now() * 0.001;
+                const beat = Math.sin(time * 0.8) > 0.8 ? 1.2 : 1;
+                this.rotation += this.rotationSpeed * beat;
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.translate(this.centerX, this.centerY);
+                ctx.rotate(this.rotation);
+                
+                // Draw turntable platter
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                
+                const gradient = ctx.createRadialGradient(
+                    0, 0, 0,
+                    0, 0, this.radius
+                );
+                
+                gradient.addColorStop(0, '#333');
+                gradient.addColorStop(0.7, '#222');
+                gradient.addColorStop(1, '#111');
+                
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // Draw concentric rings
+                for (let i = 1; i <= 5; i++) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius * (i/5), 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 * i})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+                
+                // Draw center spindle
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius * 0.1, 0, Math.PI * 2);
+                ctx.fillStyle = '#555';
+                ctx.fill();
+                
+                // Draw indicator
+                ctx.beginPath();
+                ctx.moveTo(this.radius - 10, -5);
+                ctx.lineTo(this.radius, 0);
+                ctx.lineTo(this.radius - 10, 5);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+        
+        // Create DJ turntable
+        const turntable = new DJTurntable();
+        
+        // Beat detector to sync strobes
+        class BeatDetector {
+            constructor() {
+                this.beatHistory = [];
+                this.historyLength = 20;
+                this.beatThreshold = 0.7;
+                this.isBeating = false;
+                this.beatCooldown = 0;
+                this.beatCooldownMax = 8;
+            }
+            
+            update() {
+                // Simulate audio input
+                const time = Date.now() * 0.001;
+                
+                // Create rhythmic pattern
+                const level = Math.abs(Math.sin(time * 0.8)) * 0.8 + Math.random() * 0.2;
+                
+                // Add to history
+                this.beatHistory.push(level);
+                if (this.beatHistory.length > this.historyLength) {
+                    this.beatHistory.shift();
+                }
+                
+                // Detect beat
+                this.isBeating = false;
+                if (this.beatCooldown <= 0 && level > this.beatThreshold) {
+                    this.isBeating = true;
+                    this.beatCooldown = this.beatCooldownMax;
+                }
+                
+                if (this.beatCooldown > 0) {
+                    this.beatCooldown--;
+                }
+            }
+        }
+        
+        // Create beat detector
+        const beatDetector = new BeatDetector();
+        
+        // Draw strobe patterns
+        function drawStrobePatterns() {
+            const time = Date.now() * 0.002;
+            
+            // Draw radial strobe effect
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2 + time;
+                const length = Math.max(canvas.width, canvas.height);
+                
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2, canvas.height / 2);
+                ctx.lineTo(
+                    canvas.width / 2 + Math.cos(angle) * length,
+                    canvas.height / 2 + Math.sin(angle) * length
+                );
+                
+                // Calculate intensity based on beat
+                const intensity = beatDetector.isBeating ? 0.3 : 0.1;
+                const color = (i * 45 + time * 100) % 360;
+                
+                ctx.strokeStyle = `hsla(${color}, 100%, 80%, ${intensity})`;
+                ctx.lineWidth = 20;
+                ctx.stroke();
+            }
+        }
+        
+        // Animation loop
+        function animate() {
+            // Clear with fade effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Update beat detector
+            beatDetector.update();
+            
+            // Update and draw strobe lights
+            strobeLights.forEach(strobe => {
+                strobe.update();
+                strobe.draw();
+            });
+            
+            // Draw strobe patterns
+            drawStrobePatterns();
+            
+            // Update and draw turntable
+            turntable.update();
+            turntable.draw();
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>

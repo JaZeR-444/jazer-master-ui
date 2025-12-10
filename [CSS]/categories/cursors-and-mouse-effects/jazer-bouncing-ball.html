@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Bouncing Ball Cursor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #1a1a2e;
+            cursor: none;
+            overflow: hidden;
+        }
+
+        .info {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            z-index: 100;
+        }
+
+        .ball {
+            position: fixed;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle at 30% 30%, #e74c3c, #c0392b);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9999;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .floor {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(to top, #222, transparent);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">JaZeR Bouncing Ball - Click to drop!</div>
+    <div class="ball" id="ball"></div>
+    <div class="floor"></div>
+
+    <script>
+        const ball = document.getElementById('ball');
+
+        let mouseX = 0, mouseY = 0;
+        let ballX = 0, ballY = 0;
+        let velX = 0, velY = 0;
+        let isBouncing = false;
+        const gravity = 0.5;
+        const bounce = 0.7;
+        const friction = 0.99;
+        const floorY = window.innerHeight - 65;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            if (!isBouncing) {
+                ballX = e.clientX;
+                ballY = e.clientY;
+                ball.style.left = ballX + 'px';
+                ball.style.top = ballY + 'px';
+            }
+        });
+
+        document.addEventListener('click', () => {
+            if (!isBouncing) {
+                isBouncing = true;
+                velY = 0;
+            }
+        });
+
+        function animate() {
+            if (isBouncing) {
+                velY += gravity;
+                ballY += velY;
+                ballX += velX;
+                velX *= friction;
+
+                // Floor bounce
+                if (ballY >= floorY) {
+                    ballY = floorY;
+                    velY *= -bounce;
+
+                    // Stop if velocity is tiny
+                    if (Math.abs(velY) < 1) {
+                        isBouncing = false;
+                    }
+                }
+
+                // Wall bounce
+                if (ballX <= 15 || ballX >= window.innerWidth - 15) {
+                    velX *= -1;
+                    ballX = Math.max(15, Math.min(window.innerWidth - 15, ballX));
+                }
+
+                ball.style.left = ballX + 'px';
+                ball.style.top = ballY + 'px';
+
+                // Squash on impact
+                const squash = Math.min(1, Math.abs(velY) / 20);
+                ball.style.transform = `translate(-50%, -50%) scaleY(${1 - squash * 0.3}) scaleX(${1 + squash * 0.2})`;
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

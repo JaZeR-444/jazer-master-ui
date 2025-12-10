@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Holographic Interference - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="holographic"] { background: linear-gradient(135deg, #00f2ea, #9333ea, #ff006e, #ffbe0b); }
+    .color-btn[data-color="cyber"] { background: linear-gradient(135deg, #00f2ea, #006699, #003366); }
+    .color-btn[data-color="neon"] { background: linear-gradient(135deg, #ff006e, #e6005c, #cc0052); }
+    .color-btn[data-color="rainbow"] { background: conic-gradient(#00f2ea, #9333ea, #ff006e, #ffbe0b, #00f2ea); }
+    .color-btn[data-color="mono"] { background: linear-gradient(135deg, #fff, #666, #000); }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .hologram-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #000000 0%, #0a0a1f 100%);
+      overflow: hidden;
+    }
+    .hologram-grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        linear-gradient(90deg, rgba(0, 242, 234, 0.05) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(0, 242, 234, 0.05) 1px, transparent 1px);
+      background-size: 30px 30px;
+      mix-blend-mode: screen;
+      opacity: 0.3;
+      will-change: transform;
+    }
+    .interference-wave {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      will-change: transform, opacity;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Holographic Interference</h1>
+    <p>Interference patterns creating holographic effects with light waves and grid structures</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Reset</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="holographic" title="Holographic"></button>
+      <button class="color-btn" data-color="cyber" title="Cyber"></button>
+      <button class="color-btn" data-color="neon" title="Neon"></button>
+      <button class="color-btn" data-color="rainbow" title="Rainbow"></button>
+      <button class="color-btn" data-color="mono" title="Monochrome"></button>
+    </div>
+    <div class="slider-group">
+      <label>Wave Count: <span class="slider-value" id="waveValue">6</span></label>
+      <input type="range" id="waveSlider" min="3" max="10" value="6">
+    </div>
+    <div class="slider-group">
+      <label>Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.2" max="2" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Intensity: <span class="slider-value" id="intensityValue">0.8</span></label>
+      <input type="range" id="intensitySlider" min="0.3" max="1.5" step="0.1" value="0.8">
+    </div>
+  </div>
+
+  <div class="hologram-container" id="container">
+    <div class="hologram-grid" id="grid"></div>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const container = document.getElementById('container');
+    const grid = document.getElementById('grid');
+    const status = document.getElementById('status');
+
+    let config = {
+      waveCount: 6,
+      speed: 1,
+      intensity: 0.8,
+      colorScheme: 'holographic',
+      paused: false
+    };
+
+    const colorSchemes = {
+      holographic: [
+        { color: 'rgba(0, 242, 234, 0.7)', glow: '0 0 15px rgba(0, 242, 234, 0.7)' },
+        { color: 'rgba(147, 51, 234, 0.7)', glow: '0 0 15px rgba(147, 51, 234, 0.7)' },
+        { color: 'rgba(255, 0, 110, 0.7)', glow: '0 0 15px rgba(255, 0, 110, 0.7)' },
+        { color: 'rgba(255, 190, 11, 0.7)', glow: '0 0 15px rgba(255, 190, 11, 0.7)' }
+      ],
+      cyber: [
+        { color: 'rgba(0, 242, 234, 0.7)', glow: '0 0 15px rgba(0, 242, 234, 0.7)' },
+        { color: 'rgba(0, 102, 153, 0.7)', glow: '0 0 15px rgba(0, 102, 153, 0.7)' },
+        { color: 'rgba(0, 51, 102, 0.7)', glow: '0 0 15px rgba(0, 51, 102, 0.7)' },
+        { color: 'rgba(0, 150, 200, 0.7)', glow: '0 0 15px rgba(0, 150, 200, 0.7)' }
+      ],
+      neon: [
+        { color: 'rgba(255, 0, 110, 0.7)', glow: '0 0 15px rgba(255, 0, 110, 0.7)' },
+        { color: 'rgba(230, 0, 92, 0.7)', glow: '0 0 15px rgba(230, 0, 92, 0.7)' },
+        { color: 'rgba(204, 0, 82, 0.7)', glow: '0 0 15px rgba(204, 0, 82, 0.7)' },
+        { color: 'rgba(255, 107, 157, 0.7)', glow: '0 0 15px rgba(255, 107, 157, 0.7)' }
+      ],
+      rainbow: [
+        { color: 'rgba(0, 242, 234, 0.7)', glow: '0 0 15px rgba(0, 242, 234, 0.7)' },
+        { color: 'rgba(147, 51, 234, 0.7)', glow: '0 0 15px rgba(147, 51, 234, 0.7)' },
+        { color: 'rgba(255, 0, 110, 0.7)', glow: '0 0 15px rgba(255, 0, 110, 0.7)' },
+        { color: 'rgba(255, 190, 11, 0.7)', glow: '0 0 15px rgba(255, 190, 11, 0.7)' }
+      ],
+      mono: [
+        { color: 'rgba(255, 255, 255, 0.7)', glow: '0 0 15px rgba(255, 255, 255, 0.7)' },
+        { color: 'rgba(200, 200, 200, 0.7)', glow: '0 0 15px rgba(200, 200, 200, 0.7)' },
+        { color: 'rgba(150, 150, 150, 0.7)', glow: '0 0 15px rgba(150, 150, 150, 0.7)' },
+        { color: 'rgba(100, 100, 100, 0.7)', glow: '0 0 15px rgba(100, 100, 100, 0.7)' }
+      ]
+    };
+
+    let interferenceWaves = [];
+    let animationId;
+    let time = 0;
+
+    function createInterferenceWaves() {
+      // Clear existing waves
+      const existingWaves = container.querySelectorAll('.interference-wave');
+      existingWaves.forEach(wave => wave.remove());
+      
+      interferenceWaves = [];
+      const colors = colorSchemes[config.colorScheme];
+
+      for (let i = 0; i < config.waveCount; i++) {
+        const wave = document.createElement('div');
+        wave.className = 'interference-wave';
+
+        const color = colors[i % colors.length];
+        const size = 100 + Math.random() * 300;
+        const x = Math.random() * window.innerWidth;
+        const y = Math.random() * window.innerHeight;
+        const duration = 10 + Math.random() * 10;
+        const driftX = (Math.random() - 0.5) * 0.5;
+        const driftY = (Math.random() - 0.5) * 0.5;
+
+        wave.style.width = `${size}px`;
+        wave.style.height = `${size}px`;
+        wave.style.left = `${x}px`;
+        wave.style.top = `${y}px`;
+        wave.style.background = color.color;
+        wave.style.boxShadow = color.glow;
+        wave.style.opacity = (0.3 + Math.random() * 0.3) * config.intensity;
+        wave.style.mixBlendMode = 'screen';
+
+        container.appendChild(wave);
+
+        interferenceWaves.push({
+          element: wave,
+          x: x,
+          y: y,
+          size: size,
+          duration: duration,
+          driftX: driftX,
+          driftY: driftY,
+          phase: Math.random() * Math.PI * 2,
+          scalePhase: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function animate() {
+      if (config.paused) {
+        animationId = requestAnimationFrame(animate);
+        return;
+      }
+
+      time += 0.016 * config.speed;
+
+      // Animate grid
+      const gridPhase = time * 0.5;
+      grid.style.transform = `translate(${Math.sin(gridPhase) * 5}px, ${Math.cos(gridPhase * 0.7) * 5}px)`;
+      grid.style.opacity = 0.3 * config.intensity;
+
+      // Animate interference waves
+      interferenceWaves.forEach(wave => {
+        // Update position with drift
+        wave.x += wave.driftX * config.speed;
+        wave.y += wave.driftY * config.speed;
+
+        // Wrap around edges
+        if (wave.x > window.innerWidth + wave.size) wave.x = -wave.size;
+        if (wave.x < -wave.size) wave.x = window.innerWidth + wave.size;
+        if (wave.y > window.innerHeight + wave.size) wave.y = -wave.size;
+        if (wave.y < -wave.size) wave.y = window.innerHeight + wave.size;
+
+        // Calculate pulsing effect based on time
+        const pulse = Math.sin(time * 2 + wave.scalePhase) * 0.2 + 1;
+        const opacityPulse = 0.5 + Math.sin(time * 1.5 + wave.phase) * 0.3;
+
+        // Apply transformations
+        wave.element.style.transform = `translate(${wave.x}px, ${wave.y}px) scale(${pulse})`;
+        wave.element.style.opacity = (0.3 + Math.random() * 0.3) * config.intensity * opacityPulse;
+      });
+
+      // Add dynamic grid effect
+      const gridSize = 20 + Math.sin(time * 0.8) * 10;
+      grid.style.background = `
+        linear-gradient(90deg, rgba(0, 242, 234, 0.05) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(0, 242, 234, 0.05) 1px, transparent 1px)
+      `;
+      grid.style.backgroundSize = `${gridSize}px ${gridSize}px`;
+
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function updateColors() {
+      const colors = colorSchemes[config.colorScheme];
+      interferenceWaves.forEach((wave, i) => {
+        const color = colors[i % colors.length];
+        wave.element.style.background = color.color;
+        wave.element.style.boxShadow = color.glow;
+      });
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+        updateColors();
+      });
+    });
+
+    // Sliders
+    document.getElementById('waveSlider').addEventListener('input', e => {
+      config.waveCount = parseInt(e.target.value);
+      document.getElementById('waveValue').textContent = config.waveCount;
+      createInterferenceWaves();
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('intensitySlider').addEventListener('input', e => {
+      config.intensity = parseFloat(e.target.value);
+      document.getElementById('intensityValue').textContent = config.intensity.toFixed(1);
+      updateColors();
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        time = 0;
+        createInterferenceWaves();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['holographic', 'cyber', 'neon', 'rainbow', 'mono'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+        updateColors();
+      }
+    });
+
+    // Initialize
+    createInterferenceWaves();
+    animate();
+  </script>
+</body>
+</html>

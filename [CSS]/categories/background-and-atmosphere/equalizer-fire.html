@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equalizer Fire</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .info {
+            position: relative;
+            z-index: 2;
+            color: white;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 100, 0, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h1>Equalizer Fire</h1>
+        <p>Vertical equalizer bars with fire-like animations</p>
+    </div>
+    
+    <canvas id="equalizerCanvas"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('equalizerCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas to full window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Equalizer bar class
+        class EqualizerBar {
+            constructor(x, width, color) {
+                this.x = x;
+                this.width = width;
+                this.color = color;
+                
+                // Bar properties
+                this.height = 0;
+                this.targetHeight = 0;
+                this.smoothing = 0.2;
+                
+                // Fire particles
+                this.particles = [];
+                this.maxParticles = 30;
+                
+                // Audio response
+                this.frequency = Math.random(); // Simulated frequency band
+            }
+            
+            update() {
+                const time = Date.now() * 0.001;
+                
+                // Simulate audio input with different frequencies
+                let audioLevel = 0;
+                
+                if (this.color < 60) { // Red to yellow - bass
+                    audioLevel = Math.abs(Math.sin(time * 0.5 + this.x * 0.01)) * 0.8;
+                    audioLevel += Math.abs(Math.sin(time * 1.2 + this.x * 0.02)) * 0.2;
+                } else if (this.color < 120) { // Yellow to orange - mids
+                    audioLevel = Math.abs(Math.sin(time * 1.8 + this.x * 0.005)) * 0.7;
+                    audioLevel += Math.abs(Math.sin(time * 2.5 + this.x * 0.01)) * 0.3;
+                } else { // Orange to red - highs
+                    audioLevel = Math.abs(Math.sin(time * 3.2 + this.x * 0.002)) * 0.6;
+                    audioLevel += Math.abs(Math.sin(time * 5.0 + this.x * 0.003)) * 0.4;
+                }
+                
+                // Add some randomness
+                audioLevel += (Math.random() - 0.5) * 0.1;
+                audioLevel = Math.max(0, Math.min(1, audioLevel));
+                
+                // Set target height based on audio level
+                this.targetHeight = audioLevel * canvas.height * 0.7;
+                
+                // Smooth the height change
+                this.height += (this.targetHeight - this.height) * this.smoothing;
+                
+                // Beat detection for particle bursts
+                const beat = Math.sin(time * 0.8) > 0.95 ? 1.5 : 1;
+                
+                // Create particles based on height and beat
+                if (Math.random() < 0.3 * beat && this.particles.length < this.maxParticles) {
+                    this.particles.push({
+                        x: this.x + this.width / 2,
+                        y: canvas.height * 0.9 - this.height,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: -Math.random() * 3 - 1, // Upward velocity
+                        size: Math.random() * 3 + 1,
+                        life: 1,
+                        decay: 0.02 + Math.random() * 0.03,
+                        hue: this.color + Math.random() * 20 - 10
+                    });
+                }
+                
+                // Update particles
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.1; // Gravity
+                    p.life -= p.decay;
+                    
+                    if (p.life <= 0) {
+                        this.particles.splice(i, 1);
+                    }
+                }
+            }
+            
+            draw() {
+                // Draw the main bar
+                const barHeight = this.height;
+                const barY = canvas.height * 0.9 - barHeight;
+                
+                // Create gradient for the bar
+                const barGradient = ctx.createLinearGradient(0, barY, 0, canvas.height * 0.9);
+                
+                barGradient.addColorStop(0, `hsla(${this.color}, 100%, 60%, 1)`);
+                barGradient.addColorStop(0.5, `hsla(${this.color}, 100%, 70%, 1)`);
+                barGradient.addColorStop(1, `hsla(${this.color + 20}, 100%, 40%, 1)`);
+                
+                ctx.fillStyle = barGradient;
+                ctx.fillRect(this.x, barY, this.width, barHeight);
+                
+                // Add glow
+                ctx.shadowColor = `hsla(${this.color}, 100%, 50%, 0.8)`;
+                ctx.shadowBlur = 15;
+                ctx.fillRect(this.x, barY, this.width, barHeight);
+                ctx.shadowBlur = 0;
+                
+                // Draw particles
+                this.particles.forEach(p => {
+                    // Create gradient for particle
+                    const particleGradient = ctx.createRadialGradient(
+                        p.x, p.y, 0,
+                        p.x, p.y, p.size * 2
+                    );
+                    
+                    particleGradient.addColorStop(0, `hsla(${p.hue}, 100%, 80%, ${p.life})`);
+                    particleGradient.addColorStop(0.7, `hsla(${p.hue}, 100%, 60%, ${p.life * 0.7})`);
+                    particleGradient.addColorStop(1, `hsla(${p.hue}, 100%, 40%, 0)`);
+                    
+                    ctx.fillStyle = particleGradient;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+        }
+        
+        // Create equalizer bars
+        const bars = [];
+        const barCount = Math.min(48, Math.floor(canvas.width / 12)); // Adaptive to width
+        const barWidth = Math.max(4, canvas.width / barCount - 2);
+        
+        for (let i = 0; i < barCount; i++) {
+            // Map frequency range to colors (bass to treble: red, orange, yellow)
+            const color = (i / barCount) * 60; // Red to yellow range
+            const x = (i / barCount) * canvas.width;
+            
+            bars.push(new EqualizerBar(x, barWidth, color));
+        }
+        
+        // Draw background with fire gradient
+        function drawFireBackground() {
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            gradient.addColorStop(0.7, 'rgba(30, 5, 0, 0.1)');
+            gradient.addColorStop(1, 'rgba(50, 10, 0, 0.3)');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        // Draw center flame effect
+        function drawCenterFlame() {
+            const time = Date.now() * 0.002;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height * 0.2;
+            const baseRadius = 10;
+            
+            // Create pulsing effect
+            const pulse = Math.sin(time) * 0.3 + 0.7;
+            const radius = baseRadius * pulse;
+            
+            const gradient = ctx.createRadialGradient(
+                centerX, centerY, 0,
+                centerX, centerY, radius * 20
+            );
+            
+            gradient.addColorStop(0, 'hsla(60, 100%, 90%, 0.5)');
+            gradient.addColorStop(0.3, 'hsla(40, 100%, 70%, 0.3)');
+            gradient.addColorStop(0.7, 'hsla(20, 100%, 50%, 0.1)');
+            gradient.addColorStop(1, 'hsla(0, 100%, 30%, 0)');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * 20, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Animation loop
+        function animate() {
+            // Clear with fade effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background effects
+            drawFireBackground();
+            drawCenterFlame();
+            
+            // Update and draw equalizer bars
+            bars.forEach(bar => {
+                bar.update();
+                bar.draw();
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>

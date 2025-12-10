@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Liquid Metal</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .jazer-logo {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            user-select: none;
+            mix-blend-mode: difference;
+            color: white;
+        }
+
+        .jazer-logo h1 {
+            font-size: 6rem;
+            font-weight: 900;
+            letter-spacing: 5px;
+        }
+
+        .jazer-logo p {
+            font-size: 1.5rem;
+            letter-spacing: 0.8em;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="jazer-logo">
+        <h1>JaZeR CHROME</h1>
+        <p>LIQUID REALITY</p>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Blob/Metaball simulation for liquid feel
+        class Blob {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 4;
+                this.vy = (Math.random() - 0.5) * 4;
+                this.radius = 100 + Math.random() * 150;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+        }
+
+        const blobs = Array.from({ length: 8 }, () => new Blob());
+
+        let time = 0;
+        function animate() {
+            time++;
+
+            blobs.forEach(b => b.update());
+
+            // Draw blobs gradiently
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // To simulate chrome, we map color based on "density" or gradient overlay
+            // But complex metaball rendering in 2D canvas is slow pixel-by-pixel.
+            // Fake it with gradient overlaps and distinct colors.
+
+            ctx.globalCompositeOperation = 'lighten';
+
+            blobs.forEach(b => {
+                const grad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.radius);
+                grad.addColorStop(0, '#ffffff');
+                grad.addColorStop(0.4, '#aaddff'); // Blueish tint
+                grad.addColorStop(0.7, '#444444');
+                grad.addColorStop(1, '#000000');
+
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Restore
+            ctx.globalCompositeOperation = 'source-over';
+
+            // Add some "reflection" noise
+            // Simulated by drawing white lines or curves over top
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.beginPath();
+            for (let i = 0; i < 10; i++) {
+                ctx.moveTo(0, Math.random() * canvas.height);
+                ctx.bezierCurveTo(
+                    canvas.width / 3, Math.random() * canvas.height,
+                    canvas.width * 2 / 3, Math.random() * canvas.height,
+                    canvas.width, Math.random() * canvas.height
+                );
+            }
+            ctx.stroke();
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Northern Storm Clouds</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: linear-gradient(180deg, #0a0a1a 0%, #1a1a2e 40%, #2d2d44 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .info {
+            position: relative;
+            z-index: 2;
+            color: #c0c0d0;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(150, 150, 200, 0.5);
+        }
+
+        .info h1 {
+            font-size: 2.2rem;
+            font-weight: 300;
+            letter-spacing: 0.4em;
+        }
+
+        .info p {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">
+        <h1>STORM</h1>
+        <p>Northern atmospheric turbulence</p>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Cloud layer
+        class Cloud {
+            constructor(y, speed, opacity) {
+                this.y = y;
+                this.speed = speed;
+                this.opacity = opacity;
+                this.offset = Math.random() * 1000;
+                this.scale = 0.5 + Math.random() * 0.5;
+            }
+
+            draw(time) {
+                const points = [];
+                const segments = 50;
+
+                for (let i = 0; i <= segments; i++) {
+                    const x = (i / segments) * (canvas.width + 400) - 200;
+                    const noise1 = Math.sin((x + time * this.speed + this.offset) * 0.005) * 40;
+                    const noise2 = Math.sin((x + time * this.speed * 0.7 + this.offset) * 0.01) * 25;
+                    const noise3 = Math.sin((x + time * this.speed * 1.3 + this.offset) * 0.02) * 15;
+
+                    points.push({
+                        x: x,
+                        y: this.y + (noise1 + noise2 + noise3) * this.scale
+                    });
+                }
+
+                // Draw cloud mass
+                ctx.beginPath();
+                ctx.moveTo(-200, canvas.height);
+
+                points.forEach((p, i) => {
+                    if (i === 0) {
+                        ctx.lineTo(p.x, p.y);
+                    } else {
+                        const prev = points[i - 1];
+                        const cpx = (prev.x + p.x) / 2;
+                        const cpy = (prev.y + p.y) / 2;
+                        ctx.quadraticCurveTo(prev.x, prev.y, cpx, cpy);
+                    }
+                });
+
+                ctx.lineTo(canvas.width + 200, canvas.height);
+                ctx.closePath();
+
+                const gradient = ctx.createLinearGradient(0, this.y - 100, 0, this.y + 200);
+                gradient.addColorStop(0, `rgba(40, 45, 60, ${this.opacity})`);
+                gradient.addColorStop(0.5, `rgba(30, 35, 50, ${this.opacity * 0.8})`);
+                gradient.addColorStop(1, `rgba(20, 25, 40, ${this.opacity * 0.5})`);
+
+                ctx.fillStyle = gradient;
+                ctx.fill();
+            }
+        }
+
+        // Lightning
+        class Lightning {
+            constructor() {
+                this.active = false;
+                this.branches = [];
+                this.timer = 0;
+                this.flashIntensity = 0;
+            }
+
+            trigger() {
+                if (this.active) return;
+
+                this.active = true;
+                this.flashIntensity = 1;
+                this.branches = [];
+
+                // Main bolt
+                this.createBolt(
+                    Math.random() * canvas.width,
+                    0,
+                    Math.random() * canvas.width,
+                    canvas.height * 0.7,
+                    5
+                );
+
+                this.timer = 10;
+            }
+
+            createBolt(x1, y1, x2, y2, depth) {
+                if (depth <= 0) return;
+
+                const points = [{ x: x1, y: y1 }];
+                const segments = 8 + Math.floor(Math.random() * 8);
+
+                for (let i = 1; i < segments; i++) {
+                    const t = i / segments;
+                    const x = x1 + (x2 - x1) * t + (Math.random() - 0.5) * 100;
+                    const y = y1 + (y2 - y1) * t + (Math.random() - 0.5) * 30;
+                    points.push({ x, y });
+
+                    // Branch chance
+                    if (depth > 2 && Math.random() < 0.3) {
+                        const branchEndX = x + (Math.random() - 0.5) * 200;
+                        const branchEndY = y + 50 + Math.random() * 100;
+                        this.createBolt(x, y, branchEndX, branchEndY, depth - 2);
+                    }
+                }
+
+                points.push({ x: x2, y: y2 });
+                this.branches.push({ points, width: depth });
+            }
+
+            update() {
+                if (!this.active) {
+                    if (Math.random() < 0.005) {
+                        this.trigger();
+                    }
+                    return;
+                }
+
+                this.timer--;
+                this.flashIntensity *= 0.8;
+
+                if (this.timer <= 0) {
+                    this.active = false;
+                }
+            }
+
+            draw() {
+                if (!this.active) return;
+
+                // Screen flash
+                ctx.fillStyle = `rgba(200, 200, 255, ${this.flashIntensity * 0.3})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw bolts
+                this.branches.forEach(branch => {
+                    ctx.beginPath();
+                    branch.points.forEach((p, i) => {
+                        if (i === 0) ctx.moveTo(p.x, p.y);
+                        else ctx.lineTo(p.x, p.y);
+                    });
+
+                    // Glow
+                    ctx.strokeStyle = `rgba(200, 200, 255, ${this.flashIntensity * 0.5})`;
+                    ctx.lineWidth = branch.width * 4;
+                    ctx.stroke();
+
+                    // Core
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${this.flashIntensity})`;
+                    ctx.lineWidth = branch.width;
+                    ctx.stroke();
+                });
+            }
+        }
+
+        // Rain
+        class Raindrop {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * -canvas.height;
+                this.length = 10 + Math.random() * 20;
+                this.speed = 15 + Math.random() * 10;
+                this.opacity = 0.1 + Math.random() * 0.2;
+            }
+
+            update() {
+                this.y += this.speed;
+                this.x -= 2; // Wind
+
+                if (this.y > canvas.height) this.reset();
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x + 2, this.y - this.length);
+                ctx.strokeStyle = `rgba(150, 160, 180, ${this.opacity})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        }
+
+        const clouds = [
+            new Cloud(canvas.height * 0.3, 20, 0.7),
+            new Cloud(canvas.height * 0.4, 15, 0.6),
+            new Cloud(canvas.height * 0.5, 25, 0.5),
+            new Cloud(canvas.height * 0.2, 10, 0.8),
+        ];
+
+        const lightning = new Lightning();
+        const raindrops = Array.from({ length: 200 }, () => new Raindrop());
+
+        let time = 0;
+        function animate() {
+            time++;
+
+            // Background
+            const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            bgGradient.addColorStop(0, '#0a0a1a');
+            bgGradient.addColorStop(0.4, '#1a1a2e');
+            bgGradient.addColorStop(1, '#2d2d44');
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Clouds
+            clouds.forEach(cloud => cloud.draw(time));
+
+            // Lightning
+            lightning.update();
+            lightning.draw();
+
+            // Rain
+            raindrops.forEach(drop => {
+                drop.update();
+                drop.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

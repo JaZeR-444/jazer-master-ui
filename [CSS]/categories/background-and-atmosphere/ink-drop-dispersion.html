@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ink Drop Dispersion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Georgia', serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .info {
+            position: relative;
+            z-index: 2;
+            color: #333;
+            text-align: center;
+        }
+
+        .info h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 0.3em;
+        }
+
+        .info p {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">
+        <h1>Ink</h1>
+        <p>Dispersion in water</p>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class InkDrop {
+            constructor() { this.reset(); }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.tendrils = [];
+                this.size = 5;
+                this.maxSize = 100 + Math.random() * 100;
+                this.hue = Math.random() > 0.5 ? 0 : 240;
+                this.alpha = 0.8;
+
+                const tendrilCount = 6 + Math.floor(Math.random() * 6);
+                for (let i = 0; i < tendrilCount; i++) {
+                    this.tendrils.push({
+                        angle: (i / tendrilCount) * Math.PI * 2 + Math.random() * 0.5,
+                        length: 0,
+                        maxLength: 50 + Math.random() * 100,
+                        speed: 0.5 + Math.random() * 1,
+                        curve: (Math.random() - 0.5) * 0.05
+                    });
+                }
+            }
+
+            update() {
+                if (this.size < this.maxSize) {
+                    this.size += 0.5;
+                    this.alpha -= 0.002;
+                }
+
+                this.tendrils.forEach(t => {
+                    if (t.length < t.maxLength) {
+                        t.length += t.speed;
+                        t.angle += t.curve;
+                    }
+                });
+
+                if (this.alpha <= 0) this.reset();
+            }
+
+            draw() {
+                // Core
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
+                gradient.addColorStop(0, `hsla(${this.hue}, 10%, 10%, ${this.alpha})`);
+                gradient.addColorStop(0.5, `hsla(${this.hue}, 10%, 20%, ${this.alpha * 0.5})`);
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Tendrils
+                this.tendrils.forEach(t => {
+                    const endX = this.x + Math.cos(t.angle) * (this.size + t.length);
+                    const endY = this.y + Math.sin(t.angle) * (this.size + t.length);
+                    const midX = this.x + Math.cos(t.angle) * (this.size + t.length * 0.5);
+                    const midY = this.y + Math.sin(t.angle) * (this.size + t.length * 0.5);
+
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + Math.cos(t.angle) * this.size * 0.5, this.y + Math.sin(t.angle) * this.size * 0.5);
+                    ctx.quadraticCurveTo(midX + Math.sin(t.angle) * 10, midY - Math.cos(t.angle) * 10, endX, endY);
+                    ctx.strokeStyle = `hsla(${this.hue}, 10%, 15%, ${this.alpha * 0.5})`;
+                    ctx.lineWidth = 3 * (1 - t.length / t.maxLength);
+                    ctx.stroke();
+                });
+            }
+        }
+
+        const drops = Array.from({ length: 8 }, () => new InkDrop());
+
+        function animate() {
+            ctx.fillStyle = 'rgba(245, 245, 245, 0.02)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            drops.forEach(d => { d.update(); d.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+
+</html>

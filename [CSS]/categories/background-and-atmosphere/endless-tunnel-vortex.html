@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endless Tunnel Vortex</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .info {
+            position: relative;
+            z-index: 2;
+            color: white;
+            text-align: center;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.8);
+        }
+
+        .info h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 0.4em;
+        }
+
+        .info p {
+            opacity: 0.7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">
+        <h1>VORTEX</h1>
+        <p>Infinite tunnel descent</p>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const centerX = () => canvas.width / 2;
+        const centerY = () => canvas.height / 2;
+
+        class Ring {
+            constructor(z) {
+                this.z = z;
+                this.segments = 12;
+                this.hue = Math.random() * 360;
+            }
+
+            update(speed) {
+                this.z -= speed;
+                this.hue += 0.5;
+                if (this.z < 1) {
+                    this.z = 50;
+                    this.hue = Math.random() * 360;
+                }
+            }
+
+            draw(time) {
+                const scale = 500 / this.z;
+                const radius = scale * 3;
+                const alpha = Math.min(1, (50 - this.z) / 30);
+                const rotation = time * 0.0005 + this.z * 0.1;
+
+                if (radius < 5) return;
+
+                ctx.save();
+                ctx.translate(centerX(), centerY());
+                ctx.rotate(rotation);
+
+                // Draw ring segments
+                for (let i = 0; i < this.segments; i++) {
+                    const angle = (i / this.segments) * Math.PI * 2;
+                    const nextAngle = ((i + 1) / this.segments) * Math.PI * 2;
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, radius, angle, nextAngle);
+
+                    const segmentHue = (this.hue + i * 30) % 360;
+                    ctx.strokeStyle = `hsla(${segmentHue}, 100%, 60%, ${alpha * 0.8})`;
+                    ctx.lineWidth = Math.max(1, 8 / this.z * 10);
+                    ctx.stroke();
+
+                    // Glow effect
+                    ctx.strokeStyle = `hsla(${segmentHue}, 100%, 80%, ${alpha * 0.3})`;
+                    ctx.lineWidth = Math.max(2, 15 / this.z * 10);
+                    ctx.stroke();
+                }
+
+                // Draw connecting lines to next ring
+                for (let i = 0; i < this.segments; i += 2) {
+                    const angle = (i / this.segments) * Math.PI * 2;
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    const innerRadius = radius * 0.7;
+                    const innerX = Math.cos(angle + 0.1) * innerRadius;
+                    const innerY = Math.sin(angle + 0.1) * innerRadius;
+
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(innerX, innerY);
+                    ctx.strokeStyle = `hsla(${this.hue}, 100%, 70%, ${alpha * 0.5})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        const rings = [];
+        for (let i = 0; i < 40; i++) {
+            rings.push(new Ring(i * 1.25 + 1));
+        }
+
+        // Center glow
+        function drawCenterGlow(time) {
+            const pulse = Math.sin(time * 0.002) * 0.3 + 0.7;
+            const gradient = ctx.createRadialGradient(
+                centerX(), centerY(), 0,
+                centerX(), centerY(), 150 * pulse
+            );
+            gradient.addColorStop(0, `rgba(0, 255, 255, ${0.5 * pulse})`);
+            gradient.addColorStop(0.5, `rgba(128, 0, 255, ${0.2 * pulse})`);
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        let time = 0;
+        function animate() {
+            time++;
+
+            // Dark fade for trail effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Sort rings by z-depth
+            rings.sort((a, b) => b.z - a.z);
+
+            rings.forEach(ring => {
+                ring.update(0.3);
+                ring.draw(time);
+            });
+
+            drawCenterGlow(time);
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

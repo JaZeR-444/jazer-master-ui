@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Audio Waves</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .jazer-logo {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            user-select: none;
+        }
+
+        .jazer-logo h1 {
+            font-size: 6rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 5s ease infinite;
+        }
+
+        .jazer-logo p {
+            color: #fff;
+            letter-spacing: 0.5em;
+            margin-top: 1rem;
+        }
+
+        @keyframes rainbow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="jazer-logo">
+        <h1>JaZeR WAVELENGTH</h1>
+        <p>VISUALIZED SOUND</p>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Simulated audio data
+        const bars = 64;
+        const data = new Array(bars).fill(0);
+
+        function updateData(time) {
+            for (let i = 0; i < bars; i++) {
+                // Perlin-ish noise simulation
+                const noise = Math.sin(time * 0.1 + i * 0.5) * Math.cos(time * 0.05 + i * 0.1);
+                // Map to 0-1
+                const val = (noise + 1) / 2;
+                // Add some chaotic random spikes
+                const spike = Math.random() > 0.9 ? Math.random() : 0;
+
+                // Smooth interpolation
+                data[i] = data[i] * 0.9 + (val + spike * 0.5) * 0.1;
+                if (data[i] > 1) data[i] = 1;
+            }
+        }
+
+        let time = 0;
+        function animate() {
+            time++;
+            updateData(time);
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const radius = 150;
+
+            // Draw circular visualizer
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+            ctx.strokeStyle = '#333';
+            ctx.stroke();
+
+            // Bars
+            for (let i = 0; i < bars; i++) {
+                const angle = (i / bars) * Math.PI * 2;
+                const value = data[i] * 150; // Max height
+
+                const startX = cx + Math.cos(angle) * radius;
+                const startY = cy + Math.sin(angle) * radius;
+
+                const endX = cx + Math.cos(angle) * (radius + value);
+                const endY = cy + Math.sin(angle) * (radius + value);
+
+                // Start
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
+
+                // Color based on angle
+                const hue = (i / bars) * 360;
+                ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
+                ctx.lineWidth = 5;
+                ctx.lineCap = 'round';
+
+                // Glow
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

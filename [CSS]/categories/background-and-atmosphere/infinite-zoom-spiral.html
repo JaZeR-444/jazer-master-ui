@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinite Zoom Spiral</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .info {
+            position: relative;
+            z-index: 2;
+            color: white;
+            text-align: center;
+            text-shadow: 0 0 30px rgba(255, 100, 200, 0.7);
+        }
+
+        .info h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 0.5em;
+        }
+
+        .info p {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">
+        <h1>INFINITE</h1>
+        <p>Endless spiral descent</p>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const cx = () => canvas.width / 2;
+        const cy = () => canvas.height / 2;
+
+        class SpiralLayer {
+            constructor(scale, hueOffset) {
+                this.scale = scale;
+                this.hueOffset = hueOffset;
+                this.rotation = 0;
+            }
+
+            draw(time) {
+                const arms = 6;
+                const turns = 5;
+                const points = 200;
+
+                ctx.save();
+                ctx.translate(cx(), cy());
+                ctx.rotate(this.rotation);
+
+                for (let arm = 0; arm < arms; arm++) {
+                    ctx.beginPath();
+
+                    for (let i = 0; i < points; i++) {
+                        const t = i / points;
+                        const angle = t * Math.PI * 2 * turns + (arm / arms) * Math.PI * 2;
+                        const radius = t * Math.min(canvas.width, canvas.height) * 0.5 * this.scale;
+
+                        const x = Math.cos(angle) * radius;
+                        const y = Math.sin(angle) * radius;
+
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+
+                    const hue = (time * 0.05 + arm * 60 + this.hueOffset) % 360;
+                    ctx.strokeStyle = `hsla(${hue}, 80%, 60%, ${0.6 / this.scale})`;
+                    ctx.lineWidth = 2 * this.scale;
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        const layers = [];
+        for (let i = 0; i < 8; i++) {
+            layers.push(new SpiralLayer(0.2 + i * 0.15, i * 45));
+        }
+
+        let time = 0;
+        const zoomSpeed = 0.003;
+
+        function animate() {
+            time++;
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            layers.forEach((layer, i) => {
+                layer.scale *= (1 + zoomSpeed);
+                layer.rotation += 0.005 * (i % 2 === 0 ? 1 : -1);
+
+                if (layer.scale > 3) {
+                    layer.scale = 0.2;
+                }
+
+                layer.draw(time);
+            });
+
+            // Center glow
+            const pulse = Math.sin(time * 0.02) * 0.3 + 0.7;
+            const gradient = ctx.createRadialGradient(cx(), cy(), 0, cx(), cy(), 100);
+            gradient.addColorStop(0, `rgba(255, 100, 200, ${0.4 * pulse})`);
+            gradient.addColorStop(0.5, `rgba(100, 50, 200, ${0.2 * pulse})`);
+            gradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

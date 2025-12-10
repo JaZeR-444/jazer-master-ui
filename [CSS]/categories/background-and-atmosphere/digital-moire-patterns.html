@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Moire Patterns - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="digital"] { background: linear-gradient(45deg, #00ffff, #0088ff); }
+    .color-btn[data-color="binary"] { background: linear-gradient(45deg, #00ff9d, #00ffff); }
+    .color-btn[data-color="glitch"] { background: linear-gradient(45deg, #ff00cc, #333399); }
+    .color-btn[data-color="pixel"] { background: linear-gradient(45deg, #ff512f, #f09819); }
+    .color-btn[data-color="matrix"] { background: linear-gradient(45deg, #00ff00, #008800); }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .pattern-select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-light);
+      font-family: var(--font-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .moire-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    #moireCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 280px; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .controls { top: auto; bottom: 5rem; right: 1rem; min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Digital Moire Patterns</h1>
+    <p>Digital moire patterns with interference effects</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Randomize</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="digital" title="Digital"></button>
+      <button class="color-btn" data-color="binary" title="Binary"></button>
+      <button class="color-btn" data-color="glitch" title="Glitch"></button>
+      <button class="color-btn" data-color="pixel" title="Pixel"></button>
+      <button class="color-btn" data-color="matrix" title="Matrix"></button>
+    </div>
+    <div class="slider-group">
+      <label>Pattern Density: <span class="slider-value" id="densityValue">8</span></label>
+      <input type="range" id="densitySlider" min="4" max="20" step="1" value="8">
+    </div>
+    <div class="slider-group">
+      <label>Interference Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Pattern Complexity: <span class="slider-value" id="complexityValue">5</span></label>
+      <input type="range" id="complexitySlider" min="1" max="10" step="1" value="5">
+    </div>
+    <label>Pattern</label>
+    <select class="pattern-select" id="patternSelect">
+      <option value="lines">Interference Lines</option>
+      <option value="circles">Concentric Circles</option>
+      <option value="grid">Grid Interference</option>
+      <option value="waves">Wave Interference</option>
+      <option value="fractal">Fractal Moire</option>
+    </select>
+  </div>
+
+  <div class="moire-container">
+    <canvas id="moireCanvas"></canvas>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const canvas = document.getElementById('moireCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      density: 8,
+      speed: 1.0,
+      complexity: 5,
+      pattern: 'lines',
+      colorScheme: 'digital',
+      paused: false
+    };
+
+    const colorSchemes = {
+      digital: [
+        'rgba(0, 255, 255, 0.8)',
+        'rgba(0, 136, 255, 0.7)',
+        'rgba(0, 200, 255, 0.6)',
+        'rgba(0, 100, 200, 0.5)',
+        'rgba(0, 180, 255, 0.4)',
+        'rgba(0, 80, 200, 0.6)'
+      ],
+      binary: [
+        'rgba(0, 255, 157, 0.8)',
+        'rgba(0, 255, 255, 0.7)',
+        'rgba(0, 200, 150, 0.6)',
+        'rgba(0, 200, 255, 0.5)',
+        'rgba(0, 180, 180, 0.4)',
+        'rgba(0, 150, 200, 0.6)'
+      ],
+      glitch: [
+        'rgba(255, 0, 204, 0.8)',
+        'rgba(51, 51, 153, 0.7)',
+        'rgba(200, 0, 180, 0.6)',
+        'rgba(100, 0, 150, 0.5)',
+        'rgba(255, 0, 150, 0.4)',
+        'rgba(150, 0, 100, 0.6)'
+      ],
+      pixel: [
+        'rgba(255, 81, 47, 0.8)',
+        'rgba(240, 152, 25, 0.7)',
+        'rgba(220, 120, 20, 0.6)',
+        'rgba(255, 100, 50, 0.5)',
+        'rgba(200, 80, 30, 0.4)',
+        'rgba(245, 130, 40, 0.6)'
+      ],
+      matrix: [
+        'rgba(0, 255, 0, 0.8)',
+        'rgba(0, 200, 0, 0.7)',
+        'rgba(0, 180, 0, 0.6)',
+        'rgba(0, 150, 0, 0.5)',
+        'rgba(0, 120, 0, 0.4)',
+        'rgba(0, 100, 0, 0.6)'
+      ]
+    };
+
+    let time = 0;
+    let animationId;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function getColors() {
+      return colorSchemes[config.colorScheme];
+    }
+
+    function drawInterferenceLines() {
+      const colors = getColors();
+      const lineSpacing = canvas.width / config.density;
+      
+      // Draw first set of lines
+      for (let i = 0; i < config.density * 2; i++) {
+        const x = i * lineSpacing / 2;
+        const color = colors[i % colors.length];
+        
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      
+      // Draw second set of lines with offset for interference
+      for (let i = 0; i < config.density * 2; i++) {
+        const offset = Math.sin(time * 0.02 * config.speed + i * 0.1) * 10;
+        const x = i * lineSpacing / 2 + offset;
+        const color = colors[(i + config.complexity) % colors.length];
+        
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.strokeStyle = color.replace('0.8', '0.5');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+      
+      // Draw diagonal interference pattern
+      for (let i = 0; i < config.density; i++) {
+        const angle1 = time * 0.01 * config.speed + i * 0.2;
+        const angle2 = -time * 0.015 * config.speed + i * 0.3;
+        
+        // First diagonal pattern
+        for (let j = 0; j < 30; j++) {
+          const x1 = (j - 15) * 30;
+          const y1 = 0;
+          const x2 = x1 + Math.cos(angle1) * canvas.width;
+          const y2 = Math.sin(angle1) * canvas.height;
+          
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.strokeStyle = colors[i % colors.length].replace('0.8', '0.3');
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+        
+        // Second diagonal pattern
+        for (let j = 0; j < 30; j++) {
+          const x1 = (j - 15) * 30;
+          const y1 = 0;
+          const x2 = x1 + Math.cos(angle2) * canvas.width;
+          const y2 = Math.sin(angle2) * canvas.height;
+          
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.strokeStyle = colors[(i + 3) % colors.length].replace('0.8', '0.3');
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+
+    function drawConcentricCircles() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+      
+      // Draw first set of circles
+      for (let i = 0; i < config.density; i++) {
+        const radius = (i / config.density) * maxRadius;
+        const color = colors[i % colors.length];
+        
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      
+      // Draw second set of circles with offset
+      for (let i = 0; i < config.density; i++) {
+        const offset = Math.sin(time * 0.02 * config.speed + i) * 15;
+        const radius = (i / config.density) * maxRadius + offset;
+        const color = colors[(i + config.complexity) % colors.length];
+        
+        ctx.beginPath();
+        ctx.arc(centerX + offset, centerY + offset, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = color.replace('0.8', '0.5');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+      
+      // Draw additional interference patterns
+      for (let i = 0; i < config.complexity; i++) {
+        const angle = (i / config.complexity) * Math.PI * 2 + time * 0.01 * config.speed;
+        const distance = maxRadius * 0.7;
+        const x = centerX + Math.cos(angle) * distance;
+        const y = centerY + Math.sin(angle) * distance;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, maxRadius * 0.3, 0, Math.PI * 2);
+        ctx.strokeStyle = colors[i % colors.length].replace('0.8', '0.2');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    function drawGridInterference() {
+      const colors = getColors();
+      const cellSize = Math.min(canvas.width, canvas.height) / config.density;
+      
+      // Draw first grid
+      for (let x = 0; x <= canvas.width; x += cellSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.strokeStyle = colors[0];
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      
+      for (let y = 0; y <= canvas.height; y += cellSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.strokeStyle = colors[1];
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      
+      // Draw second grid with rotation and offset
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(Math.sin(time * 0.01 * config.speed) * 0.1);
+      ctx.translate(-canvas.width / 2, -canvas.height / 2);
+      
+      for (let x = 0; x <= canvas.width; x += cellSize * 1.1) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.strokeStyle = colors[2].replace('0.8', '0.5');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+      
+      for (let y = 0; y <= canvas.height; y += cellSize * 1.1) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.strokeStyle = colors[3].replace('0.8', '0.5');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+      
+      ctx.restore();
+      
+      // Draw diagonal grid
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(Math.PI / 4 + Math.cos(time * 0.015 * config.speed) * 0.1);
+      ctx.translate(-canvas.width / 2, -canvas.height / 2);
+      
+      for (let x = 0; x <= canvas.width * 2; x += cellSize * 1.2) {
+        ctx.beginPath();
+        ctx.moveTo(x - canvas.width, 0);
+        ctx.lineTo(x, canvas.height * 2);
+        ctx.strokeStyle = colors[4].replace('0.8', '0.3');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+      
+      ctx.restore();
+    }
+
+    function drawWaveInterference() {
+      const colors = getColors();
+      const centerY = canvas.height / 2;
+      
+      // Draw first wave pattern
+      ctx.beginPath();
+      for (let x = 0; x <= canvas.width; x += 2) {
+        const y = centerY + Math.sin(x * 0.02 + time * 0.02 * config.speed) * 30;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      
+      ctx.strokeStyle = colors[0];
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      
+      // Draw second wave pattern
+      ctx.beginPath();
+      for (let x = 0; x <= canvas.width; x += 2) {
+        const y = centerY + Math.sin(x * 0.025 - time * 0.025 * config.speed) * 25;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      
+      ctx.strokeStyle = colors[1].replace('0.8', '0.7');
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      // Draw third wave pattern
+      ctx.beginPath();
+      for (let x = 0; x <= canvas.width; x += 2) {
+        const y = centerY + Math.sin(x * 0.018 + time * 0.018 * config.speed + Math.PI) * 20;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      
+      ctx.strokeStyle = colors[2].replace('0.8', '0.5');
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      
+      // Draw interference points
+      for (let x = 0; x <= canvas.width; x += 20) {
+        const y1 = centerY + Math.sin(x * 0.02 + time * 0.02 * config.speed) * 30;
+        const y2 = centerY + Math.sin(x * 0.025 - time * 0.025 * config.speed) * 25;
+        
+        // Calculate interference
+        const interference = Math.abs(y1 - y2) < 5 ? 1 : 0;
+        if (interference) {
+          ctx.beginPath();
+          ctx.arc(x, (y1 + y2) / 2, 3, 0, Math.PI * 2);
+          ctx.fillStyle = colors[3];
+          ctx.fill();
+        }
+      }
+    }
+
+    function drawFractalMoire() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.3;
+      
+      // Draw fractal pattern with moiré effect
+      function drawFractalCircle(x, y, radius, depth) {
+        if (depth <= 0) return;
+        
+        // Draw main circle
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = colors[depth % colors.length];
+        ctx.lineWidth = 1 + depth * 0.3;
+        ctx.stroke();
+        
+        // Draw offset circle for moiré effect
+        const offset = Math.sin(time * 0.03 * config.speed + depth) * 5;
+        ctx.beginPath();
+        ctx.arc(x + offset, y + offset, radius * 0.9, 0, Math.PI * 2);
+        ctx.strokeStyle = colors[(depth + 2) % colors.length].replace('0.8', '0.5');
+        ctx.lineWidth = 0.5 + depth * 0.2;
+        ctx.stroke();
+        
+        // Recursively draw smaller circles
+        if (depth > 1) {
+          const nextRadius = radius * 0.4;
+          const angle = (depth / config.complexity) * Math.PI * 2 + time * 0.01 * config.speed;
+          
+          // Draw circles in a pattern
+          for (let i = 0; i < 4; i++) {
+            const a = (i / 4) * Math.PI * 2 + angle;
+            const nextX = x + Math.cos(a) * radius * 0.7;
+            const nextY = y + Math.sin(a) * radius * 0.7;
+            
+            drawFractalCircle(nextX, nextY, nextRadius, depth - 1);
+          }
+        }
+      }
+      
+      // Draw multiple fractal patterns
+      for (let i = 0; i < 3; i++) {
+        const angle = (i / 3) * Math.PI * 2;
+        const distance = maxRadius * 0.3;
+        const x = centerX + Math.cos(angle) * distance;
+        const y = centerY + Math.sin(angle) * distance;
+        
+        drawFractalCircle(x, y, maxRadius * 0.3, config.complexity);
+      }
+      
+      // Draw central pattern
+      drawFractalCircle(centerX, centerY, maxRadius * 0.2, config.complexity - 1);
+    }
+
+    function drawMoire() {
+      // Clear with subtle fade effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      switch(config.pattern) {
+        case 'lines':
+          drawInterferenceLines();
+          break;
+        case 'circles':
+          drawConcentricCircles();
+          break;
+        case 'grid':
+          drawGridInterference();
+          break;
+        case 'waves':
+          drawWaveInterference();
+          break;
+        case 'fractal':
+          drawFractalMoire();
+          break;
+      }
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.01 * config.speed;
+        drawMoire();
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function randomize() {
+      config.density = Math.floor(Math.random() * 12 + 6);
+      config.speed = Math.random() * 2 + 0.5;
+      config.complexity = Math.floor(Math.random() * 8 + 2);
+      const patterns = ['lines', 'circles', 'grid', 'waves', 'fractal'];
+      config.pattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      document.getElementById('densitySlider').value = config.density;
+      document.getElementById('densityValue').textContent = config.density;
+      document.getElementById('speedSlider').value = config.speed.toFixed(1);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+      document.getElementById('complexitySlider').value = config.complexity;
+      document.getElementById('complexityValue').textContent = config.complexity;
+      document.getElementById('patternSelect').value = config.pattern;
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('densitySlider').addEventListener('input', e => {
+      config.density = parseInt(e.target.value);
+      document.getElementById('densityValue').textContent = config.density;
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('complexitySlider').addEventListener('input', e => {
+      config.complexity = parseInt(e.target.value);
+      document.getElementById('complexityValue').textContent = config.complexity;
+    });
+
+    document.getElementById('patternSelect').addEventListener('change', e => {
+      config.pattern = e.target.value;
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        randomize();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['digital', 'binary', 'glitch', 'pixel', 'matrix'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    animate();
+  </script>
+</body>
+</html>

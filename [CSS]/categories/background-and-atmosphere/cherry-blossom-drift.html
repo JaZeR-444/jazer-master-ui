@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cherry Blossom Drift</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: linear-gradient(180deg, #E8F4F8 0%, #FFDDE1 50%, #FFC0CB 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .info {
+            position: relative;
+            z-index: 2;
+            color: #8B4560;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(255, 192, 203, 0.8);
+        }
+
+        .info h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 0.5em;
+        }
+
+        .info p {
+            opacity: 0.7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">
+        <h1>桜</h1>
+        <p>Cherry blossoms in the wind</p>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const petalColors = [
+            '#FFB7C5', '#FFC0CB', '#FFD1DC', '#FFDDEB', '#FFF0F5',
+            '#FFE4E9', '#FFDBE5', '#FFC8D7'
+        ];
+
+        class Petal {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * (canvas.width + 200) - 100;
+                this.y = Math.random() * -200 - 50;
+                this.size = 8 + Math.random() * 15;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.08;
+                this.fallSpeed = 0.5 + Math.random() * 1.5;
+                this.driftSpeed = 0.5 + Math.random() * 1;
+                this.swayAmplitude = 30 + Math.random() * 50;
+                this.swaySpeed = 0.01 + Math.random() * 0.02;
+                this.swayPhase = Math.random() * Math.PI * 2;
+                this.color = petalColors[Math.floor(Math.random() * petalColors.length)];
+                this.flipPhase = Math.random() * Math.PI * 2;
+                this.flipSpeed = 0.03 + Math.random() * 0.04;
+                this.opacity = 0.7 + Math.random() * 0.3;
+            }
+
+            update() {
+                this.y += this.fallSpeed;
+                this.x += this.driftSpeed;
+                this.swayPhase += this.swaySpeed;
+                this.x += Math.sin(this.swayPhase) * 1.5;
+                this.rotation += this.rotationSpeed;
+                this.flipPhase += this.flipSpeed;
+
+                if (this.y > canvas.height + 50 || this.x > canvas.width + 100) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                const scaleX = Math.cos(this.flipPhase);
+                const scaleY = 0.6 + Math.abs(Math.sin(this.flipPhase)) * 0.4;
+
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.scale(scaleX, scaleY);
+                ctx.globalAlpha = this.opacity;
+
+                // Petal shape (5 lobes)
+                ctx.beginPath();
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i / 5) * Math.PI * 2 - Math.PI / 2;
+                    const nextAngle = ((i + 1) / 5) * Math.PI * 2 - Math.PI / 2;
+
+                    const x1 = Math.cos(angle) * this.size;
+                    const y1 = Math.sin(angle) * this.size;
+                    const x2 = Math.cos(nextAngle) * this.size;
+                    const y2 = Math.sin(nextAngle) * this.size;
+
+                    const cpx = Math.cos((angle + nextAngle) / 2) * this.size * 0.3;
+                    const cpy = Math.sin((angle + nextAngle) / 2) * this.size * 0.3;
+
+                    if (i === 0) ctx.moveTo(x1, y1);
+                    ctx.quadraticCurveTo(cpx, cpy, x2, y2);
+                }
+                ctx.closePath();
+
+                ctx.fillStyle = this.color;
+                ctx.fill();
+
+                // Center
+                ctx.beginPath();
+                ctx.arc(0, 0, this.size * 0.2, 0, Math.PI * 2);
+                ctx.fillStyle = '#FFD700';
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        // Cherry blossom branch
+        function drawBranch() {
+            ctx.save();
+            ctx.translate(canvas.width * 0.1, -50);
+            ctx.rotate(0.3);
+
+            // Main branch
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.bezierCurveTo(
+                200, 100,
+                300, 200,
+                canvas.width * 0.5, canvas.height * 0.4
+            );
+            ctx.strokeStyle = '#5D4037';
+            ctx.lineWidth = 20;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            // Secondary branch
+            ctx.beginPath();
+            ctx.moveTo(150, 70);
+            ctx.bezierCurveTo(
+                250, 150,
+                300, 250,
+                200, canvas.height * 0.5
+            );
+            ctx.lineWidth = 10;
+            ctx.stroke();
+
+            // Blossom clusters on branch
+            const clusterPositions = [
+                { x: 100, y: 50 },
+                { x: 200, y: 120 },
+                { x: 280, y: 200 },
+                { x: 180, y: 280 },
+                { x: 350, y: 280 }
+            ];
+
+            clusterPositions.forEach(pos => {
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i / 8) * Math.PI * 2;
+                    const dist = 15 + Math.random() * 20;
+                    const px = pos.x + Math.cos(angle) * dist;
+                    const py = pos.y + Math.sin(angle) * dist;
+
+                    drawStaticPetal(px, py, 12 + Math.random() * 8, petalColors[Math.floor(Math.random() * petalColors.length)]);
+                }
+            });
+
+            ctx.restore();
+        }
+
+        function drawStaticPetal(x, y, size, color) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(Math.random() * Math.PI * 2);
+
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (i / 5) * Math.PI * 2 - Math.PI / 2;
+                const nextAngle = ((i + 1) / 5) * Math.PI * 2 - Math.PI / 2;
+
+                const x1 = Math.cos(angle) * size;
+                const y1 = Math.sin(angle) * size;
+                const x2 = Math.cos(nextAngle) * size;
+                const y2 = Math.sin(nextAngle) * size;
+
+                const cpx = Math.cos((angle + nextAngle) / 2) * size * 0.3;
+                const cpy = Math.sin((angle + nextAngle) / 2) * size * 0.3;
+
+                if (i === 0) ctx.moveTo(x1, y1);
+                ctx.quadraticCurveTo(cpx, cpy, x2, y2);
+            }
+            ctx.closePath();
+
+            ctx.fillStyle = color;
+            ctx.globalAlpha = 0.8;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(0, 0, size * 0.2, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFD700';
+            ctx.globalAlpha = 1;
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        const petals = Array.from({ length: 100 }, () => new Petal());
+
+        let time = 0;
+        function animate() {
+            time++;
+
+            // Soft gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#E8F4F8');
+            gradient.addColorStop(0.3, '#FFF0F5');
+            gradient.addColorStop(0.6, '#FFDDE1');
+            gradient.addColorStop(1, '#FFC0CB');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drawBranch();
+
+            // Falling petals
+            petals.forEach(petal => {
+                petal.update();
+                petal.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chromatic Aberration Waves - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="rgb"] { background: linear-gradient(135deg, #ff0000, #00ff00, #0000ff); }
+    .color-btn[data-color="cmy"] { background: linear-gradient(135deg, #ff00ff, #ffff00, #00ffff); }
+    .color-btn[data-color="spectrum"] { background: linear-gradient(135deg, #ff0000, #ff7700, #ffff00, #00ff00, #0000ff, #8a2be2); }
+    .color-btn[data-color="neon"] { background: linear-gradient(135deg, #ff006e, #00f2ea, #9333ea); }
+    .color-btn[data-color="mono"] { background: linear-gradient(135deg, #ffffff, #cccccc, #666666); }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .aberration-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #000000 0%, #0a0a0a 100%);
+      overflow: hidden;
+    }
+    .wave-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.7;
+      mix-blend-mode: screen;
+      will-change: transform;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Chromatic Aberration Waves</h1>
+    <p>Visual effect simulating chromatic aberration with color-separated wave patterns</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Reset</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Mode</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="rgb" title="RGB"></button>
+      <button class="color-btn" data-color="cmy" title="CMY"></button>
+      <button class="color-btn" data-color="spectrum" title="Spectrum"></button>
+      <button class="color-btn" data-color="neon" title="Neon"></button>
+      <button class="color-btn" data-color="mono" title="Monochrome"></button>
+    </div>
+    <div class="slider-group">
+      <label>Aberration: <span class="slider-value" id="aberrationValue">0.8</span></label>
+      <input type="range" id="aberrationSlider" min="0.1" max="1.5" step="0.1" value="0.8">
+    </div>
+    <div class="slider-group">
+      <label>Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.2" max="2" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Intensity: <span class="slider-value" id="intensityValue">0.8</span></label>
+      <input type="range" id="intensitySlider" min="0.3" max="1.5" step="0.1" value="0.8">
+    </div>
+  </div>
+
+  <div class="aberration-container" id="container">
+    <div class="wave-layer" id="redLayer"></div>
+    <div class="wave-layer" id="greenLayer"></div>
+    <div class="wave-layer" id="blueLayer"></div>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const container = document.getElementById('container');
+    const redLayer = document.getElementById('redLayer');
+    const greenLayer = document.getElementById('greenLayer');
+    const blueLayer = document.getElementById('blueLayer');
+    const status = document.getElementById('status');
+
+    let config = {
+      aberrationAmount: 0.8,
+      speed: 1,
+      intensity: 0.8,
+      colorScheme: 'rgb',
+      paused: false
+    };
+
+    const colorSchemes = {
+      rgb: {
+        red: 'radial-gradient(circle at 40% 40%, rgba(255, 0, 0, 0.7), transparent 70%)',
+        green: 'radial-gradient(circle at 50% 60%, rgba(0, 255, 0, 0.7), transparent 70%)',
+        blue: 'radial-gradient(circle at 60% 50%, rgba(0, 0, 255, 0.7), transparent 70%)'
+      },
+      cmy: {
+        red: 'radial-gradient(circle at 40% 40%, rgba(255, 0, 255, 0.7), transparent 70%)',
+        green: 'radial-gradient(circle at 50% 60%, rgba(255, 255, 0, 0.7), transparent 70%)',
+        blue: 'radial-gradient(circle at 60% 50%, rgba(0, 255, 255, 0.7), transparent 70%)'
+      },
+      spectrum: {
+        red: 'radial-gradient(circle at 40% 40%, rgba(255, 0, 0, 0.7), rgba(255, 119, 0, 0.5), transparent 70%)',
+        green: 'radial-gradient(circle at 50% 60%, rgba(0, 255, 0, 0.7), rgba(0, 255, 0, 0.5), transparent 70%)',
+        blue: 'radial-gradient(circle at 60% 50%, rgba(0, 0, 255, 0.7), rgba(138, 43, 226, 0.5), transparent 70%)'
+      },
+      neon: {
+        red: 'radial-gradient(circle at 40% 40%, rgba(255, 0, 110, 0.7), rgba(230, 0, 92, 0.5), transparent 70%)',
+        green: 'radial-gradient(circle at 50% 60%, rgba(0, 242, 234, 0.7), rgba(0, 200, 220, 0.5), transparent 70%)',
+        blue: 'radial-gradient(circle at 60% 50%, rgba(147, 51, 234, 0.7), rgba(120, 70, 200, 0.5), transparent 70%)'
+      },
+      mono: {
+        red: 'radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.7), rgba(200, 200, 200, 0.5), transparent 70%)',
+        green: 'radial-gradient(circle at 50% 60%, rgba(200, 200, 200, 0.7), rgba(150, 150, 150, 0.5), transparent 70%)',
+        blue: 'radial-gradient(circle at 60% 50%, rgba(150, 150, 150, 0.7), rgba(100, 100, 100, 0.5), transparent 70%)'
+      }
+    };
+
+    let animationId;
+    let time = 0;
+
+    function updateColors() {
+      const scheme = colorSchemes[config.colorScheme];
+      redLayer.style.background = scheme.red;
+      greenLayer.style.background = scheme.green;
+      blueLayer.style.background = scheme.blue;
+    }
+
+    function animate() {
+      if (config.paused) {
+        animationId = requestAnimationFrame(animate);
+        return;
+      }
+
+      time += 0.016 * config.speed;
+
+      // Calculate chromatic aberration offset based on time
+      const aberrationX = Math.sin(time * 0.7) * config.aberrationAmount * 20;
+      const aberrationY = Math.cos(time * 0.5) * config.aberrationAmount * 20;
+      const aberrationZ = Math.sin(time * 0.3) * config.aberrationAmount * 10;
+
+      // Apply different transformations to each color layer to simulate chromatic aberration
+      redLayer.style.transform = `translate(${aberrationX}px, ${aberrationY}px) scale(${1 + aberrationZ * 0.01})`;
+      greenLayer.style.transform = `translate(${-aberrationX * 0.7}px, ${-aberrationY * 0.7}px) scale(${1 - aberrationZ * 0.005})`;
+      blueLayer.style.transform = `translate(${aberrationX * 0.5}px, ${-aberrationY * 0.5}px) scale(${1 + aberrationZ * 0.008})`;
+
+      // Update opacity based on intensity
+      redLayer.style.opacity = 0.5 * config.intensity;
+      greenLayer.style.opacity = 0.5 * config.intensity;
+      blueLayer.style.opacity = 0.5 * config.intensity;
+
+      // Update the gradient positions to create wave-like movement
+      const scheme = colorSchemes[config.colorScheme];
+      const timeOffset = time * 0.2;
+      
+      redLayer.style.background = `radial-gradient(circle at ${40 + Math.sin(timeOffset) * 10}% ${40 + Math.cos(timeOffset * 0.8) * 10}%, 
+        ${getComputedStyle(document.documentElement).getPropertyValue('--jazer-red') ? 'rgba(255, 0, 0, 0.7)' : scheme.red.split('(')[1].split(')')[0].split(',')[0] > 200 ? 'rgba(255, 0, 0, 0.7)' : scheme.red.split(')')[0] + ')' }, transparent 70%)`;
+      
+      // More efficiently update the backgrounds based on the scheme
+      const updatedScheme = colorSchemes[config.colorScheme];
+      
+      redLayer.style.background = `radial-gradient(circle at ${40 + Math.sin(time * 0.3) * 10}% ${40 + Math.cos(time * 0.2) * 10}%, 
+        ${updatedScheme.red.split(')')[0] + ')'}, transparent 70%)`;
+      greenLayer.style.background = `radial-gradient(circle at ${50 + Math.sin(time * 0.4) * 8}% ${60 + Math.cos(time * 0.3) * 8}%, 
+        ${updatedScheme.green.split(')')[0] + ')'}, transparent 70%)`;
+      blueLayer.style.background = `radial-gradient(circle at ${60 + Math.sin(time * 0.5) * 12}% ${50 + Math.cos(time * 0.4) * 12}%, 
+        ${updatedScheme.blue.split(')')[0] + ')'}, transparent 70%)`;
+
+      animationId = requestAnimationFrame(animate);
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+        updateColors();
+      });
+    });
+
+    // Sliders
+    document.getElementById('aberrationSlider').addEventListener('input', e => {
+      config.aberrationAmount = parseFloat(e.target.value);
+      document.getElementById('aberrationValue').textContent = config.aberrationAmount.toFixed(1);
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('intensitySlider').addEventListener('input', e => {
+      config.intensity = parseFloat(e.target.value);
+      document.getElementById('intensityValue').textContent = config.intensity.toFixed(1);
+      updateColors();
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        time = 0;
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['rgb', 'cmy', 'spectrum', 'neon', 'mono'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+        updateColors();
+      }
+    });
+
+    // Initialize
+    updateColors();
+    animate();
+  </script>
+</body>
+</html>

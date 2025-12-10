@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Poly Mesh</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@700&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            font-family: 'Exo 2', sans-serif;
+        }
+
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .title {
+            position: absolute;
+            bottom: 50px;
+            left: 50px;
+            font-size: 4rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="title">JaZeR<br>Poly Landscape</div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let w, h;
+        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
+
+        let time = 0;
+
+        function drawMesh() {
+            ctx.clearRect(0, 0, w, h);
+
+            const rows = 20;
+            const cols = 20;
+            const cellW = w / (cols - 1);
+            const cellH = h / (rows - 1);
+
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.fillStyle = 'rgba(255,255,255,0.05)';
+
+            // Draw triangles
+            for (let y = 0; y < rows - 1; y++) {
+                ctx.beginPath();
+                for (let x = 0; x < cols; x++) {
+                    const xPos = x * cellW;
+                    const yPosbase = y * cellH;
+
+                    // Noise offset for "terrain"
+                    const offset = Math.sin(x * 0.5 + time + y) * 50 * Math.cos(time * 0.5);
+                    const yPos = yPosbase + offset;
+
+                    ctx.lineTo(xPos, yPos);
+                }
+                // Close shape to bottom for fill? No just lines mesh
+                ctx.stroke();
+            }
+
+            // Let's do actual triangles
+            for (let y = 0; y < rows - 1; y++) {
+                for (let x = 0; x < cols - 1; x++) {
+                    const p1 = { x: x * cellW, y: y * cellH + Math.sin(x + y + time) * 20 };
+                    const p2 = { x: (x + 1) * cellW, y: y * cellH + Math.sin(x + 1 + y + time) * 20 };
+                    const p3 = { x: x * cellW, y: (y + 1) * cellH + Math.sin(x + y + 1 + time) * 20 };
+                    const p4 = { x: (x + 1) * cellW, y: (y + 1) * cellH + Math.sin(x + 1 + y + 1 + time) * 20 };
+
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.lineTo(p3.x, p3.y);
+                    ctx.closePath();
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(p2.x, p2.y);
+                    ctx.lineTo(p4.x, p4.y);
+                    ctx.lineTo(p3.x, p3.y);
+                    ctx.closePath();
+                    ctx.stroke();
+                }
+            }
+        }
+
+        function animate() {
+            time += 0.05;
+            drawMesh();
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Holographic Grid Matrix - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="hologram"] { background: linear-gradient(45deg, #00ffff, #ff00ff); }
+    .color-btn[data-color="matrix"] { background: linear-gradient(45deg, #00ff00, #008800); }
+    .color-btn[data-color="cyber"] { background: linear-gradient(45deg, #00ccff, #ff00cc); }
+    .color-btn[data-color="neon"] { background: linear-gradient(45deg, #ff00cc, #333399); }
+    .color-btn[data-color="quantum"] { background: linear-gradient(45deg, #ff9900, #ff00cc); }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .pattern-select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-light);
+      font-family: var(--font-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .hologram-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    #hologramCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 280px; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .controls { top: auto; bottom: 5rem; right: 1rem; min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Holographic Grid Matrix</h1>
+    <p>Holographic grid with depth and light effects</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Randomize</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="hologram" title="Hologram"></button>
+      <button class="color-btn" data-color="matrix" title="Matrix"></button>
+      <button class="color-btn" data-color="cyber" title="Cyber"></button>
+      <button class="color-btn" data-color="neon" title="Neon"></button>
+      <button class="color-btn" data-color="quantum" title="Quantum"></button>
+    </div>
+    <div class="slider-group">
+      <label>Grid Density: <span class="slider-value" id="densityValue">20</span></label>
+      <input type="range" id="densitySlider" min="10" max="50" step="1" value="20">
+    </div>
+    <div class="slider-group">
+      <label>Hologram Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Depth Effect: <span class="slider-value" id="depthValue">5</span></label>
+      <input type="range" id="depthSlider" min="1" max="10" step="1" value="5">
+    </div>
+    <label>Pattern</label>
+    <select class="pattern-select" id="patternSelect">
+      <option value="grid">Classic Grid</option>
+      <option value="matrix">Matrix Code</option>
+      <option value="hologram">Holographic Display</option>
+      <option value="wireframe">Wireframe 3D</option>
+      <option value="neural">Neural Network</option>
+    </select>
+  </div>
+
+  <div class="hologram-container">
+    <canvas id="hologramCanvas"></canvas>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const canvas = document.getElementById('hologramCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      density: 20,
+      speed: 1.0,
+      depth: 5,
+      pattern: 'grid',
+      colorScheme: 'hologram',
+      paused: false
+    };
+
+    const colorSchemes = {
+      hologram: [
+        'rgba(0, 255, 255, 0.8)',
+        'rgba(255, 0, 255, 0.7)',
+        'rgba(0, 200, 255, 0.6)',
+        'rgba(200, 0, 255, 0.5)',
+        'rgba(0, 180, 200, 0.4)',
+        'rgba(180, 0, 200, 0.6)'
+      ],
+      matrix: [
+        'rgba(0, 255, 0, 0.8)',
+        'rgba(0, 200, 0, 0.7)',
+        'rgba(0, 180, 0, 0.6)',
+        'rgba(0, 150, 0, 0.5)',
+        'rgba(0, 120, 0, 0.4)',
+        'rgba(0, 100, 0, 0.6)'
+      ],
+      cyber: [
+        'rgba(0, 204, 255, 0.8)',
+        'rgba(255, 0, 204, 0.7)',
+        'rgba(0, 180, 220, 0.6)',
+        'rgba(220, 0, 180, 0.5)',
+        'rgba(0, 150, 180, 0.4)',
+        'rgba(180, 0, 150, 0.6)'
+      ],
+      neon: [
+        'rgba(255, 0, 204, 0.8)',
+        'rgba(51, 51, 153, 0.7)',
+        'rgba(200, 0, 180, 0.6)',
+        'rgba(100, 0, 150, 0.5)',
+        'rgba(255, 0, 150, 0.4)',
+        'rgba(150, 0, 100, 0.6)'
+      ],
+      quantum: [
+        'rgba(255, 153, 0, 0.8)',
+        'rgba(255, 0, 204, 0.7)',
+        'rgba(200, 100, 0, 0.6)',
+        'rgba(200, 0, 150, 0.5)',
+        'rgba(255, 120, 0, 0.4)',
+        'rgba(180, 0, 120, 0.6)'
+      ]
+    };
+
+    let time = 0;
+    let animationId;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function getColors() {
+      return colorSchemes[config.colorScheme];
+    }
+
+    function drawHolographicGrid() {
+      const colors = getColors();
+      const cellWidth = canvas.width / config.density;
+      const cellHeight = canvas.height / config.density;
+      
+      // Draw grid lines
+      ctx.lineWidth = 1;
+      
+      // Vertical lines
+      for (let x = 0; x <= canvas.width; x += cellWidth) {
+        const color = colors[Math.floor(x / cellWidth) % colors.length];
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.strokeStyle = color;
+        ctx.stroke();
+        
+        // Add depth effect with secondary lines
+        if (config.depth > 3) {
+          ctx.beginPath();
+          ctx.moveTo(x + 2, 0);
+          ctx.lineTo(x + 2, canvas.height);
+          ctx.strokeStyle = color.replace('0.8', '0.3');
+          ctx.stroke();
+        }
+      }
+      
+      // Horizontal lines
+      for (let y = 0; y <= canvas.height; y += cellHeight) {
+        const color = colors[Math.floor(y / cellHeight) % colors.length];
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.strokeStyle = color;
+        ctx.stroke();
+        
+        // Add depth effect with secondary lines
+        if (config.depth > 3) {
+          ctx.beginPath();
+          ctx.moveTo(0, y + 2);
+          ctx.lineTo(canvas.width, y + 2);
+          ctx.strokeStyle = color.replace('0.8', '0.3');
+          ctx.stroke();
+        }
+      }
+      
+      // Add holographic shimmer effect
+      for (let i = 0; i < 20; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const size = 1 + Math.random() * 3;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fillStyle = color.replace('0.8', '0.2');
+        ctx.fill();
+      }
+    }
+
+    function drawMatrixCode() {
+      const colors = getColors();
+      const fontSize = 14;
+      ctx.font = `${fontSize}px monospace`;
+      
+      // Draw falling code characters
+      const columns = Math.floor(canvas.width / fontSize);
+      if (!window.matrixChars) {
+        window.matrixChars = [];
+        for (let i = 0; i < columns; i++) {
+          window.matrixChars[i] = {
+            y: -Math.random() * canvas.height,
+            speed: 2 + Math.random() * 3,
+            chars: []
+          };
+        }
+      }
+      
+      for (let i = 0; i < columns; i++) {
+        // Update position
+        window.matrixChars[i].y += window.matrixChars[i].speed * config.speed * 0.5;
+        
+        // Reset if off screen
+        if (window.matrixChars[i].y > canvas.height) {
+          window.matrixChars[i].y = -Math.random() * 100;
+        }
+        
+        // Draw characters
+        const color = colors[i % colors.length];
+        for (let j = 0; j < 10; j++) {
+          const yPos = window.matrixChars[i].y - j * fontSize * 1.5;
+          if (yPos > -fontSize && yPos < canvas.height) {
+            // Random character - using alphanumeric and symbols
+            const chars = "01";
+            const char = chars.charAt(Math.floor(Math.random() * chars.length));
+            
+            // Head character is brighter
+            if (j === 0) {
+              ctx.fillStyle = color;
+            } else {
+              // Fade out the trail
+              const alpha = 1 - (j / 10);
+              ctx.fillStyle = color.replace('0.8', alpha * 0.6);
+            }
+            
+            ctx.fillText(char, i * fontSize, yPos);
+          }
+        }
+      }
+    }
+
+    function drawHolographicDisplay() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+      
+      // Draw concentric circles with holographic effect
+      for (let i = 0; i < config.density / 2; i++) {
+        const radius = maxRadius * (i / (config.density / 2));
+        const color = colors[i % colors.length];
+        
+        // Create radial gradient for holographic effect
+        const gradient = ctx.createRadialGradient(
+          centerX, centerY, 0,
+          centerX, centerY, radius
+        );
+        gradient.addColorStop(0, color.replace('0.8', '0.0'));
+        gradient.addColorStop(0.7, color.replace('0.8', '0.3'));
+        gradient.addColorStop(1, color);
+        
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Add holographic interference patterns
+        for (let a = 0; a < Math.PI * 2; a += 0.2) {
+          const x1 = centerX + Math.cos(a) * radius * 0.8;
+          const y1 = centerY + Math.sin(a) * radius * 0.8;
+          const x2 = centerX + Math.cos(a + Math.PI) * radius * 0.8;
+          const y2 = centerY + Math.sin(a + Math.PI) * radius * 0.8;
+          
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.strokeStyle = color.replace('0.8', '0.2');
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+      
+      // Draw rotating holographic elements
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2 + time * 0.01 * config.speed;
+        const distance = maxRadius * 0.7;
+        const x = centerX + Math.cos(angle) * distance;
+        const y = centerY + Math.sin(angle) * distance;
+        
+        const color = colors[i % colors.length];
+        
+        // Draw holographic node
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        
+        // Draw connection to center
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(x, y);
+        ctx.strokeStyle = color.replace('0.8', '0.3');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    function drawWireframe3D() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const size = Math.min(canvas.width, canvas.height) * 0.3;
+      
+      // Create a 3D cube wireframe
+      const vertices = [
+        {x: -size/2, y: -size/2, z: -size/2}, // 0
+        {x: size/2, y: -size/2, z: -size/2},  // 1
+        {x: size/2, y: size/2, z: -size/2},   // 2
+        {x: -size/2, y: size/2, z: -size/2},  // 3
+        {x: -size/2, y: -size/2, z: size/2},  // 4
+        {x: size/2, y: -size/2, z: size/2},   // 5
+        {x: size/2, y: size/2, z: size/2},    // 6
+        {x: -size/2, y: size/2, z: size/2}    // 7
+      ];
+      
+      // Rotate vertices
+      const rotatedVertices = vertices.map(v => {
+        // Rotate around Y axis
+        const x1 = v.x * Math.cos(time * 0.01 * config.speed) - v.z * Math.sin(time * 0.01 * config.speed);
+        const z1 = v.x * Math.sin(time * 0.01 * config.speed) + v.z * Math.cos(time * 0.01 * config.speed);
+        
+        // Rotate around X axis
+        const y2 = v.y * Math.cos(time * 0.007 * config.speed) - z1 * Math.sin(time * 0.007 * config.speed);
+        const z2 = v.y * Math.sin(time * 0.007 * config.speed) + z1 * Math.cos(time * 0.007 * config.speed);
+        
+        return {
+          x: centerX + x1,
+          y: centerY + y2,
+          z: z2
+        };
+      });
+      
+      // Define edges
+      const edges = [
+        [0, 1], [1, 2], [2, 3], [3, 0], // Back face
+        [4, 5], [5, 6], [6, 7], [7, 4], // Front face
+        [0, 4], [1, 5], [2, 6], [3, 7]  // Connecting edges
+      ];
+      
+      // Draw edges
+      for (let i = 0; i < edges.length; i++) {
+        const [start, end] = edges[i];
+        const color = colors[i % colors.length];
+        
+        ctx.beginPath();
+        ctx.moveTo(rotatedVertices[start].x, rotatedVertices[start].y);
+        ctx.lineTo(rotatedVertices[end].x, rotatedVertices[end].y);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      
+      // Draw additional holographic elements
+      for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2 + time * 0.005 * config.speed;
+        const distance = size * 0.8;
+        const x = centerX + Math.cos(angle) * distance;
+        const y = centerY + Math.sin(angle) * distance;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+      }
+    }
+
+    function drawNeuralNetwork() {
+      const colors = getColors();
+      const nodes = [];
+      const connections = [];
+      
+      // Create nodes
+      for (let i = 0; i < 20; i++) {
+        nodes.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          pulse: Math.random() * Math.PI * 2
+        });
+      }
+      
+      // Create connections
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < 150) {
+            connections.push({ from: i, to: j, distance: distance });
+          }
+        }
+      }
+      
+      // Draw connections
+      for (let i = 0; i < connections.length; i++) {
+        const conn = connections[i];
+        const fromNode = nodes[conn.from];
+        const toNode = nodes[conn.to];
+        const color = colors[(conn.from + conn.to) % colors.length];
+        
+        // Calculate pulse effect
+        const pulse = (Math.sin(time * 0.02 * config.speed + conn.from * 0.3) + 1) / 2;
+        const alpha = 0.2 + pulse * 0.5;
+        
+        ctx.beginPath();
+        ctx.moveTo(fromNode.x, fromNode.y);
+        ctx.lineTo(toNode.x, toNode.y);
+        ctx.strokeStyle = color.replace('0.8', alpha);
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+      
+      // Draw nodes
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        const color = colors[i % colors.length];
+        
+        // Calculate pulse effect
+        const pulse = (Math.sin(time * 0.03 * config.speed + node.pulse) + 1) / 2;
+        const size = 4 + pulse * 4;
+        
+        // Draw node with glow
+        const gradient = ctx.createRadialGradient(
+          node.x, node.y, 0,
+          node.x, node.y, size * 2
+        );
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.7, color.replace('0.8', '0.4'));
+        gradient.addColorStop(1, color.replace('0.8', '0.0'));
+        
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, size, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      }
+    }
+
+    function drawHologram() {
+      // Clear with subtle fade effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      switch(config.pattern) {
+        case 'grid':
+          drawHolographicGrid();
+          break;
+        case 'matrix':
+          drawMatrixCode();
+          break;
+        case 'hologram':
+          drawHolographicDisplay();
+          break;
+        case 'wireframe':
+          drawWireframe3D();
+          break;
+        case 'neural':
+          drawNeuralNetwork();
+          break;
+      }
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.01 * config.speed;
+        drawHologram();
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function randomize() {
+      config.density = Math.floor(Math.random() * 30 + 10);
+      config.speed = Math.random() * 2 + 0.5;
+      config.depth = Math.floor(Math.random() * 8 + 2);
+      const patterns = ['grid', 'matrix', 'hologram', 'wireframe', 'neural'];
+      config.pattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      document.getElementById('densitySlider').value = config.density;
+      document.getElementById('densityValue').textContent = config.density;
+      document.getElementById('speedSlider').value = config.speed.toFixed(1);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+      document.getElementById('depthSlider').value = config.depth;
+      document.getElementById('depthValue').textContent = config.depth;
+      document.getElementById('patternSelect').value = config.pattern;
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('densitySlider').addEventListener('input', e => {
+      config.density = parseInt(e.target.value);
+      document.getElementById('densityValue').textContent = config.density;
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('depthSlider').addEventListener('input', e => {
+      config.depth = parseInt(e.target.value);
+      document.getElementById('depthValue').textContent = config.depth;
+    });
+
+    document.getElementById('patternSelect').addEventListener('change', e => {
+      config.pattern = e.target.value;
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        randomize();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['hologram', 'matrix', 'cyber', 'neon', 'quantum'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    animate();
+  </script>
+</body>
+</html>

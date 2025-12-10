@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fractal Spiral Infinity - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="cyan"] { background: var(--jazer-cyan); }
+    .color-btn[data-color="purple"] { background: var(--jazer-purple); }
+    .color-btn[data-color="pink"] { background: var(--jazer-pink); }
+    .color-btn[data-color="rainbow"] { background: conic-gradient(#0ff, #f0f, #ff0, #0ff); }
+    .color-btn[data-color="electric"] { background: linear-gradient(45deg, #00ffff, #ff00ff); }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .pattern-select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-light);
+      font-family: var(--font-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .fractal-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    #fractalCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 280px; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .controls { top: auto; bottom: 5rem; right: 1rem; min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Fractal Spiral Infinity</h1>
+    <p>Endless recursive fractal spiral with mesmerizing depth</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Randomize</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="cyan" title="Cyan"></button>
+      <button class="color-btn" data-color="purple" title="Purple"></button>
+      <button class="color-btn" data-color="pink" title="Pink"></button>
+      <button class="color-btn" data-color="rainbow" title="Rainbow"></button>
+      <button class="color-btn" data-color="electric" title="Electric"></button>
+    </div>
+    <div class="slider-group">
+      <label>Recursion Depth: <span class="slider-value" id="depthValue">6</span></label>
+      <input type="range" id="depthSlider" min="3" max="10" step="1" value="6">
+    </div>
+    <div class="slider-group">
+      <label>Branches: <span class="slider-value" id="branchesValue">5</span></label>
+      <input type="range" id="branchesSlider" min="2" max="8" step="1" value="5">
+    </div>
+    <div class="slider-group">
+      <label>Rotation Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+    </div>
+    <label>Pattern</label>
+    <select class="pattern-select" id="patternSelect">
+      <option value="golden">Golden Spiral</option>
+      <option value="fibonacci">Fibonacci Spiral</option>
+      <option value="recursive">Recursive Branches</option>
+      <option value="galaxy">Galaxy Spiral</option>
+      <option value="nautilus">Nautilus Shell</option>
+    </select>
+  </div>
+
+  <div class="fractal-container">
+    <canvas id="fractalCanvas"></canvas>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const canvas = document.getElementById('fractalCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      depth: 6,
+      branches: 5,
+      speed: 1.0,
+      pattern: 'golden',
+      colorScheme: 'cyan',
+      paused: false
+    };
+
+    const colorSchemes = {
+      cyan: [
+        'rgba(0, 242, 234, 0.8)',
+        'rgba(0, 180, 200, 0.7)',
+        'rgba(0, 220, 220, 0.6)',
+        'rgba(0, 200, 190, 0.5)',
+        'rgba(0, 242, 234, 0.4)',
+        'rgba(0, 150, 200, 0.5)'
+      ],
+      purple: [
+        'rgba(147, 51, 234, 0.8)',
+        'rgba(120, 80, 200, 0.7)',
+        'rgba(168, 85, 247, 0.6)',
+        'rgba(130, 60, 220, 0.5)',
+        'rgba(147, 51, 234, 0.4)',
+        'rgba(180, 100, 255, 0.5)'
+      ],
+      pink: [
+        'rgba(255, 0, 110, 0.8)',
+        'rgba(255, 80, 150, 0.7)',
+        'rgba(236, 72, 153, 0.6)',
+        'rgba(255, 50, 130, 0.5)',
+        'rgba(255, 0, 110, 0.4)',
+        'rgba(255, 120, 180, 0.5)'
+      ],
+      rainbow: [
+        'rgba(0, 242, 234, 0.8)',
+        'rgba(147, 51, 234, 0.7)',
+        'rgba(255, 0, 110, 0.6)',
+        'rgba(255, 200, 0, 0.5)',
+        'rgba(0, 255, 100, 0.4)',
+        'rgba(255, 100, 255, 0.5)'
+      ],
+      electric: [
+        'rgba(0, 255, 255, 0.8)',
+        'rgba(255, 0, 255, 0.7)',
+        'rgba(0, 200, 255, 0.6)',
+        'rgba(255, 0, 200, 0.5)',
+        'rgba(200, 0, 255, 0.4)',
+        'rgba(255, 200, 0, 0.5)'
+      ]
+    };
+
+    let angle = 0;
+    let time = 0;
+    let animationId;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function getColors() {
+      return colorSchemes[config.colorScheme];
+    }
+
+    function drawFractalSpiral(x, y, radius, depth, angleOffset, branchAngle, time) {
+      if (depth <= 0) return;
+      
+      const colors = getColors();
+      const color = colors[depth % colors.length];
+      
+      // Draw the current spiral segment
+      ctx.beginPath();
+      ctx.arc(x, y, radius, angleOffset, angleOffset + Math.PI * 0.5);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = Math.max(1, depth * 0.8);
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      
+      // Draw center point with glow
+      ctx.beginPath();
+      ctx.arc(x, y, Math.max(1, depth * 0.5), 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = color;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      // Calculate next position
+      const nextAngle = angleOffset + Math.PI * 0.5;
+      const nextX = x + Math.cos(nextAngle) * radius * 0.8;
+      const nextY = y + Math.sin(nextAngle) * radius * 0.8;
+      
+      // Recursive call for next depth level
+      drawFractalSpiral(
+        nextX, 
+        nextY, 
+        radius * 0.7, 
+        depth - 1, 
+        nextAngle + branchAngle, 
+        branchAngle, 
+        time
+      );
+    }
+
+    function drawGoldenSpiral(x, y, radius, depth, angle, time) {
+      if (depth <= 0) return;
+      
+      const colors = getColors();
+      const color = colors[depth % colors.length];
+      
+      // Draw golden spiral using Fibonacci sequence
+      const goldenRatio = 1.618;
+      const spiralRadius = radius * Math.pow(goldenRatio, -depth * 0.3);
+      const segmentAngle = Math.PI * 0.5;
+      
+      ctx.beginPath();
+      ctx.arc(x, y, spiralRadius, angle, angle + segmentAngle);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = Math.max(1, depth * 0.7);
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      
+      // Draw connecting lines to create fractal effect
+      if (depth > 1) {
+        const nextAngle = angle + segmentAngle;
+        const nextRadius = spiralRadius * 0.6;
+        const nextX = x + Math.cos(nextAngle) * spiralRadius * 0.8;
+        const nextY = y + Math.sin(nextAngle) * spiralRadius * 0.8;
+        
+        // Draw branches
+        for (let i = 0; i < config.branches; i++) {
+          const branchAngle = nextAngle + (i / config.branches) * Math.PI * 2;
+          const branchX = nextX + Math.cos(branchAngle) * nextRadius;
+          const branchY = nextY + Math.sin(branchAngle) * nextRadius;
+          
+          ctx.beginPath();
+          ctx.moveTo(nextX, nextY);
+          ctx.lineTo(branchX, branchY);
+          ctx.strokeStyle = colors[(depth + i) % colors.length];
+          ctx.lineWidth = Math.max(0.5, depth * 0.4);
+          ctx.stroke();
+          
+          // Recursive call for each branch
+          drawGoldenSpiral(
+            branchX,
+            branchY,
+            nextRadius * 0.7,
+            depth - 1,
+            branchAngle + Math.PI * 0.25,
+            time
+          );
+        }
+      }
+    }
+
+    function drawFibonacciSpiral(x, y, radius, depth, angle, time) {
+      if (depth <= 0) return;
+      
+      const colors = getColors();
+      const color = colors[depth % colors.length];
+      
+      // Draw Fibonacci spiral segments
+      const fibSequence = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55];
+      const fibIndex = depth % fibSequence.length;
+      const fibFactor = fibSequence[fibIndex] / fibSequence[0];
+      const spiralRadius = radius / fibFactor;
+      
+      // Draw spiral arc
+      ctx.beginPath();
+      ctx.arc(x, y, spiralRadius, angle, angle + Math.PI * 0.5);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = Math.max(1, depth * 0.6);
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      
+      // Draw recursive spiral
+      if (depth > 1) {
+        const nextAngle = angle + Math.PI * 0.5;
+        const nextX = x + Math.cos(nextAngle) * spiralRadius * 0.9;
+        const nextY = y + Math.sin(nextAngle) * spiralRadius * 0.9;
+        
+        drawFibonacciSpiral(nextX, nextY, spiralRadius * 0.7, depth - 1, nextAngle, time);
+      }
+    }
+
+    function drawGalaxySpiral(x, y, radius, depth, angle, time) {
+      if (depth <= 0) return;
+      
+      const colors = getColors();
+      const color = colors[depth % colors.length];
+      
+      // Draw galaxy-like spiral arms
+      for (let arm = 0; arm < 2; arm++) {
+        const armAngle = angle + (arm * Math.PI);
+        
+        ctx.beginPath();
+        for (let i = 0; i < 50; i++) {
+          const t = i / 50;
+          const spiralAngle = armAngle + t * Math.PI * 3 + time * 0.05;
+          const spiralRadius = radius * (1 - t * 0.7);
+          const px = x + Math.cos(spiralAngle) * spiralRadius;
+          const py = y + Math.sin(spiralAngle) * spiralRadius;
+          
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        
+        ctx.strokeStyle = color;
+        ctx.lineWidth = Math.max(1, depth * 0.5);
+        ctx.stroke();
+      }
+      
+      // Draw recursive fractal elements
+      if (depth > 1) {
+        for (let i = 0; i < config.branches; i++) {
+          const branchAngle = angle + (i / config.branches) * Math.PI * 2 + time * 0.02;
+          const branchX = x + Math.cos(branchAngle) * radius * 0.8;
+          const branchY = y + Math.sin(branchAngle) * radius * 0.8;
+          
+          drawGalaxySpiral(
+            branchX,
+            branchY,
+            radius * 0.4,
+            depth - 1,
+            branchAngle + Math.PI * 0.25,
+            time
+          );
+        }
+      }
+    }
+
+    function drawNautilusSpiral(x, y, radius, depth, angle, time) {
+      if (depth <= 0) return;
+      
+      const colors = getColors();
+      const color = colors[depth % colors.length];
+      
+      // Draw nautilus shell pattern
+      ctx.beginPath();
+      for (let i = 0; i < 100; i++) {
+        const t = i / 100;
+        const spiralAngle = angle + t * Math.PI * 4;
+        const spiralRadius = radius * Math.exp(-0.2 * t);
+        const px = x + Math.cos(spiralAngle) * spiralRadius;
+        const py = y + Math.sin(spiralAngle) * spiralRadius;
+        
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      
+      ctx.strokeStyle = color;
+      ctx.lineWidth = Math.max(1, depth * 0.7);
+      ctx.stroke();
+      
+      // Draw internal chambers
+      for (let i = 0; i < 5; i++) {
+        const chamberAngle = angle + (i / 5) * Math.PI * 4;
+        const chamberRadius = radius * Math.exp(-0.2 * (i / 5) * 4) * 0.5;
+        const cx = x + Math.cos(chamberAngle) * chamberRadius;
+        const cy = y + Math.sin(chamberAngle) * chamberRadius;
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, chamberRadius * 0.3, 0, Math.PI * 2);
+        ctx.strokeStyle = colors[(depth + i) % colors.length];
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+      
+      // Recursive call
+      if (depth > 1) {
+        const nextAngle = angle + Math.PI * 0.5;
+        const nextX = x + Math.cos(nextAngle) * radius * 0.7;
+        const nextY = y + Math.sin(nextAngle) * radius * 0.7;
+        
+        drawNautilusSpiral(nextX, nextY, radius * 0.5, depth - 1, nextAngle, time);
+      }
+    }
+
+    function drawFractal() {
+      // Fade effect for trails
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const size = Math.min(canvas.width, canvas.height) * 0.15;
+
+      // Draw multiple spirals to create complex fractal pattern
+      for (let i = 0; i < 3; i++) {
+        const spiralAngle = (i / 3) * Math.PI * 2 + time * 0.02;
+        const offsetX = Math.cos(spiralAngle) * size * 2;
+        const offsetY = Math.sin(spiralAngle) * size * 2;
+        
+        switch(config.pattern) {
+          case 'golden':
+            drawGoldenSpiral(
+              centerX + offsetX, 
+              centerY + offsetY, 
+              size, 
+              config.depth, 
+              spiralAngle + angle, 
+              time
+            );
+            break;
+          case 'fibonacci':
+            drawFibonacciSpiral(
+              centerX + offsetX, 
+              centerY + offsetY, 
+              size, 
+              config.depth, 
+              spiralAngle + angle, 
+              time
+            );
+            break;
+          case 'recursive':
+            drawFractalSpiral(
+              centerX + offsetX, 
+              centerY + offsetY, 
+              size, 
+              config.depth, 
+              spiralAngle + angle, 
+              Math.PI * 0.5 / config.branches, 
+              time
+            );
+            break;
+          case 'galaxy':
+            drawGalaxySpiral(
+              centerX + offsetX, 
+              centerY + offsetY, 
+              size, 
+              config.depth, 
+              spiralAngle + angle, 
+              time
+            );
+            break;
+          case 'nautilus':
+            drawNautilusSpiral(
+              centerX + offsetX, 
+              centerY + offsetY, 
+              size, 
+              config.depth, 
+              spiralAngle + angle, 
+              time
+            );
+            break;
+        }
+      }
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.01 * config.speed;
+        angle += 0.002 * config.speed;
+        drawFractal();
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function randomize() {
+      config.depth = Math.floor(Math.random() * 5 + 5);
+      config.branches = Math.floor(Math.random() * 5 + 2);
+      const patterns = ['golden', 'fibonacci', 'recursive', 'galaxy', 'nautilus'];
+      config.pattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      document.getElementById('depthSlider').value = config.depth;
+      document.getElementById('depthValue').textContent = config.depth;
+      document.getElementById('branchesSlider').value = config.branches;
+      document.getElementById('branchesValue').textContent = config.branches;
+      document.getElementById('patternSelect').value = config.pattern;
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('depthSlider').addEventListener('input', e => {
+      config.depth = parseInt(e.target.value);
+      document.getElementById('depthValue').textContent = config.depth;
+    });
+
+    document.getElementById('branchesSlider').addEventListener('input', e => {
+      config.branches = parseInt(e.target.value);
+      document.getElementById('branchesValue').textContent = config.branches;
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('patternSelect').addEventListener('change', e => {
+      config.pattern = e.target.value;
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        randomize();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['cyan', 'purple', 'pink', 'rainbow', 'electric'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    animate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy Vortex</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .info {
+            position: relative;
+            z-index: 2;
+            color: white;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0,0,0,0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h1>Energy Vortex</h1>
+        <p>Spinning vortex of energy with electromagnetic fields</p>
+    </div>
+    
+    <canvas id="vortexCanvas"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('vortexCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas to full window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Energy particle class
+        class EnergyParticle {
+            constructor(vortexCenterX, vortexCenterY) {
+                this.vortexCenterX = vortexCenterX;
+                this.vortexCenterY = vortexCenterY;
+                
+                // Random starting position in circular pattern around center
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 30 + Math.random() * 200;
+                
+                this.x = this.vortexCenterX + Math.cos(angle) * distance;
+                this.y = this.vortexCenterY + Math.sin(angle) * distance;
+                
+                // Movement properties
+                this.angle = angle;
+                this.distance = distance;
+                this.orbitalSpeed = 0.01 + Math.random() * 0.03;
+                this.radialSpeed = (Math.random() - 0.5) * 0.02; // Moving toward/away from center
+                this.size = 1 + Math.random() * 3;
+                
+                // Color properties based on energy level
+                this.hue = 200 + Math.random() * 60; // Blue to purple range
+                this.saturation = 80 + Math.random() * 20;
+                this.lightness = 50 + Math.random() * 30;
+                this.alpha = 0.3 + Math.random() * 0.7;
+                
+                // Pulsation properties
+                this.pulseSpeed = 0.02 + Math.random() * 0.03;
+                this.pulsePhase = Math.random() * Math.PI * 2;
+                this.maxSize = this.size;
+            }
+            
+            update() {
+                // Update position based on vortex physics
+                this.angle += this.orbitalSpeed;
+                this.distance += this.radialSpeed;
+                
+                // Spiral inward/outward effect
+                this.distance *= 0.999; // Slowly spiral toward center
+                
+                // Reset if too close to center or too far away
+                if (this.distance < 10 || this.distance > 500) {
+                    this.distance = 50 + Math.random() * 200;
+                    this.angle = Math.random() * Math.PI * 2;
+                }
+                
+                // Calculate new position
+                this.x = this.vortexCenterX + Math.cos(this.angle) * this.distance;
+                this.y = this.vortexCenterY + Math.sin(this.angle) * this.distance;
+                
+                // Update size with pulsation
+                this.size = this.maxSize * (0.7 + 0.3 * Math.sin(Date.now() * 0.001 * this.pulseSpeed + this.pulsePhase));
+            }
+            
+            draw() {
+                // Create radial gradient for energy particle
+                const gradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, this.size * 4
+                );
+                
+                gradient.addColorStop(0, `hsla(${this.hue}, ${this.saturation}%, ${this.lightness}%, ${this.alpha})`);
+                gradient.addColorStop(0.5, `hsla(${this.hue}, ${this.saturation}%, ${this.lightness / 2}%, ${this.alpha * 0.5})`);
+                gradient.addColorStop(1, `hsla(${this.hue}, ${this.saturation}%, ${this.lightness / 3}%, 0)`);
+                
+                ctx.fillStyle = gradient;
+                
+                // Draw particle
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw motion trail occasionally
+                if (Math.random() < 0.1) {
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y);
+                    const prevX = this.x - Math.cos(this.angle) * this.orbitalSpeed * 10;
+                    const prevY = this.y - Math.sin(this.angle) * this.orbitalSpeed * 10;
+                    ctx.lineTo(prevX, prevY);
+                    ctx.strokeStyle = `hsla(${this.hue}, ${this.saturation}%, ${this.lightness}%, ${this.alpha * 0.3})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            }
+        }
+        
+        // Vortex class
+        class EnergyVortex {
+            constructor() {
+                this.centerX = canvas.width / 2;
+                this.centerY = canvas.height / 2;
+                
+                // Create energy particles
+                this.particles = [];
+                const particleCount = Math.min(300, Math.floor((canvas.width * canvas.height) / 500));
+                
+                for (let i = 0; i < particleCount; i++) {
+                    this.particles.push(new EnergyParticle(this.centerX, this.centerY));
+                }
+                
+                // Core properties
+                this.coreRadius = 30;
+                this.coreRotation = 0;
+                this.corePulsePhase = Math.random() * Math.PI * 2;
+                this.fieldStrength = 0;
+            }
+            
+            update() {
+                // Rotate vortex core
+                this.coreRotation += 0.02;
+                
+                // Update field strength with pulsation
+                this.fieldStrength = 0.5 + 0.5 * Math.sin(Date.now() * 0.001 + this.corePulsePhase);
+                
+                // Update all particles
+                this.particles.forEach(particle => {
+                    particle.update();
+                });
+            }
+            
+            draw() {
+                // Draw energy field background
+                const radialGradient = ctx.createRadialGradient(
+                    this.centerX, this.centerY, 0,
+                    this.centerX, this.centerY, Math.min(canvas.width, canvas.height) * 0.8
+                );
+                
+                radialGradient.addColorStop(0, `rgba(100, 100, 255, ${0.1 * this.fieldStrength})`);
+                radialGradient.addColorStop(0.5, `rgba(80, 50, 180, ${0.05 * this.fieldStrength})`);
+                radialGradient.addColorStop(1, `rgba(30, 20, 80, 0)`);
+                
+                ctx.fillStyle = radialGradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw electromagnetic field lines
+                ctx.save();
+                ctx.translate(this.centerX, this.centerY);
+                ctx.rotate(this.coreRotation);
+                
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i / 8) * Math.PI * 2;
+                    const x1 = Math.cos(angle) * this.coreRadius * 2;
+                    const y1 = Math.sin(angle) * this.coreRadius * 2;
+                    const x2 = Math.cos(angle) * this.coreRadius * 4;
+                    const y2 = Math.sin(angle) * this.coreRadius * 4;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.strokeStyle = `rgba(100, 200, 255, ${0.3 * this.fieldStrength})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+                
+                // Draw the core
+                const coreGradient = ctx.createRadialGradient(
+                    this.centerX, this.centerY, 0,
+                    this.centerX, this.centerY, this.coreRadius * 2
+                );
+                
+                coreGradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+                coreGradient.addColorStop(0.3, 'rgba(100, 200, 255, 0.8)');
+                coreGradient.addColorStop(0.7, 'rgba(80, 100, 255, 0.4)');
+                coreGradient.addColorStop(1, 'rgba(60, 80, 200, 0)');
+                
+                ctx.fillStyle = coreGradient;
+                ctx.beginPath();
+                ctx.arc(this.centerX, this.centerY, this.coreRadius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw particles
+                this.particles.forEach(particle => {
+                    particle.draw();
+                });
+            }
+        }
+        
+        // Create energy vortex
+        const vortex = new EnergyVortex();
+        
+        // Animation loop
+        function animate() {
+            // Fade out previous frame to create energy decay effect
+            ctx.fillStyle = 'rgba(0, 0, 20, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            vortex.update();
+            vortex.draw();
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>

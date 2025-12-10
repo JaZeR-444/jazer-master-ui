@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glitch Audio Spectrum</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .info {
+            position: relative;
+            z-index: 2;
+            color: #f0f;
+            text-align: center;
+            text-shadow: 0 0 10px #f0f;
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h1>Glitch Audio Spectrum</h1>
+        <p>Digital glitch effect on audio spectrum visualization</p>
+    </div>
+    
+    <canvas id="glitchCanvas"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('glitchCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas to full window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Glitch spectrum bar class
+        class GlitchSpectrumBar {
+            constructor(x, width, minFreq, maxFreq, color) {
+                this.x = x;
+                this.width = width;
+                this.minFreq = minFreq;
+                this.maxFreq = maxFreq;
+                
+                // Visual properties
+                this.color = color;
+                this.height = 0;
+                this.targetHeight = 0;
+                this.smoothing = 0.15;
+                
+                // Glitch properties
+                this.glitchTimer = 0;
+                this.glitchDuration = 0;
+                this.isGlitching = false;
+                this.glitchOffset = 0;
+                this.glitchIntensity = 0;
+                this.glitchColorShift = 0;
+            }
+            
+            update() {
+                const time = Date.now() * 0.001;
+                
+                // Simulate audio input for this frequency band
+                let audioLevel = 0;
+                
+                if (this.minFreq < 200) { // Bass
+                    audioLevel = Math.abs(Math.sin(time * 0.5 + this.x * 0.01)) * 0.8;
+                    audioLevel += Math.abs(Math.sin(time * 1.2 + this.x * 0.02)) * 0.2;
+                } else if (this.minFreq < 2000) { // Mids
+                    audioLevel = Math.abs(Math.sin(time * 1.8 + this.x * 0.005)) * 0.7;
+                    audioLevel += Math.abs(Math.sin(time * 2.5 + this.x * 0.01)) * 0.3;
+                } else { // Treble
+                    audioLevel = Math.abs(Math.sin(time * 3.2 + this.x * 0.002)) * 0.6;
+                    audioLevel += Math.abs(Math.sin(time * 5.0 + this.x * 0.003)) * 0.4;
+                }
+                
+                // Add some randomness
+                audioLevel += (Math.random() - 0.5) * 0.1;
+                audioLevel = Math.max(0, Math.min(1, audioLevel));
+                
+                // Set target height
+                this.targetHeight = audioLevel * canvas.height * 0.6;
+                
+                // Smooth the height change
+                this.height += (this.targetHeight - this.height) * this.smoothing;
+                
+                // Check for glitch trigger
+                this.glitchTimer++;
+                
+                if (!this.isGlitching && Math.random() < 0.01) {
+                    this.isGlitching = true;
+                    this.glitchDuration = 5 + Math.random() * 10;
+                    this.glitchOffset = -20 + Math.random() * 40;
+                    this.glitchIntensity = 0.5 + Math.random();
+                    this.glitchColorShift = -30 + Math.random() * 60;
+                }
+                
+                if (this.isGlitching) {
+                    this.glitchDuration--;
+                    if (this.glitchDuration <= 0) {
+                        this.isGlitching = false;
+                    }
+                }
+            }
+            
+            draw() {
+                // Calculate bar position and height
+                const barHeight = this.height;
+                const barY = canvas.height * 0.9 - barHeight;
+                
+                // Apply glitch offset if glitching
+                const offsetX = this.isGlitching ? this.glitchOffset : 0;
+                
+                // Create gradient for the bar
+                const hue = this.isGlitching ? (this.color + this.glitchColorShift) % 360 : this.color;
+                const gradient = ctx.createLinearGradient(0, barY, 0, canvas.height * 0.9);
+                
+                gradient.addColorStop(0, `hsla(${hue}, 100%, 70%, 1)`);
+                gradient.addColorStop(0.5, `hsla(${hue + 20}, 100%, 60%, 1)`);
+                gradient.addColorStop(1, `hsla(${hue + 40}, 100%, 50%, 1)`);
+                
+                ctx.fillStyle = gradient;
+                
+                // Draw the main bar
+                ctx.fillRect(this.x + offsetX, barY, this.width, barHeight);
+                
+                // Add glitch color separation effect
+                if (this.isGlitching) {
+                    // Red channel offset
+                    ctx.fillStyle = `hsla(${(hue - 10) % 360}, 100%, 70%, 0.8)`;
+                    ctx.fillRect(this.x + offsetX - 2, barY, this.width, barHeight);
+                    
+                    // Blue channel offset
+                    ctx.fillStyle = `hsla(${(hue + 20) % 360}, 100%, 70%, 0.8)`;
+                    ctx.fillRect(this.x + offsetX + 2, barY, this.width, barHeight);
+                }
+                
+                // Add glow
+                ctx.shadowColor = `hsla(${hue}, 100%, 60%, 0.7)`;
+                ctx.shadowBlur = 10;
+                ctx.fillRect(this.x + offsetX, barY, this.width, barHeight);
+                ctx.shadowBlur = 0;
+            }
+        }
+        
+        // Create glitch spectrum bars
+        const bars = [];
+        const barCount = 64;
+        const barWidth = Math.max(2, canvas.width / barCount - 1);
+        
+        for (let i = 0; i < barCount; i++) {
+            // Map frequency to color (bass: red, mids: green, treble: blue)
+            let color;
+            if (i < barCount * 0.33) { // Bass
+                color = 0; // Red
+            } else if (i < barCount * 0.66) { // Mids
+                color = 120; // Green
+            } else { // Treble
+                color = 240; // Blue
+            }
+            
+            const x = (i / barCount) * canvas.width;
+            bars.push(new GlitchSpectrumBar(x, barWidth, i * 300, (i + 1) * 300, color));
+        }
+        
+        // Draw glitch scanlines
+        function drawGlitchScanlines() {
+            for (let i = 0; i < 20; i++) {
+                if (Math.random() < 0.3) {
+                    const y = Math.random() * canvas.height;
+                    const height = 1 + Math.random() * 5;
+                    ctx.fillStyle = `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${0.1 + Math.random() * 0.2})`;
+                    ctx.fillRect(0, y, canvas.width, height);
+                }
+            }
+        }
+        
+        // Draw digital noise
+        function drawDigitalNoise() {
+            if (Math.random() < 0.1) { // Only sometimes
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    if (Math.random() < 0.001) { // Very sparse noise
+                        data[i] = Math.random() * 255;
+                        data[i + 1] = Math.random() * 255;
+                        data[i + 2] = Math.random() * 255;
+                    }
+                }
+                
+                ctx.putImageData(imageData, 0, 0);
+            }
+        }
+        
+        // Draw glitch artifacts
+        class GlitchArtifact {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.width = 5 + Math.random() * 20;
+                this.height = 1 + Math.random() * 3;
+                this.lifespan = 5 + Math.random() * 10;
+                this.color = `hsl(${Math.random() * 360}, 100%, 80%)`;
+            }
+            
+            update() {
+                this.lifespan--;
+                return this.lifespan > 0;
+            }
+            
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+        }
+        
+        // Create glitch artifacts
+        const artifacts = [];
+        
+        // Draw waveform with glitch effect
+        function drawGlitchWaveform() {
+            const time = Date.now() * 0.002;
+            const centerY = canvas.height * 0.2;
+            const amplitude = canvas.height * 0.05;
+            
+            // Create a glitchy waveform
+            ctx.beginPath();
+            
+            for (let x = 0; x < canvas.width; x += 5) {
+                let y = centerY;
+                
+                // Add multiple sine waves to create a complex waveform
+                y += Math.sin(x * 0.02 + time) * amplitude * 0.4;
+                y += Math.sin(x * 0.05 + time * 1.3) * amplitude * 0.3;
+                y += Math.sin(x * 0.08 + time * 0.7) * amplitude * 0.2;
+                
+                // Add some glitchy distortion
+                if (Math.random() < 0.01) {
+                    y += (Math.random() - 0.5) * amplitude * 2;
+                }
+                
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    // Draw with some distortion
+                    const prevX = x - 5;
+                    const prevY = centerY + 
+                                  Math.sin(prevX * 0.02 + time) * amplitude * 0.4 +
+                                  Math.sin(prevX * 0.05 + time * 1.3) * amplitude * 0.3 +
+                                  Math.sin(prevX * 0.08 + time * 0.7) * amplitude * 0.2;
+                    
+                    const cpx = (prevX + x) / 2;
+                    const cpy = (prevY + y) / 2;
+                    ctx.quadraticCurveTo(prevX, prevY, cpx, cpy);
+                }
+            }
+            
+            // Create gradient for the waveform
+            const waveformGradient = ctx.createLinearGradient(0, centerY - amplitude, 0, centerY + amplitude);
+            waveformGradient.addColorStop(0, 'hsla(60, 100%, 70%, 0.8)'); // Yellow-green
+            waveformGradient.addColorStop(0.5, 'hsla(120, 100%, 60%, 0.8)'); // Green
+            waveformGradient.addColorStop(1, 'hsla(180, 100%, 50%, 0.8)'); // Cyan
+            
+            ctx.strokeStyle = waveformGradient;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Add glow
+            ctx.shadowColor = 'hsla(120, 100%, 50%, 0.5)';
+            ctx.shadowBlur = 10;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+        
+        // Animation loop
+        function animate() {
+            // Clear with fade effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Update and draw spectrum bars
+            bars.forEach(bar => {
+                bar.update();
+                bar.draw();
+            });
+            
+            // Draw additional glitch effects
+            drawGlitchWaveform();
+            drawGlitchScanlines();
+            drawDigitalNoise();
+            
+            // Update and draw artifacts
+            for (let i = artifacts.length - 1; i >= 0; i--) {
+                if (!artifacts[i].update()) {
+                    artifacts.splice(i, 1);
+                } else {
+                    artifacts[i].draw();
+                }
+            }
+            
+            // Occasionally add new artifacts
+            if (Math.random() < 0.2) {
+                artifacts.push(new GlitchArtifact());
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>

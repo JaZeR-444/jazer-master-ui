@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 const rootDir = path.join(__dirname, '..');
-const cssDir = path.join(rootDir, 'src/css/categories');
-const jsDir = path.join(rootDir, 'src/js');
+const cssDir = path.join(rootDir, '[CSS]', 'categories');
+const jsDir = path.join(rootDir, '[JS]');
 
 // Helper to format title from filename
 function formatTitle(filename) {
@@ -409,6 +409,11 @@ ${componentCards}
 function processCSSDirectories() {
   console.log('Processing CSS subdirectories...');
 
+  if (!fs.existsSync(cssDir)) {
+    console.warn('CSS directory not found, skipping CSS indexes.');
+    return;
+  }
+
   const subdirs = fs.readdirSync(cssDir).filter(f => {
     const fullPath = path.join(cssDir, f);
     return fs.statSync(fullPath).isDirectory() && !f.startsWith('extra-');
@@ -431,6 +436,11 @@ function processCSSDirectories() {
 function processJSDirectories() {
   console.log('Processing JS subdirectories...');
 
+  if (!fs.existsSync(jsDir)) {
+    console.warn('JS directory not found, skipping JS indexes.');
+    return;
+  }
+
   const subdirs = fs.readdirSync(jsDir).filter(f => {
     const fullPath = path.join(jsDir, f);
     return fs.statSync(fullPath).isDirectory();
@@ -440,7 +450,7 @@ function processJSDirectories() {
   subdirs.forEach(subdir => {
     const subdirPath = path.join(jsDir, subdir);
     const indexPath = path.join(subdirPath, 'index.html');
-    const html = generateSubdirectoryIndex(subdirPath, subdir, '../MASTER-INDEX.html', 'js', '../../css/jazer-brand.css');
+    const html = generateSubdirectoryIndex(subdirPath, subdir, '../all-components.html', 'js', '../../jazer-brand.css');
     fs.writeFileSync(indexPath, html);
     processed++;
     console.log(`  ✓ ${subdir}/index.html`);

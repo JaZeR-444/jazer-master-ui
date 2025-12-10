@@ -66,35 +66,39 @@ function validateLinks() {
     // Scan key files
     const filesToCheck = [
         path.join(rootDir, 'index.html'),
-        path.join(rootDir, 'src/html/Directories/ALL-IN-ONE-HOME.html'),
-        path.join(rootDir, 'src/css/categories/MASTER-INDEX.html'),
-        path.join(rootDir, 'src/js/MASTER-INDEX.html'),
-    ];
+        path.join(rootDir, '[HTML]', 'Directories', 'ALL-IN-ONE-HOME.html'),
+        path.join(rootDir, '[CSS]', 'categories', 'MASTER-INDEX.html'),
+        path.join(rootDir, '[JS]', 'all-components.html'),
+    ].filter(fs.existsSync);
 
     // Add all subdirectory index files
-    const cssDir = path.join(rootDir, 'src/css/categories');
-    const cssSubdirs = fs.readdirSync(cssDir).filter(f => {
-        const fullPath = path.join(cssDir, f);
-        return fs.statSync(fullPath).isDirectory() && !f.startsWith('extra-');
-    });
-    cssSubdirs.forEach(subdir => {
-        const indexPath = path.join(cssDir, subdir, 'index.html');
-        if (fs.existsSync(indexPath)) {
-            filesToCheck.push(indexPath);
-        }
-    });
+    const cssDir = path.join(rootDir, '[CSS]', 'categories');
+    if (fs.existsSync(cssDir)) {
+        const cssSubdirs = fs.readdirSync(cssDir).filter(f => {
+            const fullPath = path.join(cssDir, f);
+            return fs.statSync(fullPath).isDirectory() && !f.startsWith('extra-');
+        });
+        cssSubdirs.forEach(subdir => {
+            const indexPath = path.join(cssDir, subdir, 'index.html');
+            if (fs.existsSync(indexPath)) {
+                filesToCheck.push(indexPath);
+            }
+        });
+    }
 
-    const jsDir = path.join(rootDir, 'src/js');
-    const jsSubdirs = fs.readdirSync(jsDir).filter(f => {
-        const fullPath = path.join(jsDir, f);
-        return fs.statSync(fullPath).isDirectory();
-    });
-    jsSubdirs.forEach(subdir => {
-        const indexPath = path.join(jsDir, subdir, 'index.html');
-        if (fs.existsSync(indexPath)) {
-            filesToCheck.push(indexPath);
-        }
-    });
+    const jsDir = path.join(rootDir, '[JS]');
+    if (fs.existsSync(jsDir)) {
+        const jsSubdirs = fs.readdirSync(jsDir).filter(f => {
+            const fullPath = path.join(jsDir, f);
+            return fs.statSync(fullPath).isDirectory();
+        });
+        jsSubdirs.forEach(subdir => {
+            const indexPath = path.join(jsDir, subdir, 'index.html');
+            if (fs.existsSync(indexPath)) {
+                filesToCheck.push(indexPath);
+            }
+        });
+    }
 
     console.log(`Checking ${filesToCheck.length} files...\n`);
 

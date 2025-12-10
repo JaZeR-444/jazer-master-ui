@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sound Reactive Particle Field - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="audio"] { background: linear-gradient(45deg, #00ffff, #0088ff); }
+    .color-btn[data-color="bass"] { background: linear-gradient(45deg, #ff00cc, #333399); }
+    .color-btn[data-color="treble"] { background: linear-gradient(45deg, #00ff9d, #00ffff); }
+    .color-btn[data-color="mid"] { background: linear-gradient(45deg, #ff512f, #f09819); }
+    .color-btn[data-color="spectrum"] { background: linear-gradient(45deg, #5433ff, #20bdff); }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .pattern-select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-light);
+      font-family: var(--font-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .sound-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    #soundCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 280px; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .controls { top: auto; bottom: 5rem; right: 1rem; min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Sound Reactive Particle Field</h1>
+    <p>Particle field that responds to sound</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Randomize</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="audio" title="Audio"></button>
+      <button class="color-btn" data-color="bass" title="Bass"></button>
+      <button class="color-btn" data-color="treble" title="Treble"></button>
+      <button class="color-btn" data-color="mid" title="Mid"></button>
+      <button class="color-btn" data-color="spectrum" title="Spectrum"></button>
+    </div>
+    <div class="slider-group">
+      <label>Particle Count: <span class="slider-value" id="countValue">200</span></label>
+      <input type="range" id="countSlider" min="50" max="500" step="10" value="200">
+    </div>
+    <div class="slider-group">
+      <label>Reactivity: <span class="slider-value" id="reactivityValue">6</span></label>
+      <input type="range" id="reactivitySlider" min="1" max="10" step="1" value="6">
+    </div>
+    <div class="slider-group">
+      <label>Connection Density: <span class="slider-value" id="densityValue">5</span></label>
+      <input type="range" id="densitySlider" min="1" max="10" step="1" value="5">
+    </div>
+    <label>Pattern</label>
+    <select class="pattern-select" id="patternSelect">
+      <option value="field">Sound Field</option>
+      <option value="waves">Sound Waves</option>
+      <option value="spectrum">Spectrum Field</option>
+      <option value="frequency">Frequency Bands</option>
+      <option value="harmonic">Harmonic Resonance</option>
+    </select>
+  </div>
+
+  <div class="sound-container">
+    <canvas id="soundCanvas"></canvas>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const canvas = document.getElementById('soundCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      count: 200,
+      reactivity: 6,
+      density: 5,
+      pattern: 'field',
+      colorScheme: 'audio',
+      paused: false
+    };
+
+    const colorSchemes = {
+      audio: [
+        'rgba(0, 255, 255, 0.8)',
+        'rgba(0, 136, 255, 0.7)',
+        'rgba(0, 200, 255, 0.6)',
+        'rgba(0, 100, 200, 0.5)',
+        'rgba(0, 180, 255, 0.4)',
+        'rgba(0, 80, 200, 0.6)'
+      ],
+      bass: [
+        'rgba(255, 0, 204, 0.8)',
+        'rgba(51, 51, 153, 0.7)',
+        'rgba(200, 0, 180, 0.6)',
+        'rgba(100, 0, 150, 0.5)',
+        'rgba(255, 0, 150, 0.4)',
+        'rgba(150, 0, 100, 0.6)'
+      ],
+      treble: [
+        'rgba(0, 255, 157, 0.8)',
+        'rgba(0, 255, 255, 0.7)',
+        'rgba(0, 200, 150, 0.6)',
+        'rgba(0, 200, 255, 0.5)',
+        'rgba(0, 180, 180, 0.4)',
+        'rgba(0, 150, 200, 0.6)'
+      ],
+      mid: [
+        'rgba(255, 81, 47, 0.8)',
+        'rgba(240, 152, 25, 0.7)',
+        'rgba(220, 120, 20, 0.6)',
+        'rgba(255, 100, 50, 0.5)',
+        'rgba(200, 80, 30, 0.4)',
+        'rgba(245, 130, 40, 0.6)'
+      ],
+      spectrum: [
+        'rgba(84, 51, 255, 0.8)',
+        'rgba(32, 189, 255, 0.7)',
+        'rgba(100, 80, 220, 0.6)',
+        'rgba(60, 150, 240, 0.5)',
+        'rgba(40, 120, 200, 0.4)',
+        'rgba(70, 100, 220, 0.6)'
+      ]
+    };
+
+    let time = 0;
+    let animationId;
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function getColors() {
+      return colorSchemes[config.colorScheme];
+    }
+
+    function createParticle() {
+      return {
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: 2 + Math.random() * 4,
+        baseX: Math.random() * canvas.width,
+        baseY: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        phase: Math.random() * Math.PI * 2,
+        frequency: 0.01 + Math.random() * 0.03,
+        amplitude: 5 + Math.random() * 15,
+        colorIndex: Math.floor(Math.random() * 6),
+        soundResponse: 0
+      };
+    }
+
+    function updateParticles() {
+      particles = [];
+      for (let i = 0; i < config.count; i++) {
+        particles.push(createParticle());
+      }
+    }
+
+    function drawSoundField() {
+      const colors = getColors();
+      
+      // Draw connections between particles based on proximity
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[j].x - particles[i].x;
+          const dy = particles[j].y - particles[i].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < 100) {
+            // Calculate connection strength based on sound response
+            const connectionStrength = (particles[i].soundResponse + particles[j].soundResponse) / 2;
+            const alpha = 0.2 + connectionStrength * 0.5;
+            const lineWidth = 1 + connectionStrength * 3;
+            
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            
+            // Create gradient for connection
+            const gradient = ctx.createLinearGradient(
+              particles[i].x, particles[i].y,
+              particles[j].x, particles[j].y
+            );
+            gradient.addColorStop(0, colors[particles[i].colorIndex].replace('0.8', alpha));
+            gradient.addColorStop(1, colors[particles[j].colorIndex].replace('0.8', alpha));
+            
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = lineWidth;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Draw particles with sound response
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        const color = colors[p.colorIndex];
+        
+        // Simulate sound response by oscillating particle position
+        const soundResponse = Math.sin(time * p.frequency + p.phase) * (config.reactivity / 10) * p.amplitude;
+        const currentSize = p.size + soundResponse;
+        
+        // Calculate position with sound response
+        const x = p.baseX + Math.sin(time * 0.01 * config.reactivity + i) * 20 + soundResponse;
+        const y = p.baseY + Math.cos(time * 0.01 * config.reactivity + i) * 20 + soundResponse;
+        
+        // Update particle properties for next frame
+        p.soundResponse = Math.abs(soundResponse) / p.amplitude;
+        
+        // Create radial gradient for particle
+        const gradient = ctx.createRadialGradient(
+          x, y, 0,
+          x, y, currentSize * 2
+        );
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.7, color.replace('0.8', '0.4'));
+        gradient.addColorStop(1, color.replace('0.8', '0.0'));
+        
+        ctx.beginPath();
+        ctx.arc(x, y, currentSize, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Draw inner core
+        ctx.beginPath();
+        ctx.arc(x, y, currentSize * 0.5, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+      }
+    }
+
+    function drawSoundWaves() {
+      const colors = getColors();
+      const centerY = canvas.height / 2;
+      
+      // Draw wave patterns based on particle distribution
+      for (let i = 0; i < 5; i++) {
+        const color = colors[i % colors.length];
+        const frequency = 0.01 + i * 0.005;
+        const amplitude = 30 + Math.sin(time * 0.01 + i) * 20;
+        
+        ctx.beginPath();
+        for (let x = 0; x <= canvas.width; x += 5) {
+          const waveY = centerY + Math.sin(x * frequency + time * 0.02) * amplitude;
+          if (x === 0) ctx.moveTo(x, waveY);
+          else ctx.lineTo(x, waveY);
+        }
+        
+        // Create gradient for the wave
+        const gradient = ctx.createLinearGradient(0, centerY - amplitude, 0, centerY + amplitude);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color.replace('0.8', '0.5'));
+        gradient.addColorStop(1, color.replace('0.8', '0.2'));
+        
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        
+        // Draw particle representation on wave
+        for (let x = 0; x <= canvas.width; x += 20) {
+          const waveY = centerY + Math.sin(x * frequency + time * 0.02) * amplitude;
+          const particleSize = 3 + Math.abs(Math.sin(x * frequency + time * 0.02)) * 5;
+          
+          ctx.beginPath();
+          ctx.arc(x, waveY, particleSize, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.fill();
+        }
+      }
+    }
+
+    function drawSpectrumField() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+      
+      // Draw radial spectrum pattern
+      for (let i = 0; i < config.count; i++) {
+        const p = particles[i];
+        const color = colors[p.colorIndex];
+        
+        // Calculate sound response effect
+        const soundResponse = Math.sin(time * 0.02 + i) * (config.reactivity / 10) * 30;
+        const currentRadius = p.baseX / canvas.width * maxRadius + soundResponse;
+        const angle = p.baseY / canvas.height * Math.PI * 2;
+        
+        const x = centerX + Math.cos(angle) * currentRadius;
+        const y = centerY + Math.sin(angle) * currentRadius;
+        const size = p.size + soundResponse * 0.2;
+        
+        // Create gradient for the particle
+        const gradient = ctx.createRadialGradient(
+          x, y, 0,
+          x, y, size * 2
+        );
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.7, color.replace('0.8', '0.4'));
+        gradient.addColorStop(1, color.replace('0.8', '0.0'));
+        
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      }
+      
+      // Draw radial connections
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[j].x - particles[i].x;
+          const dy = particles[j].y - particles[i].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < 150) {
+            const connectionStrength = (particles[i].soundResponse + particles[j].soundResponse) / 2;
+            const alpha = 0.1 + connectionStrength * 0.4;
+            
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = colors[(i + j) % colors.length].replace('0.8', alpha);
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function drawFrequencyBands() {
+      const colors = getColors();
+      const bandCount = 20;
+      const bandWidth = canvas.width / bandCount;
+      
+      // Draw frequency bands with particle representation
+      for (let i = 0; i < bandCount; i++) {
+        const bandHeight = Math.min(canvas.height, (i / bandCount) * canvas.height + Math.sin(time * 0.03 + i) * 100);
+        const color = colors[i % colors.length];
+        const frequencyResponse = Math.sin(time * 0.02 * config.reactivity + i) * (config.reactivity / 10) * 50;
+        
+        // Draw band with gradient
+        const gradient = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - bandHeight);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, color.replace('0.8', '0.2'));
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(i * bandWidth, canvas.height - bandHeight, bandWidth, bandHeight);
+        
+        // Draw particles in the band
+        const particleCount = 5 + Math.floor(frequencyResponse);
+        for (let j = 0; j < particleCount; j++) {
+          const x = i * bandWidth + Math.random() * bandWidth;
+          const y = canvas.height - bandHeight + Math.random() * bandHeight;
+          const size = 2 + Math.random() * 4;
+          
+          ctx.beginPath();
+          ctx.arc(x, y, size, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.fill();
+        }
+      }
+    }
+
+    function drawHarmonicResonance() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+      
+      // Draw harmonic resonance patterns
+      for (let i = 0; i < 10; i++) {
+        const radius = maxRadius * (0.1 + i * 0.1);
+        const color = colors[i % colors.length];
+        const resonance = Math.sin(time * 0.01 * config.reactivity + i) * (config.reactivity / 10) * 20;
+        
+        ctx.beginPath();
+        for (let a = 0; a <= Math.PI * 2; a += 0.1) {
+          const waveRadius = radius + Math.sin(a * 5 + time * 0.02 * config.reactivity) * resonance;
+          const x = centerX + Math.cos(a) * waveRadius;
+          const y = centerY + Math.sin(a) * waveRadius;
+          
+          if (a === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Draw harmonic particles
+        for (let j = 0; j < 10; j++) {
+          const angle = (j / 10) * Math.PI * 2 + time * 0.01 * config.reactivity;
+          const distance = radius + Math.sin(time * 0.03 * config.reactivity + j) * resonance;
+          const x = centerX + Math.cos(angle) * distance;
+          const y = centerY + Math.sin(angle) * distance;
+          const size = 3 + Math.sin(time * 0.04 * config.reactivity + j) * 4;
+          
+          ctx.beginPath();
+          ctx.arc(x, y, size, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.fill();
+        }
+      }
+    }
+
+    function drawSound() {
+      // Clear with subtle fade effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      switch(config.pattern) {
+        case 'field':
+          drawSoundField();
+          break;
+        case 'waves':
+          drawSoundWaves();
+          break;
+        case 'spectrum':
+          drawSpectrumField();
+          break;
+        case 'frequency':
+          drawFrequencyBands();
+          break;
+        case 'harmonic':
+          drawHarmonicResonance();
+          break;
+      }
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.01;
+        drawSound();
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function randomize() {
+      config.count = Math.floor(Math.random() * 400 + 100);
+      config.reactivity = Math.floor(Math.random() * 8 + 2);
+      config.density = Math.floor(Math.random() * 8 + 2);
+      const patterns = ['field', 'waves', 'spectrum', 'frequency', 'harmonic'];
+      config.pattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      document.getElementById('countSlider').value = config.count;
+      document.getElementById('countValue').textContent = config.count;
+      document.getElementById('reactivitySlider').value = config.reactivity;
+      document.getElementById('reactivityValue').textContent = config.reactivity;
+      document.getElementById('densitySlider').value = config.density;
+      document.getElementById('densityValue').textContent = config.density;
+      document.getElementById('patternSelect').value = config.pattern;
+      
+      updateParticles();
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('countSlider').addEventListener('input', e => {
+      config.count = parseInt(e.target.value);
+      document.getElementById('countValue').textContent = config.count;
+      updateParticles();
+    });
+
+    document.getElementById('reactivitySlider').addEventListener('input', e => {
+      config.reactivity = parseInt(e.target.value);
+      document.getElementById('reactivityValue').textContent = config.reactivity;
+    });
+
+    document.getElementById('densitySlider').addEventListener('input', e => {
+      config.density = parseInt(e.target.value);
+      document.getElementById('densityValue').textContent = config.density;
+    });
+
+    document.getElementById('patternSelect').addEventListener('change', e => {
+      config.pattern = e.target.value;
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        randomize();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['audio', 'bass', 'treble', 'mid', 'spectrum'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    updateParticles();
+    animate();
+  </script>
+</body>
+</html>

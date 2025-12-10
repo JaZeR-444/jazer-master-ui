@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cosmic String Theory - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="cosmic"] { background: linear-gradient(45deg, #5433ff, #20bdff); }
+    .color-btn[data-color="string"] { background: linear-gradient(45deg, #00ffff, #0088ff); }
+    .color-btn[data-color="theoretical"] { background: linear-gradient(45deg, #ff00cc, #333399); }
+    .color-btn[data-color="quantum"] { background: linear-gradient(45deg, #00ff9d, #00ffff); }
+    .color-btn[data-color="dimension"] { background: linear-gradient(45deg, #ff512f, #f09819); }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .pattern-select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-light);
+      font-family: var(--font-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .cosmic-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    #cosmicCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 280px; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .controls { top: auto; bottom: 5rem; right: 1rem; min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Cosmic String Theory</h1>
+    <p>Visual representation of cosmic strings</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Randomize</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="cosmic" title="Cosmic"></button>
+      <button class="color-btn" data-color="string" title="String"></button>
+      <button class="color-btn" data-color="theoretical" title="Theoretical"></button>
+      <button class="color-btn" data-color="quantum" title="Quantum"></button>
+      <button class="color-btn" data-color="dimension" title="Dimension"></button>
+    </div>
+    <div class="slider-group">
+      <label>String Count: <span class="slider-value" id="countValue">50</span></label>
+      <input type="range" id="countSlider" min="20" max="200" step="10" value="50">
+    </div>
+    <div class="slider-group">
+      <label>String Vibrations: <span class="slider-value" id="vibrationValue">6</span></label>
+      <input type="range" id="vibrationSlider" min="1" max="10" step="1" value="6">
+    </div>
+    <div class="slider-group">
+      <label>Dimensional Shift: <span class="slider-value" id="shiftValue">5</span></label>
+      <input type="range" id="shiftSlider" min="1" max="10" step="1" value="5">
+    </div>
+    <label>Pattern</label>
+    <select class="pattern-select" id="patternSelect">
+      <option value="strings">Cosmic Strings</option>
+      <option value="network">String Network</option>
+      <option value="brane">Brane Theory</option>
+      <option value="vibrations">String Vibrations</option>
+      <option value="multiverse">Multiverse Strings</option>
+    </select>
+  </div>
+
+  <div class="cosmic-container">
+    <canvas id="cosmicCanvas"></canvas>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const canvas = document.getElementById('cosmicCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      count: 50,
+      vibration: 6,
+      shift: 5,
+      pattern: 'strings',
+      colorScheme: 'cosmic',
+      paused: false
+    };
+
+    const colorSchemes = {
+      cosmic: [
+        'rgba(84, 51, 255, 0.8)',
+        'rgba(32, 189, 255, 0.7)',
+        'rgba(100, 80, 220, 0.6)',
+        'rgba(60, 150, 240, 0.5)',
+        'rgba(40, 120, 200, 0.4)',
+        'rgba(70, 100, 220, 0.6)'
+      ],
+      string: [
+        'rgba(0, 255, 255, 0.8)',
+        'rgba(0, 136, 255, 0.7)',
+        'rgba(0, 200, 255, 0.6)',
+        'rgba(0, 100, 200, 0.5)',
+        'rgba(0, 180, 255, 0.4)',
+        'rgba(0, 80, 200, 0.6)'
+      ],
+      theoretical: [
+        'rgba(255, 0, 204, 0.8)',
+        'rgba(51, 51, 153, 0.7)',
+        'rgba(200, 0, 180, 0.6)',
+        'rgba(100, 0, 150, 0.5)',
+        'rgba(255, 0, 150, 0.4)',
+        'rgba(150, 0, 100, 0.6)'
+      ],
+      quantum: [
+        'rgba(0, 255, 157, 0.8)',
+        'rgba(0, 255, 255, 0.7)',
+        'rgba(0, 200, 150, 0.6)',
+        'rgba(0, 200, 255, 0.5)',
+        'rgba(0, 180, 180, 0.4)',
+        'rgba(0, 150, 200, 0.6)'
+      ],
+      dimension: [
+        'rgba(255, 81, 47, 0.8)',
+        'rgba(240, 152, 25, 0.7)',
+        'rgba(220, 120, 20, 0.6)',
+        'rgba(255, 100, 50, 0.5)',
+        'rgba(200, 80, 30, 0.4)',
+        'rgba(245, 130, 40, 0.6)'
+      ]
+    };
+
+    let time = 0;
+    let animationId;
+    let strings = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function getColors() {
+      return colorSchemes[config.colorScheme];
+    }
+
+    function createString() {
+      return {
+        x1: Math.random() * canvas.width,
+        y1: Math.random() * canvas.height,
+        x2: Math.random() * canvas.width,
+        y2: Math.random() * canvas.height,
+        originalX1: Math.random() * canvas.width,
+        originalY1: Math.random() * canvas.height,
+        originalX2: Math.random() * canvas.width,
+        originalY2: Math.random() * canvas.height,
+        phase: Math.random() * Math.PI * 2,
+        frequency: 0.01 + Math.random() * 0.02,
+        amplitude: 5 + Math.random() * 15,
+        colorIndex: Math.floor(Math.random() * 6),
+        vibrationPhase: Math.random() * Math.PI * 2,
+        vibrationFreq: 0.02 + Math.random() * 0.03
+      };
+    }
+
+    function updateStrings() {
+      strings = [];
+      for (let i = 0; i < config.count; i++) {
+        strings.push(createString());
+      }
+    }
+
+    function drawCosmicStrings() {
+      const colors = getColors();
+      
+      // Draw cosmic strings with vibration effects
+      for (let i = 0; i < strings.length; i++) {
+        const s = strings[i];
+        const color = colors[s.colorIndex];
+        
+        // Calculate vibration effects
+        const vibration = Math.sin(time * s.vibrationFreq * config.vibration + s.vibrationPhase) * config.shift;
+        
+        // Calculate new positions with vibration
+        const x1 = s.originalX1 + Math.sin(time * s.frequency + s.phase) * s.amplitude;
+        const y1 = s.originalY1 + Math.cos(time * s.frequency + s.phase) * s.amplitude;
+        const x2 = s.originalX2 + Math.sin(time * s.frequency + s.phase + Math.PI) * s.amplitude;
+        const y2 = s.originalY2 + Math.cos(time * s.frequency + s.phase + Math.PI) * s.amplitude;
+        
+        // Add vibration to the string
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        
+        // Create perpendicular vector for vibration
+        const perpX = -dy / length * vibration;
+        const perpY = dx / length * vibration;
+        
+        // Draw the string with vibration
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.quadraticCurveTo(midX + perpX, midY + perpY, x2, y2);
+        
+        // Create gradient for the string
+        const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color.replace('0.8', '0.6'));
+        gradient.addColorStop(1, color.replace('0.8', '0.3'));
+        
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Draw harmonic vibrations along the string
+        for (let j = 0; j < 5; j++) {
+          const t = j / 4;
+          const px = x1 + (x2 - x1) * t;
+          const py = y1 + (y2 - y1) * t;
+          const harmonic = Math.sin(time * 0.05 * config.vibration + j) * 3;
+          
+          ctx.beginPath();
+          ctx.arc(px, py, 1 + harmonic, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.fill();
+        }
+      }
+    }
+
+    function drawStringNetwork() {
+      const colors = getColors();
+      
+      // Draw interconnected string network
+      for (let i = 0; i < strings.length; i++) {
+        const s = strings[i];
+        const color = colors[s.colorIndex];
+        
+        // Calculate vibration effects
+        const vibration = Math.sin(time * s.vibrationFreq * config.vibration + s.vibrationPhase) * config.shift;
+        
+        // Calculate positions with vibration
+        const x1 = s.originalX1 + Math.sin(time * s.frequency + s.phase) * s.amplitude;
+        const y1 = s.originalY1 + Math.cos(time * s.frequency + s.phase) * s.amplitude;
+        const x2 = s.originalX2 + Math.sin(time * s.frequency + s.phase + Math.PI) * s.amplitude;
+        const y2 = s.originalY2 + Math.cos(time * s.frequency + s.phase + Math.PI) * s.amplitude;
+        
+        // Draw main string
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        
+        // Create gradient for the string
+        const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, color.replace('0.8', '0.3'));
+        
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        
+        // Connect to other strings
+        for (let j = i + 1; j < strings.length; j++) {
+          const s2 = strings[j];
+          const dx = s2.originalX1 - s.originalX1;
+          const dy = s2.originalY1 - s.originalY1;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < 150) {
+            const connectionColor = colors[(i + j) % colors.length];
+            const alpha = 1 - distance / 150;
+            
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(s2.originalX1 + Math.sin(time * 0.01) * 20, s2.originalY1 + Math.cos(time * 0.01) * 20);
+            ctx.strokeStyle = connectionColor.replace('0.8', alpha * 0.4);
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+        
+        // Draw nodes at string endpoints
+        ctx.beginPath();
+        ctx.arc(x1, y1, 3, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        
+        ctx.beginPath();
+        ctx.arc(x2, y2, 3, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+      }
+    }
+
+    function drawBraneTheory() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+      
+      // Draw brane layers with cosmic strings
+      for (let layer = 0; layer < config.shift; layer++) {
+        const radius = maxRadius * (0.3 + layer * 0.15);
+        const color = colors[layer % colors.length];
+        
+        // Draw brane as a circle with texture
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = color.replace('0.8', '0.4');
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Draw cosmic strings on the brane
+        for (let i = 0; i < 8; i++) {
+          const angle = (i / 8) * Math.PI * 2;
+          const x1 = centerX + Math.cos(angle) * radius * 0.8;
+          const y1 = centerY + Math.sin(angle) * radius * 0.8;
+          const x2 = centerX + Math.cos(angle + Math.PI/4) * radius * 0.8;
+          const y2 = centerY + Math.sin(angle + Math.PI/4) * radius * 0.8;
+          
+          // Add vibration to the string
+          const vibration = Math.sin(time * 0.03 * config.vibration + i) * 10;
+          const midX = (x1 + x2) / 2 + Math.cos(angle) * vibration;
+          const midY = (y1 + y2) / 2 + Math.sin(angle) * vibration;
+          
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.quadraticCurveTo(midX, midY, x2, y2);
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+      }
+      
+      // Draw inter-brane connections
+      for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2;
+        const distance = maxRadius * 0.5;
+        const x = centerX + Math.cos(angle) * distance;
+        const y = centerY + Math.sin(angle) * distance;
+        
+        // Connect to center
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(centerX, centerY);
+        ctx.strokeStyle = colors[i % colors.length].replace('0.8', '0.3');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        // Draw vibrating string between branes
+        for (let j = 0; j < 5; j++) {
+          const t = j / 4;
+          const px = centerX + (x - centerX) * t;
+          const py = centerY + (y - centerY) * t;
+          const vibration = Math.sin(time * 0.04 * config.vibration + i + j) * 5;
+          
+          ctx.beginPath();
+          ctx.arc(px, py, 1 + vibration * 0.2, 0, Math.PI * 2);
+          ctx.fillStyle = colors[i % colors.length];
+          ctx.fill();
+        }
+      }
+    }
+
+    function drawStringVibrations() {
+      const colors = getColors();
+      
+      // Draw vibrating strings with complex harmonics
+      for (let i = 0; i < strings.length; i++) {
+        const s = strings[i];
+        const color = colors[s.colorIndex];
+        
+        // Calculate complex vibration pattern
+        const x1 = s.originalX1 + Math.sin(time * s.frequency * 2 + s.phase) * s.amplitude * 0.5;
+        const y1 = s.originalY1 + Math.cos(time * s.frequency * 2 + s.phase) * s.amplitude * 0.5;
+        const x2 = s.originalX2 + Math.sin(time * s.frequency * 2 + s.phase + Math.PI) * s.amplitude * 0.5;
+        const y2 = s.originalY2 + Math.cos(time * s.frequency * 2 + s.phase + Math.PI) * s.amplitude * 0.5;
+        
+        // Create complex vibration path
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        
+        // Add multiple control points for complex vibrations
+        for (let j = 1; j <= 5; j++) {
+          const t = j / 5;
+          const cx = x1 + (x2 - x1) * t;
+          const cy = y1 + (y2 - y1) * t;
+          const vibration = Math.sin(time * 0.05 * config.vibration + j + i) * 10;
+          
+          // Perpendicular to the string direction
+          const dx = x2 - x1;
+          const dy = y2 - y1;
+          const length = Math.sqrt(dx * dx + dy * dy);
+          const perpX = -dy / length * vibration;
+          const perpY = dx / length * vibration;
+          
+          ctx.quadraticCurveTo(
+            cx + perpX, 
+            cy + perpY,
+            cx + perpX * 0.5, 
+            cy + perpY * 0.5
+          );
+        }
+        
+        ctx.lineTo(x2, y2);
+        
+        // Create gradient for the vibrating string
+        const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color.replace('0.8', '0.7'));
+        gradient.addColorStop(1, color.replace('0.8', '0.3'));
+        
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Draw harmonic frequencies along the string
+        for (let j = 0; j < 8; j++) {
+          const t = j / 7;
+          const px = x1 + (x2 - x1) * t;
+          const py = y1 + (y2 - y1) * t;
+          const freq = Math.sin(time * 0.06 * config.vibration + j * 2) * 4;
+          
+          ctx.beginPath();
+          ctx.arc(px, py, 1 + freq * 0.3, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.fill();
+        }
+      }
+    }
+
+    function drawMultiverseStrings() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.3;
+      
+      // Draw multiple universes connected by cosmic strings
+      for (let i = 0; i < 6; i++) {
+        const angle = (i / 6) * Math.PI * 2;
+        const distance = maxRadius * 0.7;
+        const ux = centerX + Math.cos(angle) * distance;
+        const uy = centerY + Math.sin(angle) * distance;
+        
+        // Draw universe bubble
+        ctx.beginPath();
+        ctx.arc(ux, uy, maxRadius * 0.15, 0, Math.PI * 2);
+        const gradient = ctx.createRadialGradient(
+          ux, uy, 0,
+          ux, uy, maxRadius * 0.15
+        );
+        gradient.addColorStop(0, colors[i % colors.length]);
+        gradient.addColorStop(1, colors[i % colors.length].replace('0.8', '0.1'));
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Draw cosmic strings connecting universes
+        for (let j = i + 1; j < 6; j++) {
+          const angle2 = (j / 6) * Math.PI * 2;
+          const ux2 = centerX + Math.cos(angle2) * distance;
+          const uy2 = centerY + Math.sin(angle2) * distance;
+          
+          // Draw string between universes with vibration
+          const vibration = Math.sin(time * 0.02 * config.vibration + i + j) * 20;
+          const midX = (ux + ux2) / 2 + Math.cos(angle + Math.PI/2) * vibration;
+          const midY = (uy + uy2) / 2 + Math.sin(angle + Math.PI/2) * vibration;
+          
+          ctx.beginPath();
+          ctx.moveTo(ux, uy);
+          ctx.quadraticCurveTo(midX, midY, ux2, uy2);
+          ctx.strokeStyle = colors[(i + j) % colors.length].replace('0.8', '0.5');
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          
+          // Draw vibrating particles along the string
+          for (let k = 0.1; k < 1; k += 0.2) {
+            const px = ux + (ux2 - ux) * k;
+            const py = uy + (uy2 - uy) * k;
+            const particleVibration = Math.sin(time * 0.03 * config.vibration + k * 10) * 5;
+            
+            ctx.beginPath();
+            ctx.arc(px, py, 2 + particleVibration * 0.2, 0, Math.PI * 2);
+            ctx.fillStyle = colors[(i + j + k) % colors.length];
+            ctx.fill();
+          }
+        }
+      }
+      
+      // Draw central multiverse hub
+      const hubGradient = ctx.createRadialGradient(
+        centerX, centerY, 0,
+        centerX, centerY, maxRadius * 0.1
+      );
+      hubGradient.addColorStop(0, colors[0]);
+      hubGradient.addColorStop(1, colors[0].replace('0.8', '0.1'));
+      
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, maxRadius * 0.1, 0, Math.PI * 2);
+      ctx.fillStyle = hubGradient;
+      ctx.fill();
+      
+      // Draw cosmic background strings
+      for (let i = 0; i < 20; i++) {
+        const x1 = Math.random() * canvas.width;
+        const y1 = Math.random() * canvas.height;
+        const length = 50 + Math.random() * 100;
+        const angle = Math.random() * Math.PI * 2;
+        const x2 = x1 + Math.cos(angle) * length;
+        const y2 = y1 + Math.sin(angle) * length;
+        
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = colors[i % colors.length].replace('0.8', '0.1');
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+
+    function drawCosmic() {
+      // Clear with subtle fade effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      switch(config.pattern) {
+        case 'strings':
+          drawCosmicStrings();
+          break;
+        case 'network':
+          drawStringNetwork();
+          break;
+        case 'brane':
+          drawBraneTheory();
+          break;
+        case 'vibrations':
+          drawStringVibrations();
+          break;
+        case 'multiverse':
+          drawMultiverseStrings();
+          break;
+      }
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.01;
+        drawCosmic();
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function randomize() {
+      config.count = Math.floor(Math.random() * 180 + 20);
+      config.vibration = Math.floor(Math.random() * 8 + 2);
+      config.shift = Math.floor(Math.random() * 8 + 2);
+      const patterns = ['strings', 'network', 'brane', 'vibrations', 'multiverse'];
+      config.pattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      document.getElementById('countSlider').value = config.count;
+      document.getElementById('countValue').textContent = config.count;
+      document.getElementById('vibrationSlider').value = config.vibration;
+      document.getElementById('vibrationValue').textContent = config.vibration;
+      document.getElementById('shiftSlider').value = config.shift;
+      document.getElementById('shiftValue').textContent = config.shift;
+      document.getElementById('patternSelect').value = config.pattern;
+      
+      updateStrings();
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('countSlider').addEventListener('input', e => {
+      config.count = parseInt(e.target.value);
+      document.getElementById('countValue').textContent = config.count;
+      updateStrings();
+    });
+
+    document.getElementById('vibrationSlider').addEventListener('input', e => {
+      config.vibration = parseInt(e.target.value);
+      document.getElementById('vibrationValue').textContent = config.vibration;
+    });
+
+    document.getElementById('shiftSlider').addEventListener('input', e => {
+      config.shift = parseInt(e.target.value);
+      document.getElementById('shiftValue').textContent = config.shift;
+    });
+
+    document.getElementById('patternSelect').addEventListener('change', e => {
+      config.pattern = e.target.value;
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        randomize();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['cosmic', 'string', 'theoretical', 'quantum', 'dimension'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    updateStrings();
+    animate();
+  </script>
+</body>
+</html>

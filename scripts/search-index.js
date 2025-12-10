@@ -1,0 +1,16246 @@
+/* exported SEARCH_INDEX_DATA */
+// Auto-generated search index - do not edit manually
+// Run: node scripts/build-search-index.js to regenerate
+const SEARCH_INDEX_DATA = [
+  {
+    "name": "AI Chat Bubble",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-chat-bubble.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "💬",
+    "keywords": [
+      "chat",
+      "bubble",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Response Card",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-response-card.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "response",
+      "card",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Response Options",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-response-options.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🔘",
+    "keywords": [
+      "response",
+      "options",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Suggestion Chip",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-suggestion-chip.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "💡",
+    "keywords": [
+      "suggestion",
+      "chip",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Suggestion Carousel",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-suggestion-carousel.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🎠",
+    "keywords": [
+      "suggestion",
+      "carousel",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Prompt Input",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-prompt-input.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "⌨️",
+    "keywords": [
+      "prompt",
+      "input",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Smart Reply Buttons",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/smart-reply-buttons.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "⚡",
+    "keywords": [
+      "smart",
+      "reply",
+      "buttons",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Fallback Message",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-fallback-message.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "fallback",
+      "message",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Conversation Summary",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-conversation-summary.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "📝",
+    "keywords": [
+      "conversation",
+      "summary",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Thinking Animation",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-thinking-animation.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🔮",
+    "keywords": [
+      "thinking",
+      "animation",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Typing Indicator",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-typing-indicator.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "⏳",
+    "keywords": [
+      "typing",
+      "indicator",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Processing Spinner",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-processing-spinner.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "⚙️",
+    "keywords": [
+      "processing",
+      "spinner",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Confidence Meter",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-confidence-meter.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "confidence",
+      "meter",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Intent Detector",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-intent-detector.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🎯",
+    "keywords": [
+      "intent",
+      "detector",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Emotion Detector",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-emotion-detector.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "😊",
+    "keywords": [
+      "emotion",
+      "detector",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Context Awareness",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-context-awareness.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🌐",
+    "keywords": [
+      "context",
+      "awareness",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Learning Progress",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-learning-progress.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "📈",
+    "keywords": [
+      "learning",
+      "progress",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Training Visualization",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-training-visualization.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🔬",
+    "keywords": [
+      "training",
+      "visualization",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Neural Network Loader",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/neural-network-loader.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🧬",
+    "keywords": [
+      "neural",
+      "network",
+      "loader",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Avatar Glow",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-avatar-glow.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "👤",
+    "keywords": [
+      "avatar",
+      "glow",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Chatbot Avatar",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/chatbot-avatar.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🤖",
+    "keywords": [
+      "chatbot",
+      "avatar",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Personality Selector",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-personality-selector.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🎭",
+    "keywords": [
+      "personality",
+      "selector",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Model Selector",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-model-selector.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🔧",
+    "keywords": [
+      "model",
+      "selector",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Capability Badges",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-capability-badges.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🏅",
+    "keywords": [
+      "capability",
+      "badges",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Knowledge Base Badge",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-knowledge-base-badge.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "📚",
+    "keywords": [
+      "knowledge",
+      "base",
+      "badge",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Multimodal Input",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-multimodal-input.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🖼️",
+    "keywords": [
+      "multimodal",
+      "input",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "AI Search Assistant",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/ai-search-assistant.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🔍",
+    "keywords": [
+      "search",
+      "assistant",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Contextual AI Help",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/contextual-ai-help.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "❓",
+    "keywords": [
+      "contextual",
+      "help",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Input Button",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-input-button.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🎤",
+    "keywords": [
+      "voice",
+      "input",
+      "button",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Command Button",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-command-button.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🔊",
+    "keywords": [
+      "voice",
+      "command",
+      "button",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Activation Zone",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-activation-zone.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "📍",
+    "keywords": [
+      "voice",
+      "activation",
+      "zone",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Wake Word Indicator",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-wake-word-indicator.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "👂",
+    "keywords": [
+      "voice",
+      "wake",
+      "word",
+      "indicator",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Level Meter",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-level-meter.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "📶",
+    "keywords": [
+      "voice",
+      "level",
+      "meter",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Volume Control",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-volume-control.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🔈",
+    "keywords": [
+      "voice",
+      "volume",
+      "control",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Dictation Mode",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-dictation-mode.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "✍️",
+    "keywords": [
+      "voice",
+      "dictation",
+      "mode",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Speech to Text Indicator",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/speech-to-text-indicator.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "📝",
+    "keywords": [
+      "speech",
+      "text",
+      "indicator",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Speech Waveform",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/speech-waveform.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "〰️",
+    "keywords": [
+      "speech",
+      "waveform",
+      "voice",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Recognition Pulse",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-recognition-pulse.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "💫",
+    "keywords": [
+      "voice",
+      "recognition",
+      "pulse",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Transcription Box",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-transcription-box.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "📄",
+    "keywords": [
+      "voice",
+      "transcription",
+      "box",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Language Selector",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-language-selector.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🌍",
+    "keywords": [
+      "voice",
+      "language",
+      "selector",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Accent Adapter",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-accent-adapter.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🗣️",
+    "keywords": [
+      "voice",
+      "accent",
+      "adapter",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Feedback Visual",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-feedback-visual.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "👁️",
+    "keywords": [
+      "voice",
+      "feedback",
+      "visual",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Command Feedback",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-command-feedback.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "✅",
+    "keywords": [
+      "voice",
+      "command",
+      "feedback",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Command List",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-command-list.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "voice",
+      "command",
+      "list",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Command History",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-command-history.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "📜",
+    "keywords": [
+      "voice",
+      "command",
+      "history",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Quality Indicator",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-quality-indicator.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "📡",
+    "keywords": [
+      "voice",
+      "quality",
+      "indicator",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Noise Cancellation",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-noise-cancellation.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🔇",
+    "keywords": [
+      "voice",
+      "noise",
+      "cancellation",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Privacy Indicator",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-privacy-indicator.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "🔒",
+    "keywords": [
+      "voice",
+      "privacy",
+      "indicator",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Session Timer",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-session-timer.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "⏱️",
+    "keywords": [
+      "voice",
+      "session",
+      "timer",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Voice Interruption Handler",
+    "path": "./[CSS]/categories/ai-and-voice-interactions/voice-interruption-handler.html",
+    "category": "Ai & Voice Interactions",
+    "library": "CSS",
+    "icon": "✋",
+    "keywords": [
+      "voice",
+      "interruption",
+      "handler",
+      "interactions"
+    ]
+  },
+  {
+    "name": "Cosmic Nebula Cloud",
+    "path": "./[CSS]/categories/background-and-atmosphere/cosmic-nebula-cloud.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌌",
+    "keywords": [
+      "cosmic",
+      "nebula",
+      "cloud",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Subtle Starfield Drift",
+    "path": "./[CSS]/categories/background-and-atmosphere/subtle-starfield-drift.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "✨",
+    "keywords": [
+      "subtle",
+      "starfield",
+      "drift",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Shooting Stars",
+    "path": "./[CSS]/categories/background-and-atmosphere/shooting-stars.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "💫",
+    "keywords": [
+      "shooting",
+      "stars",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Aurora Waves",
+    "path": "./[CSS]/categories/background-and-atmosphere/aurora-waves.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌈",
+    "keywords": [
+      "aurora",
+      "waves",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Orbital Rings",
+    "path": "./[CSS]/categories/background-and-atmosphere/orbital-rings.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🪐",
+    "keywords": [
+      "orbital",
+      "rings",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Orbiting Particles Field",
+    "path": "./[CSS]/categories/background-and-atmosphere/orbiting-particles-field.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "⭐",
+    "keywords": [
+      "orbiting",
+      "particles",
+      "field",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Gradient Background Shift",
+    "path": "./[CSS]/categories/background-and-atmosphere/gradient-background-shift.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "gradient",
+      "background",
+      "shift",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Gradient Mesh Fluid Flow",
+    "path": "./[CSS]/categories/background-and-atmosphere/gradient-mesh-fluid-flow.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌊",
+    "keywords": [
+      "gradient",
+      "mesh",
+      "fluid",
+      "flow",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Slow Color Bloom",
+    "path": "./[CSS]/categories/background-and-atmosphere/slow-color-bloom.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌸",
+    "keywords": [
+      "slow",
+      "color",
+      "bloom",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Rotating Gradient Disc",
+    "path": "./[CSS]/categories/background-and-atmosphere/rotating-gradient-disc.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "💿",
+    "keywords": [
+      "rotating",
+      "gradient",
+      "disc",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Vignette Glow Pulse",
+    "path": "./[CSS]/categories/background-and-atmosphere/vignette-glow-pulse.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "💡",
+    "keywords": [
+      "vignette",
+      "glow",
+      "pulse",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Corner Glow Flares",
+    "path": "./[CSS]/categories/background-and-atmosphere/corner-glow-flares.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "✴️",
+    "keywords": [
+      "corner",
+      "glow",
+      "flares",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Floating Dust Particles",
+    "path": "./[CSS]/categories/background-and-atmosphere/floating-dust-particles.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌫️",
+    "keywords": [
+      "floating",
+      "dust",
+      "particles",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Particle Trail Cursor Path",
+    "path": "./[CSS]/categories/background-and-atmosphere/particle-trail-cursor-path.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "✨",
+    "keywords": [
+      "particle",
+      "trail",
+      "cursor",
+      "path",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Bokeh Light Drift",
+    "path": "./[CSS]/categories/background-and-atmosphere/bokeh-light-drift.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "💠",
+    "keywords": [
+      "bokeh",
+      "light",
+      "drift",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Radial Pulse Aura",
+    "path": "./[CSS]/categories/background-and-atmosphere/radial-pulse-aura.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🔵",
+    "keywords": [
+      "radial",
+      "pulse",
+      "aura",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Concentric Rings Expand",
+    "path": "./[CSS]/categories/background-and-atmosphere/concentric-rings-expand.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "⭕",
+    "keywords": [
+      "concentric",
+      "rings",
+      "expand",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Morphing Blob Background",
+    "path": "./[CSS]/categories/background-and-atmosphere/morphing-blob-background.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "💧",
+    "keywords": [
+      "morphing",
+      "blob",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Liquid Chrome Flow",
+    "path": "./[CSS]/categories/background-and-atmosphere/liquid-chrome-flow.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "💎",
+    "keywords": [
+      "liquid",
+      "chrome",
+      "flow",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Liquid Lava Lamp Blobs",
+    "path": "./[CSS]/categories/background-and-atmosphere/liquid-lava-lamp-blobs.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🫧",
+    "keywords": [
+      "liquid",
+      "lava",
+      "lamp",
+      "blobs",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Interactive Water Ripple",
+    "path": "./[CSS]/categories/background-and-atmosphere/interactive-water-ripple-surface.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌊",
+    "keywords": [
+      "interactive",
+      "water",
+      "ripple",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Heat Haze Distortion",
+    "path": "./[CSS]/categories/background-and-atmosphere/heat-haze-distortion.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🔥",
+    "keywords": [
+      "heat",
+      "haze",
+      "distortion",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Animated Grid Nodes",
+    "path": "./[CSS]/categories/background-and-atmosphere/animated-grid-nodes.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "📐",
+    "keywords": [
+      "animated",
+      "grid",
+      "nodes",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Hex Pattern Shift",
+    "path": "./[CSS]/categories/background-and-atmosphere/hex-pattern-shift.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "⬡",
+    "keywords": [
+      "hex",
+      "pattern",
+      "shift",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Grid Scanline Overlay",
+    "path": "./[CSS]/categories/background-and-atmosphere/grid-scanline-overlay.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "📺",
+    "keywords": [
+      "grid",
+      "scanline",
+      "overlay",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Tiled Pattern Offset Scroll",
+    "path": "./[CSS]/categories/background-and-atmosphere/tiled-pattern-offset-scroll.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🔲",
+    "keywords": [
+      "tiled",
+      "pattern",
+      "offset",
+      "scroll",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Rotating Polygonal Mesh",
+    "path": "./[CSS]/categories/background-and-atmosphere/rotating-polygonal-mesh.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🔷",
+    "keywords": [
+      "rotating",
+      "polygonal",
+      "mesh",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Floating 3D Shapes",
+    "path": "./[CSS]/categories/background-and-atmosphere/floating-3d-shapes.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🎲",
+    "keywords": [
+      "floating",
+      "shapes",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Wavy Grid Distortion",
+    "path": "./[CSS]/categories/background-and-atmosphere/wavy-grid-distortion.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "〰️",
+    "keywords": [
+      "wavy",
+      "grid",
+      "distortion",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Kaleidoscope Rotation",
+    "path": "./[CSS]/categories/background-and-atmosphere/kaleidoscope-rotation.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🎡",
+    "keywords": [
+      "kaleidoscope",
+      "rotation",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Retro Synthwave Grid Horizon",
+    "path": "./[CSS]/categories/background-and-atmosphere/retro-synthwave-grid-horizon.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌆",
+    "keywords": [
+      "retro",
+      "synthwave",
+      "grid",
+      "horizon",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Retro Synthwave Sun",
+    "path": "./[CSS]/categories/background-and-atmosphere/retro-synthwave-sun.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌅",
+    "keywords": [
+      "retro",
+      "synthwave",
+      "sun",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Matrix Rain Code",
+    "path": "./[CSS]/categories/background-and-atmosphere/matrix-rain-code.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "💻",
+    "keywords": [
+      "matrix",
+      "rain",
+      "code",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Geometric Tunnel Fly Through",
+    "path": "./[CSS]/categories/background-and-atmosphere/geometric-tunnel-fly-through-loop.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🕳️",
+    "keywords": [
+      "geometric",
+      "tunnel",
+      "fly",
+      "through",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Diagonal Light Beam Sweep",
+    "path": "./[CSS]/categories/background-and-atmosphere/diagonal-light-beam-sweep.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "💡",
+    "keywords": [
+      "diagonal",
+      "light",
+      "beam",
+      "sweep",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Parallel Light Bars Sweep",
+    "path": "./[CSS]/categories/background-and-atmosphere/parallel-light-bars-sweep.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "parallel",
+      "light",
+      "bars",
+      "sweep",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Concert Spotlight Sweeps",
+    "path": "./[CSS]/categories/background-and-atmosphere/concert-spotlight-sweeps.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🎭",
+    "keywords": [
+      "concert",
+      "spotlight",
+      "sweeps",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Scanning Spotlight Corner",
+    "path": "./[CSS]/categories/background-and-atmosphere/scanning-spotlight-corner.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🔦",
+    "keywords": [
+      "scanning",
+      "spotlight",
+      "corner",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Soft Volumetric Spotlight",
+    "path": "./[CSS]/categories/background-and-atmosphere/soft-volumetric-spotlight-cone.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🔆",
+    "keywords": [
+      "soft",
+      "volumetric",
+      "spotlight",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Lightning Energy Streaks",
+    "path": "./[CSS]/categories/background-and-atmosphere/occasional-lightning-energy-streaks.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "⚡",
+    "keywords": [
+      "lightning",
+      "energy",
+      "streaks",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Horizontal Fog Layer Drift",
+    "path": "./[CSS]/categories/background-and-atmosphere/horizontal-fog-layer-drift.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌫️",
+    "keywords": [
+      "horizontal",
+      "fog",
+      "layer",
+      "drift",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Slow Moving Fog",
+    "path": "./[CSS]/categories/background-and-atmosphere/slow-moving-fog-procedural-noise.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "☁️",
+    "keywords": [
+      "slow",
+      "moving",
+      "fog",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Falling Snow Rain",
+    "path": "./[CSS]/categories/background-and-atmosphere/falling-snow-rain.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "❄️",
+    "keywords": [
+      "falling",
+      "snow",
+      "rain",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Wireframe Terrain Fly Over",
+    "path": "./[CSS]/categories/background-and-atmosphere/wireframe-terrain-fly-over.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🏔️",
+    "keywords": [
+      "wireframe",
+      "terrain",
+      "fly",
+      "over",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Layered Parallax Mountains",
+    "path": "./[CSS]/categories/background-and-atmosphere/layered-parallax-abstract-mountains.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "⛰️",
+    "keywords": [
+      "layered",
+      "parallax",
+      "mountains",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Topography Lines",
+    "path": "./[CSS]/categories/background-and-atmosphere/topography-lines.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🗺️",
+    "keywords": [
+      "topography",
+      "lines",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Animated Radial Audio Burst",
+    "path": "./[CSS]/categories/background-and-atmosphere/animated-radial-audio-burst.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🔊",
+    "keywords": [
+      "animated",
+      "radial",
+      "audio",
+      "burst",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Static Grain Texture",
+    "path": "./[CSS]/categories/background-and-atmosphere/static-grain-texture.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "📺",
+    "keywords": [
+      "static",
+      "grain",
+      "texture",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Noise Texture Fade In",
+    "path": "./[CSS]/categories/background-and-atmosphere/noise-texture-fade-in.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🔳",
+    "keywords": [
+      "noise",
+      "texture",
+      "fade",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "ASCII Art",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-ascii-art.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "📟",
+    "keywords": [
+      "ascii",
+      "art",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Asteroid Field",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-asteroid-field.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "☄️",
+    "keywords": [
+      "asteroid",
+      "field",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Audio Waves",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-audio-waves.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🎵",
+    "keywords": [
+      "audio",
+      "waves",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Aurora Borealis",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-aurora-borealis.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌌",
+    "keywords": [
+      "aurora",
+      "borealis",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Binary Rain Color",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-binary-rain-color.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "💻",
+    "keywords": [
+      "binary",
+      "rain",
+      "color",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Circuit Board",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-circuit-board.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🔌",
+    "keywords": [
+      "circuit",
+      "board",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Cyber Grid",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-cyber-grid.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🔲",
+    "keywords": [
+      "cyber",
+      "grid",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Data Stream",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-data-stream.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "data",
+      "stream",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Digital Hexagons",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-digital-hexagons.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "⬡",
+    "keywords": [
+      "digital",
+      "hexagons",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "DNA Helix",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-dna-helix.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🧬",
+    "keywords": [
+      "dna",
+      "helix",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Fireflies Bokeh",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-fireflies-bokeh.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🪲",
+    "keywords": [
+      "fireflies",
+      "bokeh",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Floating Bubbles",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-floating-bubbles.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🫧",
+    "keywords": [
+      "floating",
+      "bubbles",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Flower Bloom",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-flower-bloom.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌸",
+    "keywords": [
+      "flower",
+      "bloom",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Fractal Trees",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-fractal-trees.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌳",
+    "keywords": [
+      "fractal",
+      "trees",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Galaxy Spiral",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-galaxy-spiral.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌀",
+    "keywords": [
+      "galaxy",
+      "spiral",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Geometric Tunnel",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-geometric-tunnel.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🕳️",
+    "keywords": [
+      "geometric",
+      "tunnel",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Glitch Text",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-glitch-text.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "📺",
+    "keywords": [
+      "glitch",
+      "text",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Graffiti Spray",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-graffiti-spray.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "graffiti",
+      "spray",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Holographic HUD",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-holographic-hud.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🖥️",
+    "keywords": [
+      "holographic",
+      "hud",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Ink Dispersion",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-ink-dispersion.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🖋️",
+    "keywords": [
+      "ink",
+      "dispersion",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Isometric City",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-isometric-city.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🏙️",
+    "keywords": [
+      "isometric",
+      "city",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Kaleidoscope",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-kaleidoscope.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🔮",
+    "keywords": [
+      "kaleidoscope",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Laser Vibes",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-laser-vibes.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "⚡",
+    "keywords": [
+      "laser",
+      "vibes",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Lightning Storm",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-lightning-storm.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌩️",
+    "keywords": [
+      "lightning",
+      "storm",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Liquid Metal",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-liquid-metal.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "💧",
+    "keywords": [
+      "liquid",
+      "metal",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Moiré Patterns",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-moire-patterns.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "〰️",
+    "keywords": [
+      "moir",
+      "patterns",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Mosaic Tiles",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-mosaic-tiles.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🧩",
+    "keywords": [
+      "mosaic",
+      "tiles",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Neon Rain",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-neon-rain.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌧️",
+    "keywords": [
+      "neon",
+      "rain",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Network Nodes",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-network-nodes.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🔗",
+    "keywords": [
+      "network",
+      "nodes",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Ocean Waves",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-ocean-waves.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌊",
+    "keywords": [
+      "ocean",
+      "waves",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Oscillator Scope",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-oscillator-scope.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "📉",
+    "keywords": [
+      "oscillator",
+      "scope",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Plasma Nebula",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-plasma-nebula.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🟣",
+    "keywords": [
+      "plasma",
+      "nebula",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Polygonal Mesh",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-polygonal-mesh.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🔷",
+    "keywords": [
+      "polygonal",
+      "mesh",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Radar Sweep",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-radar-sweep.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "📡",
+    "keywords": [
+      "radar",
+      "sweep",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Snow Blizzard",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-snow-blizzard.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "❄️",
+    "keywords": [
+      "snow",
+      "blizzard",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Sound Bars 3D",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-sound-bars-3d.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🎼",
+    "keywords": [
+      "sound",
+      "bars",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Spirit Wisps",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-spirit-wisps.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "👻",
+    "keywords": [
+      "spirit",
+      "wisps",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Star Warp",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-star-warp.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌟",
+    "keywords": [
+      "star",
+      "warp",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Underwater Caustics",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-underwater-caustics.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🐠",
+    "keywords": [
+      "underwater",
+      "caustics",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Volcanic Embers",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-volcanic-embers.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🌋",
+    "keywords": [
+      "volcanic",
+      "embers",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Watercolor Bleed",
+    "path": "./[CSS]/categories/background-and-atmosphere/jazer-watercolor-bleed.html",
+    "category": "Background & Atmosphere",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "watercolor",
+      "bleed",
+      "background",
+      "atmosphere"
+    ]
+  },
+  {
+    "name": "Badge Solid",
+    "path": "./[CSS]/categories/badges-and-labels/badge-solid.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🔵",
+    "keywords": [
+      "badge",
+      "solid",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Badge Outline",
+    "path": "./[CSS]/categories/badges-and-labels/badge-outline.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "⭕",
+    "keywords": [
+      "badge",
+      "outline",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Bordered Badge",
+    "path": "./[CSS]/categories/badges-and-labels/bordered-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🔲",
+    "keywords": [
+      "bordered",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Outlined Label",
+    "path": "./[CSS]/categories/badges-and-labels/outlined-label.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "📛",
+    "keywords": [
+      "outlined",
+      "label",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Rounded Square Badge",
+    "path": "./[CSS]/categories/badges-and-labels/rounded-square-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🟦",
+    "keywords": [
+      "rounded",
+      "square",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Pill Tag",
+    "path": "./[CSS]/categories/badges-and-labels/pill-tag.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "💊",
+    "keywords": [
+      "pill",
+      "tag",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Animated Badge Pulse",
+    "path": "./[CSS]/categories/badges-and-labels/animated-badge-pulse.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "💫",
+    "keywords": [
+      "animated",
+      "badge",
+      "pulse",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Animated Pulse Badge",
+    "path": "./[CSS]/categories/badges-and-labels/animated-pulse-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🔮",
+    "keywords": [
+      "animated",
+      "pulse",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Animated Shimmer Badge",
+    "path": "./[CSS]/categories/badges-and-labels/animated-shimmer-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "✨",
+    "keywords": [
+      "animated",
+      "shimmer",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Status Badge Animated",
+    "path": "./[CSS]/categories/badges-and-labels/status-badge-animated.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🎭",
+    "keywords": [
+      "status",
+      "badge",
+      "animated",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Neon Glow Badge",
+    "path": "./[CSS]/categories/badges-and-labels/neon-glow-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "💡",
+    "keywords": [
+      "neon",
+      "glow",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Gradient Badge",
+    "path": "./[CSS]/categories/badges-and-labels/gradient-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🌈",
+    "keywords": [
+      "gradient",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Gradient Tag",
+    "path": "./[CSS]/categories/badges-and-labels/gradient-tag.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "gradient",
+      "tag",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Multi-Color Tag",
+    "path": "./[CSS]/categories/badges-and-labels/multi-color-tag.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🌟",
+    "keywords": [
+      "multi",
+      "color",
+      "tag",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Approved Label",
+    "path": "./[CSS]/categories/badges-and-labels/approved-label.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "✅",
+    "keywords": [
+      "approved",
+      "label",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Pending Badge",
+    "path": "./[CSS]/categories/badges-and-labels/pending-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "⏳",
+    "keywords": [
+      "pending",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Rejected Badge",
+    "path": "./[CSS]/categories/badges-and-labels/rejected-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "❌",
+    "keywords": [
+      "rejected",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Draft Badge",
+    "path": "./[CSS]/categories/badges-and-labels/draft-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "📝",
+    "keywords": [
+      "draft",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Published Label",
+    "path": "./[CSS]/categories/badges-and-labels/published-label.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "📤",
+    "keywords": [
+      "published",
+      "label",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Archived Tag",
+    "path": "./[CSS]/categories/badges-and-labels/archived-tag.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "📦",
+    "keywords": [
+      "archived",
+      "tag",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Status Dot Label",
+    "path": "./[CSS]/categories/badges-and-labels/status-dot-label.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🔴",
+    "keywords": [
+      "status",
+      "dot",
+      "label",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Premium Label",
+    "path": "./[CSS]/categories/badges-and-labels/premium-label.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "👑",
+    "keywords": [
+      "premium",
+      "label",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Pro Tier Badge",
+    "path": "./[CSS]/categories/badges-and-labels/pro-tier-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "💎",
+    "keywords": [
+      "pro",
+      "tier",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Exclusive Badge",
+    "path": "./[CSS]/categories/badges-and-labels/exclusive-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🔒",
+    "keywords": [
+      "exclusive",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Verified Badge",
+    "path": "./[CSS]/categories/badges-and-labels/verified-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "✓",
+    "keywords": [
+      "verified",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Official Badge",
+    "path": "./[CSS]/categories/badges-and-labels/official-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🏅",
+    "keywords": [
+      "official",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "New Badge",
+    "path": "./[CSS]/categories/badges-and-labels/new-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🆕",
+    "keywords": [
+      "new",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Hot Deal Badge",
+    "path": "./[CSS]/categories/badges-and-labels/hot-deal-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🔥",
+    "keywords": [
+      "hot",
+      "deal",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Discount Badge",
+    "path": "./[CSS]/categories/badges-and-labels/discount-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "💰",
+    "keywords": [
+      "discount",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Sale Banner Label",
+    "path": "./[CSS]/categories/badges-and-labels/sale-banner-label.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🏷️",
+    "keywords": [
+      "sale",
+      "banner",
+      "label",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Limited Edition Label",
+    "path": "./[CSS]/categories/badges-and-labels/limited-edition-label.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "⚡",
+    "keywords": [
+      "limited",
+      "edition",
+      "label",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Trending Badge",
+    "path": "./[CSS]/categories/badges-and-labels/trending-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "📈",
+    "keywords": [
+      "trending",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Sponsored Label",
+    "path": "./[CSS]/categories/badges-and-labels/sponsored-label.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "📣",
+    "keywords": [
+      "sponsored",
+      "label",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Category Chip",
+    "path": "./[CSS]/categories/badges-and-labels/category-chip.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "📂",
+    "keywords": [
+      "category",
+      "chip",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Feature Tag",
+    "path": "./[CSS]/categories/badges-and-labels/feature-tag.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "⭐",
+    "keywords": [
+      "feature",
+      "tag",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Featured Tag",
+    "path": "./[CSS]/categories/badges-and-labels/featured-tag.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🌟",
+    "keywords": [
+      "featured",
+      "tag",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Skill Tag",
+    "path": "./[CSS]/categories/badges-and-labels/skill-tag.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🎯",
+    "keywords": [
+      "skill",
+      "tag",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Tag with Icon",
+    "path": "./[CSS]/categories/badges-and-labels/tag-with-icon.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🏷️",
+    "keywords": [
+      "tag",
+      "with",
+      "icon",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Removable Tag Chip",
+    "path": "./[CSS]/categories/badges-and-labels/removable-tag-chip.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "✖️",
+    "keywords": [
+      "removable",
+      "tag",
+      "chip",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Role Badge",
+    "path": "./[CSS]/categories/badges-and-labels/role-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "👤",
+    "keywords": [
+      "role",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Beta Badge",
+    "path": "./[CSS]/categories/badges-and-labels/beta-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🧪",
+    "keywords": [
+      "beta",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Version Badge",
+    "path": "./[CSS]/categories/badges-and-labels/version-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "📌",
+    "keywords": [
+      "version",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Notification Count",
+    "path": "./[CSS]/categories/badges-and-labels/notification-count.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🔔",
+    "keywords": [
+      "notification",
+      "count",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Counter Badge",
+    "path": "./[CSS]/categories/badges-and-labels/counter-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🔢",
+    "keywords": [
+      "counter",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Close Badge",
+    "path": "./[CSS]/categories/badges-and-labels/close-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "❎",
+    "keywords": [
+      "close",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Warning Label",
+    "path": "./[CSS]/categories/badges-and-labels/warning-label.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "⚠️",
+    "keywords": [
+      "warning",
+      "label",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Info Badge",
+    "path": "./[CSS]/categories/badges-and-labels/info-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "ℹ️",
+    "keywords": [
+      "info",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Priority Label",
+    "path": "./[CSS]/categories/badges-and-labels/priority-label.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🚨",
+    "keywords": [
+      "priority",
+      "label",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Icon Badge",
+    "path": "./[CSS]/categories/badges-and-labels/icon-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "🎖️",
+    "keywords": [
+      "icon",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Icon Text Badge",
+    "path": "./[CSS]/categories/badges-and-labels/icon-text-badge.html",
+    "category": "Badges & Labels",
+    "library": "CSS",
+    "icon": "📝",
+    "keywords": [
+      "icon",
+      "text",
+      "badge",
+      "badges",
+      "labels"
+    ]
+  },
+  {
+    "name": "Neon Outline Button",
+    "path": "./[CSS]/categories/buttons-and-controls/neon-outline-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "💡",
+    "keywords": [
+      "neon",
+      "outline",
+      "button",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Neon Outline Trace Button",
+    "path": "./[CSS]/categories/buttons-and-controls/neon-outline-trace-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "✨",
+    "keywords": [
+      "neon",
+      "outline",
+      "trace",
+      "button",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Glowing Halo Button",
+    "path": "./[CSS]/categories/buttons-and-controls/glowing-halo-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🔆",
+    "keywords": [
+      "glowing",
+      "halo",
+      "button",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Ghost Neon Button",
+    "path": "./[CSS]/categories/buttons-and-controls/ghost-neon-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "👻",
+    "keywords": [
+      "ghost",
+      "neon",
+      "button",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Micro Delay Hover Glow",
+    "path": "./[CSS]/categories/buttons-and-controls/micro-delay-hover-glow-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "⚡",
+    "keywords": [
+      "micro",
+      "delay",
+      "hover",
+      "glow",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Holographic Border Scan",
+    "path": "./[CSS]/categories/buttons-and-controls/holographic-border-scan-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🌈",
+    "keywords": [
+      "holographic",
+      "border",
+      "scan",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Gradient Fill Button",
+    "path": "./[CSS]/categories/buttons-and-controls/gradient-fill-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "gradient",
+      "fill",
+      "button",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Gradient Sweep Button",
+    "path": "./[CSS]/categories/buttons-and-controls/gradient-sweep-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🌊",
+    "keywords": [
+      "gradient",
+      "sweep",
+      "button",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Liquid Fill Effect Button",
+    "path": "./[CSS]/categories/buttons-and-controls/liquid-fill-effect-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "💧",
+    "keywords": [
+      "liquid",
+      "fill",
+      "effect",
+      "button",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Ghost Outline Solid Fill",
+    "path": "./[CSS]/categories/buttons-and-controls/ghost-outline-solid-fill-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🔲",
+    "keywords": [
+      "ghost",
+      "outline",
+      "solid",
+      "fill",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Split Dual Color Button",
+    "path": "./[CSS]/categories/buttons-and-controls/split-dual-color-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🎭",
+    "keywords": [
+      "split",
+      "dual",
+      "color",
+      "button",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Background Image Pan Hover",
+    "path": "./[CSS]/categories/buttons-and-controls/background-image-pan-hover-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🖼️",
+    "keywords": [
+      "background",
+      "image",
+      "pan",
+      "hover",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Ripple Impact Button",
+    "path": "./[CSS]/categories/buttons-and-controls/ripple-impact-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "💫",
+    "keywords": [
+      "ripple",
+      "impact",
+      "button",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Expanding Circle Click",
+    "path": "./[CSS]/categories/buttons-and-controls/expanding-circle-click-ripple.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "⭕",
+    "keywords": [
+      "expanding",
+      "circle",
+      "click",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Radial Burst Click",
+    "path": "./[CSS]/categories/buttons-and-controls/radial-burst-click-feedback-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "💥",
+    "keywords": [
+      "radial",
+      "burst",
+      "click",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Sonic Ping Ripple",
+    "path": "./[CSS]/categories/buttons-and-controls/sonic-ping-ripple-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "📡",
+    "keywords": [
+      "sonic",
+      "ping",
+      "ripple",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Pressed Depth Button",
+    "path": "./[CSS]/categories/buttons-and-controls/pressed-depth-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "👇",
+    "keywords": [
+      "pressed",
+      "depth",
+      "button",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Elastic Rebound Click",
+    "path": "./[CSS]/categories/buttons-and-controls/elastic-rebound-click-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🏀",
+    "keywords": [
+      "elastic",
+      "rebound",
+      "click",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Confetti Burst Confirm",
+    "path": "./[CSS]/categories/buttons-and-controls/confetti-burst-confirm-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🎊",
+    "keywords": [
+      "confetti",
+      "burst",
+      "confirm",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Magnetic Hover Button",
+    "path": "./[CSS]/categories/buttons-and-controls/magnetic-hover-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🧲",
+    "keywords": [
+      "magnetic",
+      "hover",
+      "button",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Magnetic Text Pull",
+    "path": "./[CSS]/categories/buttons-and-controls/magnetic-text-pull-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🔤",
+    "keywords": [
+      "magnetic",
+      "text",
+      "pull",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Elevated Shadow Lift",
+    "path": "./[CSS]/categories/buttons-and-controls/elevated-shadow-lift-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "⬆️",
+    "keywords": [
+      "elevated",
+      "shadow",
+      "lift",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "3D Isometric Push Down",
+    "path": "./[CSS]/categories/buttons-and-controls/3d-isometric-push-down-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "📦",
+    "keywords": [
+      "isometric",
+      "push",
+      "down",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Spotlight Reveal Hover",
+    "path": "./[CSS]/categories/buttons-and-controls/spotlight-reveal-hover-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🔦",
+    "keywords": [
+      "spotlight",
+      "reveal",
+      "hover",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Success Check Morph",
+    "path": "./[CSS]/categories/buttons-and-controls/success-check-morph-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "✅",
+    "keywords": [
+      "success",
+      "check",
+      "morph",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Play Pause Morph",
+    "path": "./[CSS]/categories/buttons-and-controls/play-pause-morph-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "▶️",
+    "keywords": [
+      "play",
+      "pause",
+      "morph",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Button Morphs Search Bar",
+    "path": "./[CSS]/categories/buttons-and-controls/button-morphs-search-bar.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🔍",
+    "keywords": [
+      "button",
+      "morphs",
+      "search",
+      "bar",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Download Morphs Progress",
+    "path": "./[CSS]/categories/buttons-and-controls/download-morphs-progress-bar-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "⬇️",
+    "keywords": [
+      "download",
+      "morphs",
+      "progress",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Circular Progress Button",
+    "path": "./[CSS]/categories/buttons-and-controls/circular-progress-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🔘",
+    "keywords": [
+      "circular",
+      "progress",
+      "button",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Builtin Loading Spinner",
+    "path": "./[CSS]/categories/buttons-and-controls/button-builtin-loading-spinner.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "⏳",
+    "keywords": [
+      "builtin",
+      "loading",
+      "spinner",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Glitch Effect Button",
+    "path": "./[CSS]/categories/buttons-and-controls/glitch-effect-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "📺",
+    "keywords": [
+      "glitch",
+      "effect",
+      "button",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Pixel Art Crumble",
+    "path": "./[CSS]/categories/buttons-and-controls/pixel-art-crumble-dissolve-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🎮",
+    "keywords": [
+      "pixel",
+      "art",
+      "crumble",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Fireworks Click",
+    "path": "./[CSS]/categories/buttons-and-controls/fireworks-click-cursor.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🎆",
+    "keywords": [
+      "fireworks",
+      "click",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Shake to Deny Error",
+    "path": "./[CSS]/categories/buttons-and-controls/shake-to-deny-error-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "❌",
+    "keywords": [
+      "shake",
+      "deny",
+      "error",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Gaming D-Pad 3D Tilt",
+    "path": "./[CSS]/categories/buttons-and-controls/gaming-dpad-3d-tilt-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🕹️",
+    "keywords": [
+      "gaming",
+      "pad",
+      "tilt",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Toggle Switch Glow",
+    "path": "./[CSS]/categories/buttons-and-controls/toggle-switch-glow.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🔛",
+    "keywords": [
+      "toggle",
+      "switch",
+      "glow",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Toggle Sun Moon Morph",
+    "path": "./[CSS]/categories/buttons-and-controls/toggle-switch-sun-moon-morph.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🌓",
+    "keywords": [
+      "toggle",
+      "sun",
+      "moon",
+      "morph",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Dark Mode Toggle",
+    "path": "./[CSS]/categories/buttons-and-controls/dark-mode-toggle-sun-moon-morph.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🌙",
+    "keywords": [
+      "dark",
+      "mode",
+      "toggle",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Neon Pill Toggle",
+    "path": "./[CSS]/categories/buttons-and-controls/neon-pill-toggle-sliding-knob.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "💊",
+    "keywords": [
+      "neon",
+      "pill",
+      "toggle",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Slide to Unlock",
+    "path": "./[CSS]/categories/buttons-and-controls/slide-to-unlock-slider-shimmer-track.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🔓",
+    "keywords": [
+      "slide",
+      "unlock",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Icon Button Group",
+    "path": "./[CSS]/categories/buttons-and-controls/icon-button-group.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🔳",
+    "keywords": [
+      "icon",
+      "button",
+      "group",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Icon Only Pulse",
+    "path": "./[CSS]/categories/buttons-and-controls/icon-only-pulse-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "💫",
+    "keywords": [
+      "icon",
+      "only",
+      "pulse",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Icon Swap on Hover",
+    "path": "./[CSS]/categories/buttons-and-controls/icon-swap-on-hover-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "icon",
+      "swap",
+      "hover",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Orbiting Icon Button",
+    "path": "./[CSS]/categories/buttons-and-controls/orbiting-icon-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🌀",
+    "keywords": [
+      "orbiting",
+      "icon",
+      "button",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Ripple Trail Icon",
+    "path": "./[CSS]/categories/buttons-and-controls/ripple-trail-icon-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "✨",
+    "keywords": [
+      "ripple",
+      "trail",
+      "icon",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Floating Action Orb",
+    "path": "./[CSS]/categories/buttons-and-controls/floating-action-orb-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🔮",
+    "keywords": [
+      "floating",
+      "action",
+      "orb",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Add to Cart Flying",
+    "path": "./[CSS]/categories/buttons-and-controls/add-to-cart-flying-icon-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🛒",
+    "keywords": [
+      "add",
+      "cart",
+      "flying",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Like Heart Explosion",
+    "path": "./[CSS]/categories/buttons-and-controls/like-button-heart-explosion.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "❤️",
+    "keywords": [
+      "like",
+      "heart",
+      "explosion",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Social Share Fan Out",
+    "path": "./[CSS]/categories/buttons-and-controls/social-share-fan-out-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "📤",
+    "keywords": [
+      "social",
+      "share",
+      "fan",
+      "out",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Trash Can Lid Opening",
+    "path": "./[CSS]/categories/buttons-and-controls/trash-can-lid-opening-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🗑️",
+    "keywords": [
+      "trash",
+      "can",
+      "lid",
+      "opening",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Microphone Hold to Record",
+    "path": "./[CSS]/categories/buttons-and-controls/microphone-hold-to-record-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🎤",
+    "keywords": [
+      "microphone",
+      "hold",
+      "record",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Fingerprint Scan",
+    "path": "./[CSS]/categories/buttons-and-controls/fingerprint-scan-biometric-feedback-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "👆",
+    "keywords": [
+      "fingerprint",
+      "scan",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Segmented Pill Group",
+    "path": "./[CSS]/categories/buttons-and-controls/segmented-pill-button-group.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "segmented",
+      "pill",
+      "group",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Stepper Rubber Band",
+    "path": "./[CSS]/categories/buttons-and-controls/stepper-button-rubber-band-bounce.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🔢",
+    "keywords": [
+      "stepper",
+      "rubber",
+      "band",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Multi-Step Armed Confirm",
+    "path": "./[CSS]/categories/buttons-and-controls/multi-step-armed-confirm-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "⚠️",
+    "keywords": [
+      "multi",
+      "step",
+      "armed",
+      "confirm",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Long Press Progress Ring",
+    "path": "./[CSS]/categories/buttons-and-controls/long-press-progress-ring-button.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "⏱️",
+    "keywords": [
+      "long",
+      "press",
+      "progress",
+      "ring",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Border Marching Ants",
+    "path": "./[CSS]/categories/buttons-and-controls/border-marching-ants-animation-focus.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🐜",
+    "keywords": [
+      "border",
+      "marching",
+      "ants",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Audio Bars",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-audio-bars.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🎵",
+    "keywords": [
+      "audio",
+      "bars",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Biolum Glow",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-biolum-glow.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🌟",
+    "keywords": [
+      "biolum",
+      "glow",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Black Hole",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-black-hole.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🕳️",
+    "keywords": [
+      "black",
+      "hole",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Circuit Energy",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-circuit-energy.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "⚡",
+    "keywords": [
+      "circuit",
+      "energy",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Confetti Pop",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-confetti-pop.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🎊",
+    "keywords": [
+      "confetti",
+      "pop",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Creative Showcase",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-creative-buttons-showcase.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "creative",
+      "showcase",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Crystal Shard",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-crystal-shard.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "💎",
+    "keywords": [
+      "crystal",
+      "shard",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Cyber Glitch",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-cyber-glitch-2.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "📺",
+    "keywords": [
+      "cyber",
+      "glitch",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Data Corrupt",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-data-corrupt.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "💾",
+    "keywords": [
+      "data",
+      "corrupt",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Double Exposure",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-double-exposure.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "📸",
+    "keywords": [
+      "double",
+      "exposure",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Elastic Pull",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-elastic-pull.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🎯",
+    "keywords": [
+      "elastic",
+      "pull",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Emoji Stream",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-emoji-stream.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "😀",
+    "keywords": [
+      "emoji",
+      "stream",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Ferrofluid",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-ferrofluid.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "💧",
+    "keywords": [
+      "ferrofluid",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Fingerprint Scan",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-fingerprint-scan.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "👆",
+    "keywords": [
+      "fingerprint",
+      "scan",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Frozen Ice",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-frozen-ice.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "❄️",
+    "keywords": [
+      "frozen",
+      "ice",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Glass Prism",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-glass-prism.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🔮",
+    "keywords": [
+      "glass",
+      "prism",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Haptic Vibes",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-haptic-vibes.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "📳",
+    "keywords": [
+      "haptic",
+      "vibes",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Hexagon Hive",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-hexagon-hive.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "⬡",
+    "keywords": [
+      "hexagon",
+      "hive",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Hologram Proj",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-hologram-proj.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🌐",
+    "keywords": [
+      "hologram",
+      "proj",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Laser Cut",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-laser-cut.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "⚡",
+    "keywords": [
+      "laser",
+      "cut",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Lava Magma",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-lava-magma.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🌋",
+    "keywords": [
+      "lava",
+      "magma",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Levitating Card",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-levitating-card.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🃏",
+    "keywords": [
+      "levitating",
+      "card",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Lightning Arc",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-lightning-arc.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "⚡",
+    "keywords": [
+      "lightning",
+      "arc",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Liquid Blob",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-liquid-blob.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🫧",
+    "keywords": [
+      "liquid",
+      "blob",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Loading Morph",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-loading-morph.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "⏳",
+    "keywords": [
+      "loading",
+      "morph",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Magnetic Particles",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-magnetic-particles.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🧲",
+    "keywords": [
+      "magnetic",
+      "particles",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Matrix Rain",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-matrix-rain.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "💻",
+    "keywords": [
+      "matrix",
+      "rain",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Mech Switch",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-mech-switch.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🔘",
+    "keywords": [
+      "mech",
+      "switch",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Moon Phase",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-moon-phase.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🌙",
+    "keywords": [
+      "moon",
+      "phase",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Nebula Swirl",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-nebula-swirl.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🌌",
+    "keywords": [
+      "nebula",
+      "swirl",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Neon Flicker",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-neon-flicker-broken.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "💡",
+    "keywords": [
+      "neon",
+      "flicker",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Neumorph Toggle",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-neumorph-toggle.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🔲",
+    "keywords": [
+      "neumorph",
+      "toggle",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Paper Fold",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-paper-fold.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "📄",
+    "keywords": [
+      "paper",
+      "fold",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Pulse Radar",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-pulse-radar.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "📡",
+    "keywords": [
+      "pulse",
+      "radar",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Retro Arcade",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-retro-arcade.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🕹️",
+    "keywords": [
+      "retro",
+      "arcade",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Runes Sigil",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-runes-sigil.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🔮",
+    "keywords": [
+      "runes",
+      "sigil",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Scanner Beam",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-scanner-beam.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "scanner",
+      "beam",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Scratch Reveal",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-scratch-reveal.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "✂️",
+    "keywords": [
+      "scratch",
+      "reveal",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Smoke Vapor",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-smoke-vapor.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "💨",
+    "keywords": [
+      "smoke",
+      "vapor",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Solar Flare",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-solar-flare.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "☀️",
+    "keywords": [
+      "solar",
+      "flare",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Sonic Boom",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-sonic-boom.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "💥",
+    "keywords": [
+      "sonic",
+      "boom",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Split Flap",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-split-flap.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🔢",
+    "keywords": [
+      "split",
+      "flap",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Spray Paint",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-spray-paint.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "spray",
+      "paint",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Squishy Jelly",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-squishy-jelly.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🍮",
+    "keywords": [
+      "squishy",
+      "jelly",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Star Field",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-star-field.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "⭐",
+    "keywords": [
+      "star",
+      "field",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Swipe Confirm",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-swipe-confirm.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "👆",
+    "keywords": [
+      "swipe",
+      "confirm",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Target Lock",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-target-lock.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🎯",
+    "keywords": [
+      "target",
+      "lock",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "TV Static",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-tv-static.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "📺",
+    "keywords": [
+      "static",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Voice Pulse",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-voice-pulse.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🎤",
+    "keywords": [
+      "voice",
+      "pulse",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Water Ripple",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-water-ripple.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🌊",
+    "keywords": [
+      "water",
+      "ripple",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Wormhole",
+    "path": "./[CSS]/categories/buttons-and-controls/jazer-wormhole.html",
+    "category": "Buttons & Controls",
+    "library": "CSS",
+    "icon": "🕳️",
+    "keywords": [
+      "wormhole",
+      "buttons",
+      "controls"
+    ]
+  },
+  {
+    "name": "Custom Dot Cursor Follower",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/custom-dot-cursor-follower.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "⚫",
+    "keywords": [
+      "custom",
+      "dot",
+      "cursor",
+      "follower",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Large Stroked Circle Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/large-stroked-circle-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "⭕",
+    "keywords": [
+      "large",
+      "stroked",
+      "circle",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Crosshair Cursor for Precision",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/crosshair-cursor-for-precision.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "➕",
+    "keywords": [
+      "crosshair",
+      "cursor",
+      "for",
+      "precision",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Blob Cursor Morph",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/blob-cursor-morph.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "💧",
+    "keywords": [
+      "blob",
+      "cursor",
+      "morph",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Blob Cursor That Morphs Shape",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/blob-cursor-that-morphs-shape.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🫧",
+    "keywords": [
+      "blob",
+      "cursor",
+      "that",
+      "morphs",
+      "shape",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Custom SVG Icon Cursor Swap",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/custom-svg-icon-cursor-swap.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "custom",
+      "svg",
+      "icon",
+      "cursor",
+      "swap",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Arrow Rotation Based on Vector",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-arrow-rotation-based-on-vector.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "↗️",
+    "keywords": [
+      "cursor",
+      "arrow",
+      "rotation",
+      "based",
+      "vector",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Rotating Text Ring Around Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/rotating-text-ring-around-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔃",
+    "keywords": [
+      "rotating",
+      "text",
+      "ring",
+      "around",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Neon Glow Cursor Trail",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/neon-glow-cursor-trail.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🌟",
+    "keywords": [
+      "neon",
+      "glow",
+      "cursor",
+      "trail",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Trailing Comet Tail",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/trailing-comet-tail.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "☄️",
+    "keywords": [
+      "trailing",
+      "comet",
+      "tail",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Particle Spray Trail Sparkles",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/particle-spray-trail-sparkles.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "✨",
+    "keywords": [
+      "particle",
+      "spray",
+      "trail",
+      "sparkles",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Particle Spray From Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/particle-spray-from-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "💫",
+    "keywords": [
+      "particle",
+      "spray",
+      "from",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor History Trail",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-history-trail.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "📍",
+    "keywords": [
+      "cursor",
+      "history",
+      "trail",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Snake Worm Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/snake-worm-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🐍",
+    "keywords": [
+      "snake",
+      "worm",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Snake Worm Cursor Segments Follow Path",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/snake-worm-cursor-segments-follow-path.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🪱",
+    "keywords": [
+      "snake",
+      "worm",
+      "cursor",
+      "segments",
+      "follow",
+      "path",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Emoji Trail Falling From Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/emoji-trail-falling-from-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "😀",
+    "keywords": [
+      "emoji",
+      "trail",
+      "falling",
+      "from",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Gravity Particles Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/gravity-particles-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🌌",
+    "keywords": [
+      "gravity",
+      "particles",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Constellation Connect",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-constellation-connect.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "⭐",
+    "keywords": [
+      "cursor",
+      "constellation",
+      "connect",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Shadow Clone",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-shadow-clone.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "👥",
+    "keywords": [
+      "cursor",
+      "shadow",
+      "clone",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Squish On Click",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-squish-on-click.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "👆",
+    "keywords": [
+      "cursor",
+      "squish",
+      "click",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Squish On Click Scale Y",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-squish-on-click-scale-y.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "↕️",
+    "keywords": [
+      "cursor",
+      "squish",
+      "click",
+      "scale",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Bubble Pop",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-bubble-pop.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🫧",
+    "keywords": [
+      "cursor",
+      "bubble",
+      "pop",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Fireworks Click Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/fireworks-click-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🎆",
+    "keywords": [
+      "fireworks",
+      "click",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Expanding Circle Click Ripple",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/expanding-circle-click-ripple.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔘",
+    "keywords": [
+      "expanding",
+      "circle",
+      "click",
+      "ripple",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Ripple Water Effect",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-ripple-water-effect.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "💧",
+    "keywords": [
+      "cursor",
+      "ripple",
+      "water",
+      "effect",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Scale Up On Link Hover",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-scale-up-on-link-hover.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔗",
+    "keywords": [
+      "cursor",
+      "scale",
+      "link",
+      "hover",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Magnetic Button Pull",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/magnetic-button-pull.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🧲",
+    "keywords": [
+      "magnetic",
+      "button",
+      "pull",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Magnet Elements",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-magnet-elements.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🧲",
+    "keywords": [
+      "cursor",
+      "magnet",
+      "elements",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Image Reveal On Cursor Hover",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/image-reveal-on-cursor-hover.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🖼️",
+    "keywords": [
+      "image",
+      "reveal",
+      "cursor",
+      "hover",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Image Reveal Stream On Cursor Move",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/image-reveal-stream-on-cursor-move.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "📸",
+    "keywords": [
+      "image",
+      "reveal",
+      "stream",
+      "cursor",
+      "move",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Text Mask Spotlight",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/text-mask-spotlight.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔦",
+    "keywords": [
+      "text",
+      "mask",
+      "spotlight",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Hover View Text Appearing",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/hover-view-text-appearing.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "👁️",
+    "keywords": [
+      "hover",
+      "view",
+      "text",
+      "appearing",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Text Reveal",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-text-reveal.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "📝",
+    "keywords": [
+      "cursor",
+      "text",
+      "reveal",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Elastic Cursor Snap",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/elastic-cursor-snap.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🎯",
+    "keywords": [
+      "elastic",
+      "cursor",
+      "snap",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Holographic Cursor Effect",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/holographic-cursor-effect.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🌈",
+    "keywords": [
+      "holographic",
+      "cursor",
+      "effect",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Glitch Effect On Cursor Movement",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/glitch-effect-on-cursor-movement.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "📺",
+    "keywords": [
+      "glitch",
+      "effect",
+      "cursor",
+      "movement",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Lightning Effect",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-lightning-effect.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "⚡",
+    "keywords": [
+      "cursor",
+      "lightning",
+      "effect",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Wave Distortion",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-wave-distortion.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🌊",
+    "keywords": [
+      "cursor",
+      "wave",
+      "distortion",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Blend Mode Difference",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-blend-mode-difference.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔀",
+    "keywords": [
+      "cursor",
+      "blend",
+      "mode",
+      "difference",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Geometric Transform",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-geometric-transform.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔷",
+    "keywords": [
+      "cursor",
+      "geometric",
+      "transform",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Pixel Grid Cursor Highlight",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/pixel-grid-cursor-highlight.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔲",
+    "keywords": [
+      "pixel",
+      "grid",
+      "cursor",
+      "highlight",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Color Changing Cursor Based on Background",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/color-changing-cursor-based-on-background.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "color",
+      "changing",
+      "cursor",
+      "based",
+      "background",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "3D Parallax Tilt Control Via Cursor Position",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/3d-parallax-tilt-control-via-cursor-position.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "📐",
+    "keywords": [
+      "parallax",
+      "tilt",
+      "control",
+      "via",
+      "cursor",
+      "position",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Parallax 3D Tilt Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/parallax-3d-tilt-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🎴",
+    "keywords": [
+      "parallax",
+      "tilt",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Elastic Line Connecting Cursor to Center",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/elastic-line-connecting-cursor-to-center.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "〰️",
+    "keywords": [
+      "elastic",
+      "line",
+      "connecting",
+      "cursor",
+      "center",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Color Picker",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-color-picker.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "cursor",
+      "color",
+      "picker",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Magnifying Glass Zoom Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/magnifying-glass-zoom-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔍",
+    "keywords": [
+      "magnifying",
+      "glass",
+      "zoom",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Magnifying Glass Zoom Inside Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/magnifying-glass-zoom-inside-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔎",
+    "keywords": [
+      "magnifying",
+      "glass",
+      "zoom",
+      "inside",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Torch Flashlight Effect",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/torch-flashlight-effect.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔦",
+    "keywords": [
+      "torch",
+      "flashlight",
+      "effect",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Loading Spinner Attached to Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/loading-spinner-attached-to-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "⏳",
+    "keywords": [
+      "loading",
+      "spinner",
+      "attached",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Drag Text Cursor On Carousel",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/drag-text-cursor-on-carousel.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "↔️",
+    "keywords": [
+      "drag",
+      "text",
+      "cursor",
+      "carousel",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Leaves Ink Paint Strokes",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-leaves-ink-paint-strokes.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🖌️",
+    "keywords": [
+      "cursor",
+      "leaves",
+      "ink",
+      "paint",
+      "strokes",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Ink Paint Stroke Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/ink-paint-stroke-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "ink",
+      "paint",
+      "stroke",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Article Spray From Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/article-spray-from-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "💨",
+    "keywords": [
+      "article",
+      "spray",
+      "from",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Copied Tooltip Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/copied-tooltip-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "copied",
+      "tooltip",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Copied Tooltip Following Cursor Briefly",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/copied-tooltip-following-cursor-briefly.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "✅",
+    "keywords": [
+      "copied",
+      "tooltip",
+      "following",
+      "cursor",
+      "briefly",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Typing Effect",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-typing-effect.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "⌨️",
+    "keywords": [
+      "cursor",
+      "typing",
+      "effect",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cursor Disappears In Video",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/cursor-disappears-in-video.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🎥",
+    "keywords": [
+      "cursor",
+      "disappears",
+      "video",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Atomic Orbit",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-atomic-orbit.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "⚛️",
+    "keywords": [
+      "atomic",
+      "orbit",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Aurora Glow",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-aurora-glow.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🌌",
+    "keywords": [
+      "aurora",
+      "glow",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Balloon Pop",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-balloon-pop.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🎈",
+    "keywords": [
+      "balloon",
+      "pop",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Binary Stream",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-binary-stream.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "💻",
+    "keywords": [
+      "binary",
+      "stream",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Blur Vignette",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-blur-vignette.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔘",
+    "keywords": [
+      "blur",
+      "vignette",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Bouncing Ball",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-bouncing-ball.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "⚽",
+    "keywords": [
+      "bouncing",
+      "ball",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Brush Stroke",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-brush-stroke.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🖌️",
+    "keywords": [
+      "brush",
+      "stroke",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Bubble Stream",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-bubble-stream.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🫧",
+    "keywords": [
+      "bubble",
+      "stream",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Camera Flash",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-camera-flash.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "📸",
+    "keywords": [
+      "camera",
+      "flash",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cat Paw",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-cat-paw.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🐱",
+    "keywords": [
+      "cat",
+      "paw",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Chalk Draw",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-chalk-draw.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🖍️",
+    "keywords": [
+      "chalk",
+      "draw",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Circuit Trace",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-circuit-trace.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔌",
+    "keywords": [
+      "circuit",
+      "trace",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Clock Hands",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-clock-hands.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🕐",
+    "keywords": [
+      "clock",
+      "hands",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Coin Collect",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-coin-collect.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🪙",
+    "keywords": [
+      "coin",
+      "collect",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Combo Counter",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-combo-counter.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔢",
+    "keywords": [
+      "combo",
+      "counter",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Comet Trail",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-comet-trail.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "☄️",
+    "keywords": [
+      "comet",
+      "trail",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Compass Needle",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-compass-needle.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🧭",
+    "keywords": [
+      "compass",
+      "needle",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Confetti Burst",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-confetti-burst.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🎊",
+    "keywords": [
+      "confetti",
+      "burst",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cross Fade",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-cross-fade.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔀",
+    "keywords": [
+      "cross",
+      "fade",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Crosshair Aim",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-crosshair-aim.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🎯",
+    "keywords": [
+      "crosshair",
+      "aim",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Crystal Growth",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-crystal-growth.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "💎",
+    "keywords": [
+      "crystal",
+      "growth",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Cube Rotate",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-cube-rotate.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🧊",
+    "keywords": [
+      "cube",
+      "rotate",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Effects Showcase",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-cursor-effects-showcase.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🖱️",
+    "keywords": [
+      "effects",
+      "showcase",
+      "cursors",
+      "mouse"
+    ]
+  },
+  {
+    "name": "Damage Flash",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-damage-flash.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "💥",
+    "keywords": [
+      "damage",
+      "flash",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Data Packet",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-data-packet.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "📦",
+    "keywords": [
+      "data",
+      "packet",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Diamond Spin",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-diamond-spin.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "💠",
+    "keywords": [
+      "diamond",
+      "spin",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "DNA Helix Spin",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-dna-helix-spin.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🧬",
+    "keywords": [
+      "dna",
+      "helix",
+      "spin",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Dust Cloud",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-dust-cloud.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "💨",
+    "keywords": [
+      "dust",
+      "cloud",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Eraser Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-eraser-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🧽",
+    "keywords": [
+      "eraser",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Feather Fall",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-feather-fall.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🪶",
+    "keywords": [
+      "feather",
+      "fall",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Fire Ember",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-fire-ember.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔥",
+    "keywords": [
+      "fire",
+      "ember",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Firework Pop",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-firework-pop.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🎆",
+    "keywords": [
+      "firework",
+      "pop",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Fisheye Lens",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-fisheye-lens.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🐟",
+    "keywords": [
+      "fisheye",
+      "lens",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Flame Flicker",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-flame-flicker.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🕯️",
+    "keywords": [
+      "flame",
+      "flicker",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Footprints",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-footprints.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "👣",
+    "keywords": [
+      "footprints",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Fractal Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-fractal-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🌀",
+    "keywords": [
+      "fractal",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Ghost Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-ghost-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "👻",
+    "keywords": [
+      "ghost",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Glitch Tear",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-glitch-tear.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "📺",
+    "keywords": [
+      "glitch",
+      "tear",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Glitter Sparkle",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-glitter-sparkle.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "✨",
+    "keywords": [
+      "glitter",
+      "sparkle",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Gradient Shift",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-gradient-shift.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🌈",
+    "keywords": [
+      "gradient",
+      "shift",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Gravity Well",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-gravity-well.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🕳️",
+    "keywords": [
+      "gravity",
+      "well",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Grayscale Spotlight",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-grayscale-spotlight.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔦",
+    "keywords": [
+      "grayscale",
+      "spotlight",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Health Bar",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-health-bar.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "❤️",
+    "keywords": [
+      "health",
+      "bar",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Heartbeat Pulse",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-heartbeat-pulse.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "💓",
+    "keywords": [
+      "heartbeat",
+      "pulse",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Hexagon Highlight",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-hexagon-highlight.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "⬡",
+    "keywords": [
+      "hexagon",
+      "highlight",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Hexagon Rotate",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-hexagon-rotate.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔷",
+    "keywords": [
+      "hexagon",
+      "rotate",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Highlighter",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-highlighter.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🖊️",
+    "keywords": [
+      "highlighter",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Hologram Flicker",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-hologram-flicker.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🌐",
+    "keywords": [
+      "hologram",
+      "flicker",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Infinity Loop",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-infinity-loop.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "♾️",
+    "keywords": [
+      "infinity",
+      "loop",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Ink Blot",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-ink-blot.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🖋️",
+    "keywords": [
+      "ink",
+      "blot",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Invert Colors",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-invert-colors.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "invert",
+      "colors",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Laser Pointer",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-laser-pointer.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "📍",
+    "keywords": [
+      "laser",
+      "pointer",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Leaf Fall",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-leaf-fall.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🍂",
+    "keywords": [
+      "leaf",
+      "fall",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Level Up",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-level-up.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "⬆️",
+    "keywords": [
+      "level",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Lightning Bolt",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-lightning-bolt.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "⚡",
+    "keywords": [
+      "lightning",
+      "bolt",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Loading Spin",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-loading-spin.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "⏳",
+    "keywords": [
+      "loading",
+      "spin",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Magic Wand",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-magic-wand.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🪄",
+    "keywords": [
+      "magic",
+      "wand",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Magnet Collect",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-magnet-collect.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🧲",
+    "keywords": [
+      "magnet",
+      "collect",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Matrix Code",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-matrix-code.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "💻",
+    "keywords": [
+      "matrix",
+      "code",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Mirror Reflect",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-mirror-reflect.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🪞",
+    "keywords": [
+      "mirror",
+      "reflect",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Morphing Shapes",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-morphing-shapes.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔶",
+    "keywords": [
+      "morphing",
+      "shapes",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Mosaic Build",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-mosaic-build.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🧩",
+    "keywords": [
+      "mosaic",
+      "build",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Musical Notes",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-musical-notes.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🎵",
+    "keywords": [
+      "musical",
+      "notes",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Neon Sign",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-neon-sign.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "💡",
+    "keywords": [
+      "neon",
+      "sign",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Network Node",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-network-node.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔗",
+    "keywords": [
+      "network",
+      "node",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Noise Static",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-noise-static.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "📡",
+    "keywords": [
+      "noise",
+      "static",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Orbit Attract",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-orbit-attract.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🌍",
+    "keywords": [
+      "orbit",
+      "attract",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Paint Brush",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-paint-brush.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "paint",
+      "brush",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Petal Scatter",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-petal-scatter.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🌸",
+    "keywords": [
+      "petal",
+      "scatter",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Pixel Dust",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-pixel-dust.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🎮",
+    "keywords": [
+      "pixel",
+      "dust",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Pixelate Zone",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-pixelate-zone.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔲",
+    "keywords": [
+      "pixelate",
+      "zone",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Portal Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-portal-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🌀",
+    "keywords": [
+      "portal",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Power Surge",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-power-surge.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "⚡",
+    "keywords": [
+      "power",
+      "surge",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Power Up",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-power-up.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔋",
+    "keywords": [
+      "power",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Prism Refract",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-prism-refract.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔺",
+    "keywords": [
+      "prism",
+      "refract",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Radar Sweep",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-radar-sweep.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "📡",
+    "keywords": [
+      "radar",
+      "sweep",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Rainbow Trail",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-rainbow-trail.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🌈",
+    "keywords": [
+      "rainbow",
+      "trail",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Raindrop",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-raindrop.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "💧",
+    "keywords": [
+      "raindrop",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Repel Force",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-repel-force.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "repel",
+      "force",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Ribbon Flow",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-ribbon-flow.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🎀",
+    "keywords": [
+      "ribbon",
+      "flow",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Ring Stack Pulse",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-ring-stack-pulse.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "⭕",
+    "keywords": [
+      "ring",
+      "stack",
+      "pulse",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Ripple Water",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-ripple-water.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🌊",
+    "keywords": [
+      "ripple",
+      "water",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Scan Line",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-scan-line.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "scan",
+      "line",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Scissor Cut",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-scissor-cut.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "✂️",
+    "keywords": [
+      "scissor",
+      "cut",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Shield Bubble",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-shield-bubble.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🛡️",
+    "keywords": [
+      "shield",
+      "bubble",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Signal Wave",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-signal-wave.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "📶",
+    "keywords": [
+      "signal",
+      "wave",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Smoke Puff Trail",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-smoke-puff-trail.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "💨",
+    "keywords": [
+      "smoke",
+      "puff",
+      "trail",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Snowflake Trail",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-snowflake-trail.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "❄️",
+    "keywords": [
+      "snowflake",
+      "trail",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Speed Boost",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-speed-boost.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "💨",
+    "keywords": [
+      "speed",
+      "boost",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Spiral Vortex",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-spiral-vortex.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🌀",
+    "keywords": [
+      "spiral",
+      "vortex",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Spray Can",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-spray-can.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "spray",
+      "can",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Stamp Cursor",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-stamp-cursor.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "📮",
+    "keywords": [
+      "stamp",
+      "cursor",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Star Burst",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-star-burst.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "⭐",
+    "keywords": [
+      "star",
+      "burst",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Star Shower",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-star-shower.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🌟",
+    "keywords": [
+      "star",
+      "shower",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Sword Slash",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-sword-slash.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "⚔️",
+    "keywords": [
+      "sword",
+      "slash",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Target Reticle",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-target-reticle.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🎯",
+    "keywords": [
+      "target",
+      "reticle",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Thermal Vision",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-thermal-vision.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🌡️",
+    "keywords": [
+      "thermal",
+      "vision",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Triangle Pulse",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-triangle-pulse.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "🔺",
+    "keywords": [
+      "triangle",
+      "pulse",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Wave Sine",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-wave-sine.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "〰️",
+    "keywords": [
+      "wave",
+      "sine",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "XP Gain",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-xp-gain.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "⬆️",
+    "keywords": [
+      "gain",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "X-Ray Reveal",
+    "path": "./[CSS]/categories/cursors-and-mouse-effects/jazer-xray-reveal.html",
+    "category": "Cursors & Mouse Effects",
+    "library": "CSS",
+    "icon": "☢️",
+    "keywords": [
+      "ray",
+      "reveal",
+      "cursors",
+      "mouse",
+      "effects"
+    ]
+  },
+  {
+    "name": "Element Inspector",
+    "path": "./[CSS]/categories/developer-tools/element-inspector.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🔎",
+    "keywords": [
+      "element",
+      "inspector",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "DOM Tree Viewer",
+    "path": "./[CSS]/categories/developer-tools/dom-tree-viewer.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🌳",
+    "keywords": [
+      "dom",
+      "tree",
+      "viewer",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Component Tree",
+    "path": "./[CSS]/categories/developer-tools/component-tree.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🌲",
+    "keywords": [
+      "component",
+      "tree",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Property Panel",
+    "path": "./[CSS]/categories/developer-tools/property-panel.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "property",
+      "panel",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Variable Inspector",
+    "path": "./[CSS]/categories/developer-tools/variable-inspector.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🔬",
+    "keywords": [
+      "variable",
+      "inspector",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Breakpoint Debugger",
+    "path": "./[CSS]/categories/developer-tools/breakpoint-debugger.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "⏸️",
+    "keywords": [
+      "breakpoint",
+      "debugger",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "CSS Debugger",
+    "path": "./[CSS]/categories/developer-tools/css-debugger.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "css",
+      "debugger",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Console Log Viewer",
+    "path": "./[CSS]/categories/developer-tools/console-log-viewer.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "📝",
+    "keywords": [
+      "console",
+      "log",
+      "viewer",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Crash Log Viewer",
+    "path": "./[CSS]/categories/developer-tools/crash-log-viewer.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "💥",
+    "keywords": [
+      "crash",
+      "log",
+      "viewer",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Error Reporting Panel",
+    "path": "./[CSS]/categories/developer-tools/error-reporting-panel.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🚨",
+    "keywords": [
+      "error",
+      "reporting",
+      "panel",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Error Boundary Display",
+    "path": "./[CSS]/categories/developer-tools/error-boundary-display.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🛡️",
+    "keywords": [
+      "error",
+      "boundary",
+      "display",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Assertion Viewer",
+    "path": "./[CSS]/categories/developer-tools/assertion-viewer.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "✓",
+    "keywords": [
+      "assertion",
+      "viewer",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Network Request Monitor",
+    "path": "./[CSS]/categories/developer-tools/network-request-monitor.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "📡",
+    "keywords": [
+      "network",
+      "request",
+      "monitor",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "API Endpoint Tester",
+    "path": "./[CSS]/categories/developer-tools/api-endpoint-tester.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🔌",
+    "keywords": [
+      "api",
+      "endpoint",
+      "tester",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "API Response Mocker",
+    "path": "./[CSS]/categories/developer-tools/api-response-mocker.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🎭",
+    "keywords": [
+      "api",
+      "response",
+      "mocker",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "GraphQL Query Inspector",
+    "path": "./[CSS]/categories/developer-tools/graphql-query-inspector.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🔮",
+    "keywords": [
+      "graphql",
+      "query",
+      "inspector",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "WebSocket Monitor",
+    "path": "./[CSS]/categories/developer-tools/websocket-monitor.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🔗",
+    "keywords": [
+      "websocket",
+      "monitor",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Local Storage Viewer",
+    "path": "./[CSS]/categories/developer-tools/local-storage-viewer.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "💿",
+    "keywords": [
+      "local",
+      "storage",
+      "viewer",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Session Storage Viewer",
+    "path": "./[CSS]/categories/developer-tools/session-storage-viewer.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "📀",
+    "keywords": [
+      "session",
+      "storage",
+      "viewer",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Cookie Manager",
+    "path": "./[CSS]/categories/developer-tools/cookie-manager.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🍪",
+    "keywords": [
+      "cookie",
+      "manager",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "JSON Formatter Viewer",
+    "path": "./[CSS]/categories/developer-tools/json-formatter-viewer.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "📄",
+    "keywords": [
+      "json",
+      "formatter",
+      "viewer",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Mock Data Generator",
+    "path": "./[CSS]/categories/developer-tools/mock-data-generator.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🎲",
+    "keywords": [
+      "mock",
+      "data",
+      "generator",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Environment Variable Viewer",
+    "path": "./[CSS]/categories/developer-tools/environment-variable-viewer.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "⚙️",
+    "keywords": [
+      "environment",
+      "variable",
+      "viewer",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Performance Profiler",
+    "path": "./[CSS]/categories/developer-tools/performance-profiler.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "📈",
+    "keywords": [
+      "performance",
+      "profiler",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Memory Leak Detector",
+    "path": "./[CSS]/categories/developer-tools/memory-leak-detector.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🧠",
+    "keywords": [
+      "memory",
+      "leak",
+      "detector",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Render Count Tracker",
+    "path": "./[CSS]/categories/developer-tools/render-count-tracker.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🔢",
+    "keywords": [
+      "render",
+      "count",
+      "tracker",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Bundle Size Analyzer",
+    "path": "./[CSS]/categories/developer-tools/bundle-size-analyzer.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "📦",
+    "keywords": [
+      "bundle",
+      "size",
+      "analyzer",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Lighthouse Score Display",
+    "path": "./[CSS]/categories/developer-tools/lighthouse-score-display.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🗼",
+    "keywords": [
+      "lighthouse",
+      "score",
+      "display",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Build Time Tracker",
+    "path": "./[CSS]/categories/developer-tools/build-time-tracker.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "⏱️",
+    "keywords": [
+      "build",
+      "time",
+      "tracker",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Redux DevTools Panel",
+    "path": "./[CSS]/categories/developer-tools/redux-devtools-panel.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "redux",
+      "devtools",
+      "panel",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Context Provider Inspector",
+    "path": "./[CSS]/categories/developer-tools/context-provider-inspector.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🔍",
+    "keywords": [
+      "context",
+      "provider",
+      "inspector",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Custom Hook Debugger",
+    "path": "./[CSS]/categories/developer-tools/custom-hook-debugger.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🪝",
+    "keywords": [
+      "custom",
+      "hook",
+      "debugger",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Event Listener Tracker",
+    "path": "./[CSS]/categories/developer-tools/event-listener-tracker.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "👂",
+    "keywords": [
+      "event",
+      "listener",
+      "tracker",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Hot Reload Indicator",
+    "path": "./[CSS]/categories/developer-tools/hot-reload-indicator.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🔥",
+    "keywords": [
+      "hot",
+      "reload",
+      "indicator",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Test Runner Panel",
+    "path": "./[CSS]/categories/developer-tools/test-runner-panel.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🧪",
+    "keywords": [
+      "test",
+      "runner",
+      "panel",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Code Coverage Report",
+    "path": "./[CSS]/categories/developer-tools/code-coverage-report.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "code",
+      "coverage",
+      "report",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "ESLint Warning Display",
+    "path": "./[CSS]/categories/developer-tools/eslint-warning-display.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "⚠️",
+    "keywords": [
+      "eslint",
+      "warning",
+      "display",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "TypeScript Error Panel",
+    "path": "./[CSS]/categories/developer-tools/typescript-error-panel.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🔷",
+    "keywords": [
+      "typescript",
+      "error",
+      "panel",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "A/B Test Controller",
+    "path": "./[CSS]/categories/developer-tools/ab-test-controller.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🅰️",
+    "keywords": [
+      "test",
+      "controller",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Git Diff Viewer",
+    "path": "./[CSS]/categories/developer-tools/git-diff-viewer.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "📝",
+    "keywords": [
+      "git",
+      "diff",
+      "viewer",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Commit History Log",
+    "path": "./[CSS]/categories/developer-tools/commit-history-log.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "📜",
+    "keywords": [
+      "commit",
+      "history",
+      "log",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Branch Switcher",
+    "path": "./[CSS]/categories/developer-tools/branch-switcher.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🔀",
+    "keywords": [
+      "branch",
+      "switcher",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Merge Conflict Resolver",
+    "path": "./[CSS]/categories/developer-tools/merge-conflict-resolver.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🔧",
+    "keywords": [
+      "merge",
+      "conflict",
+      "resolver",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Dependency Tree Viewer",
+    "path": "./[CSS]/categories/developer-tools/dependency-tree-viewer.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🌴",
+    "keywords": [
+      "dependency",
+      "tree",
+      "viewer",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Webpack Stats Panel",
+    "path": "./[CSS]/categories/developer-tools/webpack-stats-panel.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "webpack",
+      "stats",
+      "panel",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Feature Flag Toggle",
+    "path": "./[CSS]/categories/developer-tools/feature-flag-toggle.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🚩",
+    "keywords": [
+      "feature",
+      "flag",
+      "toggle",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Analytics Event Tracker",
+    "path": "./[CSS]/categories/developer-tools/analytics-event-tracker.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "analytics",
+      "event",
+      "tracker",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Datadog Metrics Display",
+    "path": "./[CSS]/categories/developer-tools/datadog-metrics-display.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🐕",
+    "keywords": [
+      "datadog",
+      "metrics",
+      "display",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Sentry Integration Panel",
+    "path": "./[CSS]/categories/developer-tools/sentry-integration-panel.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "🛡️",
+    "keywords": [
+      "sentry",
+      "integration",
+      "panel",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Code Editor",
+    "path": "./[CSS]/categories/developer-tools/code-editor.html",
+    "category": "Developer Tools",
+    "library": "CSS",
+    "icon": "💻",
+    "keywords": [
+      "code",
+      "editor",
+      "developer",
+      "tools"
+    ]
+  },
+  {
+    "name": "Add to Cart Flying Icon",
+    "path": "./[CSS]/categories/ecommerce-and-products/add-to-cart-flying-icon.html",
+    "category": "Ecommerce & Products",
+    "library": "CSS",
+    "icon": "🛒",
+    "keywords": [
+      "add",
+      "cart",
+      "flying",
+      "icon",
+      "ecommerce",
+      "products"
+    ]
+  },
+  {
+    "name": "Bulk Discount Tier Pricing",
+    "path": "./[CSS]/categories/ecommerce-and-products/bulk-discount-tier-pricing.html",
+    "category": "Ecommerce & Products",
+    "library": "CSS",
+    "icon": "🏷️",
+    "keywords": [
+      "bulk",
+      "discount",
+      "tier",
+      "pricing",
+      "ecommerce",
+      "products"
+    ]
+  },
+  {
+    "name": "Bundle Deal Picker",
+    "path": "./[CSS]/categories/ecommerce-and-products/bundle-deal-picker.html",
+    "category": "Ecommerce & Products",
+    "library": "CSS",
+    "icon": "📦",
+    "keywords": [
+      "bundle",
+      "deal",
+      "picker",
+      "ecommerce",
+      "products"
+    ]
+  },
+  {
+    "name": "Buy Now Pay Later Option",
+    "path": "./[CSS]/categories/ecommerce-and-products/buy-now-pay-later-option.html",
+    "category": "Ecommerce & Products",
+    "library": "CSS",
+    "icon": "💳",
+    "keywords": [
+      "buy",
+      "now",
+      "pay",
+      "later",
+      "option",
+      "ecommerce",
+      "products"
+    ]
+  },
+  {
+    "name": "Cart Drawer Slide In",
+    "path": "./[CSS]/categories/ecommerce-and-products/cart-drawer-slide-in.html",
+    "category": "Ecommerce & Products",
+    "library": "CSS",
+    "icon": "🛒",
+    "keywords": [
+      "cart",
+      "drawer",
+      "slide",
+      "ecommerce",
+      "products"
+    ]
+  },
+  {
+    "name": "Checkout Flow Layout",
+    "path": "./[CSS]/categories/ecommerce-and-products/checkout-flow-layout.html",
+    "category": "Ecommerce & Products",
+    "library": "CSS",
+    "icon": "✅",
+    "keywords": [
+      "checkout",
+      "flow",
+      "layout",
+      "ecommerce",
+      "products"
+    ]
+  },
+  {
+    "name": "Checkout Progress Steps",
+    "path": "./[CSS]/categories/ecommerce-and-products/checkout-progress-steps.html",
+    "category": "Ecommerce & Products",
+    "library": "CSS",
+    "icon": "👣",
+    "keywords": [
+      "checkout",
+      "progress",
+      "steps",
+      "ecommerce",
+      "products"
+    ]
+  },
+  {
+    "name": "Color Swatch Selection",
+    "path": "./[CSS]/categories/ecommerce-and-products/color-swatch-selection.html",
+    "category": "Ecommerce & Products",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "color",
+      "swatch",
+      "selection",
+      "ecommerce",
+      "products"
+    ]
+  },
+  {
+    "name": "Flash Sale Banner",
+    "path": "./[CSS]/categories/ecommerce-and-products/flash-sale-banner.html",
+    "category": "Ecommerce & Products",
+    "library": "CSS",
+    "icon": "🔥",
+    "keywords": [
+      "flash",
+      "sale",
+      "banner",
+      "ecommerce",
+      "products"
+    ]
+  },
+  {
+    "name": "Product Comparison Widget",
+    "path": "./[CSS]/categories/ecommerce-and-products/product-comparison-widget.html",
+    "category": "Ecommerce & Products",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "product",
+      "comparison",
+      "widget",
+      "ecommerce",
+      "products"
+    ]
+  },
+  {
+    "name": "Growl Notification Corner",
+    "path": "./[CSS]/categories/feedback-and-alerts/growl-notification-corner.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "📢",
+    "keywords": [
+      "growl",
+      "notification",
+      "corner",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Snackbar Bottom Message",
+    "path": "./[CSS]/categories/feedback-and-alerts/snackbar-bottom-message.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "💬",
+    "keywords": [
+      "snackbar",
+      "bottom",
+      "message",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Upload Progress Toast",
+    "path": "./[CSS]/categories/feedback-and-alerts/upload-progress-toast.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "📤",
+    "keywords": [
+      "upload",
+      "progress",
+      "toast",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Download Complete Notification",
+    "path": "./[CSS]/categories/feedback-and-alerts/download-complete-notification.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "📥",
+    "keywords": [
+      "download",
+      "complete",
+      "notification",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Notification Badge",
+    "path": "./[CSS]/categories/feedback-and-alerts/notification-badge.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🔴",
+    "keywords": [
+      "notification",
+      "badge",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Changelog Notification",
+    "path": "./[CSS]/categories/feedback-and-alerts/changelog-notification.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "changelog",
+      "notification",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Alert Modal Dialog",
+    "path": "./[CSS]/categories/feedback-and-alerts/alert-modal-dialog.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🚨",
+    "keywords": [
+      "alert",
+      "modal",
+      "dialog",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Banner Alert",
+    "path": "./[CSS]/categories/feedback-and-alerts/banner-alert.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "📣",
+    "keywords": [
+      "banner",
+      "alert",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Inline Alert",
+    "path": "./[CSS]/categories/feedback-and-alerts/inline-alert.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "ℹ️",
+    "keywords": [
+      "inline",
+      "alert",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Browser Unsupported Warning",
+    "path": "./[CSS]/categories/feedback-and-alerts/browser-unsupported-warning.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🌐",
+    "keywords": [
+      "browser",
+      "unsupported",
+      "warning",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Countdown Timer Warning",
+    "path": "./[CSS]/categories/feedback-and-alerts/countdown-timer-warning.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "⏰",
+    "keywords": [
+      "countdown",
+      "timer",
+      "warning",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Rate Limit Warning",
+    "path": "./[CSS]/categories/feedback-and-alerts/rate-limit-warning.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🛑",
+    "keywords": [
+      "rate",
+      "limit",
+      "warning",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Quota Exceeded Alert",
+    "path": "./[CSS]/categories/feedback-and-alerts/quota-exceeded-alert.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "quota",
+      "exceeded",
+      "alert",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Disk Space Alert",
+    "path": "./[CSS]/categories/feedback-and-alerts/disk-space-alert.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "💾",
+    "keywords": [
+      "disk",
+      "space",
+      "alert",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Maintenance Mode Alert",
+    "path": "./[CSS]/categories/feedback-and-alerts/maintenance-mode-alert.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🔧",
+    "keywords": [
+      "maintenance",
+      "mode",
+      "alert",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Success Message Block",
+    "path": "./[CSS]/categories/feedback-and-alerts/success-message-block.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "✅",
+    "keywords": [
+      "success",
+      "message",
+      "block",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Settings Saved Checkmark",
+    "path": "./[CSS]/categories/feedback-and-alerts/settings-saved-checkmark.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "☑️",
+    "keywords": [
+      "settings",
+      "saved",
+      "checkmark",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Bookmark Added Confirmation",
+    "path": "./[CSS]/categories/feedback-and-alerts/bookmark-added-confirmation.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🔖",
+    "keywords": [
+      "bookmark",
+      "added",
+      "confirmation",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Copy to Clipboard Feedback",
+    "path": "./[CSS]/categories/feedback-and-alerts/copy-to-clipboard-feedback.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "copy",
+      "clipboard",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Link Copied Tooltip",
+    "path": "./[CSS]/categories/feedback-and-alerts/link-copied-tooltip.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🔗",
+    "keywords": [
+      "link",
+      "copied",
+      "tooltip",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Item Deleted Undo Snackbar",
+    "path": "./[CSS]/categories/feedback-and-alerts/item-deleted-undo-snackbar.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🗑️",
+    "keywords": [
+      "item",
+      "deleted",
+      "undo",
+      "snackbar",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Floating Action Feedback",
+    "path": "./[CSS]/categories/feedback-and-alerts/floating-action-feedback.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "✨",
+    "keywords": [
+      "floating",
+      "action",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Server Error Message",
+    "path": "./[CSS]/categories/feedback-and-alerts/server-error-message.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🖥️",
+    "keywords": [
+      "server",
+      "error",
+      "message",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Validation Error Text",
+    "path": "./[CSS]/categories/feedback-and-alerts/validation-error-text.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "❌",
+    "keywords": [
+      "validation",
+      "error",
+      "text",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Connection Lost Indicator",
+    "path": "./[CSS]/categories/feedback-and-alerts/connection-lost-indicator.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "📵",
+    "keywords": [
+      "connection",
+      "lost",
+      "indicator",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Reconnecting Overlay",
+    "path": "./[CSS]/categories/feedback-and-alerts/reconnecting-overlay.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "reconnecting",
+      "overlay",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Network Ping Status",
+    "path": "./[CSS]/categories/feedback-and-alerts/network-ping-status.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "📶",
+    "keywords": [
+      "network",
+      "ping",
+      "status",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "API Health Monitor",
+    "path": "./[CSS]/categories/feedback-and-alerts/api-health-monitor.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🩺",
+    "keywords": [
+      "api",
+      "health",
+      "monitor",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "CPU Load Gauge",
+    "path": "./[CSS]/categories/feedback-and-alerts/cpu-load-gauge.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🖥️",
+    "keywords": [
+      "cpu",
+      "load",
+      "gauge",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Memory Usage Indicator",
+    "path": "./[CSS]/categories/feedback-and-alerts/memory-usage-indicator.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🧠",
+    "keywords": [
+      "memory",
+      "usage",
+      "indicator",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Bandwidth Meter Graph",
+    "path": "./[CSS]/categories/feedback-and-alerts/bandwidth-meter-graph.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "📈",
+    "keywords": [
+      "bandwidth",
+      "meter",
+      "graph",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "System Status Dashboard",
+    "path": "./[CSS]/categories/feedback-and-alerts/system-status-dashboard.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "📟",
+    "keywords": [
+      "system",
+      "status",
+      "dashboard",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Status Indicator Dots",
+    "path": "./[CSS]/categories/feedback-and-alerts/status-indicator-dots.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🔴",
+    "keywords": [
+      "status",
+      "indicator",
+      "dots",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Auto Save Indicator Dot",
+    "path": "./[CSS]/categories/feedback-and-alerts/auto-save-indicator-dot.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "💾",
+    "keywords": [
+      "auto",
+      "save",
+      "indicator",
+      "dot",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Step Progress Wizard",
+    "path": "./[CSS]/categories/feedback-and-alerts/step-progress-wizard.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🧙",
+    "keywords": [
+      "step",
+      "progress",
+      "wizard",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Timeline Status Tracker",
+    "path": "./[CSS]/categories/feedback-and-alerts/timeline-status-tracker.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "📅",
+    "keywords": [
+      "timeline",
+      "status",
+      "tracker",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Realtime Activity Feed",
+    "path": "./[CSS]/categories/feedback-and-alerts/realtime-activity-feed.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "⚡",
+    "keywords": [
+      "realtime",
+      "activity",
+      "feed",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Update Available Prompt",
+    "path": "./[CSS]/categories/feedback-and-alerts/update-available-prompt.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "update",
+      "available",
+      "prompt",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Feature Announcement Banner",
+    "path": "./[CSS]/categories/feedback-and-alerts/feature-announcement-banner.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🎉",
+    "keywords": [
+      "feature",
+      "announcement",
+      "banner",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Session Expiring Countdown",
+    "path": "./[CSS]/categories/feedback-and-alerts/session-expiring-countdown.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "⏱️",
+    "keywords": [
+      "session",
+      "expiring",
+      "countdown",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "GDPR Privacy Notice",
+    "path": "./[CSS]/categories/feedback-and-alerts/gdpr-privacy-notice.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "🔐",
+    "keywords": [
+      "gdpr",
+      "privacy",
+      "notice",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Empty State Panel",
+    "path": "./[CSS]/categories/feedback-and-alerts/empty-state-panel.html",
+    "category": "Feedback & Alerts",
+    "library": "CSS",
+    "icon": "📦",
+    "keywords": [
+      "empty",
+      "state",
+      "panel",
+      "feedback",
+      "alerts"
+    ]
+  },
+  {
+    "name": "Animated Label Float",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/animated-label-float.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🏷️",
+    "keywords": [
+      "animated",
+      "label",
+      "float",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Floating Label Input",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/floating-label-input.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "floating",
+      "label",
+      "input",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Neon Input Fields",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/neon-input-fields.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "💡",
+    "keywords": [
+      "neon",
+      "input",
+      "fields",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Inline Edit Field",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/inline-edit-field.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "✏️",
+    "keywords": [
+      "inline",
+      "edit",
+      "field",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Input Character Counter",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/input-character-counter.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🔢",
+    "keywords": [
+      "input",
+      "character",
+      "counter",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Input Format Helper",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/input-format-helper.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "📐",
+    "keywords": [
+      "input",
+      "format",
+      "helper",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Input Suggestion Chips",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/input-suggestion-chips.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "💬",
+    "keywords": [
+      "input",
+      "suggestion",
+      "chips",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Input Focus Glow Ring",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/input-focus-glow-ring.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "✨",
+    "keywords": [
+      "input",
+      "focus",
+      "glow",
+      "ring",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Rich Text Editor",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/rich-text-editor.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "📝",
+    "keywords": [
+      "rich",
+      "text",
+      "editor",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Autocomplete Dropdown",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/autocomplete-dropdown.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🔎",
+    "keywords": [
+      "autocomplete",
+      "dropdown",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Dropdown Select Menu",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/dropdown-select-menu.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "📜",
+    "keywords": [
+      "dropdown",
+      "select",
+      "menu",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Multi-Select Dropdown",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/multi-select-dropdown.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "☑️",
+    "keywords": [
+      "multi",
+      "select",
+      "dropdown",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Tag Input Field",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/tag-input-field.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🏷️",
+    "keywords": [
+      "tag",
+      "input",
+      "field",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Enhanced Autocomplete Dropdown",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/enhanced-autocomplete-dropdown.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🔍",
+    "keywords": [
+      "enhanced",
+      "autocomplete",
+      "dropdown",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Custom Checkboxes & Radios",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/custom-checkboxes-radios.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "✅",
+    "keywords": [
+      "custom",
+      "checkboxes",
+      "radios",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Checkbox Toggle Group",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/checkbox-toggle-group.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "☑️",
+    "keywords": [
+      "checkbox",
+      "toggle",
+      "group",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Radio Button Cards",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/radio-button-cards.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🔘",
+    "keywords": [
+      "radio",
+      "button",
+      "cards",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Toggle Switch Animated",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/toggle-switch-animated.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🎚️",
+    "keywords": [
+      "toggle",
+      "switch",
+      "animated",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Toggle Switch Slider",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/toggle-switch-slider.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🔛",
+    "keywords": [
+      "toggle",
+      "switch",
+      "slider",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Slider Range Input",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/slider-range-input.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "slider",
+      "range",
+      "input",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Range Slider Dual",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/range-slider-dual.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "↔️",
+    "keywords": [
+      "range",
+      "slider",
+      "dual",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Number Stepper Input",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/number-stepper-input.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🔢",
+    "keywords": [
+      "number",
+      "stepper",
+      "input",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Calendar Grid",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/calendar-grid.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "📆",
+    "keywords": [
+      "calendar",
+      "grid",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Date Picker Calendar",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/date-picker-calendar.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "📅",
+    "keywords": [
+      "date",
+      "picker",
+      "calendar",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Time Picker Selector",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/time-picker-selector.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "⏰",
+    "keywords": [
+      "time",
+      "picker",
+      "selector",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Color Picker Palette",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/color-picker-palette.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "color",
+      "picker",
+      "palette",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Credit Card Input Mask",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/credit-card-input-mask.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "💳",
+    "keywords": [
+      "credit",
+      "card",
+      "input",
+      "mask",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Credit Card Flip",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/credit-card-flip.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "💳",
+    "keywords": [
+      "credit",
+      "card",
+      "flip",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Phone Number Formatter",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/phone-number-formatter.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "📱",
+    "keywords": [
+      "phone",
+      "number",
+      "formatter",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Password Strength Meter",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/password-strength-meter.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🔐",
+    "keywords": [
+      "password",
+      "strength",
+      "meter",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "OTP Verification Input",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/otp-verification-input.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🔑",
+    "keywords": [
+      "otp",
+      "verification",
+      "input",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Voice Input Microphone",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/voice-input-microphone.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🎙️",
+    "keywords": [
+      "voice",
+      "input",
+      "microphone",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "File Input Dropzone",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/file-input-dropzone.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "📥",
+    "keywords": [
+      "file",
+      "input",
+      "dropzone",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Drag & Drop File Uploader",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/drag-drop-file-uploader.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "📤",
+    "keywords": [
+      "drag",
+      "drop",
+      "file",
+      "uploader",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Star Rating Selector",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/star-rating-selector.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "⭐",
+    "keywords": [
+      "star",
+      "rating",
+      "selector",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Emoji Reaction Selector",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/emoji-reaction-selector.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "😀",
+    "keywords": [
+      "emoji",
+      "reaction",
+      "selector",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Survey Question Card",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/survey-question-card.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "survey",
+      "question",
+      "card",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Multi-Step Form Wizard",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/multi-step-form-wizard.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🧙",
+    "keywords": [
+      "multi",
+      "step",
+      "form",
+      "wizard",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Form Progress Tracker",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/form-progress-tracker.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "📈",
+    "keywords": [
+      "form",
+      "progress",
+      "tracker",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Conditional Field Display",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/conditional-field-display.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🔀",
+    "keywords": [
+      "conditional",
+      "field",
+      "display",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Form Validation Feedback",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/form-validation-feedback.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "✔️",
+    "keywords": [
+      "form",
+      "validation",
+      "feedback",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Form Error Summary",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/form-error-summary.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "⚠️",
+    "keywords": [
+      "form",
+      "error",
+      "summary",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Error Shake Animation",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/error-shake-animation.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "❌",
+    "keywords": [
+      "error",
+      "shake",
+      "animation",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Form Field Tooltip",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/form-field-tooltip.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "💡",
+    "keywords": [
+      "form",
+      "field",
+      "tooltip",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Tooltip Hover Info",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/tooltip-hover-info.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "ℹ️",
+    "keywords": [
+      "tooltip",
+      "hover",
+      "info",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Form Draft Saver",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/form-draft-saver.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "💾",
+    "keywords": [
+      "form",
+      "draft",
+      "saver",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Form Auto-Save Indicator",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/form-auto-save-indicator.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "form",
+      "auto",
+      "save",
+      "indicator",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Form Reset Confirmation",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/form-reset-confirmation.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🔃",
+    "keywords": [
+      "form",
+      "reset",
+      "confirmation",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Form Keyboard Shortcuts",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/form-keyboard-shortcuts.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "⌨️",
+    "keywords": [
+      "form",
+      "keyboard",
+      "shortcuts",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Enhanced Keyboard Shortcuts",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/enhanced-form-keyboard-shortcuts.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🎹",
+    "keywords": [
+      "enhanced",
+      "keyboard",
+      "shortcuts",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Success Checkmark Draw",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/success-checkmark-draw.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "✓",
+    "keywords": [
+      "success",
+      "checkmark",
+      "draw",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Form Completion Celebration",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/form-completion-celebration.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🎊",
+    "keywords": [
+      "form",
+      "completion",
+      "celebration",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Progress Bar",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/progress-bar.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "progress",
+      "bar",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Circular Progress",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/circular-progress.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "⭕",
+    "keywords": [
+      "circular",
+      "progress",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Loading Spinner",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/loading-spinner.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "loading",
+      "spinner",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Loading Spinner Overlay",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/loading-spinner-overlay.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "⏳",
+    "keywords": [
+      "loading",
+      "spinner",
+      "overlay",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Loading Dots Pulse Row",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/loading-dots-pulse-row.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "●●●",
+    "keywords": [
+      "loading",
+      "dots",
+      "pulse",
+      "row",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Loading Bar with Shimmer",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/loading-bar-with-shimmer.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "▰▰▰",
+    "keywords": [
+      "loading",
+      "bar",
+      "with",
+      "shimmer",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Loading Skeleton",
+    "path": "./[CSS]/categories/forms-status-and-micro-ux/loading-skeleton.html",
+    "category": "Forms Status & Micro Ux",
+    "library": "CSS",
+    "icon": "▢",
+    "keywords": [
+      "loading",
+      "skeleton",
+      "forms",
+      "status",
+      "micro"
+    ]
+  },
+  {
+    "name": "Achievement Toast",
+    "path": "./[CSS]/categories/gamification-and-rewards/achievement-toast.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🔔",
+    "keywords": [
+      "achievement",
+      "toast",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Achievement Unlock",
+    "path": "./[CSS]/categories/gamification-and-rewards/achievement-unlock.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🔓",
+    "keywords": [
+      "achievement",
+      "unlock",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Achievement Unlock Popup",
+    "path": "./[CSS]/categories/gamification-and-rewards/achievement-unlock-popup.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🎊",
+    "keywords": [
+      "achievement",
+      "unlock",
+      "popup",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Badge Stamp Slam",
+    "path": "./[CSS]/categories/gamification-and-rewards/badge-stamp-slam.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🎖️",
+    "keywords": [
+      "badge",
+      "stamp",
+      "slam",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Level Badge Earn",
+    "path": "./[CSS]/categories/gamification-and-rewards/level-badge-earn.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🏅",
+    "keywords": [
+      "level",
+      "badge",
+      "earn",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Milestone Celebration",
+    "path": "./[CSS]/categories/gamification-and-rewards/milestone-celebration.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🎯",
+    "keywords": [
+      "milestone",
+      "celebration",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Holographic Sticker",
+    "path": "./[CSS]/categories/gamification-and-rewards/holographic-sticker.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "✨",
+    "keywords": [
+      "holographic",
+      "sticker",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "XP Bar Fill Flash",
+    "path": "./[CSS]/categories/gamification-and-rewards/xp-bar-fill-flash.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "📈",
+    "keywords": [
+      "bar",
+      "fill",
+      "flash",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Progress Ring Closure",
+    "path": "./[CSS]/categories/gamification-and-rewards/progress-ring-closure.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "⭕",
+    "keywords": [
+      "progress",
+      "ring",
+      "closure",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Level Up Fullscreen Burst",
+    "path": "./[CSS]/categories/gamification-and-rewards/level-up-fullscreen-burst.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🚀",
+    "keywords": [
+      "level",
+      "fullscreen",
+      "burst",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Double XP Active",
+    "path": "./[CSS]/categories/gamification-and-rewards/double-xp-active.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "⚡",
+    "keywords": [
+      "double",
+      "active",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Prestige Rank Up",
+    "path": "./[CSS]/categories/gamification-and-rewards/prestige-rank-up.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "👑",
+    "keywords": [
+      "prestige",
+      "rank",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Skill Tree Activation",
+    "path": "./[CSS]/categories/gamification-and-rewards/skill-tree-activation.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🌳",
+    "keywords": [
+      "skill",
+      "tree",
+      "activation",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Leaderboard Rank",
+    "path": "./[CSS]/categories/gamification-and-rewards/leaderboard-rank.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "leaderboard",
+      "rank",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Leaderboard Row Swap",
+    "path": "./[CSS]/categories/gamification-and-rewards/leaderboard-row-swap.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "leaderboard",
+      "row",
+      "swap",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Crown Top Player",
+    "path": "./[CSS]/categories/gamification-and-rewards/crown-top-player.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "👑",
+    "keywords": [
+      "crown",
+      "top",
+      "player",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Rank Tier Morph",
+    "path": "./[CSS]/categories/gamification-and-rewards/rank-tier-morph.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🎭",
+    "keywords": [
+      "rank",
+      "tier",
+      "morph",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "High Score Glitch",
+    "path": "./[CSS]/categories/gamification-and-rewards/high-score-glitch.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "💯",
+    "keywords": [
+      "high",
+      "score",
+      "glitch",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "VS Screen Clash",
+    "path": "./[CSS]/categories/gamification-and-rewards/vs-screen-clash.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "⚔️",
+    "keywords": [
+      "screen",
+      "clash",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Reward Wheel Spin",
+    "path": "./[CSS]/categories/gamification-and-rewards/reward-wheel-spin.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🎡",
+    "keywords": [
+      "reward",
+      "wheel",
+      "spin",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Loot Box Drop",
+    "path": "./[CSS]/categories/gamification-and-rewards/loot-box-drop.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "📦",
+    "keywords": [
+      "loot",
+      "box",
+      "drop",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Treasure Chest Open",
+    "path": "./[CSS]/categories/gamification-and-rewards/treasure-chest-open.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🧰",
+    "keywords": [
+      "treasure",
+      "chest",
+      "open",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Gift Box Unwrap",
+    "path": "./[CSS]/categories/gamification-and-rewards/gift-box-unwrap.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🎁",
+    "keywords": [
+      "gift",
+      "box",
+      "unwrap",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Mystery Card Flip",
+    "path": "./[CSS]/categories/gamification-and-rewards/mystery-card-flip.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🃏",
+    "keywords": [
+      "mystery",
+      "card",
+      "flip",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Reward Magnet Pull",
+    "path": "./[CSS]/categories/gamification-and-rewards/reward-magnet-pull.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🧲",
+    "keywords": [
+      "reward",
+      "magnet",
+      "pull",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Slot Machine Roll",
+    "path": "./[CSS]/categories/gamification-and-rewards/slot-machine-roll.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🎰",
+    "keywords": [
+      "slot",
+      "machine",
+      "roll",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Daily Streak Fire",
+    "path": "./[CSS]/categories/gamification-and-rewards/daily-streak-fire.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🔥",
+    "keywords": [
+      "daily",
+      "streak",
+      "fire",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Streak Maintain Glow",
+    "path": "./[CSS]/categories/gamification-and-rewards/streak-maintain-glow.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "✨",
+    "keywords": [
+      "streak",
+      "maintain",
+      "glow",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Daily Calendar Unlock",
+    "path": "./[CSS]/categories/gamification-and-rewards/daily-calendar-unlock.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "📅",
+    "keywords": [
+      "daily",
+      "calendar",
+      "unlock",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Friend Referral Bonus",
+    "path": "./[CSS]/categories/gamification-and-rewards/friend-referral-bonus.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "👥",
+    "keywords": [
+      "friend",
+      "referral",
+      "bonus",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Seasonal Event Banner",
+    "path": "./[CSS]/categories/gamification-and-rewards/seasonal-event-banner.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🎉",
+    "keywords": [
+      "seasonal",
+      "event",
+      "banner",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Coin Collection Trail",
+    "path": "./[CSS]/categories/gamification-and-rewards/coin-collection-trail.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🪙",
+    "keywords": [
+      "coin",
+      "collection",
+      "trail",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Gem Sparkle",
+    "path": "./[CSS]/categories/gamification-and-rewards/gem-sparkle.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "💎",
+    "keywords": [
+      "gem",
+      "sparkle",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Points Multiplier Flash",
+    "path": "./[CSS]/categories/gamification-and-rewards/points-multiplier-flash.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "✖️",
+    "keywords": [
+      "points",
+      "multiplier",
+      "flash",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Inventory Item New",
+    "path": "./[CSS]/categories/gamification-and-rewards/inventory-item-new.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🎒",
+    "keywords": [
+      "inventory",
+      "item",
+      "new",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Trophy Shine Reveal",
+    "path": "./[CSS]/categories/gamification-and-rewards/trophy-shine-reveal.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🏆",
+    "keywords": [
+      "trophy",
+      "shine",
+      "reveal",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Star Rating Cascade",
+    "path": "./[CSS]/categories/gamification-and-rewards/star-rating-cascade.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "⭐",
+    "keywords": [
+      "star",
+      "rating",
+      "cascade",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Combo Counter Pulse",
+    "path": "./[CSS]/categories/gamification-and-rewards/combo-counter-pulse.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "💥",
+    "keywords": [
+      "combo",
+      "counter",
+      "pulse",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Power-Up Collect",
+    "path": "./[CSS]/categories/gamification-and-rewards/power-up-collect.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "⚡",
+    "keywords": [
+      "power",
+      "collect",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Health Bar Shake",
+    "path": "./[CSS]/categories/gamification-and-rewards/health-bar-shake.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "❤️",
+    "keywords": [
+      "health",
+      "bar",
+      "shake",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Energy Refill Wave",
+    "path": "./[CSS]/categories/gamification-and-rewards/energy-refill-wave.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🔋",
+    "keywords": [
+      "energy",
+      "refill",
+      "wave",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Bonus Round Entry",
+    "path": "./[CSS]/categories/gamification-and-rewards/bonus-round-entry.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🌟",
+    "keywords": [
+      "bonus",
+      "round",
+      "entry",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Avatar Spin 360",
+    "path": "./[CSS]/categories/gamification-and-rewards/avatar-spin-360.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "avatar",
+      "spin",
+      "360",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Quest Complete Check",
+    "path": "./[CSS]/categories/gamification-and-rewards/quest-complete-check.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "✅",
+    "keywords": [
+      "quest",
+      "complete",
+      "check",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Mission Complete Fanfare",
+    "path": "./[CSS]/categories/gamification-and-rewards/mission-complete-fanfare.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🎺",
+    "keywords": [
+      "mission",
+      "complete",
+      "fanfare",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Mission Failed Cracks",
+    "path": "./[CSS]/categories/gamification-and-rewards/mission-failed-cracks.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "💔",
+    "keywords": [
+      "mission",
+      "failed",
+      "cracks",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Challenge Segment Fill",
+    "path": "./[CSS]/categories/gamification-and-rewards/challenge-segment-fill.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "challenge",
+      "segment",
+      "fill",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Battle Pass Scroll",
+    "path": "./[CSS]/categories/gamification-and-rewards/battle-pass-scroll.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "📜",
+    "keywords": [
+      "battle",
+      "pass",
+      "scroll",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Countdown Timer",
+    "path": "./[CSS]/categories/gamification-and-rewards/countdown-timer.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "⏱️",
+    "keywords": [
+      "countdown",
+      "timer",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Timer Urgency Pulse",
+    "path": "./[CSS]/categories/gamification-and-rewards/timer-urgency-pulse.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "⏰",
+    "keywords": [
+      "timer",
+      "urgency",
+      "pulse",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Score Counter Tick",
+    "path": "./[CSS]/categories/gamification-and-rewards/score-counter-tick.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🔢",
+    "keywords": [
+      "score",
+      "counter",
+      "tick",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Confetti Cannon",
+    "path": "./[CSS]/categories/gamification-and-rewards/confetti-cannon.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🎉",
+    "keywords": [
+      "confetti",
+      "cannon",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Confetti Celebration",
+    "path": "./[CSS]/categories/gamification-and-rewards/confetti-celebration.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "🎊",
+    "keywords": [
+      "confetti",
+      "celebration",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Tutorial Finger Tap",
+    "path": "./[CSS]/categories/gamification-and-rewards/tutorial-finger-tap.html",
+    "category": "Gamification & Rewards",
+    "library": "CSS",
+    "icon": "👆",
+    "keywords": [
+      "tutorial",
+      "finger",
+      "tap",
+      "gamification",
+      "rewards"
+    ]
+  },
+  {
+    "name": "Holy Grail Layout",
+    "path": "./[CSS]/categories/layout-components/holy-grail-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "⚱️",
+    "keywords": [
+      "holy",
+      "grail",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "App Shell Layout",
+    "path": "./[CSS]/categories/layout-components/app-shell-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "📱",
+    "keywords": [
+      "app",
+      "shell",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Sidebar Content",
+    "path": "./[CSS]/categories/layout-components/sidebar-content.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "📐",
+    "keywords": [
+      "sidebar",
+      "content",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Split Layout",
+    "path": "./[CSS]/categories/layout-components/split-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "↔️",
+    "keywords": [
+      "split",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Three Column Layout",
+    "path": "./[CSS]/categories/layout-components/three-column-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "three",
+      "column",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Centered Column Layout",
+    "path": "./[CSS]/categories/layout-components/centered-column-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "🎯",
+    "keywords": [
+      "centered",
+      "column",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Container Page Wrapper",
+    "path": "./[CSS]/categories/layout-components/container-page-wrapper.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "📦",
+    "keywords": [
+      "container",
+      "page",
+      "wrapper",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Full Viewport Hero",
+    "path": "./[CSS]/categories/layout-components/full-viewport-hero.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "🖼️",
+    "keywords": [
+      "full",
+      "viewport",
+      "hero",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Hero Split Screen",
+    "path": "./[CSS]/categories/layout-components/hero-split-screen.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "🎭",
+    "keywords": [
+      "hero",
+      "split",
+      "screen",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Landing Page Sections",
+    "path": "./[CSS]/categories/layout-components/landing-page-sections.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "🚀",
+    "keywords": [
+      "landing",
+      "page",
+      "sections",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Coming Soon Layout",
+    "path": "./[CSS]/categories/layout-components/coming-soon-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "⏳",
+    "keywords": [
+      "coming",
+      "soon",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Dashboard Grid Layout",
+    "path": "./[CSS]/categories/layout-components/dashboard-grid-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "📈",
+    "keywords": [
+      "dashboard",
+      "grid",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Admin Panel Layout",
+    "path": "./[CSS]/categories/layout-components/admin-panel-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "⚙️",
+    "keywords": [
+      "admin",
+      "panel",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Analytics Dashboard",
+    "path": "./[CSS]/categories/layout-components/analytics-dashboard.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "📉",
+    "keywords": [
+      "analytics",
+      "dashboard",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Profile Settings Layout",
+    "path": "./[CSS]/categories/layout-components/profile-settings-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "👤",
+    "keywords": [
+      "profile",
+      "settings",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Kanban Board Layout",
+    "path": "./[CSS]/categories/layout-components/kanban-board-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "kanban",
+      "board",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Kanban Board",
+    "path": "./[CSS]/categories/layout-components/kanban-board.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "🗂️",
+    "keywords": [
+      "kanban",
+      "board",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Kanban Column",
+    "path": "./[CSS]/categories/layout-components/kanban-column.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "📌",
+    "keywords": [
+      "kanban",
+      "column",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Card Grid",
+    "path": "./[CSS]/categories/layout-components/card-grid.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "🃏",
+    "keywords": [
+      "card",
+      "grid",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Masonry-ish Card Grid",
+    "path": "./[CSS]/categories/layout-components/masonry-ish-card-grid.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "🧱",
+    "keywords": [
+      "masonry",
+      "ish",
+      "card",
+      "grid",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Image Gallery Grid",
+    "path": "./[CSS]/categories/layout-components/image-gallery-grid.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "🖼️",
+    "keywords": [
+      "image",
+      "gallery",
+      "grid",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Portfolio Showcase Grid",
+    "path": "./[CSS]/categories/layout-components/portfolio-showcase-grid.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "💼",
+    "keywords": [
+      "portfolio",
+      "showcase",
+      "grid",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Team Directory Grid",
+    "path": "./[CSS]/categories/layout-components/team-directory-grid.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "👥",
+    "keywords": [
+      "team",
+      "directory",
+      "grid",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Testimonial Grid",
+    "path": "./[CSS]/categories/layout-components/testimonial-grid.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "💬",
+    "keywords": [
+      "testimonial",
+      "grid",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Blog Post Layout",
+    "path": "./[CSS]/categories/layout-components/blog-post-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "📰",
+    "keywords": [
+      "blog",
+      "post",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Documentation Layout",
+    "path": "./[CSS]/categories/layout-components/documentation-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "📚",
+    "keywords": [
+      "documentation",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "News Magazine Layout",
+    "path": "./[CSS]/categories/layout-components/news-magazine-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "🗞️",
+    "keywords": [
+      "news",
+      "magazine",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Forum Thread Layout",
+    "path": "./[CSS]/categories/layout-components/forum-thread-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "💭",
+    "keywords": [
+      "forum",
+      "thread",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "FAQ Accordion Layout",
+    "path": "./[CSS]/categories/layout-components/faq-accordion-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "❓",
+    "keywords": [
+      "faq",
+      "accordion",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Email Inbox Layout",
+    "path": "./[CSS]/categories/layout-components/email-inbox-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "📥",
+    "keywords": [
+      "email",
+      "inbox",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Notification Center Layout",
+    "path": "./[CSS]/categories/layout-components/notification-center-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "🔔",
+    "keywords": [
+      "notification",
+      "center",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Search Results Layout",
+    "path": "./[CSS]/categories/layout-components/search-results-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "🔍",
+    "keywords": [
+      "search",
+      "results",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Calendar Month View",
+    "path": "./[CSS]/categories/layout-components/calendar-month-view.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "📅",
+    "keywords": [
+      "calendar",
+      "month",
+      "view",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Video Player Layout",
+    "path": "./[CSS]/categories/layout-components/video-player-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "🎬",
+    "keywords": [
+      "video",
+      "player",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "About Us Layout",
+    "path": "./[CSS]/categories/layout-components/about-us-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "ℹ️",
+    "keywords": [
+      "about",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Contact Form Layout",
+    "path": "./[CSS]/categories/layout-components/contact-form-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "📞",
+    "keywords": [
+      "contact",
+      "form",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Pricing Table Layout",
+    "path": "./[CSS]/categories/layout-components/pricing-table-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "💰",
+    "keywords": [
+      "pricing",
+      "table",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Feature Comparison Table",
+    "path": "./[CSS]/categories/layout-components/feature-comparison-table.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "⚖️",
+    "keywords": [
+      "feature",
+      "comparison",
+      "table",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Error 404 Layout",
+    "path": "./[CSS]/categories/layout-components/error-404-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "🚫",
+    "keywords": [
+      "error",
+      "404",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Sticky Header",
+    "path": "./[CSS]/categories/layout-components/sticky-header.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "📍",
+    "keywords": [
+      "sticky",
+      "header",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Sticky Sub Header",
+    "path": "./[CSS]/categories/layout-components/sticky-sub-header.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "📎",
+    "keywords": [
+      "sticky",
+      "sub",
+      "header",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Sticky Footer Bar",
+    "path": "./[CSS]/categories/layout-components/sticky-footer-bar.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "📌",
+    "keywords": [
+      "sticky",
+      "footer",
+      "bar",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Footer Mega Layout",
+    "path": "./[CSS]/categories/layout-components/footer-mega-layout.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "🦶",
+    "keywords": [
+      "footer",
+      "mega",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Section Block",
+    "path": "./[CSS]/categories/layout-components/section-block.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "🧩",
+    "keywords": [
+      "section",
+      "block",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Stack Vertical Spacing",
+    "path": "./[CSS]/categories/layout-components/stack-vertical-spacing.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "📏",
+    "keywords": [
+      "stack",
+      "vertical",
+      "spacing",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Inline Cluster",
+    "path": "./[CSS]/categories/layout-components/inline-cluster.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "🔗",
+    "keywords": [
+      "inline",
+      "cluster",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Media Object",
+    "path": "./[CSS]/categories/layout-components/media-object.html",
+    "category": "Layout Components",
+    "library": "CSS",
+    "icon": "🎯",
+    "keywords": [
+      "media",
+      "object",
+      "layout",
+      "components"
+    ]
+  },
+  {
+    "name": "Map Zoom Controls",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-zoom-controls.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🔍",
+    "keywords": [
+      "map",
+      "zoom",
+      "controls",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Fullscreen Button",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-fullscreen-button.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "⛶",
+    "keywords": [
+      "map",
+      "fullscreen",
+      "button",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Layer Toggle",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-layer-toggle.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "📚",
+    "keywords": [
+      "map",
+      "layer",
+      "toggle",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Satellite Toggle",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-satellite-toggle.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🛰️",
+    "keywords": [
+      "map",
+      "satellite",
+      "toggle",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Style Switcher",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-style-switcher.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "map",
+      "style",
+      "switcher",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Compass Rose",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-compass-rose.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🧭",
+    "keywords": [
+      "map",
+      "compass",
+      "rose",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Scale Bar",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-scale-bar.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "📏",
+    "keywords": [
+      "map",
+      "scale",
+      "bar",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Mini Overview",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-mini-overview.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🔲",
+    "keywords": [
+      "map",
+      "mini",
+      "overview",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Marker Pin",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-marker-pin.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "📍",
+    "keywords": [
+      "map",
+      "marker",
+      "pin",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Custom Marker Creator",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-custom-marker-creator.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "✏️",
+    "keywords": [
+      "map",
+      "custom",
+      "marker",
+      "creator",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Cluster Marker",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-cluster-marker.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🔢",
+    "keywords": [
+      "map",
+      "cluster",
+      "marker",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Location Pin Animation",
+    "path": "./[CSS]/categories/maps-and-geolocation/location-pin-animation.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "💫",
+    "keywords": [
+      "location",
+      "pin",
+      "animation",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Tooltip Popup",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-tooltip-popup.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "💬",
+    "keywords": [
+      "map",
+      "tooltip",
+      "popup",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Search Bar",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-search-bar.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🔎",
+    "keywords": [
+      "map",
+      "search",
+      "bar",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Address Autocomplete",
+    "path": "./[CSS]/categories/maps-and-geolocation/address-autocomplete.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "📝",
+    "keywords": [
+      "address",
+      "autocomplete",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Location Search Autocomplete",
+    "path": "./[CSS]/categories/maps-and-geolocation/location-search-autocomplete.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🔍",
+    "keywords": [
+      "location",
+      "search",
+      "autocomplete",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Nearby Places List",
+    "path": "./[CSS]/categories/maps-and-geolocation/nearby-places-list.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "nearby",
+      "places",
+      "list",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "POI Category Filter",
+    "path": "./[CSS]/categories/maps-and-geolocation/poi-category-filter.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🏷️",
+    "keywords": [
+      "poi",
+      "category",
+      "filter",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Filter Sidebar",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-filter-sidebar.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "⚙️",
+    "keywords": [
+      "map",
+      "filter",
+      "sidebar",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Bookmarks Panel",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-bookmarks-panel.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🔖",
+    "keywords": [
+      "map",
+      "bookmarks",
+      "panel",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Route Planner",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-route-planner.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🗺️",
+    "keywords": [
+      "map",
+      "route",
+      "planner",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Route Path Line",
+    "path": "./[CSS]/categories/maps-and-geolocation/route-path-line.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "〰️",
+    "keywords": [
+      "route",
+      "path",
+      "line",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Route Waypoint List",
+    "path": "./[CSS]/categories/maps-and-geolocation/route-waypoint-list.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "📍",
+    "keywords": [
+      "route",
+      "waypoint",
+      "list",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Direction Arrow Indicator",
+    "path": "./[CSS]/categories/maps-and-geolocation/direction-arrow-indicator.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "➡️",
+    "keywords": [
+      "direction",
+      "arrow",
+      "indicator",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Navigation ETA Display",
+    "path": "./[CSS]/categories/maps-and-geolocation/navigation-eta-display.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "⏱️",
+    "keywords": [
+      "navigation",
+      "eta",
+      "display",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Travel Time Badge",
+    "path": "./[CSS]/categories/maps-and-geolocation/travel-time-badge.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🕐",
+    "keywords": [
+      "travel",
+      "time",
+      "badge",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Distance Calculator",
+    "path": "./[CSS]/categories/maps-and-geolocation/distance-calculator.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "📐",
+    "keywords": [
+      "distance",
+      "calculator",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Geolocation Button",
+    "path": "./[CSS]/categories/maps-and-geolocation/geolocation-button.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "📍",
+    "keywords": [
+      "geolocation",
+      "button",
+      "maps"
+    ]
+  },
+  {
+    "name": "Location Accuracy Indicator",
+    "path": "./[CSS]/categories/maps-and-geolocation/location-accuracy-indicator.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🎯",
+    "keywords": [
+      "location",
+      "accuracy",
+      "indicator",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Location Permission Prompt",
+    "path": "./[CSS]/categories/maps-and-geolocation/location-permission-prompt.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🔐",
+    "keywords": [
+      "location",
+      "permission",
+      "prompt",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Location Status Badge",
+    "path": "./[CSS]/categories/maps-and-geolocation/location-status-badge.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "✅",
+    "keywords": [
+      "location",
+      "status",
+      "badge",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Location Timestamp Display",
+    "path": "./[CSS]/categories/maps-and-geolocation/location-timestamp-display.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🕒",
+    "keywords": [
+      "location",
+      "timestamp",
+      "display",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Location Elevation Display",
+    "path": "./[CSS]/categories/maps-and-geolocation/location-elevation-display.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "⛰️",
+    "keywords": [
+      "location",
+      "elevation",
+      "display",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Coordinates Display",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-coordinates-display.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🌐",
+    "keywords": [
+      "map",
+      "coordinates",
+      "display",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Geofence Boundary",
+    "path": "./[CSS]/categories/maps-and-geolocation/geofence-boundary.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🔲",
+    "keywords": [
+      "geofence",
+      "boundary",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Geofence Editor",
+    "path": "./[CSS]/categories/maps-and-geolocation/geofence-editor.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "✏️",
+    "keywords": [
+      "geofence",
+      "editor",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Location Radius Circle",
+    "path": "./[CSS]/categories/maps-and-geolocation/location-radius-circle.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "⭕",
+    "keywords": [
+      "location",
+      "radius",
+      "circle",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Draw Tools",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-draw-tools.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🖊️",
+    "keywords": [
+      "map",
+      "draw",
+      "tools",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Measurement Tool",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-measurement-tool.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "📐",
+    "keywords": [
+      "map",
+      "measurement",
+      "tool",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Heatmap Overlay",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-heatmap-overlay.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🔥",
+    "keywords": [
+      "map",
+      "heatmap",
+      "overlay",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Traffic Layer",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-traffic-layer.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🚗",
+    "keywords": [
+      "map",
+      "traffic",
+      "layer",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Weather Overlay",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-weather-overlay.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🌦️",
+    "keywords": [
+      "map",
+      "weather",
+      "overlay",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Overlay Panel",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-overlay-panel.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "📑",
+    "keywords": [
+      "map",
+      "overlay",
+      "panel",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Legend",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-legend.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "📜",
+    "keywords": [
+      "map",
+      "legend",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Location Share Button",
+    "path": "./[CSS]/categories/maps-and-geolocation/location-share-button.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "📤",
+    "keywords": [
+      "location",
+      "share",
+      "button",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Location Sharing Modal",
+    "path": "./[CSS]/categories/maps-and-geolocation/location-sharing-modal.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "👥",
+    "keywords": [
+      "location",
+      "sharing",
+      "modal",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Location History Trail",
+    "path": "./[CSS]/categories/maps-and-geolocation/location-history-trail.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "👣",
+    "keywords": [
+      "location",
+      "history",
+      "trail",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Location Card",
+    "path": "./[CSS]/categories/maps-and-geolocation/location-card.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🏠",
+    "keywords": [
+      "location",
+      "card",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Location List View",
+    "path": "./[CSS]/categories/maps-and-geolocation/location-list-view.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "location",
+      "list",
+      "view",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Map Print View",
+    "path": "./[CSS]/categories/maps-and-geolocation/map-print-view.html",
+    "category": "Maps & Geolocation",
+    "library": "CSS",
+    "icon": "🖨️",
+    "keywords": [
+      "map",
+      "print",
+      "view",
+      "maps",
+      "geolocation"
+    ]
+  },
+  {
+    "name": "Video Scrubber Preview",
+    "path": "./[CSS]/categories/media-and-audio-visuals/video-scrubber-preview.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🎞️",
+    "keywords": [
+      "video",
+      "scrubber",
+      "preview",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Video Thumbnail Generator",
+    "path": "./[CSS]/categories/media-and-audio-visuals/video-thumbnail-generator.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🖼️",
+    "keywords": [
+      "video",
+      "thumbnail",
+      "generator",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Video Time Markers",
+    "path": "./[CSS]/categories/media-and-audio-visuals/video-time-markers.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "⏱️",
+    "keywords": [
+      "video",
+      "time",
+      "markers",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Video Blur Overlay",
+    "path": "./[CSS]/categories/media-and-audio-visuals/video-blur-overlay.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🌫️",
+    "keywords": [
+      "video",
+      "blur",
+      "overlay",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Video End Screen",
+    "path": "./[CSS]/categories/media-and-audio-visuals/video-end-screen.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🔚",
+    "keywords": [
+      "video",
+      "end",
+      "screen",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Scroll Video Scrub",
+    "path": "./[CSS]/categories/media-and-audio-visuals/scroll-video-scrub.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "📜",
+    "keywords": [
+      "scroll",
+      "video",
+      "scrub",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Chapter Marker Expand",
+    "path": "./[CSS]/categories/media-and-audio-visuals/chapter-marker-expand.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "📖",
+    "keywords": [
+      "chapter",
+      "marker",
+      "expand",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Closed Caption Fade",
+    "path": "./[CSS]/categories/media-and-audio-visuals/closed-caption-fade.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "💬",
+    "keywords": [
+      "closed",
+      "caption",
+      "fade",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Subtitle Timing Adjust",
+    "path": "./[CSS]/categories/media-and-audio-visuals/subtitle-timing-adjust.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "📝",
+    "keywords": [
+      "subtitle",
+      "timing",
+      "adjust",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Audio Track Switcher",
+    "path": "./[CSS]/categories/media-and-audio-visuals/audio-track-switcher.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🔀",
+    "keywords": [
+      "audio",
+      "track",
+      "switcher",
+      "media",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Audio Crossfade Mixer",
+    "path": "./[CSS]/categories/media-and-audio-visuals/audio-crossfade-mixer.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🎚️",
+    "keywords": [
+      "audio",
+      "crossfade",
+      "mixer",
+      "media",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Audio Balance Slider",
+    "path": "./[CSS]/categories/media-and-audio-visuals/audio-balance-slider.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "⚖️",
+    "keywords": [
+      "audio",
+      "balance",
+      "slider",
+      "media",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Audio Fade In/Out",
+    "path": "./[CSS]/categories/media-and-audio-visuals/audio-fade-in-out.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "📈",
+    "keywords": [
+      "audio",
+      "fade",
+      "out",
+      "media",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Audio Recorder Waveform",
+    "path": "./[CSS]/categories/media-and-audio-visuals/audio-recorder-waveform.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🎙️",
+    "keywords": [
+      "audio",
+      "recorder",
+      "waveform",
+      "media",
+      "visuals"
+    ]
+  },
+  {
+    "name": "DJ Fader Slider",
+    "path": "./[CSS]/categories/media-and-audio-visuals/dj-fader-slider.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🎧",
+    "keywords": [
+      "fader",
+      "slider",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Equalizer Preset Selector",
+    "path": "./[CSS]/categories/media-and-audio-visuals/equalizer-preset-selector.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🎛️",
+    "keywords": [
+      "equalizer",
+      "preset",
+      "selector",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Equalizer Hover React",
+    "path": "./[CSS]/categories/media-and-audio-visuals/equalizer-hover-react.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "equalizer",
+      "hover",
+      "react",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Audio Spectrum Circular",
+    "path": "./[CSS]/categories/media-and-audio-visuals/audio-spectrum-circular.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🔘",
+    "keywords": [
+      "audio",
+      "spectrum",
+      "circular",
+      "media",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Audio File Waveform",
+    "path": "./[CSS]/categories/media-and-audio-visuals/audio-file-waveform.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "〰️",
+    "keywords": [
+      "audio",
+      "file",
+      "waveform",
+      "media",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Audio Level Dot Matrix",
+    "path": "./[CSS]/categories/media-and-audio-visuals/audio-level-dot-matrix.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "⬛",
+    "keywords": [
+      "audio",
+      "level",
+      "dot",
+      "matrix",
+      "media",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Audio Waveform Scratch",
+    "path": "./[CSS]/categories/media-and-audio-visuals/audio-waveform-scratch.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🎸",
+    "keywords": [
+      "audio",
+      "waveform",
+      "scratch",
+      "media",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Circular Waveform Ring",
+    "path": "./[CSS]/categories/media-and-audio-visuals/circular-waveform-ring.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "⭕",
+    "keywords": [
+      "circular",
+      "waveform",
+      "ring",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Spectral Equalizer Bars",
+    "path": "./[CSS]/categories/media-and-audio-visuals/spectral-equalizer-bars.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "📶",
+    "keywords": [
+      "spectral",
+      "equalizer",
+      "bars",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Mini Visualizer Inline",
+    "path": "./[CSS]/categories/media-and-audio-visuals/mini-visualizer-inline.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🔊",
+    "keywords": [
+      "mini",
+      "visualizer",
+      "inline",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Visualizer Bar Wall",
+    "path": "./[CSS]/categories/media-and-audio-visuals/visualizer-bar-wall.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🧱",
+    "keywords": [
+      "visualizer",
+      "bar",
+      "wall",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Spectrum Ring Avatar",
+    "path": "./[CSS]/categories/media-and-audio-visuals/spectrum-ring-avatar.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "👤",
+    "keywords": [
+      "spectrum",
+      "ring",
+      "avatar",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Beat Synced Pulse",
+    "path": "./[CSS]/categories/media-and-audio-visuals/beat-synced-pulse.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "💓",
+    "keywords": [
+      "beat",
+      "synced",
+      "pulse",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Neon Volume Knob",
+    "path": "./[CSS]/categories/media-and-audio-visuals/neon-volume-knob.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🎛️",
+    "keywords": [
+      "neon",
+      "volume",
+      "knob",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Volume Slider Wave Reaction",
+    "path": "./[CSS]/categories/media-and-audio-visuals/volume-slider-wave-reaction.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🌊",
+    "keywords": [
+      "volume",
+      "slider",
+      "wave",
+      "reaction",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Mute Button Cross Out",
+    "path": "./[CSS]/categories/media-and-audio-visuals/mute-button-cross-out.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🔇",
+    "keywords": [
+      "mute",
+      "button",
+      "cross",
+      "out",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Track Progress Glow Trail",
+    "path": "./[CSS]/categories/media-and-audio-visuals/track-progress-glow-trail.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "✨",
+    "keywords": [
+      "track",
+      "progress",
+      "glow",
+      "trail",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Track Waveform Color Fill",
+    "path": "./[CSS]/categories/media-and-audio-visuals/track-waveform-color-fill.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "track",
+      "waveform",
+      "color",
+      "fill",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Waveform Progress Sync",
+    "path": "./[CSS]/categories/media-and-audio-visuals/waveform-progress-sync.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "waveform",
+      "progress",
+      "sync",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Waveform Line Glow Sweep",
+    "path": "./[CSS]/categories/media-and-audio-visuals/waveform-line-glow-sweep.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "💡",
+    "keywords": [
+      "waveform",
+      "line",
+      "glow",
+      "sweep",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Track Duration Countdown",
+    "path": "./[CSS]/categories/media-and-audio-visuals/track-duration-countdown.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "⏳",
+    "keywords": [
+      "track",
+      "duration",
+      "countdown",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Play Button Radiating Rings",
+    "path": "./[CSS]/categories/media-and-audio-visuals/play-button-radiating-rings.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "▶️",
+    "keywords": [
+      "play",
+      "button",
+      "radiating",
+      "rings",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Playback Speed Dial",
+    "path": "./[CSS]/categories/media-and-audio-visuals/playback-speed-dial.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "⏩",
+    "keywords": [
+      "playback",
+      "speed",
+      "dial",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Playback Quality Toggle",
+    "path": "./[CSS]/categories/media-and-audio-visuals/playback-quality-toggle.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🎞️",
+    "keywords": [
+      "playback",
+      "quality",
+      "toggle",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Repeat Mode Toggle",
+    "path": "./[CSS]/categories/media-and-audio-visuals/repeat-mode-toggle.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🔁",
+    "keywords": [
+      "repeat",
+      "mode",
+      "toggle",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Shuffle Mode Toggle",
+    "path": "./[CSS]/categories/media-and-audio-visuals/shuffle-mode-toggle.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🔀",
+    "keywords": [
+      "shuffle",
+      "mode",
+      "toggle",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Fullscreen Ripple Expand",
+    "path": "./[CSS]/categories/media-and-audio-visuals/fullscreen-ripple-expand.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "⛶",
+    "keywords": [
+      "fullscreen",
+      "ripple",
+      "expand",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Picture-in-Picture Popout",
+    "path": "./[CSS]/categories/media-and-audio-visuals/picture-in-picture-popout.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "📺",
+    "keywords": [
+      "picture",
+      "popout",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Airplay Cast Button",
+    "path": "./[CSS]/categories/media-and-audio-visuals/airplay-cast-button.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "📡",
+    "keywords": [
+      "airplay",
+      "cast",
+      "button",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Album Art Parallax",
+    "path": "./[CSS]/categories/media-and-audio-visuals/album-art-parallax.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🖼️",
+    "keywords": [
+      "album",
+      "art",
+      "parallax",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Album Art Spin Hover",
+    "path": "./[CSS]/categories/media-and-audio-visuals/album-art-spin-hover.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "💿",
+    "keywords": [
+      "album",
+      "art",
+      "spin",
+      "hover",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Album Cover Shine Sweep",
+    "path": "./[CSS]/categories/media-and-audio-visuals/album-cover-shine-sweep.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "✨",
+    "keywords": [
+      "album",
+      "cover",
+      "shine",
+      "sweep",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Album Stack Fanning",
+    "path": "./[CSS]/categories/media-and-audio-visuals/album-stack-fanning.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "📚",
+    "keywords": [
+      "album",
+      "stack",
+      "fanning",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Rotating 3D Album Card",
+    "path": "./[CSS]/categories/media-and-audio-visuals/rotating-3d-album-card.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🎴",
+    "keywords": [
+      "rotating",
+      "album",
+      "card",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Vinyl Record Wobble",
+    "path": "./[CSS]/categories/media-and-audio-visuals/vinyl-record-wobble.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "📀",
+    "keywords": [
+      "vinyl",
+      "record",
+      "wobble",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Vinyl Scratch Effect",
+    "path": "./[CSS]/categories/media-and-audio-visuals/vinyl-scratch-effect.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🎵",
+    "keywords": [
+      "vinyl",
+      "scratch",
+      "effect",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Turntable Tonearm Hover",
+    "path": "./[CSS]/categories/media-and-audio-visuals/turntable-tonearm-hover.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🎚️",
+    "keywords": [
+      "turntable",
+      "tonearm",
+      "hover",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Cassette Reel Spin",
+    "path": "./[CSS]/categories/media-and-audio-visuals/cassette-reel-spin.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "📼",
+    "keywords": [
+      "cassette",
+      "reel",
+      "spin",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Cassette Ribbon Wiggle",
+    "path": "./[CSS]/categories/media-and-audio-visuals/cassette-ribbon-wiggle.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🎞️",
+    "keywords": [
+      "cassette",
+      "ribbon",
+      "wiggle",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Speaker Cone Vibration",
+    "path": "./[CSS]/categories/media-and-audio-visuals/speaker-cone-vibration.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🔈",
+    "keywords": [
+      "speaker",
+      "cone",
+      "vibration",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Playlist Drag Drop",
+    "path": "./[CSS]/categories/media-and-audio-visuals/playlist-drag-drop.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "playlist",
+      "drag",
+      "drop",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Playlist Reorder Wiggle",
+    "path": "./[CSS]/categories/media-and-audio-visuals/playlist-reorder-wiggle.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "↕️",
+    "keywords": [
+      "playlist",
+      "reorder",
+      "wiggle",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Track List Hover Sweep",
+    "path": "./[CSS]/categories/media-and-audio-visuals/track-list-hover-sweep.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "📃",
+    "keywords": [
+      "track",
+      "list",
+      "hover",
+      "sweep",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Media Queue Visualizer",
+    "path": "./[CSS]/categories/media-and-audio-visuals/media-queue-visualizer.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "media",
+      "queue",
+      "visualizer",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Genre Tag Pulse",
+    "path": "./[CSS]/categories/media-and-audio-visuals/genre-tag-pulse.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🏷️",
+    "keywords": [
+      "genre",
+      "tag",
+      "pulse",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Lyrics Sync Highlight",
+    "path": "./[CSS]/categories/media-and-audio-visuals/lyrics-sync-highlight.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🎤",
+    "keywords": [
+      "lyrics",
+      "sync",
+      "highlight",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Now Playing Marquee",
+    "path": "./[CSS]/categories/media-and-audio-visuals/now-playing-marquee.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "📢",
+    "keywords": [
+      "now",
+      "playing",
+      "marquee",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Now Playing Text Pulse",
+    "path": "./[CSS]/categories/media-and-audio-visuals/now-playing-text-pulse.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "💫",
+    "keywords": [
+      "now",
+      "playing",
+      "text",
+      "pulse",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Live Indicator Pulse",
+    "path": "./[CSS]/categories/media-and-audio-visuals/live-indicator-pulse.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🔴",
+    "keywords": [
+      "live",
+      "indicator",
+      "pulse",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Live Stream Badge",
+    "path": "./[CSS]/categories/media-and-audio-visuals/live-stream-badge.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "📡",
+    "keywords": [
+      "live",
+      "stream",
+      "badge",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Podcast Mic Pulse",
+    "path": "./[CSS]/categories/media-and-audio-visuals/podcast-mic-pulse.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🎙️",
+    "keywords": [
+      "podcast",
+      "mic",
+      "pulse",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Buffer Spinner Morph",
+    "path": "./[CSS]/categories/media-and-audio-visuals/buffer-spinner-morph.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "⏳",
+    "keywords": [
+      "buffer",
+      "spinner",
+      "morph",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Download Progress Ring",
+    "path": "./[CSS]/categories/media-and-audio-visuals/download-progress-ring.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "⬇️",
+    "keywords": [
+      "download",
+      "progress",
+      "ring",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Image Lightbox Zoom",
+    "path": "./[CSS]/categories/media-and-audio-visuals/image-lightbox-zoom.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🔍",
+    "keywords": [
+      "image",
+      "lightbox",
+      "zoom",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Before After Slider",
+    "path": "./[CSS]/categories/media-and-audio-visuals/before-after-slider.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "↔️",
+    "keywords": [
+      "before",
+      "after",
+      "slider",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "360 Product Spin",
+    "path": "./[CSS]/categories/media-and-audio-visuals/360-product-spin.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "360",
+      "product",
+      "spin",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Media Thumbnail Hover",
+    "path": "./[CSS]/categories/media-and-audio-visuals/media-thumbnail-hover.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "🖼️",
+    "keywords": [
+      "media",
+      "thumbnail",
+      "hover",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Like Heart Explosion",
+    "path": "./[CSS]/categories/media-and-audio-visuals/like-heart-explosion.html",
+    "category": "Media & Audio Visuals",
+    "library": "CSS",
+    "icon": "💖",
+    "keywords": [
+      "like",
+      "heart",
+      "explosion",
+      "media",
+      "audio",
+      "visuals"
+    ]
+  },
+  {
+    "name": "Modal Dialog",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/modal-dialog.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🪟",
+    "keywords": [
+      "modal",
+      "dialog",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Confirmation Dialog",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/confirmation-dialog.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "✅",
+    "keywords": [
+      "confirmation",
+      "dialog",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Delete Confirmation Alert",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/delete-confirmation-alert.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🗑️",
+    "keywords": [
+      "delete",
+      "confirmation",
+      "alert",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Error Warning Dialog",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/error-warning-dialog.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "⚠️",
+    "keywords": [
+      "error",
+      "warning",
+      "dialog",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Unsaved Changes Warning",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/unsaved-changes-warning.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "💾",
+    "keywords": [
+      "unsaved",
+      "changes",
+      "warning",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Popover",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/popover.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "💬",
+    "keywords": [
+      "popover",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Tooltip",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/tooltip.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "💡",
+    "keywords": [
+      "tooltip",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Info Tooltip Popup",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/info-tooltip-popup.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "ℹ️",
+    "keywords": [
+      "info",
+      "tooltip",
+      "popup",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Context Menu",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/context-menu.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "context",
+      "menu",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "User Profile Popup",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/user-profile-popup.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "👤",
+    "keywords": [
+      "user",
+      "profile",
+      "popup",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Language Switcher Popup",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/language-switcher-popup.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🌐",
+    "keywords": [
+      "language",
+      "switcher",
+      "popup",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Drawer",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/drawer.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "📥",
+    "keywords": [
+      "drawer",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Bottom Sheet",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/bottom-sheet.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "📄",
+    "keywords": [
+      "bottom",
+      "sheet",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Mobile Menu Drawer",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/mobile-menu-drawer.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "📱",
+    "keywords": [
+      "mobile",
+      "menu",
+      "drawer",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Filter Options Drawer",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/filter-options-drawer.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🔍",
+    "keywords": [
+      "filter",
+      "options",
+      "drawer",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Shopping Cart Sidebar",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/shopping-cart-sidebar.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🛒",
+    "keywords": [
+      "shopping",
+      "cart",
+      "sidebar",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Notification Center Panel",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/notification-center-panel.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🔔",
+    "keywords": [
+      "notification",
+      "center",
+      "panel",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Settings Panel Overlay",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/settings-panel-overlay.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "⚙️",
+    "keywords": [
+      "settings",
+      "panel",
+      "overlay",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Toast Notification",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/toast-notification.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🍞",
+    "keywords": [
+      "toast",
+      "notification",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Alert Notification Modal",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/alert-notification-modal.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🚨",
+    "keywords": [
+      "alert",
+      "notification",
+      "modal",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Success Message Popup",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/success-message-popup.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "✅",
+    "keywords": [
+      "success",
+      "message",
+      "popup",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Desktop Notification Permission",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/desktop-notification-permission.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🔕",
+    "keywords": [
+      "desktop",
+      "notification",
+      "permission",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Feedback Form Popup",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/feedback-form-popup.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "📝",
+    "keywords": [
+      "feedback",
+      "form",
+      "popup",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Newsletter Signup Modal",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/newsletter-signup-modal.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "📧",
+    "keywords": [
+      "newsletter",
+      "signup",
+      "modal",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Lead Capture Modal",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/lead-capture-modal.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🎯",
+    "keywords": [
+      "lead",
+      "capture",
+      "modal",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Survey Feedback Modal",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/survey-feedback-modal.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "survey",
+      "feedback",
+      "modal",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Referral Invite Popup",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/referral-invite-popup.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "👥",
+    "keywords": [
+      "referral",
+      "invite",
+      "popup",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Calendar Picker Modal",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/calendar-picker-modal.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "📅",
+    "keywords": [
+      "calendar",
+      "picker",
+      "modal",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Color Picker Popup",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/color-picker-popup.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "color",
+      "picker",
+      "popup",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Emoji Selector Overlay",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/emoji-selector-overlay.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "😀",
+    "keywords": [
+      "emoji",
+      "selector",
+      "overlay",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Country Selector Modal",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/country-selector-modal.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🌍",
+    "keywords": [
+      "country",
+      "selector",
+      "modal",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Time Zone Picker",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/time-zone-picker.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🕐",
+    "keywords": [
+      "time",
+      "zone",
+      "picker",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Currency Converter Modal",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/currency-converter-modal.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "💱",
+    "keywords": [
+      "currency",
+      "converter",
+      "modal",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Image Lightbox Overlay",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/image-lightbox-overlay.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🖼️",
+    "keywords": [
+      "image",
+      "lightbox",
+      "overlay",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Video Player Modal",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/video-player-modal.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🎬",
+    "keywords": [
+      "video",
+      "player",
+      "modal",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Quick View Product Modal",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/quick-view-product-modal.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "👁️",
+    "keywords": [
+      "quick",
+      "view",
+      "product",
+      "modal",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Comparison Table Overlay",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/comparison-table-overlay.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "comparison",
+      "table",
+      "overlay",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Share Social Modal",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/share-social-modal.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "📤",
+    "keywords": [
+      "share",
+      "social",
+      "modal",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Full Page Search Modal",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/full-page-search-modal.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🔎",
+    "keywords": [
+      "full",
+      "page",
+      "search",
+      "modal",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Command Palette",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/command-palette.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "⌨️",
+    "keywords": [
+      "command",
+      "palette",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Help Documentation Modal",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/help-documentation-modal.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "📚",
+    "keywords": [
+      "help",
+      "documentation",
+      "modal",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Cookie Consent Banner",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/cookie-consent-banner.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🍪",
+    "keywords": [
+      "cookie",
+      "consent",
+      "banner",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "GDPR Compliance Banner",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/gdpr-compliance-banner.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🔐",
+    "keywords": [
+      "gdpr",
+      "compliance",
+      "banner",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Terms & Conditions Popup",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/terms-conditions-popup.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "📜",
+    "keywords": [
+      "terms",
+      "conditions",
+      "popup",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Age Gate Overlay",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/age-gate-overlay.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🔞",
+    "keywords": [
+      "age",
+      "gate",
+      "overlay",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Session Expired Modal",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/session-expired-modal.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "⏱️",
+    "keywords": [
+      "session",
+      "expired",
+      "modal",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Loading Screen Overlay",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/loading-screen-overlay.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "⏳",
+    "keywords": [
+      "loading",
+      "screen",
+      "overlay",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Maintenance Mode Overlay",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/maintenance-mode-overlay.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🔧",
+    "keywords": [
+      "maintenance",
+      "mode",
+      "overlay",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Offline Mode Banner",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/offline-mode-banner.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "📵",
+    "keywords": [
+      "offline",
+      "mode",
+      "banner",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Exit Intent Popup",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/exit-intent-popup.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🚪",
+    "keywords": [
+      "exit",
+      "intent",
+      "popup",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Upgrade Plan Popup",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/upgrade-plan-popup.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "⬆️",
+    "keywords": [
+      "upgrade",
+      "plan",
+      "popup",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Feature Locked Modal",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/feature-locked-modal.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "🔒",
+    "keywords": [
+      "feature",
+      "locked",
+      "modal",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "App Download Prompt",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/app-download-prompt.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "📲",
+    "keywords": [
+      "app",
+      "download",
+      "prompt",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Export Download Dialog",
+    "path": "./[CSS]/categories/modals-popups-and-overlays/export-download-dialog.html",
+    "category": "Modals Popups & Overlays",
+    "library": "CSS",
+    "icon": "📥",
+    "keywords": [
+      "export",
+      "download",
+      "dialog",
+      "modals",
+      "popups",
+      "overlays"
+    ]
+  },
+  {
+    "name": "Accordion Control",
+    "path": "./[CSS]/categories/navigation-and-menus/accordion-control.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "📁",
+    "keywords": [
+      "accordion",
+      "control",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Circular Radial Menu",
+    "path": "./[CSS]/categories/navigation-and-menus/circular-radial-menu.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "⭕",
+    "keywords": [
+      "circular",
+      "radial",
+      "menu",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Circular Flyout Menu Trigger",
+    "path": "./[CSS]/categories/navigation-and-menus/circular-flyout-menu-trigger.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🔘",
+    "keywords": [
+      "circular",
+      "flyout",
+      "menu",
+      "trigger",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Context Menu Right-Click",
+    "path": "./[CSS]/categories/navigation-and-menus/context-menu-right-click.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🖱️",
+    "keywords": [
+      "context",
+      "menu",
+      "right",
+      "click",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Floating Action Button Menu",
+    "path": "./[CSS]/categories/navigation-and-menus/floating-action-button-menu.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "➕",
+    "keywords": [
+      "floating",
+      "action",
+      "button",
+      "menu",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Floating Dock Expands on Hover",
+    "path": "./[CSS]/categories/navigation-and-menus/floating-dock-expands-on-hover.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🚀",
+    "keywords": [
+      "floating",
+      "dock",
+      "expands",
+      "hover",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Fullscreen Overlay Menu",
+    "path": "./[CSS]/categories/navigation-and-menus/fullscreen-overlay-menu-staggered-links.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🖥️",
+    "keywords": [
+      "fullscreen",
+      "overlay",
+      "menu",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Mega Menu Curtain Drop",
+    "path": "./[CSS]/categories/navigation-and-menus/mega-menu-curtain-drop.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🎭",
+    "keywords": [
+      "mega",
+      "menu",
+      "curtain",
+      "drop",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Submenu Dropdown Slide Fade",
+    "path": "./[CSS]/categories/navigation-and-menus/submenu-dropdown-slide-fade.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "📂",
+    "keywords": [
+      "submenu",
+      "dropdown",
+      "slide",
+      "fade",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Mobile Menu Slide-In Panel",
+    "path": "./[CSS]/categories/navigation-and-menus/mobile-menu-slide-in-panel.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "📱",
+    "keywords": [
+      "mobile",
+      "menu",
+      "slide",
+      "panel",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Gesture Swipe Nav Mobile",
+    "path": "./[CSS]/categories/navigation-and-menus/gesture-swipe-nav-mobile.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "👆",
+    "keywords": [
+      "gesture",
+      "swipe",
+      "nav",
+      "mobile",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Morphing Hamburger Close Icon",
+    "path": "./[CSS]/categories/navigation-and-menus/morphing-hamburger-close-icon.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "☰",
+    "keywords": [
+      "morphing",
+      "hamburger",
+      "close",
+      "icon",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Glassy Bottom Tab Bar",
+    "path": "./[CSS]/categories/navigation-and-menus/glassy-bottom-tab-bar.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🔮",
+    "keywords": [
+      "glassy",
+      "bottom",
+      "tab",
+      "bar",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Breadcrumb Navigation",
+    "path": "./[CSS]/categories/navigation-and-menus/breadcrumb-navigation.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🍞",
+    "keywords": [
+      "breadcrumb",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Breadcrumb Trail Fade-In",
+    "path": "./[CSS]/categories/navigation-and-menus/breadcrumb-trail-fade-in.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "📍",
+    "keywords": [
+      "breadcrumb",
+      "trail",
+      "fade",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Breadcrumb Collapse Ellipsis",
+    "path": "./[CSS]/categories/navigation-and-menus/breadcrumb-collapse-ellipsis.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "...",
+    "keywords": [
+      "breadcrumb",
+      "collapse",
+      "ellipsis",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Hover Glow Nav Link",
+    "path": "./[CSS]/categories/navigation-and-menus/hover-glow-nav-link.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "✨",
+    "keywords": [
+      "hover",
+      "glow",
+      "nav",
+      "link",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Animated Underline Highlighter",
+    "path": "./[CSS]/categories/navigation-and-menus/animated-underline-highlighter.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "_",
+    "keywords": [
+      "animated",
+      "underline",
+      "highlighter",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Sliding Neon Bar Under Nav",
+    "path": "./[CSS]/categories/navigation-and-menus/sliding-neon-bar-under-nav.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "⬛",
+    "keywords": [
+      "sliding",
+      "neon",
+      "bar",
+      "under",
+      "nav",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Active Route Beam Indicator",
+    "path": "./[CSS]/categories/navigation-and-menus/active-route-beam-indicator.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "📶",
+    "keywords": [
+      "active",
+      "route",
+      "beam",
+      "indicator",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Active Nav Neon Corner Brackets",
+    "path": "./[CSS]/categories/navigation-and-menus/active-nav-neon-corner-brackets.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "[ ]",
+    "keywords": [
+      "active",
+      "nav",
+      "neon",
+      "corner",
+      "brackets",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Nav Item Background Ripple Hover",
+    "path": "./[CSS]/categories/navigation-and-menus/nav-item-background-ripple-hover.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🌊",
+    "keywords": [
+      "nav",
+      "item",
+      "background",
+      "ripple",
+      "hover",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Nav Item Scale Up Glow on Active",
+    "path": "./[CSS]/categories/navigation-and-menus/nav-item-scale-up-glow-on-active.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🔆",
+    "keywords": [
+      "nav",
+      "item",
+      "scale",
+      "glow",
+      "active",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Nav Icon Bounce Active Route",
+    "path": "./[CSS]/categories/navigation-and-menus/nav-icon-bounce-active-route.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "⬆️",
+    "keywords": [
+      "nav",
+      "icon",
+      "bounce",
+      "active",
+      "route",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Scroll Progress Top Bar",
+    "path": "./[CSS]/categories/navigation-and-menus/scroll-progress-top-bar.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "scroll",
+      "progress",
+      "top",
+      "bar",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Scroll Spy Pill Tracker",
+    "path": "./[CSS]/categories/navigation-and-menus/scroll-spy-pill-tracker.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "👁️",
+    "keywords": [
+      "scroll",
+      "spy",
+      "pill",
+      "tracker",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Section Dot Nav with Active Pulse",
+    "path": "./[CSS]/categories/navigation-and-menus/section-dot-nav-with-active-pulse.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "●",
+    "keywords": [
+      "section",
+      "dot",
+      "nav",
+      "with",
+      "active",
+      "pulse",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Step Progress Indicator",
+    "path": "./[CSS]/categories/navigation-and-menus/step-progress-indicator.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "📈",
+    "keywords": [
+      "step",
+      "progress",
+      "indicator",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Pagination Control",
+    "path": "./[CSS]/categories/navigation-and-menus/pagination-control.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "⏩",
+    "keywords": [
+      "pagination",
+      "control",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Pagination Dots Slider",
+    "path": "./[CSS]/categories/navigation-and-menus/pagination-dots-slider.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "○○○",
+    "keywords": [
+      "pagination",
+      "dots",
+      "slider",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Back to Top Rocket Button",
+    "path": "./[CSS]/categories/navigation-and-menus/back-to-top-rocket-button.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🚀",
+    "keywords": [
+      "back",
+      "top",
+      "rocket",
+      "button",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Notification Bell Icon Badge",
+    "path": "./[CSS]/categories/navigation-and-menus/notification-bell-icon-badge.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🔔",
+    "keywords": [
+      "notification",
+      "bell",
+      "icon",
+      "badge",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Sticky Bottom Action Bar",
+    "path": "./[CSS]/categories/navigation-and-menus/sticky-bottom-action-bar.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "⬇️",
+    "keywords": [
+      "sticky",
+      "bottom",
+      "action",
+      "bar",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Sticky Section Label Floating",
+    "path": "./[CSS]/categories/navigation-and-menus/sticky-section-label-floating.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "📌",
+    "keywords": [
+      "sticky",
+      "section",
+      "label",
+      "floating",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Quick Jump Mini Menu",
+    "path": "./[CSS]/categories/navigation-and-menus/quick-jump-mini-menu-scroll-depth.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "⚡",
+    "keywords": [
+      "quick",
+      "jump",
+      "mini",
+      "menu",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Cyberpunk Navbar",
+    "path": "./[CSS]/categories/navigation-and-menus/cyberpunk-navbar.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🎮",
+    "keywords": [
+      "cyberpunk",
+      "navbar",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Top Nav Bar",
+    "path": "./[CSS]/categories/navigation-and-menus/top-nav-bar.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "📏",
+    "keywords": [
+      "top",
+      "nav",
+      "bar",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Auto Hide Nav on Scroll",
+    "path": "./[CSS]/categories/navigation-and-menus/auto-hide-nav-on-scroll.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "👆",
+    "keywords": [
+      "auto",
+      "hide",
+      "nav",
+      "scroll",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Nav Background Blur on Scroll",
+    "path": "./[CSS]/categories/navigation-and-menus/nav-background-blur-on-scroll.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🌫️",
+    "keywords": [
+      "nav",
+      "background",
+      "blur",
+      "scroll",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Sticky Nav Fade-In on Scroll",
+    "path": "./[CSS]/categories/navigation-and-menus/sticky-nav-fade-in-on-scroll.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "👻",
+    "keywords": [
+      "sticky",
+      "nav",
+      "fade",
+      "scroll",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Compact Collapsing Nav",
+    "path": "./[CSS]/categories/navigation-and-menus/compact-collapsing-nav-narrow-width.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "📐",
+    "keywords": [
+      "compact",
+      "collapsing",
+      "nav",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Split Navigation Dual Bar",
+    "path": "./[CSS]/categories/navigation-and-menus/split-navigation-dual-bar.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "⚖️",
+    "keywords": [
+      "split",
+      "navigation",
+      "dual",
+      "bar",
+      "menus"
+    ]
+  },
+  {
+    "name": "Logo Shrink Stick Scroll",
+    "path": "./[CSS]/categories/navigation-and-menus/logo-shrink-stick-scroll.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🏷️",
+    "keywords": [
+      "logo",
+      "shrink",
+      "stick",
+      "scroll",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Side Rail Nav Vertical Beam",
+    "path": "./[CSS]/categories/navigation-and-menus/side-rail-nav-vertical-beam.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "side",
+      "rail",
+      "nav",
+      "vertical",
+      "beam",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Elastic Sidebar Pull-Out",
+    "path": "./[CSS]/categories/navigation-and-menus/elastic-sidebar-pull-out.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "↔️",
+    "keywords": [
+      "elastic",
+      "sidebar",
+      "pull",
+      "out",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Icon Only Dock Nav with Hover Labels",
+    "path": "./[CSS]/categories/navigation-and-menus/icon-only-dock-nav-with-hover-labels.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🖱️",
+    "keywords": [
+      "icon",
+      "only",
+      "dock",
+      "nav",
+      "with",
+      "hover",
+      "labels",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Vertical Accordion Nav Menu",
+    "path": "./[CSS]/categories/navigation-and-menus/vertical-accordion-nav-menu.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "vertical",
+      "accordion",
+      "nav",
+      "menu",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Search Bar Expand from Icon",
+    "path": "./[CSS]/categories/navigation-and-menus/search-bar-expand-from-icon.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🔍",
+    "keywords": [
+      "search",
+      "bar",
+      "expand",
+      "from",
+      "icon",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Enhanced Search Bar Expand",
+    "path": "./[CSS]/categories/navigation-and-menus/enhanced-search-bar-expand-from-icon.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🔎",
+    "keywords": [
+      "enhanced",
+      "search",
+      "bar",
+      "expand",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Command Palette Search",
+    "path": "./[CSS]/categories/navigation-and-menus/command-palette-search.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "⌘",
+    "keywords": [
+      "command",
+      "palette",
+      "search",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Enhanced Command Palette",
+    "path": "./[CSS]/categories/navigation-and-menus/enhanced-command-palette-search.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "⌨️",
+    "keywords": [
+      "enhanced",
+      "command",
+      "palette",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Tabs Pill Style",
+    "path": "./[CSS]/categories/navigation-and-menus/tabs-pill-style.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "💊",
+    "keywords": [
+      "tabs",
+      "pill",
+      "style",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Tabs Underline Style",
+    "path": "./[CSS]/categories/navigation-and-menus/tabs-underline-style.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "➖",
+    "keywords": [
+      "tabs",
+      "underline",
+      "style",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Neon Tabs",
+    "path": "./[CSS]/categories/navigation-and-menus/neon-tabs.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "💡",
+    "keywords": [
+      "neon",
+      "tabs",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Tab Switcher Control",
+    "path": "./[CSS]/categories/navigation-and-menus/tab-switcher-control.html",
+    "category": "Navigation & Menus",
+    "library": "CSS",
+    "icon": "🔀",
+    "keywords": [
+      "tab",
+      "switcher",
+      "control",
+      "navigation",
+      "menus"
+    ]
+  },
+  {
+    "name": "Welcome Screen",
+    "path": "./[CSS]/categories/onboarding-and-user-education/welcome-screen.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🎉",
+    "keywords": [
+      "welcome",
+      "screen",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Welcome Banner",
+    "path": "./[CSS]/categories/onboarding-and-user-education/welcome-banner.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🏷️",
+    "keywords": [
+      "welcome",
+      "banner",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "First Time User Prompt",
+    "path": "./[CSS]/categories/onboarding-and-user-education/first-time-user-prompt.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "👤",
+    "keywords": [
+      "first",
+      "time",
+      "user",
+      "prompt",
+      "onboarding",
+      "education"
+    ]
+  },
+  {
+    "name": "Guided Setup Flow",
+    "path": "./[CSS]/categories/onboarding-and-user-education/guided-setup-flow.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "⚙️",
+    "keywords": [
+      "guided",
+      "setup",
+      "flow",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Profile Setup Wizard",
+    "path": "./[CSS]/categories/onboarding-and-user-education/profile-setup-wizard.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "👤",
+    "keywords": [
+      "profile",
+      "setup",
+      "wizard",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "User Preference Survey",
+    "path": "./[CSS]/categories/onboarding-and-user-education/user-preference-survey.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "user",
+      "preference",
+      "survey",
+      "onboarding",
+      "education"
+    ]
+  },
+  {
+    "name": "Quick Start Guide",
+    "path": "./[CSS]/categories/onboarding-and-user-education/quick-start-guide.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🚀",
+    "keywords": [
+      "quick",
+      "start",
+      "guide",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Interactive Tour",
+    "path": "./[CSS]/categories/onboarding-and-user-education/interactive-tour.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🗺️",
+    "keywords": [
+      "interactive",
+      "tour",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Guided Tour Beacon",
+    "path": "./[CSS]/categories/onboarding-and-user-education/guided-tour-beacon.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "📍",
+    "keywords": [
+      "guided",
+      "tour",
+      "beacon",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Tour Walkthrough Spotlight",
+    "path": "./[CSS]/categories/onboarding-and-user-education/tour-walkthrough-spotlight.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🔦",
+    "keywords": [
+      "tour",
+      "walkthrough",
+      "spotlight",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Tutorial Spotlight",
+    "path": "./[CSS]/categories/onboarding-and-user-education/tutorial-spotlight.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "💡",
+    "keywords": [
+      "tutorial",
+      "spotlight",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Interactive Demo",
+    "path": "./[CSS]/categories/onboarding-and-user-education/interactive-demo.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🎮",
+    "keywords": [
+      "interactive",
+      "demo",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Walkthrough Overlay",
+    "path": "./[CSS]/categories/onboarding-and-user-education/walkthrough-overlay.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🎭",
+    "keywords": [
+      "walkthrough",
+      "overlay",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Interactive Hotspot",
+    "path": "./[CSS]/categories/onboarding-and-user-education/interactive-hotspot.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🎯",
+    "keywords": [
+      "interactive",
+      "hotspot",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Animated Step Wizard",
+    "path": "./[CSS]/categories/onboarding-and-user-education/animated-step-wizard.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "✨",
+    "keywords": [
+      "animated",
+      "step",
+      "wizard",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Onboarding Form Wizard",
+    "path": "./[CSS]/categories/onboarding-and-user-education/onboarding-form-wizard.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "📝",
+    "keywords": [
+      "onboarding",
+      "form",
+      "wizard",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Progress Stepper",
+    "path": "./[CSS]/categories/onboarding-and-user-education/progress-stepper.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "👣",
+    "keywords": [
+      "progress",
+      "stepper",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Guided Task Flow",
+    "path": "./[CSS]/categories/onboarding-and-user-education/guided-task-flow.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "guided",
+      "task",
+      "flow",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Onboarding Progress Tracker",
+    "path": "./[CSS]/categories/onboarding-and-user-education/onboarding-progress-tracker.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "📈",
+    "keywords": [
+      "onboarding",
+      "progress",
+      "tracker",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Tutorial Step Indicator",
+    "path": "./[CSS]/categories/onboarding-and-user-education/tutorial-step-indicator.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🔢",
+    "keywords": [
+      "tutorial",
+      "step",
+      "indicator",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Tutorial Progress Bar",
+    "path": "./[CSS]/categories/onboarding-and-user-education/tutorial-progress-bar.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "tutorial",
+      "progress",
+      "bar",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Learning Path Tracker",
+    "path": "./[CSS]/categories/onboarding-and-user-education/learning-path-tracker.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🛤️",
+    "keywords": [
+      "learning",
+      "path",
+      "tracker",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Tutorial Tooltip",
+    "path": "./[CSS]/categories/onboarding-and-user-education/tutorial-tooltip.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "💭",
+    "keywords": [
+      "tutorial",
+      "tooltip",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Tooltip Arrow Pointer",
+    "path": "./[CSS]/categories/onboarding-and-user-education/tooltip-arrow-pointer.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "👆",
+    "keywords": [
+      "tooltip",
+      "arrow",
+      "pointer",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Help Tip Bubble",
+    "path": "./[CSS]/categories/onboarding-and-user-education/help-tip-bubble.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "💡",
+    "keywords": [
+      "help",
+      "tip",
+      "bubble",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Keyboard Shortcut Hint",
+    "path": "./[CSS]/categories/onboarding-and-user-education/keyboard-shortcut-hint.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "⌨️",
+    "keywords": [
+      "keyboard",
+      "shortcut",
+      "hint",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Quick Tips Panel",
+    "path": "./[CSS]/categories/onboarding-and-user-education/quick-tips-panel.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "📌",
+    "keywords": [
+      "quick",
+      "tips",
+      "panel",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Help Center Widget",
+    "path": "./[CSS]/categories/onboarding-and-user-education/help-center-widget.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "❓",
+    "keywords": [
+      "help",
+      "center",
+      "widget",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Help Documentation Link",
+    "path": "./[CSS]/categories/onboarding-and-user-education/help-documentation-link.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "📄",
+    "keywords": [
+      "help",
+      "documentation",
+      "link",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Contextual Help Panel",
+    "path": "./[CSS]/categories/onboarding-and-user-education/contextual-help-panel.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🔍",
+    "keywords": [
+      "contextual",
+      "help",
+      "panel",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Onboarding Checklist",
+    "path": "./[CSS]/categories/onboarding-and-user-education/onboarding-checklist.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "☑️",
+    "keywords": [
+      "onboarding",
+      "checklist",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Tutorial Checklist Item",
+    "path": "./[CSS]/categories/onboarding-and-user-education/tutorial-checklist-item.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "✔️",
+    "keywords": [
+      "tutorial",
+      "checklist",
+      "item",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Tutorial Navigation",
+    "path": "./[CSS]/categories/onboarding-and-user-education/tutorial-navigation.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🧭",
+    "keywords": [
+      "tutorial",
+      "navigation",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Onboarding Video Player",
+    "path": "./[CSS]/categories/onboarding-and-user-education/onboarding-video-player.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "▶️",
+    "keywords": [
+      "onboarding",
+      "video",
+      "player",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Tutorial Video Card",
+    "path": "./[CSS]/categories/onboarding-and-user-education/tutorial-video-card.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🎥",
+    "keywords": [
+      "tutorial",
+      "video",
+      "card",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Tutorial Video Overlay",
+    "path": "./[CSS]/categories/onboarding-and-user-education/tutorial-video-overlay.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "📺",
+    "keywords": [
+      "tutorial",
+      "video",
+      "overlay",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Onboarding Slide Carousel",
+    "path": "./[CSS]/categories/onboarding-and-user-education/onboarding-slide-carousel.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🎠",
+    "keywords": [
+      "onboarding",
+      "slide",
+      "carousel",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Feature Highlight",
+    "path": "./[CSS]/categories/onboarding-and-user-education/feature-highlight.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "⭐",
+    "keywords": [
+      "feature",
+      "highlight",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Feature Announcement",
+    "path": "./[CSS]/categories/onboarding-and-user-education/feature-announcement.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "📢",
+    "keywords": [
+      "feature",
+      "announcement",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Feature Discovery Modal",
+    "path": "./[CSS]/categories/onboarding-and-user-education/feature-discovery-modal.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🔎",
+    "keywords": [
+      "feature",
+      "discovery",
+      "modal",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Feature Discovery Carousel",
+    "path": "./[CSS]/categories/onboarding-and-user-education/feature-discovery-carousel.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🎪",
+    "keywords": [
+      "feature",
+      "discovery",
+      "carousel",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Feature Teaser Card",
+    "path": "./[CSS]/categories/onboarding-and-user-education/feature-teaser-card.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🎁",
+    "keywords": [
+      "feature",
+      "teaser",
+      "card",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Feature Benefits List",
+    "path": "./[CSS]/categories/onboarding-and-user-education/feature-benefits-list.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "feature",
+      "benefits",
+      "list",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Feature Card Stack",
+    "path": "./[CSS]/categories/onboarding-and-user-education/feature-card-stack.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🃏",
+    "keywords": [
+      "feature",
+      "card",
+      "stack",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Feature Comparison Table",
+    "path": "./[CSS]/categories/onboarding-and-user-education/feature-comparison-table-duplicate.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "feature",
+      "comparison",
+      "table",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Onboarding Success Screen",
+    "path": "./[CSS]/categories/onboarding-and-user-education/onboarding-success-screen.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🎊",
+    "keywords": [
+      "onboarding",
+      "success",
+      "screen",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Tutorial Completion Badge",
+    "path": "./[CSS]/categories/onboarding-and-user-education/tutorial-completion-badge.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🏅",
+    "keywords": [
+      "tutorial",
+      "completion",
+      "badge",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Tutorial Restart Button",
+    "path": "./[CSS]/categories/onboarding-and-user-education/tutorial-restart-button.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "tutorial",
+      "restart",
+      "button",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Skip Tutorial Button",
+    "path": "./[CSS]/categories/onboarding-and-user-education/skip-tutorial-button.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "⏭️",
+    "keywords": [
+      "skip",
+      "tutorial",
+      "button",
+      "onboarding",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Onboarding Skip Modal",
+    "path": "./[CSS]/categories/onboarding-and-user-education/onboarding-skip-modal.html",
+    "category": "Onboarding & User Education",
+    "library": "CSS",
+    "icon": "⏩",
+    "keywords": [
+      "onboarding",
+      "skip",
+      "modal",
+      "user",
+      "education"
+    ]
+  },
+  {
+    "name": "Login Form",
+    "path": "./[CSS]/categories/security-auth-and-login/login-form.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🔑",
+    "keywords": [
+      "login",
+      "form",
+      "security",
+      "auth"
+    ]
+  },
+  {
+    "name": "Signup Form",
+    "path": "./[CSS]/categories/security-auth-and-login/signup-form.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "📝",
+    "keywords": [
+      "signup",
+      "form",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Reset Password Form",
+    "path": "./[CSS]/categories/security-auth-and-login/reset-password-form.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "reset",
+      "password",
+      "form",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Profile Settings Form",
+    "path": "./[CSS]/categories/security-auth-and-login/profile-settings-form.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "⚙️",
+    "keywords": [
+      "profile",
+      "settings",
+      "form",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Forgot Password Link",
+    "path": "./[CSS]/categories/security-auth-and-login/forgot-password-link.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "❓",
+    "keywords": [
+      "forgot",
+      "password",
+      "link",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Auth Layout",
+    "path": "./[CSS]/categories/security-auth-and-login/auth-layout.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "auth",
+      "layout",
+      "security",
+      "login"
+    ]
+  },
+  {
+    "name": "SMS Code Input",
+    "path": "./[CSS]/categories/security-auth-and-login/sms-code-input.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "💬",
+    "keywords": [
+      "sms",
+      "code",
+      "input",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "PIN Code Entry",
+    "path": "./[CSS]/categories/security-auth-and-login/pin-code-entry.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🔢",
+    "keywords": [
+      "pin",
+      "code",
+      "entry",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Email Verification Card",
+    "path": "./[CSS]/categories/security-auth-and-login/email-verification-card.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "📧",
+    "keywords": [
+      "email",
+      "verification",
+      "card",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Magic Link Sent",
+    "path": "./[CSS]/categories/security-auth-and-login/magic-link-sent.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "✨",
+    "keywords": [
+      "magic",
+      "link",
+      "sent",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Backup Codes Display",
+    "path": "./[CSS]/categories/security-auth-and-login/backup-codes-display.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🔐",
+    "keywords": [
+      "backup",
+      "codes",
+      "display",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Face ID Verification",
+    "path": "./[CSS]/categories/security-auth-and-login/face-id-verification.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "👤",
+    "keywords": [
+      "face",
+      "verification",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Fingerprint Scanner Animation",
+    "path": "./[CSS]/categories/security-auth-and-login/fingerprint-scanner-animation.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "👆",
+    "keywords": [
+      "fingerprint",
+      "scanner",
+      "animation",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Biometric Auth Scanner",
+    "path": "./[CSS]/categories/security-auth-and-login/biometric-auth-scanner.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🔍",
+    "keywords": [
+      "biometric",
+      "auth",
+      "scanner",
+      "security",
+      "login"
+    ]
+  },
+  {
+    "name": "Login Activity Log",
+    "path": "./[CSS]/categories/security-auth-and-login/login-activity-log.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "login",
+      "activity",
+      "log",
+      "security",
+      "auth"
+    ]
+  },
+  {
+    "name": "Login Attempt Limiter",
+    "path": "./[CSS]/categories/security-auth-and-login/login-attempt-limiter.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "⏱️",
+    "keywords": [
+      "login",
+      "attempt",
+      "limiter",
+      "security",
+      "auth"
+    ]
+  },
+  {
+    "name": "Suspicious Activity Alert",
+    "path": "./[CSS]/categories/security-auth-and-login/suspicious-activity-alert.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "⚠️",
+    "keywords": [
+      "suspicious",
+      "activity",
+      "alert",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Data Breach Notification",
+    "path": "./[CSS]/categories/security-auth-and-login/data-breach-notification.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🚨",
+    "keywords": [
+      "data",
+      "breach",
+      "notification",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Rate Limit Exceeded",
+    "path": "./[CSS]/categories/security-auth-and-login/rate-limit-exceeded.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🛑",
+    "keywords": [
+      "rate",
+      "limit",
+      "exceeded",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Password Expiry Notice",
+    "path": "./[CSS]/categories/security-auth-and-login/password-expiry-notice.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "⏰",
+    "keywords": [
+      "password",
+      "expiry",
+      "notice",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Device Authorization List",
+    "path": "./[CSS]/categories/security-auth-and-login/device-authorization-list.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "📱",
+    "keywords": [
+      "device",
+      "authorization",
+      "list",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Devices Sessions List",
+    "path": "./[CSS]/categories/security-auth-and-login/devices-sessions-list.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "devices",
+      "sessions",
+      "list",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Trusted Devices Manager",
+    "path": "./[CSS]/categories/security-auth-and-login/trusted-devices-manager.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "✅",
+    "keywords": [
+      "trusted",
+      "devices",
+      "manager",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Device Fingerprint Indicator",
+    "path": "./[CSS]/categories/security-auth-and-login/device-fingerprint-indicator.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🔍",
+    "keywords": [
+      "device",
+      "fingerprint",
+      "indicator",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Session Timeout Warning",
+    "path": "./[CSS]/categories/security-auth-and-login/session-timeout-warning.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "⏳",
+    "keywords": [
+      "session",
+      "timeout",
+      "warning",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Secure Session Indicator",
+    "path": "./[CSS]/categories/security-auth-and-login/secure-session-indicator.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🔒",
+    "keywords": [
+      "secure",
+      "session",
+      "indicator",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Social Login Buttons",
+    "path": "./[CSS]/categories/security-auth-and-login/social-login-buttons.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🌐",
+    "keywords": [
+      "social",
+      "login",
+      "buttons",
+      "security",
+      "auth"
+    ]
+  },
+  {
+    "name": "OAuth Permission Screen",
+    "path": "./[CSS]/categories/security-auth-and-login/oauth-permission-screen.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🔐",
+    "keywords": [
+      "oauth",
+      "permission",
+      "screen",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Login Challenge Puzzle",
+    "path": "./[CSS]/categories/security-auth-and-login/login-challenge-puzzle.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🧩",
+    "keywords": [
+      "login",
+      "challenge",
+      "puzzle",
+      "security",
+      "auth"
+    ]
+  },
+  {
+    "name": "Password Reset Flow",
+    "path": "./[CSS]/categories/security-auth-and-login/password-reset-flow.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "password",
+      "reset",
+      "flow",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "API Key Generator",
+    "path": "./[CSS]/categories/security-auth-and-login/api-key-generator.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🔑",
+    "keywords": [
+      "api",
+      "key",
+      "generator",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Security Settings Panel",
+    "path": "./[CSS]/categories/security-auth-and-login/security-settings-panel.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🛡️",
+    "keywords": [
+      "security",
+      "settings",
+      "panel",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Security Audit Panel",
+    "path": "./[CSS]/categories/security-auth-and-login/security-audit-panel.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "security",
+      "audit",
+      "panel",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Security Score Meter",
+    "path": "./[CSS]/categories/security-auth-and-login/security-score-meter.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "📈",
+    "keywords": [
+      "security",
+      "score",
+      "meter",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Security Question Setup",
+    "path": "./[CSS]/categories/security-auth-and-login/security-question-setup.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "❓",
+    "keywords": [
+      "security",
+      "question",
+      "setup",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "IP Whitelist Manager",
+    "path": "./[CSS]/categories/security-auth-and-login/ip-whitelist-manager.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🌐",
+    "keywords": [
+      "whitelist",
+      "manager",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Privacy Mode Toggle",
+    "path": "./[CSS]/categories/security-auth-and-login/privacy-mode-toggle.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🔒",
+    "keywords": [
+      "privacy",
+      "mode",
+      "toggle",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Compliance Badge Display",
+    "path": "./[CSS]/categories/security-auth-and-login/compliance-badge-display.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "✓",
+    "keywords": [
+      "compliance",
+      "badge",
+      "display",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Security Badge Trust",
+    "path": "./[CSS]/categories/security-auth-and-login/security-badge-trust.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🛡️",
+    "keywords": [
+      "security",
+      "badge",
+      "trust",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Encrypted Connection Icon",
+    "path": "./[CSS]/categories/security-auth-and-login/encrypted-connection-icon.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🔒",
+    "keywords": [
+      "encrypted",
+      "connection",
+      "icon",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "VPN Connection Status",
+    "path": "./[CSS]/categories/security-auth-and-login/vpn-connection-status.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🌐",
+    "keywords": [
+      "vpn",
+      "connection",
+      "status",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Geo-Blocking Notice",
+    "path": "./[CSS]/categories/security-auth-and-login/geo-blocking-notice.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🚫",
+    "keywords": [
+      "geo",
+      "blocking",
+      "notice",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Privacy Consent Modal",
+    "path": "./[CSS]/categories/security-auth-and-login/privacy-consent-modal.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "privacy",
+      "consent",
+      "modal",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Terms Acceptance Checkbox",
+    "path": "./[CSS]/categories/security-auth-and-login/terms-acceptance-checkbox.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "☑️",
+    "keywords": [
+      "terms",
+      "acceptance",
+      "checkbox",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Account Locked Screen",
+    "path": "./[CSS]/categories/security-auth-and-login/account-locked-screen.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🔒",
+    "keywords": [
+      "account",
+      "locked",
+      "screen",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Captcha Verification",
+    "path": "./[CSS]/categories/security-auth-and-login/captcha-verification.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🤖",
+    "keywords": [
+      "captcha",
+      "verification",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Account Recovery Steps",
+    "path": "./[CSS]/categories/security-auth-and-login/account-recovery-steps.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "account",
+      "recovery",
+      "steps",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Account Verification Badge",
+    "path": "./[CSS]/categories/security-auth-and-login/account-verification-badge.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "✅",
+    "keywords": [
+      "account",
+      "verification",
+      "badge",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Age Verification Gate",
+    "path": "./[CSS]/categories/security-auth-and-login/age-verification-gate.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🎂",
+    "keywords": [
+      "age",
+      "verification",
+      "gate",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Anonymous Browsing Badge",
+    "path": "./[CSS]/categories/security-auth-and-login/anonymous-browsing-badge.html",
+    "category": "Security Auth & Login",
+    "library": "CSS",
+    "icon": "🕵️",
+    "keywords": [
+      "anonymous",
+      "browsing",
+      "badge",
+      "security",
+      "auth",
+      "login"
+    ]
+  },
+  {
+    "name": "Post Card",
+    "path": "./[CSS]/categories/social-feed-and-community/post-card.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "📄",
+    "keywords": [
+      "post",
+      "card",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Post Composer",
+    "path": "./[CSS]/categories/social-feed-and-community/post-composer.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "✏️",
+    "keywords": [
+      "post",
+      "composer",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Post Timestamp",
+    "path": "./[CSS]/categories/social-feed-and-community/post-timestamp.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🕐",
+    "keywords": [
+      "post",
+      "timestamp",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Featured Post",
+    "path": "./[CSS]/categories/social-feed-and-community/featured-post.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "⭐",
+    "keywords": [
+      "featured",
+      "post",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Activity Feed",
+    "path": "./[CSS]/categories/social-feed-and-community/activity-feed.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "📰",
+    "keywords": [
+      "activity",
+      "feed",
+      "social",
+      "community"
+    ]
+  },
+  {
+    "name": "Social Feed Layout",
+    "path": "./[CSS]/categories/social-feed-and-community/social-feed-layout.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "📱",
+    "keywords": [
+      "social",
+      "feed",
+      "layout",
+      "community"
+    ]
+  },
+  {
+    "name": "Media Gallery",
+    "path": "./[CSS]/categories/social-feed-and-community/media-gallery.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🖼️",
+    "keywords": [
+      "media",
+      "gallery",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Story Ring",
+    "path": "./[CSS]/categories/social-feed-and-community/story-ring.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "⭕",
+    "keywords": [
+      "story",
+      "ring",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Comment Thread",
+    "path": "./[CSS]/categories/social-feed-and-community/comment-thread-duplicate.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "💭",
+    "keywords": [
+      "comment",
+      "thread",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Message Bubble",
+    "path": "./[CSS]/categories/social-feed-and-community/message-bubble.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "💬",
+    "keywords": [
+      "message",
+      "bubble",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Typing Indicator",
+    "path": "./[CSS]/categories/social-feed-and-community/typing-indicator-social.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "⌨️",
+    "keywords": [
+      "typing",
+      "indicator",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Read Receipt",
+    "path": "./[CSS]/categories/social-feed-and-community/read-receipt.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "✓✓",
+    "keywords": [
+      "read",
+      "receipt",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "DM Button",
+    "path": "./[CSS]/categories/social-feed-and-community/dm-button.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "✉️",
+    "keywords": [
+      "button",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Mention Tag",
+    "path": "./[CSS]/categories/social-feed-and-community/mention-tag.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "@",
+    "keywords": [
+      "mention",
+      "tag",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Hashtag Link",
+    "path": "./[CSS]/categories/social-feed-and-community/hashtag-link.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "#",
+    "keywords": [
+      "hashtag",
+      "link",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Like Button",
+    "path": "./[CSS]/categories/social-feed-and-community/like-button.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "👍",
+    "keywords": [
+      "like",
+      "button",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Like/Favorite Button",
+    "path": "./[CSS]/categories/social-feed-and-community/like-favorite-button.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "❤️",
+    "keywords": [
+      "like",
+      "favorite",
+      "button",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Emoji Reaction Bar",
+    "path": "./[CSS]/categories/social-feed-and-community/emoji-reaction-bar.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "😀",
+    "keywords": [
+      "emoji",
+      "reaction",
+      "bar",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Reaction Picker",
+    "path": "./[CSS]/categories/social-feed-and-community/reaction-picker.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "😍",
+    "keywords": [
+      "reaction",
+      "picker",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Bookmark Button",
+    "path": "./[CSS]/categories/social-feed-and-community/bookmark-button.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🔖",
+    "keywords": [
+      "bookmark",
+      "button",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Share Button",
+    "path": "./[CSS]/categories/social-feed-and-community/share-button.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🔗",
+    "keywords": [
+      "share",
+      "button",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Repost Button",
+    "path": "./[CSS]/categories/social-feed-and-community/repost-button.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🔄",
+    "keywords": [
+      "repost",
+      "button",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Pin Post Button",
+    "path": "./[CSS]/categories/social-feed-and-community/pin-post-button.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "📌",
+    "keywords": [
+      "pin",
+      "post",
+      "button",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Poll Widget",
+    "path": "./[CSS]/categories/social-feed-and-community/poll-widget.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "poll",
+      "widget",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "User Avatar",
+    "path": "./[CSS]/categories/social-feed-and-community/user-avatar.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🧑",
+    "keywords": [
+      "user",
+      "avatar",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "User Profile Card",
+    "path": "./[CSS]/categories/social-feed-and-community/user-profile-card.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🪪",
+    "keywords": [
+      "user",
+      "profile",
+      "card",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "User Bio Section",
+    "path": "./[CSS]/categories/social-feed-and-community/user-bio-section.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "user",
+      "bio",
+      "section",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Profile Header Block",
+    "path": "./[CSS]/categories/social-feed-and-community/profile-header-block.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🖼️",
+    "keywords": [
+      "profile",
+      "header",
+      "block",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Online Status Indicator",
+    "path": "./[CSS]/categories/social-feed-and-community/online-status-indicator.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🟢",
+    "keywords": [
+      "online",
+      "status",
+      "indicator",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Verified Checkmark",
+    "path": "./[CSS]/categories/social-feed-and-community/verified-checkmark.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "✅",
+    "keywords": [
+      "verified",
+      "checkmark",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Follow Button",
+    "path": "./[CSS]/categories/social-feed-and-community/follow-button.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "➕",
+    "keywords": [
+      "follow",
+      "button",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Followers Count",
+    "path": "./[CSS]/categories/social-feed-and-community/followers-count.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "👥",
+    "keywords": [
+      "followers",
+      "count",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Connection Request",
+    "path": "./[CSS]/categories/social-feed-and-community/connection-request.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🔗",
+    "keywords": [
+      "connection",
+      "request",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Friend Suggestion",
+    "path": "./[CSS]/categories/social-feed-and-community/friend-suggestion.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "💡",
+    "keywords": [
+      "friend",
+      "suggestion",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Mutual Friends List",
+    "path": "./[CSS]/categories/social-feed-and-community/mutual-friends-list.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "👫",
+    "keywords": [
+      "mutual",
+      "friends",
+      "list",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Block User Button",
+    "path": "./[CSS]/categories/social-feed-and-community/block-user-button.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🚫",
+    "keywords": [
+      "block",
+      "user",
+      "button",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Report Flag",
+    "path": "./[CSS]/categories/social-feed-and-community/report-flag.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🚩",
+    "keywords": [
+      "report",
+      "flag",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Group Card",
+    "path": "./[CSS]/categories/social-feed-and-community/group-card.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "👥",
+    "keywords": [
+      "group",
+      "card",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Group Chat Header",
+    "path": "./[CSS]/categories/social-feed-and-community/group-chat-header.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "💬",
+    "keywords": [
+      "group",
+      "chat",
+      "header",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Member List",
+    "path": "./[CSS]/categories/social-feed-and-community/member-list.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "member",
+      "list",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Moderator Tools",
+    "path": "./[CSS]/categories/social-feed-and-community/moderator-tools.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🛡️",
+    "keywords": [
+      "moderator",
+      "tools",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Community Badge",
+    "path": "./[CSS]/categories/social-feed-and-community/community-badge.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🏅",
+    "keywords": [
+      "community",
+      "badge",
+      "social",
+      "feed"
+    ]
+  },
+  {
+    "name": "Trending Topics",
+    "path": "./[CSS]/categories/social-feed-and-community/trending-topics.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🔥",
+    "keywords": [
+      "trending",
+      "topics",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Notification Bell",
+    "path": "./[CSS]/categories/social-feed-and-community/notification-bell.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🔔",
+    "keywords": [
+      "notification",
+      "bell",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Live Badge",
+    "path": "./[CSS]/categories/social-feed-and-community/live-badge.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🔴",
+    "keywords": [
+      "live",
+      "badge",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Privacy Settings Toggle",
+    "path": "./[CSS]/categories/social-feed-and-community/privacy-settings-toggle.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🔒",
+    "keywords": [
+      "privacy",
+      "settings",
+      "toggle",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Social Stats Panel",
+    "path": "./[CSS]/categories/social-feed-and-community/social-stats-panel.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "📈",
+    "keywords": [
+      "social",
+      "stats",
+      "panel",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Reputation Score",
+    "path": "./[CSS]/categories/social-feed-and-community/reputation-score.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "⭐",
+    "keywords": [
+      "reputation",
+      "score",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Achievement Badge",
+    "path": "./[CSS]/categories/social-feed-and-community/achievement-badge-social.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🏅",
+    "keywords": [
+      "achievement",
+      "badge",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Activity Streak",
+    "path": "./[CSS]/categories/social-feed-and-community/activity-streak.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🔥",
+    "keywords": [
+      "activity",
+      "streak",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Contribution Graph",
+    "path": "./[CSS]/categories/social-feed-and-community/contribution-graph.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "contribution",
+      "graph",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Network Graph",
+    "path": "./[CSS]/categories/social-feed-and-community/network-graph-duplicate.html",
+    "category": "Social Feed & Community",
+    "library": "CSS",
+    "icon": "🕸️",
+    "keywords": [
+      "network",
+      "graph",
+      "social",
+      "feed",
+      "community"
+    ]
+  },
+  {
+    "name": "Age Calculator",
+    "path": "./[CSS]/categories/tools-and-utilities/age-calculator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🎂",
+    "keywords": [
+      "age",
+      "calculator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "BMI Calculator",
+    "path": "./[CSS]/categories/tools-and-utilities/bmi-calculator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "⚖️",
+    "keywords": [
+      "bmi",
+      "calculator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Loan Calculator",
+    "path": "./[CSS]/categories/tools-and-utilities/loan-calculator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🏦",
+    "keywords": [
+      "loan",
+      "calculator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Percentage Calculator",
+    "path": "./[CSS]/categories/tools-and-utilities/percentage-calculator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "%",
+    "keywords": [
+      "percentage",
+      "calculator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Tip Calculator",
+    "path": "./[CSS]/categories/tools-and-utilities/tip-calculator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "💵",
+    "keywords": [
+      "tip",
+      "calculator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "File Size Calculator",
+    "path": "./[CSS]/categories/tools-and-utilities/file-size-calculator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "💾",
+    "keywords": [
+      "file",
+      "size",
+      "calculator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Binary Converter",
+    "path": "./[CSS]/categories/tools-and-utilities/binary-converter.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "01",
+    "keywords": [
+      "binary",
+      "converter",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Hex Converter",
+    "path": "./[CSS]/categories/tools-and-utilities/hex-converter.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "#",
+    "keywords": [
+      "hex",
+      "converter",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Roman Numeral Converter",
+    "path": "./[CSS]/categories/tools-and-utilities/roman-numeral-converter.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "Ⅴ",
+    "keywords": [
+      "roman",
+      "numeral",
+      "converter",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Unit Converter",
+    "path": "./[CSS]/categories/tools-and-utilities/unit-converter.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "📐",
+    "keywords": [
+      "unit",
+      "converter",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "ASCII Converter",
+    "path": "./[CSS]/categories/tools-and-utilities/ascii-converter.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "A→",
+    "keywords": [
+      "ascii",
+      "converter",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Morse Code Translator",
+    "path": "./[CSS]/categories/tools-and-utilities/morse-code-translator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "・-",
+    "keywords": [
+      "morse",
+      "code",
+      "translator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Case Converter",
+    "path": "./[CSS]/categories/tools-and-utilities/case-converter.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "Aa",
+    "keywords": [
+      "case",
+      "converter",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Text Reverser",
+    "path": "./[CSS]/categories/tools-and-utilities/text-reverser.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "↔️",
+    "keywords": [
+      "text",
+      "reverser",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Word Counter",
+    "path": "./[CSS]/categories/tools-and-utilities/word-counter.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "📊",
+    "keywords": [
+      "word",
+      "counter",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "String Manipulator",
+    "path": "./[CSS]/categories/tools-and-utilities/string-manipulator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🔤",
+    "keywords": [
+      "string",
+      "manipulator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Text Utilities",
+    "path": "./[CSS]/categories/tools-and-utilities/text-utilities.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "📄",
+    "keywords": [
+      "text",
+      "utilities",
+      "tools"
+    ]
+  },
+  {
+    "name": "Lorem Ipsum Generator",
+    "path": "./[CSS]/categories/tools-and-utilities/lorem-ipsum-generator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "📜",
+    "keywords": [
+      "lorem",
+      "ipsum",
+      "generator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Duplicate Remover",
+    "path": "./[CSS]/categories/tools-and-utilities/duplicate-remover.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🗑️",
+    "keywords": [
+      "duplicate",
+      "remover",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Line Sorter",
+    "path": "./[CSS]/categories/tools-and-utilities/line-sorter.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "↕️",
+    "keywords": [
+      "line",
+      "sorter",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Slug Generator",
+    "path": "./[CSS]/categories/tools-and-utilities/slug-generator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🔗",
+    "keywords": [
+      "slug",
+      "generator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Text Diff Checker",
+    "path": "./[CSS]/categories/tools-and-utilities/text-diff-checker.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "📋",
+    "keywords": [
+      "text",
+      "diff",
+      "checker",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Color Converter",
+    "path": "./[CSS]/categories/tools-and-utilities/color-converter.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🎨",
+    "keywords": [
+      "color",
+      "converter",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "CSS Gradient Generator",
+    "path": "./[CSS]/categories/tools-and-utilities/css-gradient-generator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🌈",
+    "keywords": [
+      "css",
+      "gradient",
+      "generator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Border Radius Utilities",
+    "path": "./[CSS]/categories/tools-and-utilities/border-radius-utilities.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "⬜",
+    "keywords": [
+      "border",
+      "radius",
+      "utilities",
+      "tools"
+    ]
+  },
+  {
+    "name": "Shadow Utilities",
+    "path": "./[CSS]/categories/tools-and-utilities/shadow-utilities.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🌑",
+    "keywords": [
+      "shadow",
+      "utilities",
+      "tools"
+    ]
+  },
+  {
+    "name": "Date Time Formatter",
+    "path": "./[CSS]/categories/tools-and-utilities/date-time-formatter.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "📅",
+    "keywords": [
+      "date",
+      "time",
+      "formatter",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Unix Timestamp Converter",
+    "path": "./[CSS]/categories/tools-and-utilities/unix-timestamp-converter.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "⏱️",
+    "keywords": [
+      "unix",
+      "timestamp",
+      "converter",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Time Zone Converter",
+    "path": "./[CSS]/categories/tools-and-utilities/time-zone-converter.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🌍",
+    "keywords": [
+      "time",
+      "zone",
+      "converter",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Base64 Encoder/Decoder",
+    "path": "./[CSS]/categories/tools-and-utilities/base64-encoder-decoder.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🔠",
+    "keywords": [
+      "base64",
+      "encoder",
+      "decoder",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Hash Generator",
+    "path": "./[CSS]/categories/tools-and-utilities/hash-generator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🔒",
+    "keywords": [
+      "hash",
+      "generator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Password Generator",
+    "path": "./[CSS]/categories/tools-and-utilities/password-generator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🔑",
+    "keywords": [
+      "password",
+      "generator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "UUID Generator",
+    "path": "./[CSS]/categories/tools-and-utilities/uuid-generator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🆔",
+    "keywords": [
+      "uuid",
+      "generator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "JSON Formatter",
+    "path": "./[CSS]/categories/tools-and-utilities/json-formatter.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "{}",
+    "keywords": [
+      "json",
+      "formatter",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "CSV to JSON",
+    "path": "./[CSS]/categories/tools-and-utilities/csv-to-json.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "📈",
+    "keywords": [
+      "csv",
+      "json",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Markdown Preview",
+    "path": "./[CSS]/categories/tools-and-utilities/markdown-preview.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "📝",
+    "keywords": [
+      "markdown",
+      "preview",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Number Formatter",
+    "path": "./[CSS]/categories/tools-and-utilities/number-formatter.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🔢",
+    "keywords": [
+      "number",
+      "formatter",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Currency Formatter",
+    "path": "./[CSS]/categories/tools-and-utilities/currency-formatter.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "💰",
+    "keywords": [
+      "currency",
+      "formatter",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Random Data Generator",
+    "path": "./[CSS]/categories/tools-and-utilities/random-data-generator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🎲",
+    "keywords": [
+      "random",
+      "data",
+      "generator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Regex Tester",
+    "path": "./[CSS]/categories/tools-and-utilities/regex-tester.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": ".*",
+    "keywords": [
+      "regex",
+      "tester",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Email Validator",
+    "path": "./[CSS]/categories/tools-and-utilities/email-validator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "📧",
+    "keywords": [
+      "email",
+      "validator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Credit Card Validator",
+    "path": "./[CSS]/categories/tools-and-utilities/credit-card-validator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "💳",
+    "keywords": [
+      "credit",
+      "card",
+      "validator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "URL Parser",
+    "path": "./[CSS]/categories/tools-and-utilities/url-parser.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🔗",
+    "keywords": [
+      "url",
+      "parser",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "IP Address Lookup",
+    "path": "./[CSS]/categories/tools-and-utilities/ip-address-lookup.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🌐",
+    "keywords": [
+      "address",
+      "lookup",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Image Resizer",
+    "path": "./[CSS]/categories/tools-and-utilities/image-resizer.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "🖼️",
+    "keywords": [
+      "image",
+      "resizer",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "QR Code Generator",
+    "path": "./[CSS]/categories/tools-and-utilities/qr-code-generator.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "📱",
+    "keywords": [
+      "code",
+      "generator",
+      "tools",
+      "utilities"
+    ]
+  },
+  {
+    "name": "Display Utilities",
+    "path": "./[CSS]/categories/tools-and-utilities/display-utilities.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "👁️",
+    "keywords": [
+      "display",
+      "utilities",
+      "tools"
+    ]
+  },
+  {
+    "name": "Layout Utilities",
+    "path": "./[CSS]/categories/tools-and-utilities/layout-utilities.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "📐",
+    "keywords": [
+      "layout",
+      "utilities",
+      "tools"
+    ]
+  },
+  {
+    "name": "Spacing Utilities",
+    "path": "./[CSS]/categories/tools-and-utilities/spacing-utilities.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "↔️",
+    "keywords": [
+      "spacing",
+      "utilities",
+      "tools"
+    ]
+  },
+  {
+    "name": "Width/Height Utilities",
+    "path": "./[CSS]/categories/tools-and-utilities/width-height-utilities.html",
+    "category": "Tools & Utilities",
+    "library": "CSS",
+    "icon": "📏",
+    "keywords": [
+      "width",
+      "height",
+      "utilities",
+      "tools"
+    ]
+  }
+];
+
+if (typeof window !== 'undefined') {
+  window.SEARCH_INDEX_DATA = SEARCH_INDEX_DATA;
+}

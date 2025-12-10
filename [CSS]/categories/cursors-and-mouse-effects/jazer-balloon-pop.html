@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Balloon Pop Cursor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F7FA 100%);
+            cursor: none;
+            overflow: hidden;
+        }
+
+        .info {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #333;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            z-index: 100;
+        }
+
+        .score {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #e74c3c;
+            font-size: 1.5rem;
+            font-weight: bold;
+            z-index: 100;
+        }
+
+        .needle {
+            position: fixed;
+            font-size: 30px;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .balloon {
+            position: fixed;
+            font-size: 50px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            user-select: none;
+        }
+
+        .balloon:hover {
+            transform: scale(1.1);
+        }
+
+        .pop {
+            position: fixed;
+            font-size: 30px;
+            pointer-events: none;
+            animation: pop-anim 0.3s ease-out forwards;
+        }
+
+        @keyframes pop-anim {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">JaZeR Balloon Pop - Pop the balloons!</div>
+    <div class="score" id="score">Popped: 0</div>
+    <div class="needle" id="cursor">📌</div>
+
+    <script>
+        const needle = document.getElementById('cursor');
+        const scoreEl = document.getElementById('score');
+
+        let popped = 0;
+        const balloonEmojis = ['🎈', '🎈', '🎈', '🎈']; // All red for simplicity
+        const balloonColors = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6'];
+
+        function createBalloon() {
+            const balloon = document.createElement('div');
+            balloon.className = 'balloon';
+            balloon.textContent = '🎈';
+            balloon.style.left = Math.random() * (window.innerWidth - 80) + 40 + 'px';
+            balloon.style.top = window.innerHeight + 50 + 'px';
+            balloon.style.filter = `hue-rotate(${Math.random() * 360}deg)`;
+            document.body.appendChild(balloon);
+
+            // Float up
+            let y = window.innerHeight + 50;
+            const speedY = Math.random() * 1.5 + 0.5;
+            const wobble = Math.random() * Math.PI * 2;
+
+            function float() {
+                y -= speedY;
+                const x = parseFloat(balloon.style.left) + Math.sin(wobble + y * 0.02) * 0.5;
+                balloon.style.top = y + 'px';
+                balloon.style.left = x + 'px';
+
+                if (y > -100 && balloon.parentNode) {
+                    requestAnimationFrame(float);
+                } else if (balloon.parentNode) {
+                    balloon.remove();
+                    createBalloon();
+                }
+            }
+
+            float();
+
+            balloon.addEventListener('click', (e) => {
+                // Pop effect
+                const pop = document.createElement('div');
+                pop.className = 'pop';
+                pop.textContent = '💥';
+                pop.style.left = e.clientX + 'px';
+                pop.style.top = e.clientY + 'px';
+                document.body.appendChild(pop);
+                setTimeout(() => pop.remove(), 300);
+
+                balloon.remove();
+                popped++;
+                scoreEl.textContent = `Popped: ${popped}`;
+
+                createBalloon();
+            });
+        }
+
+        // Create initial balloons
+        for (let i = 0; i < 10; i++) {
+            setTimeout(() => createBalloon(), i * 500);
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            needle.style.left = e.clientX + 'px';
+            needle.style.top = e.clientY + 'px';
+        });
+    </script>
+</body>
+
+</html>

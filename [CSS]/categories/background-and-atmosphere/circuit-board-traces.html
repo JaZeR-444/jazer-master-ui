@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circuit Board Traces</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #0a1628;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .info {
+            position: relative;
+            z-index: 2;
+            color: #00ff88;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .info h1 {
+            font-size: 2.2rem;
+            font-weight: 300;
+            letter-spacing: 0.4em;
+        }
+
+        .info p {
+            opacity: 0.6;
+            color: #00cc66;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">
+        <h1>CIRCUIT</h1>
+        <p>Digital pathways</p>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Circuit trace
+        class Trace {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.points = [];
+                this.direction = Math.floor(Math.random() * 4); // 0: up, 1: right, 2: down, 3: left
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.points.push({ x: this.x, y: this.y });
+                this.length = 5 + Math.floor(Math.random() * 15);
+                this.segmentLength = 20 + Math.random() * 50;
+                this.hue = Math.random() > 0.5 ? 150 : 180; // Green or cyan
+                this.alpha = 0.3 + Math.random() * 0.4;
+                this.lineWidth = 1 + Math.random() * 2;
+                this.growing = true;
+                this.growth = 0;
+            }
+
+            grow() {
+                if (!this.growing || this.points.length >= this.length) {
+                    this.growing = false;
+                    return;
+                }
+
+                this.growth++;
+                if (this.growth < 3) return;
+                this.growth = 0;
+
+                const dirs = [
+                    { dx: 0, dy: -1 },
+                    { dx: 1, dy: 0 },
+                    { dx: 0, dy: 1 },
+                    { dx: -1, dy: 0 }
+                ];
+
+                // Occasionally turn
+                if (Math.random() < 0.4) {
+                    this.direction = (this.direction + (Math.random() > 0.5 ? 1 : -1) + 4) % 4;
+                }
+
+                const dir = dirs[this.direction];
+                const newX = this.x + dir.dx * this.segmentLength;
+                const newY = this.y + dir.dy * this.segmentLength;
+
+                // Add corner point at turn
+                if (this.points.length > 0) {
+                    const lastPoint = this.points[this.points.length - 1];
+                    if (Math.abs(newX - lastPoint.x) > 0 && Math.abs(newY - lastPoint.y) > 0) {
+                        this.points.push({ x: this.x, y: this.y, isCorner: true });
+                    }
+                }
+
+                this.x = newX;
+                this.y = newY;
+                this.points.push({ x: this.x, y: this.y });
+            }
+
+            draw(time) {
+                if (this.points.length < 2) return;
+
+                const pulse = Math.sin(time * 0.005 + this.points[0].x * 0.01) * 0.3 + 0.7;
+
+                // Draw trace
+                ctx.beginPath();
+                ctx.moveTo(this.points[0].x, this.points[0].y);
+
+                for (let i = 1; i < this.points.length; i++) {
+                    ctx.lineTo(this.points[i].x, this.points[i].y);
+                }
+
+                ctx.strokeStyle = `hsla(${this.hue}, 100%, 50%, ${this.alpha * pulse})`;
+                ctx.lineWidth = this.lineWidth;
+                ctx.lineCap = 'square';
+                ctx.stroke();
+
+                // Glow
+                ctx.strokeStyle = `hsla(${this.hue}, 100%, 60%, ${this.alpha * 0.3 * pulse})`;
+                ctx.lineWidth = this.lineWidth * 4;
+                ctx.stroke();
+
+                // Draw nodes at corners
+                this.points.forEach((point, i) => {
+                    if (point.isCorner || i === 0 || i === this.points.length - 1) {
+                        ctx.beginPath();
+                        ctx.arc(point.x, point.y, 3, 0, Math.PI * 2);
+                        ctx.fillStyle = `hsla(${this.hue}, 100%, 70%, ${this.alpha * pulse})`;
+                        ctx.fill();
+
+                        // Node glow
+                        const gradient = ctx.createRadialGradient(
+                            point.x, point.y, 0,
+                            point.x, point.y, 10
+                        );
+                        gradient.addColorStop(0, `hsla(${this.hue}, 100%, 70%, ${0.4 * pulse})`);
+                        gradient.addColorStop(1, 'transparent');
+                        ctx.fillStyle = gradient;
+                        ctx.beginPath();
+                        ctx.arc(point.x, point.y, 10, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+            }
+        }
+
+        // Data packets traveling along traces
+        class DataPacket {
+            constructor(trace) {
+                this.trace = trace;
+                this.progress = 0;
+                this.speed = 0.01 + Math.random() * 0.02;
+                this.size = 3 + Math.random() * 3;
+            }
+
+            update() {
+                this.progress += this.speed;
+                if (this.progress >= 1) {
+                    this.progress = 0;
+                }
+            }
+
+            draw() {
+                if (this.trace.points.length < 2) return;
+
+                const totalLength = this.trace.points.length - 1;
+                const currentSegment = Math.floor(this.progress * totalLength);
+                const segmentProgress = (this.progress * totalLength) % 1;
+
+                if (currentSegment >= totalLength) return;
+
+                const p1 = this.trace.points[currentSegment];
+                const p2 = this.trace.points[currentSegment + 1];
+
+                const x = p1.x + (p2.x - p1.x) * segmentProgress;
+                const y = p1.y + (p2.y - p1.y) * segmentProgress;
+
+                // Packet glow
+                const gradient = ctx.createRadialGradient(x, y, 0, x, y, this.size * 4);
+                gradient.addColorStop(0, `hsla(${this.trace.hue}, 100%, 80%, 0.8)`);
+                gradient.addColorStop(0.5, `hsla(${this.trace.hue}, 100%, 60%, 0.3)`);
+                gradient.addColorStop(1, 'transparent');
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(x, y, this.size * 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Packet core
+                ctx.beginPath();
+                ctx.arc(x, y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+            }
+        }
+
+        // Grid background
+        function drawGrid() {
+            const gridSize = 40;
+
+            ctx.strokeStyle = 'rgba(0, 100, 100, 0.1)';
+            ctx.lineWidth = 1;
+
+            for (let x = 0; x < canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+
+            for (let y = 0; y < canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+
+        const traces = [];
+        const packets = [];
+
+        // Create initial traces
+        for (let i = 0; i < 30; i++) {
+            const trace = new Trace();
+            traces.push(trace);
+
+            // Grow the trace
+            for (let j = 0; j < 20; j++) {
+                trace.grow();
+            }
+
+            // Add packets
+            if (Math.random() > 0.5) {
+                packets.push(new DataPacket(trace));
+            }
+        }
+
+        let time = 0;
+        function animate() {
+            time++;
+
+            ctx.fillStyle = 'rgba(10, 22, 40, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drawGrid();
+
+            traces.forEach(trace => trace.draw(time));
+
+            packets.forEach(packet => {
+                packet.update();
+                packet.draw();
+            });
+
+            // Occasionally add new traces
+            if (Math.random() < 0.02 && traces.length < 50) {
+                const trace = new Trace();
+                traces.push(trace);
+                for (let j = 0; j < 20; j++) {
+                    trace.grow();
+                }
+                if (Math.random() > 0.5) {
+                    packets.push(new DataPacket(trace));
+                }
+            }
+
+            // Remove old traces
+            if (traces.length > 50) {
+                traces.shift();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

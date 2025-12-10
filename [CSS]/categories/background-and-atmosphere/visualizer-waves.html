@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizer Waves</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .info {
+            position: relative;
+            z-index: 2;
+            color: white;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0,0,0,0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h1>Visualizer Waves</h1>
+        <p>Frequency-based audio visualizer with multiple bands</p>
+    </div>
+    
+    <canvas id="visualizerCanvas"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('visualizerCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas to full window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Audio frequency band class
+        class FrequencyBand {
+            constructor(x, width, minFreq, maxFreq, color) {
+                this.x = x;
+                this.width = width;
+                this.minFreq = minFreq;
+                this.maxFreq = maxFreq;
+                this.color = color;
+                
+                // Visual properties
+                this.amplitude = 0; // Current amplitude (0-1)
+                this.targetAmplitude = 0; // Target amplitude
+                this.smoothAmplitude = 0; // Smoothed amplitude
+                this.peak = 0; // Peak amplitude
+                this.peakDecay = 0.97; // How fast the peak decays
+            }
+            
+            update() {
+                // Simulate audio input (in a real app, this would come from an audio source)
+                const time = Date.now() * 0.001;
+                
+                // Create different rhythmic patterns for different frequency bands
+                let audioValue = 0;
+                
+                if (this.minFreq < 200) { // Bass
+                    audioValue = Math.abs(Math.sin(time * 0.5 + this.minFreq * 0.01)) * 0.8;
+                    audioValue += Math.abs(Math.sin(time * 1.2 + this.minFreq * 0.02)) * 0.2;
+                } else if (this.minFreq < 2000) { // Mids
+                    audioValue = Math.abs(Math.sin(time * 1.8 + this.minFreq * 0.005)) * 0.6;
+                    audioValue += Math.abs(Math.sin(time * 2.1 + this.minFreq * 0.01)) * 0.3;
+                    audioValue += Math.abs(Math.sin(time * 4.2 + this.minFreq * 0.015)) * 0.1;
+                } else { // Treble
+                    audioValue = Math.abs(Math.sin(time * 3.5 + this.minFreq * 0.002)) * 0.7;
+                    audioValue += Math.abs(Math.sin(time * 7.0 + this.minFreq * 0.003)) * 0.3;
+                }
+                
+                // Add some randomness to make it more dynamic
+                audioValue += (Math.random() - 0.5) * 0.1;
+                audioValue = Math.max(0, Math.min(1, audioValue)); // Clamp between 0 and 1
+                
+                // Set target amplitude
+                this.targetAmplitude = audioValue;
+                
+                // Smooth the amplitude change
+                this.smoothAmplitude = this.smoothAmplitude * 0.7 + this.targetAmplitude * 0.3;
+                
+                // Update peak
+                if (this.smoothAmplitude > this.peak) {
+                    this.peak = this.smoothAmplitude;
+                } else {
+                    this.peak *= this.peakDecay;
+                }
+                
+                // Calculate actual amplitude based on smooth value
+                this.amplitude = this.smoothAmplitude;
+            }
+            
+            draw() {
+                // Draw the bar
+                const barHeight = (this.amplitude * canvas.height * 0.4);
+                const barY = canvas.height / 2 + canvas.height * 0.05 - barHeight / 2;
+                
+                // Create gradient for the bar
+                const gradient = ctx.createLinearGradient(0, barY, 0, barY + barHeight);
+                gradient.addColorStop(0, `hsla(${this.color}, 100%, 70%, 1)`);
+                gradient.addColorStop(1, `hsla(${this.color}, 100%, 50%, 0.5)`);
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(this.x, barY, this.width, barHeight);
+                
+                // Draw the peak indicator
+                const peakHeight = (this.peak * canvas.height * 0.4);
+                const peakY = canvas.height / 2 + canvas.height * 0.05 - peakHeight / 2;
+                
+                ctx.fillStyle = `hsla(${this.color}, 100%, 90%, 0.8)`;
+                ctx.fillRect(this.x, peakY - 2, this.width, 4);
+                
+                // Draw glow effect
+                ctx.shadowColor = `hsla(${this.color}, 100%, 60%, 0.7)`;
+                ctx.shadowBlur = 10;
+                ctx.fillRect(this.x, barY, this.width, barHeight);
+                ctx.shadowBlur = 0; // Reset shadow
+            }
+        }
+        
+        // Create multiple frequency bands
+        const bands = [];
+        const bandCount = Math.min(64, Math.floor(canvas.width / 8)); // Adaptive to screen width
+        const bandWidth = Math.max(4, canvas.width / bandCount);
+        
+        for (let i = 0; i < bandCount; i++) {
+            // Map frequency bands to colors (bass to treble)
+            let color;
+            if (i < bandCount * 0.33) { // Bass
+                color = 0 + (i / (bandCount * 0.33)) * 20; // Red to orange
+            } else if (i < bandCount * 0.66) { // Mids
+                color = 60 + ((i - bandCount * 0.33) / (bandCount * 0.33)) * 20; // Yellow to green
+            } else { // Treble
+                color = 240 + ((i - bandCount * 0.66) / (bandCount * 0.33)) * 60; // Blue to purple
+            }
+            
+            // Map frequency range (logarithmic scale)
+            const minFreq = Math.pow(10, (i / bandCount) * 2) * 20; // 20Hz to 20000Hz
+            const maxFreq = Math.pow(10, ((i + 1) / bandCount) * 2) * 20;
+            
+            bands.push(new FrequencyBand(
+                i * bandWidth,
+                bandWidth - 1, // Leave small gaps
+                minFreq,
+                maxFreq,
+                color
+            ));
+        }
+        
+        // Draw waveform display
+        class WaveformDisplay {
+            constructor() {
+                this.points = [];
+                this.pointCount = 200;
+                
+                // Initialize points
+                for (let i = 0; i < this.pointCount; i++) {
+                    this.points.push(0);
+                }
+            }
+            
+            update() {
+                const time = Date.now() * 0.002;
+                
+                // Generate waveform data that matches the frequency bands
+                for (let i = 0; i < this.points.length; i++) {
+                    // Create a complex waveform using multiple sine waves
+                    let value = 0;
+                    
+                    // Add fundamental and harmonics that correspond to our bands
+                    value += Math.sin(time * 0.5 + (i / this.pointCount) * 10) * 0.4;
+                    value += Math.sin(time * 1.2 + (i / this.pointCount) * 15) * 0.3;
+                    value += Math.sin(time * 2.3 + (i / this.pointCount) * 20) * 0.2;
+                    value += Math.sin(time * 4.1 + (i / this.pointCount) * 30) * 0.1;
+                    
+                    // Add some randomness
+                    value += (Math.random() - 0.5) * 0.1;
+                    
+                    // Normalize to -1 to 1
+                    this.points[i] = Math.max(-1, Math.min(1, value));
+                }
+            }
+            
+            draw() {
+                if (this.points.length === 0) return;
+                
+                ctx.beginPath();
+                
+                const centerY = canvas.height * 0.3;
+                const amplitude = canvas.height * 0.08;
+                
+                for (let i = 0; i < this.points.length; i++) {
+                    const x = (i / this.points.length) * canvas.width;
+                    const y = centerY + this.points[i] * amplitude;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        // Draw smooth curve
+                        const prevX = ((i - 1) / this.points.length) * canvas.width;
+                        const prevY = centerY + this.points[i - 1] * amplitude;
+                        
+                        const cpx = (prevX + x) / 2;
+                        const cpy = (prevY + y) / 2;
+                        ctx.quadraticCurveTo(prevX, prevY, cpx, cpy);
+                    }
+                }
+                
+                // Create gradient for the waveform
+                const gradient = ctx.createLinearGradient(0, centerY - amplitude, 0, centerY + amplitude);
+                gradient.addColorStop(0, 'hsla(60, 100%, 70%, 0.8)'); // Yellow-green
+                gradient.addColorStop(0.5, 'hsla(120, 100%, 60%, 0.8)'); // Green
+                gradient.addColorStop(1, 'hsla(180, 100%, 50%, 0.8)'); // Cyan
+                
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Draw glow
+                ctx.shadowColor = 'hsla(120, 100%, 50%, 0.5)';
+                ctx.shadowBlur = 10;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+        }
+        
+        // Create waveform display
+        const waveform = new WaveformDisplay();
+        
+        // Draw circular visualizer
+        class CircularVisualizer {
+            constructor() {
+                this.radius = Math.min(canvas.width, canvas.height) * 0.2;
+            }
+            
+            update() {
+                // No specific update needed as it's based on frequency bands
+            }
+            
+            draw() {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height * 0.7;
+                
+                ctx.beginPath();
+                
+                for (let i = 0; i < bands.length; i++) {
+                    const angle = (i / bands.length) * Math.PI * 2;
+                    const amplitude = bands[i].amplitude;
+                    const radius = this.radius + amplitude * this.radius * 0.8;
+                    
+                    const x = centerX + Math.cos(angle) * radius;
+                    const y = centerY + Math.sin(angle) * radius;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        const prevAngle = ((i - 1) / bands.length) * Math.PI * 2;
+                        const prevAmplitude = bands[i - 1].amplitude;
+                        const prevRadius = this.radius + prevAmplitude * this.radius * 0.8;
+                        
+                        const prevX = centerX + Math.cos(prevAngle) * prevRadius;
+                        const prevY = centerY + Math.sin(prevAngle) * prevRadius;
+                        
+                        const cpx = (prevX + x) / 2;
+                        const cpy = (prevY + y) / 2;
+                        ctx.quadraticCurveTo(prevX, prevY, cpx, cpy);
+                    }
+                }
+                
+                ctx.closePath();
+                
+                // Create gradient for the circular visualizer
+                const gradient = ctx.createRadialGradient(
+                    centerX, centerY, this.radius,
+                    centerX, centerY, this.radius * 1.8
+                );
+                
+                gradient.addColorStop(0, 'hsla(240, 100%, 60%, 0.1)');
+                gradient.addColorStop(1, 'hsla(240, 100%, 60%, 0.3)');
+                
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // Draw outline
+                ctx.strokeStyle = 'hsla(240, 100%, 70%, 0.7)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+        
+        // Create circular visualizer
+        const circularVisualizer = new CircularVisualizer();
+        
+        // Animation loop
+        function animate() {
+            // Clear with fade effect
+            ctx.fillStyle = 'rgba(0, 0, 15, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Update and draw frequency bands
+            bands.forEach(band => {
+                band.update();
+                band.draw();
+            });
+            
+            // Update and draw waveform
+            waveform.update();
+            waveform.draw();
+            
+            // Update and draw circular visualizer
+            circularVisualizer.update();
+            circularVisualizer.draw();
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>

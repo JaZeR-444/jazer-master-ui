@@ -2,9 +2,21 @@ const fs = require('fs');
 const path = require('path');
 
 const rootDir = path.join(__dirname, '..');
-const htmlDir = path.join(rootDir, 'src/html/Directories');
-const cssDir = path.join(rootDir, 'src/css/categories');
-const jsDir = path.join(rootDir, 'src/js');
+const htmlDir = path.join(rootDir, '[HTML]', 'Directories');
+const cssDir = path.join(rootDir, '[CSS]', 'categories');
+const jsDir = path.join(rootDir, '[JS]');
+
+const htmlPrefixes = {
+    components: 'COMPONENTS',
+    forms: 'FORMS',
+    layouts: 'LAYOUTS',
+    navigation: 'NAVIGATION',
+    media: 'MEDIA',
+    utilities: 'UTILITIES',
+    patterns: 'PATTERNS',
+    advanced: 'ADVANCED',
+    musician: 'MUSICIAN'
+};
 
 // Count files in a directory (non-recursive, specific extensions)
 function countFilesInDir(dirPath, extensions) {
@@ -16,31 +28,12 @@ function countFilesInDir(dirPath, extensions) {
     }).length;
 }
 
-// Count files recursively
-function countFilesRecursive(dirPath, extensions) {
-    let count = 0;
-    if (!fs.existsSync(dirPath)) return 0;
-
-    const items = fs.readdirSync(dirPath);
-    items.forEach(item => {
-        const fullPath = path.join(dirPath, item);
-        const stat = fs.statSync(fullPath);
-
-        if (stat.isDirectory() && !item.startsWith('extra-') && !item.startsWith('.')) {
-            count += countFilesRecursive(fullPath, extensions);
-        } else if (stat.isFile()) {
-            const ext = path.extname(item).toLowerCase();
-            if (extensions.includes(ext) && item !== 'index.html') {
-                count++;
-            }
-        }
-    });
-    return count;
-}
-
 // Get counts for all CSS categories
 function getCSSCategoryCounts() {
     const counts = {};
+    if (!fs.existsSync(cssDir)) {
+        return { counts, total: 0, categoryCount: 0 };
+    }
     const subdirs = fs.readdirSync(cssDir).filter(f => {
         const fullPath = path.join(cssDir, f);
         return fs.statSync(fullPath).isDirectory() && !f.startsWith('extra-');
@@ -60,6 +53,9 @@ function getCSSCategoryCounts() {
 // Get counts for all JS categories
 function getJSCategoryCounts() {
     const counts = {};
+    if (!fs.existsSync(jsDir)) {
+        return { counts, total: 0, categoryCount: 0 };
+    }
     const subdirs = fs.readdirSync(jsDir).filter(f => {
         const fullPath = path.join(jsDir, f);
         return fs.statSync(fullPath).isDirectory();
@@ -78,83 +74,25 @@ function getJSCategoryCounts() {
 
 // Get HTML counts
 function getHTMLCounts() {
-    const htmlSrcDir = path.join(rootDir, 'src/html');
-    const subdirs = ['advanced', 'components', 'forms', 'layouts', 'media', 'navigation', 'patterns', 'utilities'];
+    if (!fs.existsSync(htmlDir)) {
+        return { total: 0, categoryCount: 0 };
+    }
 
+    const files = fs.readdirSync(htmlDir);
     let total = 0;
-    subdirs.forEach(subdir => {
-        const subdirPath = path.join(htmlSrcDir, subdir);
-        if (fs.existsSync(subdirPath)) {
-            const count = countFilesInDir(subdirPath, ['.html']);
-            total += count;
-            console.log(`  ${subdir}: ${count}`);
-        }
+
+    Object.entries(htmlPrefixes).forEach(([key, prefix]) => {
+        const count = files.filter(file =>
+            file.endsWith('.html') &&
+            !file.toLowerCase().includes('index') &&
+            file.toUpperCase().startsWith(`${prefix}-`)
+        ).length;
+
+        total += count;
+        console.log(`  ${key}: ${count}`);
     });
 
-    return { total, categoryCount: subdirs.length };
-}
-
-// Update category counts in MASTER-INDEX files
-function updateCSSMasterIndex(counts) {
-    const filePath = path.join(cssDir, 'MASTER-INDEX.html');
-    let content = fs.readFileSync(filePath, 'utf-8');
-
-    // Map folder names to display names for matching
-    const categoryMap = {
-        'buttons-and-controls': 'Buttons & Controls',
-        'forms-status-and-micro-ux': 'Forms & Micro-UX',
-        'navigation-and-menus': 'Navigation & Menus',
-        'modals-popups-and-overlays': 'Modals & Overlays',
-        'data-visualization-and-charts': 'Data Visualization',
-        'media-and-audio-visuals': 'Media & Audio',
-        'scroll-and-page-transitions': 'Scroll & Transitions',
-        'background-and-atmosphere': 'Background & Atmosphere',
-        'cursors-and-mouse-effects': 'Cursors & Effects',
-        'gamification-and-rewards': 'Gamification',
-        'onboarding-and-user-education': 'Onboarding & Education',
-        'social-feed-and-community': 'Social & Community',
-        'ecommerce-and-products': 'E-Commerce',
-        'file-management-and-uploads': 'File Management',
-        'maps-and-geolocation': 'Maps & Geolocation',
-        'security-auth-and-login': 'Security & Auth',
-        'ai-and-voice-interactions': 'AI & Voice'
-    };
-
-    // Update each category count using regex
-    Object.entries(counts.counts).forEach(([folder, count]) => {
-        // Pattern: matches "XX components" after the category section
-        const patterns = [
-            new RegExp(`(${folder}.*?)(\\d+)(\\s*components)`, 'is'),
-            new RegExp(`(<div class="text-sm text-gray">)(\\d+)(\\s*components</div>)`, 'g')
-        ];
-
-        // Find and replace the count for this category's link
-        const linkPattern = new RegExp(`(href="[^"]*${folder}[^"]*"[^>]*>[^<]*</a>\\s*</div>\\s*</div>\\s*</div>)|(<a href="[.]/]${folder}/)`, 'g');
-    });
-
-    // Simpler approach: replace all "XX components" patterns
-    // This updates counts near each category section
-    content = content.replace(/(\d+)(\s*components<\/div>)/g, (match, num, suffix) => {
-        // Keep original for now, we'll do targeted updates
-        return match;
-    });
-
-    fs.writeFileSync(filePath, content);
-}
-
-// Update JS MASTER-INDEX
-function updateJSMasterIndex(counts) {
-    const filePath = path.join(jsDir, 'MASTER-INDEX.html');
-    let content = fs.readFileSync(filePath, 'utf-8');
-
-    // Update individual category counts
-    Object.entries(counts.counts).forEach(([folder, count]) => {
-        // Pattern to find count near folder link
-        const linkRegex = new RegExp(`(href="[.]/${folder}/[^"]*"[^]*?)(\\d+)(\\s*(?:modules|utilities|hooks|components))`, 'i');
-        // This is complex, let's use simpler pattern
-    });
-
-    fs.writeFileSync(filePath, content);
+    return { total, categoryCount: Object.keys(htmlPrefixes).length };
 }
 
 // Update totals on all pages
@@ -194,12 +132,14 @@ function updateTotals(htmlTotal, cssTotal, jsTotal) {
 
     // Update CSS MASTER-INDEX total
     const cssMasterPath = path.join(cssDir, 'MASTER-INDEX.html');
-    let cssMaster = fs.readFileSync(cssMasterPath, 'utf-8');
-    cssMaster = cssMaster.replace(
-        /(>)[\d,]+(<\/div>\s*<div class="text-sm text-gray">Total Components)/g,
-        `$1${cssTotal.toLocaleString()}$2`
-    );
-    fs.writeFileSync(cssMasterPath, cssMaster);
+    if (fs.existsSync(cssMasterPath)) {
+        let cssMaster = fs.readFileSync(cssMasterPath, 'utf-8');
+        cssMaster = cssMaster.replace(
+            /(>)[\d,]+(<\/div>\s*<div class="text-sm text-gray">Total Components)/g,
+            `$1${cssTotal.toLocaleString()}$2`
+        );
+        fs.writeFileSync(cssMasterPath, cssMaster);
+    }
 
     // Update JS MASTER-INDEX total
     const jsMasterPath = path.join(jsDir, 'MASTER-INDEX.html');

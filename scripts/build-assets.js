@@ -3,9 +3,6 @@ const path = require('path');
 const esbuild = require('esbuild');
 const csso = require('csso');
 
-const srcDir = path.join(__dirname, '..');
-const outDir = path.join(__dirname, '..', 'dist');
-
 function bundleJSFile(srcPath, destPath) {
   try {
     const result = esbuild.buildSync({

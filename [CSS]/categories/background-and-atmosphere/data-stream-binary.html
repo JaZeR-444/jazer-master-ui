@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Stream Binary</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .info {
+            position: relative;
+            z-index: 2;
+            color: #00ff00;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+        }
+
+        .info h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 0.4em;
+        }
+
+        .info p {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">
+        <h1>DATA STREAM</h1>
+        <p>Binary flow</p>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const fontSize = 14;
+        const columns = Math.floor(canvas.width / fontSize);
+
+        class DataStream {
+            constructor(x) {
+                this.x = x;
+                this.reset();
+            }
+
+            reset() {
+                this.y = Math.random() * -500;
+                this.speed = 2 + Math.random() * 8;
+                this.chars = [];
+                this.length = 10 + Math.floor(Math.random() * 30);
+                this.hue = Math.random() > 0.8 ? 180 : 120; // Mostly green, some cyan
+
+                for (let i = 0; i < this.length; i++) {
+                    this.chars.push(Math.random() > 0.5 ? '1' : '0');
+                }
+            }
+
+            update() {
+                this.y += this.speed;
+
+                // Occasionally change characters
+                if (Math.random() < 0.1) {
+                    const idx = Math.floor(Math.random() * this.chars.length);
+                    this.chars[idx] = Math.random() > 0.5 ? '1' : '0';
+                }
+
+                if (this.y > canvas.height + this.length * fontSize) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                for (let i = 0; i < this.chars.length; i++) {
+                    const charY = this.y - i * fontSize;
+
+                    if (charY < 0 || charY > canvas.height) continue;
+
+                    // Calculate fade based on position in stream
+                    let alpha;
+                    if (i === 0) {
+                        alpha = 1; // Head is brightest
+                    } else {
+                        alpha = 1 - (i / this.length);
+                    }
+
+                    // First character is white/bright
+                    if (i === 0) {
+                        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                        ctx.shadowColor = `hsl(${this.hue}, 100%, 70%)`;
+                        ctx.shadowBlur = 10;
+                    } else {
+                        ctx.fillStyle = `hsla(${this.hue}, 100%, ${50 + (1 - i / this.length) * 30}%, ${alpha})`;
+                        ctx.shadowBlur = 0;
+                    }
+
+                    ctx.fillText(this.chars[i], this.x, charY);
+                }
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        // Horizontal data bursts
+        class DataBurst {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.y = Math.random() * canvas.height;
+                this.x = -200;
+                this.speed = 10 + Math.random() * 20;
+                this.data = '';
+                const dataLength = 20 + Math.floor(Math.random() * 30);
+                for (let i = 0; i < dataLength; i++) {
+                    this.data += Math.random() > 0.5 ? '1' : '0';
+                }
+                this.alpha = 0.3 + Math.random() * 0.5;
+            }
+
+            update() {
+                this.x += this.speed;
+
+                if (this.x > canvas.width + 200) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                ctx.font = `${fontSize - 2}px Courier New`;
+                ctx.fillStyle = `rgba(0, 255, 200, ${this.alpha})`;
+                ctx.fillText(this.data, this.x, this.y);
+            }
+        }
+
+        // Central data node
+        function drawDataNode(time) {
+            const x = canvas.width / 2;
+            const y = canvas.height / 2;
+            const size = 100;
+            const pulse = Math.sin(time * 0.02) * 20;
+
+            // Outer rings
+            for (let i = 0; i < 3; i++) {
+                const ringSize = size + i * 30 + pulse;
+                const rotation = time * 0.01 * (i % 2 === 0 ? 1 : -1);
+
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(rotation);
+
+                ctx.beginPath();
+                ctx.arc(0, 0, ringSize, 0, Math.PI * 1.5);
+                ctx.strokeStyle = `hsla(120, 100%, 60%, ${0.3 - i * 0.1})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.restore();
+            }
+
+            // Core glow
+            const gradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+            gradient.addColorStop(0, 'rgba(0, 255, 100, 0.3)');
+            gradient.addColorStop(0.5, 'rgba(0, 200, 100, 0.1)');
+            gradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Binary data around center
+            ctx.font = `${fontSize}px Courier New`;
+            const dataRings = 8;
+            for (let i = 0; i < dataRings; i++) {
+                const angle = (i / dataRings) * Math.PI * 2 + time * 0.005;
+                const dist = 60 + Math.sin(time * 0.03 + i) * 10;
+                const dataX = x + Math.cos(angle) * dist;
+                const dataY = y + Math.sin(angle) * dist;
+
+                ctx.fillStyle = `rgba(0, 255, 150, ${0.5 + Math.sin(time * 0.05 + i) * 0.3})`;
+                ctx.fillText(Math.random() > 0.5 ? '1' : '0', dataX - 4, dataY + 4);
+            }
+        }
+
+        const streams = [];
+        for (let i = 0; i < columns; i++) {
+            if (Math.random() > 0.7) {
+                streams.push(new DataStream(i * fontSize));
+            }
+        }
+
+        const bursts = Array.from({ length: 5 }, () => new DataBurst());
+
+        ctx.font = `${fontSize}px Courier New`;
+
+        let time = 0;
+        function animate() {
+            time++;
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.font = `${fontSize}px Courier New`;
+
+            streams.forEach(stream => {
+                stream.update();
+                stream.draw();
+            });
+
+            bursts.forEach(burst => {
+                burst.update();
+                burst.draw();
+            });
+
+            drawDataNode(time);
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

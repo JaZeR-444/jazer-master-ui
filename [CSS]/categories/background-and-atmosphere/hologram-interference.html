@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hologram Interference</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .info {
+            position: relative;
+            z-index: 2;
+            color: #00ffff;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+
+        .info h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 0.5em;
+        }
+
+        .info p {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">
+        <h1>HOLOGRAM</h1>
+        <p>Digital interference patterns</p>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Scanlines
+        function drawScanlines(time) {
+            const lineHeight = 2;
+            const offset = (time * 2) % (lineHeight * 2);
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.03)';
+            for (let y = offset; y < canvas.height; y += lineHeight * 2) {
+                ctx.fillRect(0, y, canvas.width, lineHeight);
+            }
+        }
+
+        // Holographic grid
+        function drawHoloGrid(time) {
+            const perspective = 400;
+            const gridSize = 50;
+            const rowCount = 20;
+
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height * 0.6);
+
+            for (let row = 1; row <= rowCount; row++) {
+                const z = row * gridSize;
+                const scale = perspective / (perspective + z);
+                const y = z * scale;
+
+                // Horizontal lines
+                ctx.beginPath();
+                ctx.moveTo(-canvas.width * scale, y);
+                ctx.lineTo(canvas.width * scale, y);
+
+                const alpha = 0.3 * (1 - row / rowCount);
+                const hue = (time * 0.5 + row * 5) % 360;
+                ctx.strokeStyle = `hsla(${hue}, 100%, 60%, ${alpha})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // Vertical lines
+            for (let col = -10; col <= 10; col++) {
+                ctx.beginPath();
+
+                for (let row = 1; row <= rowCount; row++) {
+                    const z = row * gridSize;
+                    const scale = perspective / (perspective + z);
+                    const x = col * gridSize * scale;
+                    const y = z * scale;
+
+                    if (row === 1) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+
+                const alpha = 0.2 * (1 - Math.abs(col) / 10);
+                ctx.strokeStyle = `hsla(180, 100%, 60%, ${alpha})`;
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        // Holographic shapes
+        class HoloShape {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = canvas.width / 2 + (Math.random() - 0.5) * 400;
+                this.y = canvas.height * 0.4;
+                this.z = Math.random() * 200;
+                this.size = 50 + Math.random() * 100;
+                this.rotation = 0;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.02;
+                this.type = Math.floor(Math.random() * 3);
+                this.hue = Math.random() * 60 + 160; // Cyan-blue range
+                this.glitchPhase = Math.random() * Math.PI * 2;
+            }
+
+            update(time) {
+                this.rotation += this.rotationSpeed;
+                this.glitchPhase += 0.1;
+
+                // Occasional glitch
+                if (Math.random() < 0.01) {
+                    this.x += (Math.random() - 0.5) * 20;
+                }
+            }
+
+            draw(time) {
+                const glitch = Math.sin(this.glitchPhase) > 0.95;
+                const offsetX = glitch ? (Math.random() - 0.5) * 10 : 0;
+
+                ctx.save();
+                ctx.translate(this.x + offsetX, this.y);
+                ctx.rotate(this.rotation);
+
+                // Draw shape based on type
+                ctx.beginPath();
+
+                if (this.type === 0) {
+                    // Triangle
+                    for (let i = 0; i < 3; i++) {
+                        const angle = (i / 3) * Math.PI * 2 - Math.PI / 2;
+                        const x = Math.cos(angle) * this.size;
+                        const y = Math.sin(angle) * this.size;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.closePath();
+                } else if (this.type === 1) {
+                    // Square
+                    ctx.rect(-this.size / 2, -this.size / 2, this.size, this.size);
+                } else {
+                    // Hexagon
+                    for (let i = 0; i < 6; i++) {
+                        const angle = (i / 6) * Math.PI * 2;
+                        const x = Math.cos(angle) * this.size * 0.7;
+                        const y = Math.sin(angle) * this.size * 0.7;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.closePath();
+                }
+
+                // Holographic fill
+                const gradient = ctx.createLinearGradient(0, -this.size, 0, this.size);
+                gradient.addColorStop(0, `hsla(${this.hue}, 100%, 60%, 0.1)`);
+                gradient.addColorStop(0.5, `hsla(${this.hue + 30}, 100%, 70%, 0.2)`);
+                gradient.addColorStop(1, `hsla(${this.hue}, 100%, 60%, 0.1)`);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+
+                // Edge glow
+                ctx.strokeStyle = `hsla(${this.hue}, 100%, 70%, 0.8)`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Secondary edge (chromatic aberration)
+                ctx.save();
+                ctx.translate(3, 0);
+                ctx.strokeStyle = `hsla(${this.hue + 60}, 100%, 70%, 0.3)`;
+                ctx.stroke();
+                ctx.restore();
+
+                ctx.save();
+                ctx.translate(-3, 0);
+                ctx.strokeStyle = `hsla(${this.hue - 60}, 100%, 70%, 0.3)`;
+                ctx.stroke();
+                ctx.restore();
+
+                ctx.restore();
+            }
+        }
+
+        // Interference waves
+        function drawInterference(time) {
+            const waves = 3;
+
+            for (let w = 0; w < waves; w++) {
+                const centerX = canvas.width / 2 + Math.sin(time * 0.01 + w * 2) * 200;
+                const centerY = canvas.height / 2 + Math.cos(time * 0.01 + w * 2) * 100;
+
+                const maxRadius = 300;
+                const ringCount = 10;
+
+                for (let r = 0; r < ringCount; r++) {
+                    const radius = ((time * 2 + r * 30) % maxRadius);
+                    const alpha = 0.2 * (1 - radius / maxRadius);
+
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                    ctx.strokeStyle = `hsla(${180 + w * 40}, 100%, 60%, ${alpha})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Static noise
+        function drawNoise() {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                if (Math.random() < 0.02) {
+                    const noise = Math.random() * 30;
+                    data[i] += noise;
+                    data[i + 1] += noise;
+                    data[i + 2] += noise;
+                }
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        const shapes = Array.from({ length: 5 }, () => new HoloShape());
+
+        let time = 0;
+        function animate() {
+            time++;
+
+            ctx.fillStyle = 'rgba(0, 0, 10, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drawHoloGrid(time);
+            drawInterference(time);
+
+            shapes.forEach(shape => {
+                shape.update(time);
+                shape.draw(time);
+            });
+
+            drawScanlines(time);
+
+            if (Math.random() < 0.3) {
+                drawNoise();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

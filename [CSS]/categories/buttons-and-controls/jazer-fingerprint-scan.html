@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Fingerprint</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0b0b0b;
+            font-family: sans-serif;
+        }
+
+        .scan-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        /* Fingerprint SVG simulation with CSS lines or image, let's use a stylized div pattern */
+        .fingerprint {
+            width: 50px;
+            height: 60px;
+            border: 2px solid #555;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 4px,
+                    #555 4px,
+                    #555 6px);
+            mask-image: radial-gradient(circle at center, black 60%, transparent 100%);
+        }
+
+        /* Scanning Bar */
+        .scanner-bar {
+            position: absolute;
+            top: -100%;
+            left: 0;
+            width: 100%;
+            height: 20%;
+            background: linear-gradient(to bottom, transparent, #0f0, transparent);
+            opacity: 0.5;
+            transition: top 0s;
+        }
+
+        /* Ring */
+        .ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 2px solid #333;
+            box-sizing: border-box;
+        }
+
+        /* Active svg ring */
+        .progress-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 80px;
+            height: 80px;
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring circle {
+            fill: transparent;
+            stroke: #0f0;
+            stroke-width: 2;
+            stroke-dasharray: 251;
+            /* 2 * PI * 40ish */
+            stroke-dashoffset: 251;
+            transition: stroke-dashoffset 0s;
+        }
+
+        .scan-container:active .fingerprint {
+            border-color: #fff;
+            background: repeating-linear-gradient(0deg, transparent, transparent 4px, #fff 4px, #fff 6px);
+        }
+
+        .scan-container.scanning .scanner-bar {
+            animation: scan 1s infinite linear;
+        }
+
+        .scan-container.scanning .progress-ring circle {
+            transition: stroke-dashoffset 2s linear;
+            stroke-dashoffset: 0;
+        }
+
+        @keyframes scan {
+            0% {
+                top: -20%;
+            }
+
+            100% {
+                top: 120%;
+            }
+        }
+
+        .label {
+            position: absolute;
+            bottom: -30px;
+            color: #555;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        .scan-container.success .fingerprint {
+            border-color: #0f0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 4px, #0f0 4px, #0f0 6px);
+            box-shadow: 0 0 20px #0f0;
+        }
+
+        .scan-container.success .label {
+            color: #0f0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="scan-container" id="scanner">
+        <div class="ring"></div>
+        <svg class="progress-ring">
+            <circle cx="40" cy="40" r="38"></circle>
+        </svg>
+        <div class="fingerprint">
+            <div class="scanner-bar"></div>
+        </div>
+        <div class="label">HOLD TO SCAN</div>
+    </div>
+
+    <script>
+        const scanner = document.getElementById('scanner');
+        let timer;
+
+        scanner.addEventListener('mousedown', startScan);
+        scanner.addEventListener('touchstart', startScan); // simple mobile support
+
+        document.addEventListener('mouseup', stopScan);
+        document.addEventListener('touchend', stopScan);
+
+        function startScan() {
+            if (scanner.classList.contains('success')) return;
+            scanner.classList.add('scanning');
+
+            // Wait 2s
+            timer = setTimeout(() => {
+                scanner.classList.remove('scanning');
+                scanner.classList.add('success');
+                scanner.querySelector('.label').textContent = 'JaZeR ACCESS GRANTED';
+            }, 2000);
+        }
+
+        function stopScan() {
+            if (scanner.classList.contains('success')) return;
+            clearTimeout(timer);
+            scanner.classList.remove('scanning');
+            // reset circle
+            const circle = scanner.querySelector('circle');
+            circle.style.transition = 'none';
+            circle.style.strokeDashoffset = '251';
+            setTimeout(() => circle.style.transition = '', 10);
+        }
+    </script>
+
+</body>
+
+</html>

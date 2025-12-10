@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ocean Depth Particles</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: linear-gradient(180deg, #001825 0%, #002540 30%, #003050 60%, #001020 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .info {
+            position: relative;
+            z-index: 2;
+            color: #60a0c0;
+            text-align: center;
+            text-shadow: 0 0 30px rgba(100, 180, 220, 0.5);
+        }
+
+        .info h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 0.5em;
+        }
+
+        .info p {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">
+        <h1>ABYSS</h1>
+        <p>Deep ocean bioluminescence</p>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Marine snow (organic particles)
+        class MarineSnow {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * -canvas.height;
+                this.size = 1 + Math.random() * 3;
+                this.speed = 0.2 + Math.random() * 0.5;
+                this.wobble = Math.random() * Math.PI * 2;
+                this.opacity = 0.2 + Math.random() * 0.4;
+            }
+
+            update() {
+                this.y += this.speed;
+                this.wobble += 0.02;
+                this.x += Math.sin(this.wobble) * 0.3;
+
+                if (this.y > canvas.height + 20) this.reset();
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(150, 200, 220, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        // Bioluminescent organisms
+        class BioOrganism {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = 3 + Math.random() * 8;
+                this.glowSize = this.size * 4;
+                this.hue = 180 + Math.random() * 60; // Cyan to blue
+                this.phase = Math.random() * Math.PI * 2;
+                this.pulseSpeed = 0.02 + Math.random() * 0.03;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.3;
+                this.tentacles = Math.floor(3 + Math.random() * 5);
+            }
+
+            update() {
+                this.phase += this.pulseSpeed;
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Wrap around
+                if (this.x < -50) this.x = canvas.width + 50;
+                if (this.x > canvas.width + 50) this.x = -50;
+                if (this.y < -50) this.y = canvas.height + 50;
+                if (this.y > canvas.height + 50) this.y = -50;
+            }
+
+            draw(time) {
+                const pulse = Math.sin(this.phase) * 0.5 + 0.5;
+
+                // Glow
+                const gradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, this.glowSize * pulse
+                );
+                gradient.addColorStop(0, `hsla(${this.hue}, 100%, 60%, ${0.6 * pulse})`);
+                gradient.addColorStop(0.5, `hsla(${this.hue}, 80%, 50%, ${0.3 * pulse})`);
+                gradient.addColorStop(1, 'transparent');
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.glowSize * pulse, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Tentacles
+                for (let i = 0; i < this.tentacles; i++) {
+                    const angle = (i / this.tentacles) * Math.PI * 2 + time * 0.001;
+                    const length = this.size * 2 + Math.sin(time * 0.005 + i) * this.size;
+
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y);
+                    ctx.quadraticCurveTo(
+                        this.x + Math.cos(angle) * length * 0.5,
+                        this.y + Math.sin(angle) * length * 0.5 + Math.sin(time * 0.01 + i) * 5,
+                        this.x + Math.cos(angle) * length,
+                        this.y + Math.sin(angle) * length
+                    );
+                    ctx.strokeStyle = `hsla(${this.hue}, 100%, 70%, ${0.4 * pulse})`;
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                }
+
+                // Core
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * pulse, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${this.hue}, 100%, 80%, ${0.8 * pulse})`;
+                ctx.fill();
+            }
+        }
+
+        // Deep sea fish silhouette
+        class DeepFish {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.direction = Math.random() > 0.5 ? 1 : -1;
+                this.x = this.direction > 0 ? -100 : canvas.width + 100;
+                this.y = Math.random() * canvas.height;
+                this.size = 20 + Math.random() * 40;
+                this.speed = 0.5 + Math.random() * 1;
+                this.alpha = 0.1 + Math.random() * 0.2;
+            }
+
+            update() {
+                this.x += this.speed * this.direction;
+
+                if ((this.direction > 0 && this.x > canvas.width + 100) ||
+                    (this.direction < 0 && this.x < -100)) {
+                    this.reset();
+                }
+            }
+
+            draw(time) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.scale(this.direction, 1);
+
+                // Body
+                ctx.beginPath();
+                ctx.ellipse(0, 0, this.size, this.size * 0.4, 0, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(10, 30, 50, ${this.alpha})`;
+                ctx.fill();
+
+                // Tail
+                const tailWag = Math.sin(time * 0.01) * 10;
+                ctx.beginPath();
+                ctx.moveTo(-this.size * 0.8, 0);
+                ctx.lineTo(-this.size * 1.3, -this.size * 0.3 + tailWag);
+                ctx.lineTo(-this.size * 1.3, this.size * 0.3 + tailWag);
+                ctx.closePath();
+                ctx.fill();
+
+                // Bioluminescent lure
+                const lureGlow = Math.sin(time * 0.05) * 0.3 + 0.7;
+                const lureGradient = ctx.createRadialGradient(
+                    this.size * 1.2, -this.size * 0.2, 0,
+                    this.size * 1.2, -this.size * 0.2, 15
+                );
+                lureGradient.addColorStop(0, `rgba(100, 200, 255, ${lureGlow})`);
+                lureGradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = lureGradient;
+                ctx.beginPath();
+                ctx.arc(this.size * 1.2, -this.size * 0.2, 15, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        const marineSnow = Array.from({ length: 100 }, () => new MarineSnow());
+        const organisms = Array.from({ length: 25 }, () => new BioOrganism());
+        const fish = Array.from({ length: 5 }, () => new DeepFish());
+
+        let time = 0;
+        function animate() {
+            time++;
+
+            // Deep ocean gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#001825');
+            gradient.addColorStop(0.3, '#002540');
+            gradient.addColorStop(0.6, '#003050');
+            gradient.addColorStop(1, '#001020');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Marine snow
+            marineSnow.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            // Fish
+            fish.forEach(f => {
+                f.update();
+                f.draw(time);
+            });
+
+            // Bioluminescent organisms
+            organisms.forEach(org => {
+                org.update();
+                org.draw(time);
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

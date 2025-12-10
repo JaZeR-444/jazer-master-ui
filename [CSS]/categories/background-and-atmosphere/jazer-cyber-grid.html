@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Cyber Grid</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+            perspective: 600px;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .jazer-logo {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            user-select: none;
+            mix-blend-mode: screen;
+        }
+
+        .jazer-logo h1 {
+            font-size: 8rem;
+            font-style: italic;
+            font-weight: 900;
+            background: linear-gradient(to bottom, #ff00de, #c900ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(255, 0, 222, 0.8));
+            transform: skewX(-10deg);
+        }
+
+        .jazer-logo p {
+            font-size: 1.5rem;
+            letter-spacing: 0.5em;
+            color: #00ffff;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #00ffff;
+            margin-top: -10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="jazer-logo">
+        <h1>JaZeR CYBER</h1>
+        <p>SYNTHWAVE GRID</p>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        let offset = 0;
+        const speed = 2; // Speed of the grid movement
+
+        function drawGrid(time) {
+            // Horizon line
+            const horizonY = canvas.height * 0.4;
+
+            // Background sky (gradient)
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+            skyGrad.addColorStop(0, '#000022');
+            skyGrad.addColorStop(1, '#220044');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, canvas.width, horizonY);
+
+            // Sun
+            const sunRadius = 150;
+            const sunGrad = ctx.createLinearGradient(0, horizonY - sunRadius * 2, 0, horizonY);
+            sunGrad.addColorStop(0, '#ffff00');
+            sunGrad.addColorStop(0.5, '#ff00ff');
+            sunGrad.addColorStop(1, '#9900ff');
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, horizonY - 50, sunRadius, 0, Math.PI * 2);
+            ctx.fillStyle = sunGrad;
+            ctx.shadowBlur = 50;
+            ctx.shadowColor = '#ff00ff';
+            ctx.fill();
+
+            // Sun stripes
+            for (let i = 0; i < 10; i++) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                ctx.fillRect(
+                    canvas.width / 2 - sunRadius - 10,
+                    horizonY - 50 - sunRadius + (i * 25) + 30,
+                    sunRadius * 2 + 20,
+                    5 + i * 2 // thicker stripes at bottom
+                );
+            }
+            ctx.restore();
+
+
+            // Floor
+            // We draw the floor using 3D projection math simulated simply
+            // Vertical lines converge to center
+            // Horizontal lines move down
+
+            const floorGrad = ctx.createLinearGradient(0, horizonY, 0, canvas.height);
+            floorGrad.addColorStop(0, '#000000');
+            floorGrad.addColorStop(1, '#1a0022');
+            ctx.fillStyle = floorGrad;
+            ctx.fillRect(0, horizonY, canvas.width, canvas.height - horizonY);
+
+            ctx.save();
+            ctx.beginPath();
+            // Clip to floor area
+            ctx.rect(0, horizonY, canvas.width, canvas.height - horizonY);
+            ctx.clip();
+
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#00ffff';
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 2;
+
+            const cx = canvas.width / 2;
+            const fov = 300;
+            const viewDest = canvas.height;
+
+            // Vertical lines
+            // They fan out from cx, horizonY
+            for (let x = -canvas.width; x < canvas.width * 2; x += 80) {
+                // Simple perspective simulation: lines radiating from center horizon
+                // Actually they represent parallel lines in 3D
+                // So they should meet at vanishing point (cx, horizonY)
+
+                // We distribute angles or x-coordinates?
+                // Let's use x-coordinates at the bottom of the screen
+                ctx.beginPath();
+                ctx.moveTo(cx, horizonY);
+                // We want strictly parallel lines in "world" space
+                // Let's just draw lines radiating from center
+                // But filtering appropriately
+                // Let's iterate X at bottom screen
+            }
+
+            // Better customized grid approach
+            // Vertical lines
+            const numVLines = 40;
+            for (let i = -numVLines / 2; i <= numVLines / 2; i++) {
+                const x = cx + i * (canvas.width * 1.5 / (numVLines / 2));
+                // Line from VP to x at bottom
+                // VP is cx, horizonY
+                // We actually want them spaced evenly in 3D, which means logarithmic in 2D? No, linear in angle?
+                // Standard perspective: x_screen = x_world / z
+
+                // Let's try simple radiating lines
+                ctx.beginPath();
+                ctx.moveTo(cx, horizonY);
+                ctx.lineTo(x * 3, canvas.height); // Multiply width to spread fan
+                ctx.stroke();
+            }
+
+            // Horizontal lines (moving towards us)
+            // z goes from far to near. z = 1 (horizon) to 0 (camera)
+            // mapped to y on screen
+
+            offset = (offset + speed) % 100;
+
+            // We want lines to appear to come from horizon.
+            // Spacing gets larger as we get closer.
+            // y = some_perspective_projection(z)
+
+            // Loop for horizontal lines
+            for (let z = 0; z < 2000; z += 100) {
+                // Effective z with movement
+                let effectiveZ = z - offset;
+                if (effectiveZ < 0) effectiveZ += 2000;
+
+                // Project z to Y. 
+                // Inverse relationship. Nearer (high Z? low Z?)
+                // Let's say Z is distance from camera.
+                // Horizon is Z = infinity.
+                // We are rendering from z=10 to z=1000?
+
+                // Simple hack: 1/y function
+                // y_screen = horizonY + (scale / z_world)
+
+                const scale = 20000;
+                // z ranges 
+
+                // Let's try drawing lines at y = horizonY + d
+                // d increases exponentially?
+
+                // Let's use the offset linearly for a texture slide effect, then map it
+            }
+
+            // Simpler approach for horizontal lines
+            // Just draw them at calculated Y positions
+            // y = H + (H / z) where z goes 1..infinity
+
+            const H = canvas.height - horizonY;
+            const period = 100;
+            const phase = (time * speed) % period;
+
+            for (let i = 0; i < 20; i++) {
+                // i represents depth steps
+                // We want seamless looping.
+                // z position from camera.
+
+                let z = i * period - phase;
+                // if z is small, line is close (bottom). if z is large, line is far (horizon).
+                // Wait, typically we move FORWARD, so lines come FROM horizon TO bottom.
+                // So z starts large and gets small.
+
+                // Let's rework:
+                // distance d from viewer.
+                // d decreases.
+
+                let dist = 2000 - (i * 100 + (time * 5) % 100);
+                // 2000 is far, 0 is near.
+                if (dist <= 10) continue;
+
+                // Project
+                // y - horizonY = constant / dist
+                const perspectiveHeight = 200 * (canvas.height / dist);
+
+                const y = horizonY + perspectiveHeight;
+
+                if (y > canvas.height) continue;
+                if (y < horizonY) continue;
+
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+
+                // Alpha fade near horizon
+                const alpha = Math.min(1, (y - horizonY) / 100);
+
+                ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        let time = 0;
+        function animate() {
+            time++;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid(time);
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

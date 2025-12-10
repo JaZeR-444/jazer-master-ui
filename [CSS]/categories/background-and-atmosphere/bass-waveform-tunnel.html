@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bass Waveform Tunnel</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .info {
+            position: relative;
+            z-index: 2;
+            color: white;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h1>Bass Waveform Tunnel</h1>
+        <p>Deep bass tunnel with waveform visualization</p>
+    </div>
+    
+    <canvas id="tunnelCanvas"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('tunnelCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas to full window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Bass Waveform Tunnel class
+        class BassTunnel {
+            constructor() {
+                this.centerX = canvas.width / 2;
+                this.centerY = canvas.height / 2;
+                this.layers = [];
+                this.layerCount = 15;
+                this.tunnelSpeed = 0.01;
+                this.tunnelDepth = 0;
+                
+                // Initialize tunnel layers
+                this.initLayers();
+            }
+            
+            initLayers() {
+                // Create multiple layers for tunnel effect
+                for (let i = 0; i < this.layerCount; i++) {
+                    const layer = {
+                        radius: 50 + i * 30, // Each layer is larger
+                        points: [],
+                        rotation: 0,
+                        rotationSpeed: (i % 2 === 0 ? 1 : -1) * (0.005 + i * 0.001), // Alternating directions
+                        waveform: 0 // For bass effect
+                    };
+                    
+                    // Create points around the layer
+                    const pointCount = 30 + i * 2;
+                    for (let j = 0; j < pointCount; j++) {
+                        const angle = (j / pointCount) * Math.PI * 2;
+                        layer.points.push({
+                            angle: angle,
+                            baseRadius: layer.radius,
+                            offset: Math.random() * Math.PI * 2
+                        });
+                    }
+                    
+                    this.layers.push(layer);
+                }
+            }
+            
+            update() {
+                const time = Date.now() * 0.001;
+                
+                // Simulate bass input
+                const bassLevel = Math.abs(Math.sin(time * 0.7)) * 0.8 + Math.random() * 0.2;
+                const beat = Math.sin(time * 0.5) > 0.9 ? 2 : 1;
+                
+                // Update tunnel depth
+                this.tunnelDepth += this.tunnelSpeed * beat;
+                if (this.tunnelDepth > 1) this.tunnelDepth = 0;
+                
+                // Update each layer
+                this.layers.forEach((layer, index) => {
+                    // Rotate the layer
+                    layer.rotation += layer.rotationSpeed * beat;
+                    
+                    // Apply bass effect to waveform
+                    layer.waveform = bassLevel * (1 + index * 0.1);
+                    
+                    // Update points with waveform effect
+                    layer.points.forEach(point => {
+                        // Add bass distortion
+                        const distortion = Math.sin(time * 2 + point.offset) * layer.waveform * 20;
+                        point.radius = point.baseRadius + distortion;
+                    });
+                });
+            }
+            
+            draw() {
+                // Draw tunnel layers from back to front
+                for (let i = this.layers.length - 1; i >= 0; i--) {
+                    const layer = this.layers[i];
+                    
+                    ctx.beginPath();
+                    
+                    // Draw the layer using the points
+                    for (let j = 0; j < layer.points.length; j++) {
+                        const point = layer.points[j];
+                        const x = this.centerX + Math.cos(point.angle + layer.rotation) * point.radius;
+                        const y = this.centerY + Math.sin(point.angle + layer.rotation) * point.radius;
+                        
+                        if (j === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            // Draw smooth curve between points
+                            const prevPoint = layer.points[j - 1];
+                            const prevX = this.centerX + Math.cos(prevPoint.angle + layer.rotation) * prevPoint.radius;
+                            const prevY = this.centerY + Math.sin(prevPoint.angle + layer.rotation) * prevPoint.radius;
+                            
+                            const cpx = (prevX + x) / 2;
+                            const cpy = (prevY + y) / 2;
+                            ctx.quadraticCurveTo(prevX, prevY, cpx, cpy);
+                        }
+                    }
+                    
+                    // Close the path
+                    const firstPoint = layer.points[0];
+                    const firstX = this.centerX + Math.cos(firstPoint.angle + layer.rotation) * firstPoint.radius;
+                    const firstY = this.centerY + Math.sin(firstPoint.angle + layer.rotation) * firstPoint.radius;
+                    
+                    const lastPoint = layer.points[layer.points.length - 1];
+                    const lastX = this.centerX + Math.cos(lastPoint.angle + layer.rotation) * lastPoint.radius;
+                    const lastY = this.centerY + Math.sin(lastPoint.angle + layer.rotation) * lastPoint.radius;
+                    
+                    const cpx = (lastX + firstX) / 2;
+                    const cpy = (lastY + firstY) / 2;
+                    ctx.quadraticCurveTo(lastX, lastY, cpx, cpy);
+                    
+                    ctx.closePath();
+                    
+                    // Calculate color based on depth and bass
+                    const hue = 0 + (i / this.layers.length) * 10; // Red to orange range
+                    const saturation = 80;
+                    const lightness = 30 + (i / this.layers.length) * 30;
+                    const alpha = 0.2 + (i / this.layers.length) * 0.4;
+                    
+                    // Create gradient for the layer
+                    const gradient = ctx.createRadialGradient(
+                        this.centerX, this.centerY, 0,
+                        this.centerX, this.centerY, layer.points[0].radius
+                    );
+                    
+                    gradient.addColorStop(0, `hsla(${hue}, ${saturation}%, ${lightness + 20}%, ${alpha * 0.5})`);
+                    gradient.addColorStop(1, `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`);
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                    
+                    // Draw outline
+                    ctx.strokeStyle = `hsla(${hue}, 100%, 70%, ${alpha * 2})`;
+                    ctx.lineWidth = 1 + (i / this.layers.length) * 2;
+                    ctx.stroke();
+                }
+                
+                // Draw center bass pulsation
+                const time = Date.now() * 0.002;
+                const pulse = Math.sin(time) * 0.3 + 0.7;
+                const centerRadius = 20 * pulse;
+                
+                const centerGradient = ctx.createRadialGradient(
+                    this.centerX, this.centerY, 0,
+                    this.centerX, this.centerY, centerRadius
+                );
+                
+                centerGradient.addColorStop(0, 'hsla(0, 100%, 90%, 1)');
+                centerGradient.addColorStop(0.7, 'hsla(0, 100%, 50%, 0.7)');
+                centerGradient.addColorStop(1, 'hsla(0, 100%, 30%, 0)');
+                
+                ctx.fillStyle = centerGradient;
+                ctx.beginPath();
+                ctx.arc(this.centerX, this.centerY, centerRadius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Add glow
+                ctx.shadowColor = 'hsla(0, 100%, 50%, 0.8)';
+                ctx.shadowBlur = 30;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+        
+        // Floating particles that move through the tunnel
+        class TunnelParticle {
+            constructor() {
+                // Start from outside the tunnel area
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                
+                // Direction toward center
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const dx = centerX - this.x;
+                const dy = centerY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                this.vx = (dx / distance) * 0.5;
+                this.vy = (dy / distance) * 0.5;
+                
+                // Size and color
+                this.size = 1 + Math.random() * 2;
+                this.hue = 0 + Math.random() * 20; // Red to orange
+                this.saturation = 80 + Math.random() * 20;
+                this.lightness = 60 + Math.random() * 30;
+                this.alpha = 0.3 + Math.random() * 0.7;
+                
+                // Audio responsiveness
+                this.beatSensitivity = 0.1 + Math.random() * 0.4;
+            }
+            
+            update() {
+                const time = Date.now() * 0.001;
+                
+                // Simulate audio input
+                const bassLevel = Math.abs(Math.sin(time * 0.7)) * 0.8 + Math.random() * 0.2;
+                const beat = Math.sin(time * 0.5) > 0.9 ? 1.5 : 1;
+                
+                // Apply beat effect to movement
+                this.x += this.vx * beat;
+                this.y += this.vy * beat;
+                
+                // Apply radial motion based on audio
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const dx = this.x - centerX;
+                const dy = this.y - centerY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 0) {
+                    const radialVx = (dx / distance) * bassLevel * this.beatSensitivity * 0.1;
+                    const radialVy = (dy / distance) * bassLevel * this.beatSensitivity * 0.1;
+                    
+                    this.x += radialVx;
+                    this.y += radialVy;
+                }
+                
+                // Reset if particle reaches center
+                const centerDist = Math.sqrt(Math.pow(this.x - centerX, 2) + Math.pow(this.y - centerY, 2));
+                if (centerDist < 20) {
+                    // Reset to edge
+                    const angle = Math.random() * Math.PI * 2;
+                    this.x = centerX + Math.cos(angle) * Math.max(canvas.width, canvas.height) * 0.7;
+                    this.y = centerY + Math.sin(angle) * Math.max(canvas.height, canvas.height) * 0.7;
+                }
+            }
+            
+            draw() {
+                // Create radial gradient for the particle
+                const gradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, this.size * 4
+                );
+                
+                gradient.addColorStop(0, `hsla(${this.hue}, ${this.saturation}%, ${this.lightness}%, ${this.alpha})`);
+                gradient.addColorStop(0.7, `hsla(${this.hue}, ${this.saturation * 0.8}%, ${this.lightness * 0.7}%, ${this.alpha * 0.7})`);
+                gradient.addColorStop(1, `hsla(${this.hue}, ${this.saturation * 0.6}%, ${this.lightness * 0.5}%, 0)`);
+                
+                ctx.fillStyle = gradient;
+                
+                // Draw particle
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Add motion trail
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x - this.vx * 10, this.y - this.vy * 10);
+                ctx.strokeStyle = `hsla(${this.hue}, ${this.saturation}%, ${this.lightness}%, ${this.alpha * 0.3})`;
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+            }
+        }
+        
+        // Create tunnel and particles
+        const tunnel = new BassTunnel();
+        const particles = [];
+        
+        for (let i = 0; i < 100; i++) {
+            particles.push(new TunnelParticle());
+        }
+        
+        // Animation loop
+        function animate() {
+            // Clear with fade effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Update and draw tunnel
+            tunnel.update();
+            tunnel.draw();
+            
+            // Update and draw particles
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>

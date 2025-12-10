@@ -2,8 +2,10 @@ const fs = require('fs');
 const path = require('path');
 
 const rootDir = path.join(__dirname, '..');
-const srcDir = path.join(rootDir, 'src');
-const templatePath = path.join(srcDir, 'html/Directories/ALL-IN-ONE-HOME.html');
+const htmlDir = path.join(rootDir, '[HTML]', 'Directories');
+const cssCategoriesDir = path.join(rootDir, '[CSS]', 'categories');
+const jsDir = path.join(rootDir, '[JS]');
+const templatePath = path.join(htmlDir, 'ALL-IN-ONE-HOME.html');
 const outputPath = path.join(rootDir, 'index.html');
 
 // Helper to format title from filename
@@ -17,45 +19,35 @@ function formatTitle(filename) {
 }
 
 // Helper to determine category from directory
-function getCategory(dirName) {
-    // Map directory names to database categories
-    const map = {
-        'components': 'components',
-        'forms': 'forms',
-        'layouts': 'layouts',
-        'navigation': 'navigation',
-        'media': 'media',
-        'utilities': 'utilities',
-        'patterns': 'patterns',
-        'advanced': 'advanced',
-        'js-components': 'javascript',
-        'css-categories': 'css'
-    };
-    return map[dirName] || 'other';
+function folderToLabel(folder) {
+    return folder
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 }
 
-function scanDirectory(basePath, relativePrefix, categoryName) {
+function scanDirectory(basePath, relativePrefix, categoryName, options = {}) {
     const items = [];
     if (!fs.existsSync(basePath)) return items;
 
+    const { extensions = ['.html'], filter = () => true } = options;
     const files = fs.readdirSync(basePath);
     for (const file of files) {
-        if (file.endsWith('.html') || file.endsWith('.js') || file.endsWith('.css')) {
-            // Skip index files if they exist in subfolders to avoid clutter
-            if (file.includes('INDEX') || file === 'index.html') continue;
+        const ext = path.extname(file).toLowerCase();
+        if (!extensions.includes(ext)) continue;
+        if (file.toLowerCase() === 'index.html' || file.includes('INDEX')) continue;
+        if (!filter(file)) continue;
 
-            const title = formatTitle(file);
-            // Simple tag generation
-            const tags = ['general'];
-            if (file.includes('interactive')) tags.push('interactive');
+        const title = formatTitle(file);
+        const tags = ['general'];
+        if (/interactive/i.test(file)) tags.push('interactive');
 
-            items.push({
-                title: title,
-                desc: `${title} (${categoryName})`, // Placeholder description
-                url: `${relativePrefix}/${file}`,
-                tags: tags
-            });
-        }
+        items.push({
+            title,
+            desc: `${title} (${categoryName})`,
+            url: `${relativePrefix}/${file}`.replace(/\\/g, '/'),
+            tags
+        });
     }
     return items;
 }
@@ -63,19 +55,56 @@ function scanDirectory(basePath, relativePrefix, categoryName) {
 function generateIndex() {
     console.log('Generating index.html...');
 
-    const database = {
-        components: scanDirectory(path.join(srcDir, 'html/components'), './src/html/components', 'UI Component'),
-        forms: scanDirectory(path.join(srcDir, 'html/forms'), './src/html/forms', 'Form'),
-        layouts: scanDirectory(path.join(srcDir, 'html/layouts'), './src/html/layouts', 'Layout'),
-        navigation: scanDirectory(path.join(srcDir, 'html/navigation'), './src/html/navigation', 'Navigation'),
-        media: scanDirectory(path.join(srcDir, 'html/media'), './src/html/media', 'Media'),
-        utilities: scanDirectory(path.join(srcDir, 'html/utilities'), './src/html/utilities', 'Utility'),
-        patterns: scanDirectory(path.join(srcDir, 'html/patterns'), './src/html/patterns', 'Pattern'),
-        advanced: scanDirectory(path.join(srcDir, 'html/advanced'), './src/html/advanced', 'Advanced'),
-        // New Categories
-        javascript: scanDirectory(path.join(srcDir, 'js/components'), './src/js/components', 'JavaScript'),
-        css: scanDirectory(path.join(srcDir, 'css/categories'), './src/css/categories', 'CSS')
+    const htmlPrefixes = {
+        components: { label: 'UI Component', prefix: 'COMPONENTS' },
+        forms: { label: 'Form', prefix: 'FORMS' },
+        layouts: { label: 'Layout', prefix: 'LAYOUTS' },
+        navigation: { label: 'Navigation', prefix: 'NAVIGATION' },
+        media: { label: 'Media', prefix: 'MEDIA' },
+        utilities: { label: 'Utility', prefix: 'UTILITIES' },
+        patterns: { label: 'Pattern', prefix: 'PATTERNS' },
+        advanced: { label: 'Advanced', prefix: 'ADVANCED' },
+        musician: { label: 'Musician', prefix: 'MUSICIAN' }
     };
+
+    const database = {};
+
+    // HTML directories categorized by filename prefix
+    for (const [key, config] of Object.entries(htmlPrefixes)) {
+        database[key] = scanDirectory(
+            htmlDir,
+            './[HTML]/Directories',
+            config.label,
+            {
+                filter: (file) => file.toUpperCase().startsWith(`${config.prefix}-`),
+                extensions: ['.html']
+            }
+        );
+    }
+
+    // CSS components aggregated across categories
+    database.css = [];
+    if (fs.existsSync(cssCategoriesDir)) {
+        const categories = fs.readdirSync(cssCategoriesDir, { withFileTypes: true }).filter(d => d.isDirectory());
+        for (const category of categories) {
+            const catPath = path.join(cssCategoriesDir, category.name);
+            const rel = `./[CSS]/categories/${category.name}`;
+            const label = `CSS ${folderToLabel(category.name)}`;
+            database.css.push(...scanDirectory(catPath, rel, label, { extensions: ['.html'] }));
+        }
+    }
+
+    // JavaScript modules organized by direct subdirectories
+    database.javascript = [];
+    if (fs.existsSync(jsDir)) {
+        const jsSections = fs.readdirSync(jsDir, { withFileTypes: true }).filter(d => d.isDirectory());
+        for (const section of jsSections) {
+            const sectionPath = path.join(jsDir, section.name);
+            const rel = `./[JS]/${section.name}`;
+            const label = `JavaScript ${folderToLabel(section.name)}`;
+            database.javascript.push(...scanDirectory(sectionPath, rel, label, { extensions: ['.js'] }));
+        }
+    }
 
     // calculate totals
     let totalComponents = 0;
@@ -84,18 +113,16 @@ function generateIndex() {
     // Read Template
     let html = fs.readFileSync(templatePath, 'utf8');
 
-    // FIX PORTS: 
-    // 1. Update CSS/JS links in head/body to relative to root
-    html = html.replace(/href="\.\.\/\.\.\/css\/jazer-brand\.css"/g, 'href="./src/css/jazer-brand.css"');
+    // Update CSS link in template to use root stylesheet
+    html = html.replace(/href="\.\.\/\.\.\/css\/jazer-brand\.css"/g, 'href="./jazer-brand.css"');
 
-    // 2. Inject the REAL database
+    // Inject the live database
     const dbString = JSON.stringify(database, null, 2);
     // Regex to replace the hardcoded componentDatabase object
     // looking for "const componentDatabase = {" up to "};"
     // This is risky with regex. Use a safe replacement marker if possible, or careful string search.
 
     const startMarker = 'const componentDatabase = {';
-    const endMarker = '};'; // Looking for the closing brace of the object
 
     const startIndex = html.indexOf(startMarker);
     if (startIndex !== -1) {
@@ -114,30 +141,20 @@ function generateIndex() {
         }
     }
 
-    // 3. Update Statistics
+    // Update Statistics
     html = html.replace(/>245+</g, `>${totalComponents}+<`);
 
-    // 4. Update Category Links to be useless or point to search?
-    // The template has hardcoded links like <a href="./components.html">. 
-    // Since we don't have those category pages at root anymore (they are deep in src/html?), 
-    // AND we want a "Single Page" feel, we might want to make those links just trigger a search or scroll?
-    // For now, let's leave them, but they will 404 if we don't move the category pages too.
-    // Wait, the user said "I want all three of the main folders within the src folder to live within a singular html".
-    // So distinct category pages might not be needed if the search/dashboard is good enough.
-    // But to be safe, let's update them to point to `src/html/directories/components.html` IF they exist?
-    // Checking file list: `src/html/components.html` exists? No, `src/html/Directories/components.html`.
-    // So `<a href="./components.html">` should become `<a href="./src/html/Directories/components.html">`.
+    // Update category links to point to the actual directories
+    html = html.replace(/href="\.\/components\.html"/g, 'href="./[HTML]/Directories/components.html"');
+    html = html.replace(/href="\.\/forms\.html"/g, 'href="./[HTML]/Directories/forms.html"');
+    html = html.replace(/href="\.\/layouts\.html"/g, 'href="./[HTML]/Directories/layouts.html"');
+    html = html.replace(/href="\.\/navigation\.html"/g, 'href="./[HTML]/Directories/navigation.html"');
+    html = html.replace(/href="\.\/media\.html"/g, 'href="./[HTML]/Directories/media.html"');
+    html = html.replace(/href="\.\/utilities\.html"/g, 'href="./[HTML]/Directories/utilities.html"');
+    html = html.replace(/href="\.\/patterns\.html"/g, 'href="./[HTML]/Directories/patterns.html"');
+    html = html.replace(/href="\.\/advanced\.html"/g, 'href="./[HTML]/Directories/advanced.html"');
 
-    html = html.replace(/href="\.\/components\.html"/g, 'href="./src/html/Directories/components.html"');
-    html = html.replace(/href="\.\/forms\.html"/g, 'href="./src/html/Directories/forms.html"');
-    html = html.replace(/href="\.\/layouts\.html"/g, 'href="./src/html/Directories/layouts.html"');
-    html = html.replace(/href="\.\/navigation\.html"/g, 'href="./src/html/Directories/navigation.html"');
-    html = html.replace(/href="\.\/media\.html"/g, 'href="./src/html/Directories/media.html"');
-    html = html.replace(/href="\.\/utilities\.html"/g, 'href="./src/html/Directories/utilities.html"');
-    html = html.replace(/href="\.\/patterns\.html"/g, 'href="./src/html/Directories/patterns.html"');
-    html = html.replace(/href="\.\/advanced\.html"/g, 'href="./src/html/Directories/advanced.html"');
-
-    // 5. Inject CSS and JS Cards into the Grid
+    // Inject CSS and JS Cards into the Grid
     const jsCard = `
         <!-- JavaScript Section -->
         <div class="card card-interactive p-6 slide-up" style="animation-delay: 1.05s;">

@@ -1,9 +1,8 @@
 const { test, expect } = require('@playwright/test');
-const { injectAxe, checkA11y } = require('@axe-core/playwright');
+const { AxeBuilder } = require('@axe-core/playwright');
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/HOME.html');
-  await injectAxe(page);
+  await page.goto('/index.html');
 });
 
 test('homepage loads and has title', async ({ page }) => {
@@ -11,6 +10,6 @@ test('homepage loads and has title', async ({ page }) => {
 });
 
 test('homepage is accessible', async ({ page }) => {
-  const results = await checkA11y(page);
+  const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations.length).toBe(0);
 });

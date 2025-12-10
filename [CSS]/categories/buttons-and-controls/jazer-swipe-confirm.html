@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Swipe Confirm</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #e0e0e0;
+            font-family: 'Roboto', sans-serif;
+            user-select: none;
+        }
+
+        .swipe-container {
+            position: relative;
+            width: 300px;
+            height: 60px;
+            background: #ccc;
+            border-radius: 30px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .swipe-track-text {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #888;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .swipe-btn {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 50px;
+            height: 50px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+            transition: transform 0.1s;
+            /* smooth drag */
+            touch-action: none;
+            z-index: 2;
+        }
+
+        .swipe-btn::after {
+            content: '➜';
+            font-size: 1.2rem;
+        }
+
+        .swipe-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0;
+            background: #4caf50;
+            transition: width 0.1s;
+            z-index: 1;
+        }
+
+        /* Validated State */
+        .swipe-container.validated .swipe-btn {
+            left: calc(100% - 55px);
+            background: #fff;
+            color: #4caf50;
+            transform: scale(1.1);
+        }
+
+        .swipe-container.validated .swipe-btn::after {
+            content: '✔';
+        }
+
+        .swipe-container.validated .swipe-fill {
+            width: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .swipe-container.validated .swipe-track-text {
+            opacity: 0;
+        }
+
+        .success-text {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-weight: bold;
+            opacity: 0;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .swipe-container.validated .success-text {
+            opacity: 1;
+            transition: opacity 0.3s 0.2s;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="swipe-container" id="container">
+        <div class="swipe-fill" id="fill"></div>
+        <div class="swipe-track-text">SWIPE TO CONFIRM</div>
+        <div class="success-text">CONFIRMED</div>
+        <div class="swipe-btn" id="btn"></div>
+    </div>
+
+    <script>
+        const container = document.getElementById('container');
+        const btn = document.getElementById('btn');
+        const fill = document.getElementById('fill');
+
+        let isDragging = false;
+        let startX = 0;
+        let currentX = 0;
+        let containerWidth = container.offsetWidth;
+        let btnWidth = btn.offsetWidth;
+        let maxDrag = containerWidth - btnWidth - 10; // 5px padding each side
+        let validated = false;
+
+        btn.addEventListener('mousedown', startDrag);
+        btn.addEventListener('touchstart', startDrag);
+
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('touchmove', drag);
+
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchend', endDrag);
+
+        function startDrag(e) {
+            if (validated) return;
+            isDragging = true;
+            startX = (e.clientX || e.touches[0].clientX) - btn.offsetLeft;
+            btn.style.transition = 'none';
+            fill.style.transition = 'none';
+        }
+
+        function drag(e) {
+            if (!isDragging || validated) return;
+
+            e.preventDefault();
+            let x = (e.clientX || e.touches[0].clientX) - startX;
+
+            // Clamp
+            if (x < 5) x = 5;
+            if (x > maxDrag) x = maxDrag;
+
+            currentX = x;
+            updateUI(x);
+        }
+
+        function updateUI(x) {
+            btn.style.left = x + 'px';
+            fill.style.width = (x + btnWidth / 2) + 'px';
+
+            // Opacity of text
+            let progress = (x - 5) / (maxDrag - 5);
+            document.querySelector('.swipe-track-text').style.opacity = 1 - progress;
+        }
+
+        function endDrag() {
+            if (!isDragging || validated) return;
+            isDragging = false;
+
+            // Threshold to validate
+            if (currentX > maxDrag * 0.9) {
+                // Success
+                validated = true;
+                container.classList.add('validated');
+                btn.style.left = ''; // handled by css class
+                fill.style.width = '';
+            } else {
+                // Reset
+                btn.style.transition = 'left 0.3s ease';
+                fill.style.transition = 'width 0.3s ease';
+                btn.style.left = '5px';
+                fill.style.width = '0px';
+                document.querySelector('.swipe-track-text').style.opacity = 1;
+            }
+        }
+    </script>
+</body>
+
+</html>

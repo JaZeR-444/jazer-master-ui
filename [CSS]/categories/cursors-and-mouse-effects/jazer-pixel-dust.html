@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Pixel Dust Cursor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #1a1a2e;
+            cursor: none;
+            overflow: hidden;
+            image-rendering: pixelated;
+        }
+
+        .info {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            z-index: 100;
+            font-family: 'Courier New', monospace;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            image-rendering: pixelated;
+        }
+
+        .pixel-cursor {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: #fff;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9999;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">JaZeR Pixel Dust</div>
+    <canvas id="canvas"></canvas>
+    <div class="pixel-cursor" id="cursor"></div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const cursorDiv = document.getElementById('cursor');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffffff'];
+
+        class PixelParticle {
+            constructor(x, y) {
+                this.x = Math.round(x / 4) * 4;
+                this.y = Math.round(y / 4) * 4;
+                this.size = 4;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.speedX = (Math.random() - 0.5) * 4;
+                this.speedY = (Math.random() - 0.5) * 4;
+                this.gravity = 0.1;
+                this.life = 60;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.speedY += this.gravity;
+                this.life--;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.fillRect(Math.round(this.x / 4) * 4, Math.round(this.y / 4) * 4, this.size, this.size);
+            }
+        }
+
+        let lastX = 0, lastY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            cursorDiv.style.left = e.clientX + 'px';
+            cursorDiv.style.top = e.clientY + 'px';
+
+            const dx = e.clientX - lastX;
+            const dy = e.clientY - lastY;
+            const speed = Math.sqrt(dx * dx + dy * dy);
+
+            if (speed > 5) {
+                for (let i = 0; i < 3; i++) {
+                    particles.push(new PixelParticle(e.clientX, e.clientY));
+                }
+            }
+
+            lastX = e.clientX;
+            lastY = e.clientY;
+        });
+
+        function animate() {
+            ctx.fillStyle = 'rgba(26, 26, 46, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+
+</html>

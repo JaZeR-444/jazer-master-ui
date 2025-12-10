@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Water Ripple</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #fff;
+            font-family: 'Helvetica', sans-serif;
+        }
+
+        .ripple-container {
+            position: relative;
+            width: 200px;
+            height: 80px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            background: #4facfe;
+            cursor: pointer;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: bold;
+            pointer-events: none;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="ripple-container">
+        <canvas id="waterCanvas"></canvas>
+        <div class="label">JaZeR</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('waterCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.querySelector('.ripple-container');
+
+        canvas.width = container.offsetWidth;
+        canvas.height = container.offsetHeight;
+
+        // Simple ripple simulation
+        // 2 buffers for wave height
+        const width = canvas.width;
+        const height = canvas.height;
+        const halfWidth = width >> 1;
+        const halfHeight = height >> 1;
+        const size = width * (height + 2) * 2; // buffer size
+        const delay = 30; // ms
+
+        let oldind = width;
+        let newind = width * (height + 3);
+        let riprad = 3;
+
+        const ripplemap = [];
+        const last_map = [];
+        const texture = ctx.getImageData(0, 0, width, height);
+        const ripple = ctx.getImageData(0, 0, width, height);
+
+        // Init buffers
+        for (let i = 0; i < size; i++) {
+            last_map[i] = ripplemap[i] = 0;
+        }
+
+        // Base color
+        ctx.fillStyle = '#4facfe';
+        ctx.fillRect(0, 0, width, height);
+        const textureData = ctx.getImageData(0, 0, width, height).data;
+
+        function disturb(dx, dy) {
+            dx <<= 0;
+            dy <<= 0;
+
+            for (let j = dy - riprad; j < dy + riprad; j++) {
+                for (let k = dx - riprad; k < dx + riprad; k++) {
+                    ripplemap[oldind + (j * width) + k] += 512;
+                }
+            }
+        }
+
+        function newframe() {
+            let i, a, b, data, cur_pixel, new_pixel, old_data;
+            let t = oldind; oldind = newind; newind = t;
+            let i_start = 0, i_end = 0;
+
+            // Wave propagation
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    let map_ind = oldind + (y * width) + x;
+
+                    // Simple neighbour avg
+                    // Check bounds for simplified code (skip edges)
+                    if (y > 0 && y < height - 1 && x > 0 && x < width - 1) {
+                        data = (
+                            ripplemap[map_ind - width] +
+                            ripplemap[map_ind + width] +
+                            ripplemap[map_ind - 1] +
+                            ripplemap[map_ind + 1]
+                        ) >> 1;
+                        data -= ripplemap[newind + (y * width) + x];
+                        data -= data >> 5;
+                        ripplemap[newind + (y * width) + x] = data;
+
+                        // Render
+                        data = 1024 - data;
+                        old_data = last_map[map_ind];
+                        last_map[map_ind] = data;
+
+                        if (old_data != data) {
+                            // Calculate offset
+                            let a = (((x - halfWidth) * data / 1024) << 0) + halfWidth;
+                            let b = (((y - halfHeight) * data / 1024) << 0) + halfHeight;
+
+                            if (a >= width) a = width - 1;
+                            if (a < 0) a = 0;
+                            if (b >= height) b = height - 1;
+                            if (b < 0) b = 0;
+
+                            new_pixel = (a + (b * width)) * 4;
+                            cur_pixel = (x + (y * width)) * 4;
+
+                            ripple.data[cur_pixel] = textureData[new_pixel];
+                            ripple.data[cur_pixel + 1] = textureData[new_pixel + 1];
+                            ripple.data[cur_pixel + 2] = textureData[new_pixel + 2];
+                            ripple.data[cur_pixel + 3] = 255;
+                        }
+                    }
+                }
+            }
+
+            ctx.putImageData(ripple, 0, 0);
+            requestAnimationFrame(newframe);
+        }
+
+        canvas.addEventListener('mousemove', function (e) {
+            const rect = canvas.getBoundingClientRect();
+            disturb(e.clientX - rect.left, e.clientY - rect.top);
+        });
+
+        // Start
+        newframe();
+
+        // Random drops
+        setInterval(() => {
+            disturb(Math.random() * width, Math.random() * height);
+        }, 1000);
+
+    </script>
+
+</body>
+
+</html>

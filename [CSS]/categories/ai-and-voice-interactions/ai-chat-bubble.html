@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat Bubble - JaZeR Component Library</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            font-family: var(--font-body);
+            color: #ffffff;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .back-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            transform: translateX(-5px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.2);
+        }
+
+        .chat-messages {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 1rem;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--jazer-cyan);
+            border-radius: 4px;
+        }
+
+        .message {
+            display: flex;
+            gap: 1rem;
+            animation: messageSlideIn 0.4s ease;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .avatar.ai {
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            animation: aiAvatarGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes aiAvatarGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(139, 0, 255, 0.7); }
+        }
+
+        .avatar.user {
+            background: linear-gradient(135deg, var(--jazer-pink), var(--jazer-purple));
+            box-shadow: 0 0 20px rgba(255, 0, 127, 0.5);
+        }
+
+        .bubble {
+            max-width: 70%;
+            padding: 1rem 1.5rem;
+            border-radius: 20px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .message.ai .bubble {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(139, 0, 255, 0.1));
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px 20px 20px 4px;
+            box-shadow: 0 4px 16px rgba(0, 255, 255, 0.2);
+        }
+
+        .message.user .bubble {
+            background: linear-gradient(135deg, rgba(255, 0, 127, 0.1), rgba(139, 0, 255, 0.1));
+            border: 2px solid var(--jazer-pink);
+            border-radius: 20px 20px 4px 20px;
+            box-shadow: 0 4px 16px rgba(255, 0, 127, 0.2);
+        }
+
+        .bubble-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .bubble-sender {
+            font-weight: 600;
+            color: var(--jazer-cyan);
+        }
+
+        .message.user .bubble-sender {
+            color: var(--jazer-pink);
+        }
+
+        .bubble-time {
+            color: #666;
+            font-size: 0.75rem;
+        }
+
+        .bubble-content {
+            line-height: 1.6;
+            color: #e0e0e0;
+        }
+
+        .bubble-footer {
+            margin-top: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .bubble-status {
+            font-size: 0.75rem;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .status-icon {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .status-icon.delivered {
+            background: var(--jazer-neon-green);
+            box-shadow: 0 0 8px rgba(57, 255, 20, 0.6);
+        }
+
+        .status-icon.read {
+            background: var(--jazer-cyan);
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 1rem;
+            animation: messageSlideIn 0.4s ease;
+        }
+
+        .typing-bubble {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(139, 0, 255, 0.1));
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px 20px 20px 4px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--jazer-cyan);
+            border-radius: 50%;
+            animation: typingBounce 1.4s ease-in-out infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        .input-area {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-area:focus-within {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .input-field {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-size: 1rem;
+            outline: none;
+            font-family: var(--font-body);
+        }
+
+        .input-field::placeholder {
+            color: #666;
+        }
+
+        .send-button {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--jazer-cyan), var(--jazer-purple));
+            border: none;
+            border-radius: 50%;
+            color: #ffffff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .send-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .send-button:active {
+            transform: scale(0.95);
+        }
+
+        .demo-controls {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .demo-button {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(139, 0, 255, 0.1));
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            color: var(--jazer-cyan);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .demo-button:hover {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .chat-container {
+                padding: 1.5rem;
+            }
+
+            .bubble {
+                max-width: 85%;
+            }
+
+            .demo-controls {
+                flex-direction: column;
+            }
+
+            .demo-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to AI & Voice Interactions</a>
+    
+    <div class="header">
+        <h1>AI Chat Bubble</h1>
+        <p>Conversational message interface with avatars, timestamps, and status indicators</p>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+            <div class="message ai">
+                <div class="avatar ai">🤖</div>
+                <div class="bubble">
+                    <div class="bubble-header">
+                        <span class="bubble-sender">AI Assistant</span>
+                        <span class="bubble-time">10:30 AM</span>
+                    </div>
+                    <div class="bubble-content">
+                        Hello! I'm your AI assistant. How can I help you today?
+                    </div>
+                    <div class="bubble-footer">
+                        <div class="bubble-status">
+                            <div class="status-icon delivered"></div>
+                            Delivered
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="message user">
+                <div class="avatar user">👤</div>
+                <div class="bubble">
+                    <div class="bubble-header">
+                        <span class="bubble-sender">You</span>
+                        <span class="bubble-time">10:31 AM</span>
+                    </div>
+                    <div class="bubble-content">
+                        I need help with my project. Can you explain how machine learning works?
+                    </div>
+                    <div class="bubble-footer">
+                        <div class="bubble-status">
+                            <div class="status-icon read"></div>
+                            Read
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="message ai">
+                <div class="avatar ai">🤖</div>
+                <div class="bubble">
+                    <div class="bubble-header">
+                        <span class="bubble-sender">AI Assistant</span>
+                        <span class="bubble-time">10:31 AM</span>
+                    </div>
+                    <div class="bubble-content">
+                        Of course! Machine learning is a subset of artificial intelligence that enables systems to learn and improve from experience without being explicitly programmed. It uses algorithms to analyze data, identify patterns, and make decisions with minimal human intervention.
+                    </div>
+                    <div class="bubble-footer">
+                        <div class="bubble-status">
+                            <div class="status-icon read"></div>
+                            Read
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="message user">
+                <div class="avatar user">👤</div>
+                <div class="bubble">
+                    <div class="bubble-header">
+                        <span class="bubble-sender">You</span>
+                        <span class="bubble-time">10:32 AM</span>
+                    </div>
+                    <div class="bubble-content">
+                        That's helpful! Can you give me some examples?
+                    </div>
+                    <div class="bubble-footer">
+                        <div class="bubble-status">
+                            <div class="status-icon read"></div>
+                            Read
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" class="input-field" id="messageInput" placeholder="Type your message...">
+            <button type="button" class="send-button" id="sendButton">➤</button>
+        </div>
+
+        <div class="demo-controls">
+            <button type="button" class="demo-button" onclick="addUserMessage()">Send User Message</button>
+            <button type="button" class="demo-button" onclick="addAIMessage()">Receive AI Response</button>
+            <button type="button" class="demo-button" onclick="showTyping()">Show Typing Indicator</button>
+            <button type="button" class="demo-button" onclick="clearChat()">Clear Chat</button>
+        </div>
+    </div>
+
+    <script>
+        // html-validate-disable no-raw-characters
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+
+        const aiResponses = [
+            "Great question! Let me explain that in detail...",
+            "I understand what you're looking for. Here's what you need to know...",
+            "That's an interesting point. From my analysis...",
+            "Absolutely! Here are some key examples...",
+            "I can help with that. Consider the following...",
+            "Perfect timing for this question. The answer is...",
+            "Let me break this down for you in simple terms...",
+            "Based on current data and trends, I'd say..."
+        ];
+
+        const userMessages = [
+            "Can you elaborate on that?",
+            "What are the best practices?",
+            "How does this compare to alternatives?",
+            "Could you provide more examples?",
+            "What would you recommend?",
+            "Is this approach scalable?",
+            "How long would this take to implement?",
+            "What are the potential challenges?"
+        ];
+
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addUserMessage() {
+            const randomMessage = userMessages[Math.floor(Math.random() * userMessages.length)];
+            const time = getCurrentTime();
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user';
+            messageDiv.innerHTML = `
+                <div class="avatar user">👤</div>
+                <div class="bubble">
+                    <div class="bubble-header">
+                        <span class="bubble-sender">You</span>
+                        <span class="bubble-time">${time}</span>
+                    </div>
+                    <div class="bubble-content">${randomMessage}</div>
+                    <div class="bubble-footer">
+                        <div class="bubble-status">
+                            <div class="status-icon read"></div>
+                            Read
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function addAIMessage() {
+            const randomResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)];
+            const time = getCurrentTime();
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai';
+            messageDiv.innerHTML = `
+                <div class="avatar ai">🤖</div>
+                <div class="bubble">
+                    <div class="bubble-header">
+                        <span class="bubble-sender">AI Assistant</span>
+                        <span class="bubble-time">${time}</span>
+                    </div>
+                    <div class="bubble-content">${randomResponse}</div>
+                    <div class="bubble-footer">
+                        <div class="bubble-status">
+                            <div class="status-icon read"></div>
+                            Read
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function showTyping() {
+            // Remove existing typing indicator if present
+            const existingTyping = document.querySelector('.typing-indicator');
+            if (existingTyping) {
+                existingTyping.remove();
+            }
+
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.innerHTML = `
+                <div class="avatar ai">🤖</div>
+                <div class="typing-bubble">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+
+            chatMessages.appendChild(typingDiv);
+            scrollToBottom();
+
+            // Remove typing indicator and add message after 2 seconds
+            setTimeout(() => {
+                typingDiv.remove();
+                addAIMessage();
+            }, 2000);
+        }
+
+        function clearChat() {
+            // Keep only the first message
+            const messages = chatMessages.querySelectorAll('.message');
+            for (let i = 1; i < messages.length; i++) {
+                messages[i].remove();
+            }
+            
+            // Remove typing indicator if present
+            const typingIndicator = document.querySelector('.typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (text === '') return;
+
+            const time = getCurrentTime();
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user';
+            messageDiv.innerHTML = `
+                <div class="avatar user">👤</div>
+                <div class="bubble">
+                    <div class="bubble-header">
+                        <span class="bubble-sender">You</span>
+                        <span class="bubble-time">${time}</span>
+                    </div>
+                    <div class="bubble-content">${text}</div>
+                    <div class="bubble-footer">
+                        <div class="bubble-status">
+                            <div class="status-icon read"></div>
+                            Read
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            chatMessages.appendChild(messageDiv);
+            messageInput.value = '';
+            scrollToBottom();
+
+            // Show typing and respond
+            setTimeout(showTyping, 500);
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        // html-validate-enable no-raw-characters
+</body>
+</html>

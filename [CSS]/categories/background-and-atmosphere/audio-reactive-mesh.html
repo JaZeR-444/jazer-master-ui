@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Reactive Mesh</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .info {
+            position: relative;
+            z-index: 2;
+            color: white;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0,0,0,0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h1>Audio Reactive Mesh</h1>
+        <p>3D mesh that deforms to match audio frequencies</p>
+    </div>
+    
+    <canvas id="meshCanvas"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('meshCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas to full window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Audio Reactive Mesh class
+        class AudioMesh {
+            constructor() {
+                this.resolution = 20; // Grid resolution (points per row/column)
+                this.points = [];
+                this.connections = [];
+                this.centerX = canvas.width / 2;
+                this.centerY = canvas.height / 2;
+                
+                // Initialize the mesh points
+                this.initPoints();
+                
+                // Audio simulation properties
+                this.audioLevels = {
+                    bass: 0,
+                    mid: 0,
+                    treble: 0
+                };
+                
+                // Animation properties
+                this.time = 0;
+            }
+            
+            initPoints() {
+                // Create a grid of points
+                for (let y = 0; y < this.resolution; y++) {
+                    this.points[y] = [];
+                    for (let x = 0; x < this.resolution; x++) {
+                        // Position points in a grid
+                        const pointX = (x / (this.resolution - 1)) * canvas.width * 0.8 + canvas.width * 0.1;
+                        const pointY = (y / (this.resolution - 1)) * canvas.height * 0.8 + canvas.height * 0.1;
+                        
+                        this.points[y][x] = {
+                            x: pointX,
+                            y: pointY,
+                            baseX: pointX,
+                            baseY: pointY,
+                            z: 0, // Z position for depth effect
+                            audioInfluence: 0 // How much it's affected by audio
+                        };
+                    }
+                }
+                
+                // Initialize connections between points
+                for (let y = 0; y < this.resolution; y++) {
+                    for (let x = 0; x < this.resolution; x++) {
+                        // Connect to right neighbor
+                        if (x < this.resolution - 1) {
+                            this.connections.push({
+                                p1: this.points[y][x],
+                                p2: this.points[y][x + 1]
+                            });
+                        }
+                        
+                        // Connect to bottom neighbor
+                        if (y < this.resolution - 1) {
+                            this.connections.push({
+                                p1: this.points[y][x],
+                                p2: this.points[y + 1][x]
+                            });
+                        }
+                        
+                        // Connect diagonally
+                        if (x < this.resolution - 1 && y < this.resolution - 1) {
+                            this.connections.push({
+                                p1: this.points[y][x],
+                                p2: this.points[y + 1][x + 1]
+                            });
+                            
+                            this.connections.push({
+                                p1: this.points[y][x + 1],
+                                p2: this.points[y + 1][x]
+                            });
+                        }
+                    }
+                }
+            }
+            
+            update() {
+                this.time += 0.01;
+                
+                // Simulate audio input with rhythmic patterns
+                const bassBeat = Math.sin(this.time * 0.5) > 0.9 ? 3 : 1;
+                const snareBeat = Math.sin(this.time * 1.3) > 0.95 ? 2 : 1;
+                const hiHatBeat = Math.sin(this.time * 2.7) > 0.98 ? 1.5 : 1;
+                
+                // Calculate audio levels
+                this.audioLevels.bass = bassBeat;
+                this.audioLevels.mid = snareBeat;
+                this.audioLevels.treble = hiHatBeat;
+                
+                // Update points based on audio
+                for (let y = 0; y < this.resolution; y++) {
+                    for (let x = 0; x < this.resolution; x++) {
+                        const point = this.points[y][x];
+                        
+                        // Calculate position relative to center
+                        const dx = point.baseX - this.centerX;
+                        const dy = point.baseY - this.centerY;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        const maxDistance = Math.sqrt(Math.pow(canvas.width/2, 2) + Math.pow(canvas.height/2, 2));
+                        
+                        // Calculate angle for circular wave patterns
+                        const angle = Math.atan2(dy, dx);
+                        
+                        // Create wave patterns that respond to different frequency bands
+                        const bassEffect = Math.sin(distance * 0.01 - this.time * 2) * (this.audioLevels.bass - 1) * 10;
+                        const midEffect = Math.sin(distance * 0.02 - this.time * 1.5) * (this.audioLevels.mid - 1) * 7;
+                        const trebleEffect = Math.sin(distance * 0.03 - this.time * 1) * (this.audioLevels.treble - 1) * 5;
+                        
+                        // Combine effects with position-based influence
+                        const totalEffect = bassEffect * (1 - distance/maxDistance) + 
+                                           midEffect * 0.5 + 
+                                           trebleEffect * (distance/maxDistance);
+                        
+                        // Apply effect to point position
+                        point.x = point.baseX + Math.cos(angle) * totalEffect;
+                        point.y = point.baseY + Math.sin(angle) * totalEffect;
+                        
+                        // Add slight Z movement for 3D effect
+                        point.z = totalEffect * 0.2;
+                    }
+                }
+            }
+            
+            draw() {
+                // Clear with fade effect
+                ctx.fillStyle = 'rgba(0, 0, 20, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw the connections between points
+                this.connections.forEach(conn => {
+                    const p1 = conn.p1;
+                    const p2 = conn.p2;
+                    
+                    // Calculate distance between points for dynamic thickness
+                    const dx = p1.x - p2.x;
+                    const dy = p1.y - p2.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const maxDist = 50; // Maximum distance that affects thickness
+                    
+                    // Calculate line thickness based on distance and audio
+                    let thickness = Math.max(0.5, 2 - (distance / maxDist));
+                    thickness *= (this.audioLevels.bass + this.audioLevels.mid + this.audioLevels.treble) / 3;
+                    
+                    // Hue based on connection distance and audio levels
+                    const hue = (distance * 2 + this.time * 20) % 360;
+                    const saturation = 80 + this.audioLevels.treble * 10;
+                    const lightness = 50 + this.audioLevels.bass * 15;
+                    
+                    // Create gradient for the line
+                    const gradient = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+                    gradient.addColorStop(0, `hsla(${hue}, ${saturation}%, ${lightness}%, 0.8)`);
+                    gradient.addColorStop(1, `hsla(${(hue + 60) % 360}, ${saturation}%, ${lightness}%, 0.8)`);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.strokeStyle = gradient;
+                    ctx.lineWidth = thickness;
+                    ctx.stroke();
+                    
+                    // Add glow effect
+                    ctx.shadowColor = `hsla(${hue}, ${saturation}%, 70%, 0.7)`;
+                    ctx.shadowBlur = 5;
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                });
+                
+                // Draw the points as small glowing dots
+                for (let y = 0; y < this.resolution; y++) {
+                    for (let x = 0; x < this.resolution; x++) {
+                        const point = this.points[y][x];
+                        
+                        // Create radial gradient for the point
+                        const gradient = ctx.createRadialGradient(
+                            point.x, point.y, 0,
+                            point.x, point.y, 5
+                        );
+                        
+                        // Calculate color based on position and audio
+                        const hue = (point.x * 0.2 + this.time * 30) % 360;
+                        const saturation = 90;
+                        const lightness = 70 + this.audioLevels.mid * 20;
+                        
+                        gradient.addColorStop(0, `hsla(${hue}, ${saturation}%, ${lightness}%, 1)`);
+                        gradient.addColorStop(0.7, `hsla(${hue}, ${saturation}%, ${lightness * 0.7}%, 0.7)`);
+                        gradient.addColorStop(1, `hsla(${hue}, ${saturation}%, ${lightness * 0.5}%, 0)`);
+                        
+                        ctx.fillStyle = gradient;
+                        
+                        // Draw the point
+                        ctx.beginPath();
+                        ctx.arc(point.x, point.y, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+        }
+        
+        // Create the audio mesh
+        const audioMesh = new AudioMesh();
+        
+        // Draw audio spectrum indicators
+        function drawSpectrumIndicators() {
+            const time = audioMesh.time;
+            
+            // Bass indicator
+            const bassHeight = (audioMesh.audioLevels.bass - 1) * 20 + 5;
+            ctx.fillStyle = 'hsla(0, 100%, 70%, 0.7)';
+            ctx.fillRect(20, canvas.height - 80, 30, -bassHeight);
+            
+            // Mid indicator
+            const midHeight = (audioMesh.audioLevels.mid - 1) * 15 + 5;
+            ctx.fillStyle = 'hsla(120, 100%, 70%, 0.7)';
+            ctx.fillRect(60, canvas.height - 80, 30, -midHeight);
+            
+            // Treble indicator
+            const trebleHeight = (audioMesh.audioLevels.treble - 1) * 10 + 5;
+            ctx.fillStyle = 'hsla(240, 100%, 70%, 0.7)';
+            ctx.fillRect(100, canvas.height - 80, 30, -trebleHeight);
+            
+            // Labels
+            ctx.fillStyle = 'white';
+            ctx.font = '12px Arial';
+            ctx.fillText('Bass', 25, canvas.height - 20);
+            ctx.fillText('Mid', 65, canvas.height - 20);
+            ctx.fillText('Treble', 105, canvas.height - 20);
+        }
+        
+        // Animation loop
+        function animate() {
+            // Update the mesh
+            audioMesh.update();
+            
+            // Draw the mesh
+            audioMesh.draw();
+            
+            // Draw spectrum indicators
+            drawSpectrumIndicators();
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>

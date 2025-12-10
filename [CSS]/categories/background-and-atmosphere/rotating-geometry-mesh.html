@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rotating Geometry Mesh - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="mesh"] { background: linear-gradient(45deg, #00ffff, #0088ff); }
+    .color-btn[data-color="wireframe"] { background: linear-gradient(45deg, #ff00ff, #00ffff); }
+    .color-btn[data-color="neon"] { background: linear-gradient(45deg, #ff00cc, #333399); }
+    .color-btn[data-color="electric"] { background: linear-gradient(45deg, #00ff9d, #00ffff); }
+    .color-btn[data-color="quantum"] { background: linear-gradient(45deg, #ff9900, #ff00cc); }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .pattern-select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-light);
+      font-family: var(--font-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .mesh-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    #meshCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 280px; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .controls { top: auto; bottom: 5rem; right: 1rem; min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Rotating Geometry Mesh</h1>
+    <p>Interlocking geometric shapes with rotation and mesh connections</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Randomize</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="mesh" title="Mesh"></button>
+      <button class="color-btn" data-color="wireframe" title="Wireframe"></button>
+      <button class="color-btn" data-color="neon" title="Neon"></button>
+      <button class="color-btn" data-color="electric" title="Electric"></button>
+      <button class="color-btn" data-color="quantum" title="Quantum"></button>
+    </div>
+    <div class="slider-group">
+      <label>Shape Count: <span class="slider-value" id="countValue">12</span></label>
+      <input type="range" id="countSlider" min="4" max="24" step="2" value="12">
+    </div>
+    <div class="slider-group">
+      <label>Rotation Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Connection Density: <span class="slider-value" id="densityValue">5</span></label>
+      <input type="range" id="densitySlider" min="1" max="10" step="1" value="5">
+    </div>
+    <label>Pattern</label>
+    <select class="pattern-select" id="patternSelect">
+      <option value="polygons">Rotating Polygons</option>
+      <option value="polyhedra">3D Polyhedra</option>
+      <option value="crystals">Crystal Lattice</option>
+      <option value="tessellation">Tessellation Mesh</option>
+      <option value="orbital">Orbital Mesh</option>
+    </select>
+  </div>
+
+  <div class="mesh-container">
+    <canvas id="meshCanvas"></canvas>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const canvas = document.getElementById('meshCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      count: 12,
+      speed: 1.0,
+      density: 5,
+      pattern: 'polygons',
+      colorScheme: 'mesh',
+      paused: false
+    };
+
+    const colorSchemes = {
+      mesh: [
+        'rgba(0, 255, 255, 0.8)',
+        'rgba(0, 136, 255, 0.7)',
+        'rgba(0, 200, 255, 0.6)',
+        'rgba(0, 100, 200, 0.5)',
+        'rgba(0, 180, 255, 0.4)',
+        'rgba(0, 80, 200, 0.5)'
+      ],
+      wireframe: [
+        'rgba(255, 0, 255, 0.8)',
+        'rgba(0, 255, 255, 0.7)',
+        'rgba(200, 0, 200, 0.6)',
+        'rgba(0, 200, 200, 0.5)',
+        'rgba(255, 0, 255, 0.4)',
+        'rgba(0, 180, 200, 0.5)'
+      ],
+      neon: [
+        'rgba(255, 0, 204, 0.8)',
+        'rgba(51, 51, 153, 0.7)',
+        'rgba(200, 0, 180, 0.6)',
+        'rgba(100, 0, 150, 0.5)',
+        'rgba(255, 0, 150, 0.4)',
+        'rgba(150, 0, 100, 0.5)'
+      ],
+      electric: [
+        'rgba(0, 255, 157, 0.8)',
+        'rgba(0, 255, 255, 0.7)',
+        'rgba(0, 200, 150, 0.6)',
+        'rgba(0, 200, 255, 0.5)',
+        'rgba(0, 180, 180, 0.4)',
+        'rgba(0, 150, 200, 0.5)'
+      ],
+      quantum: [
+        'rgba(255, 153, 0, 0.8)',
+        'rgba(255, 0, 204, 0.7)',
+        'rgba(200, 100, 0, 0.6)',
+        'rgba(200, 0, 150, 0.5)',
+        'rgba(255, 120, 0, 0.4)',
+        'rgba(180, 0, 120, 0.5)'
+      ]
+    };
+
+    let angle = 0;
+    let time = 0;
+    let animationId;
+    let shapes = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function getColors() {
+      return colorSchemes[config.colorScheme];
+    }
+
+    function createShape(type, x, y, size, rotation) {
+      return {
+        type,
+        x,
+        y,
+        size,
+        rotation,
+        originalX: x,
+        originalY: y,
+        oscillation: Math.random() * 0.1 + 0.05
+      };
+    }
+
+    function drawPolygon(ctx, x, y, sides, radius, rotation) {
+      ctx.beginPath();
+      for (let i = 0; i <= sides; i++) {
+        const angle = (i / sides) * Math.PI * 2 + rotation;
+        const px = x + Math.cos(angle) * radius;
+        const py = y + Math.sin(angle) * radius;
+        
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+    }
+
+    function drawPolyhedron(ctx, x, y, size, rotation) {
+      // Draw a 3D-like polyhedron
+      const vertices = [];
+      const sides = 6;
+      
+      for (let i = 0; i < sides; i++) {
+        const angle = (i / sides) * Math.PI * 2 + rotation;
+        const px = x + Math.cos(angle) * size;
+        const py = y + Math.sin(angle) * size;
+        vertices.push({x: px, y: py});
+      }
+      
+      // Draw main shape
+      ctx.beginPath();
+      for (let i = 0; i < vertices.length; i++) {
+        if (i === 0) ctx.moveTo(vertices[i].x, vertices[i].y);
+        else ctx.lineTo(vertices[i].x, vertices[i].y);
+      }
+      ctx.closePath();
+      
+      // Draw connections to center
+      for (let i = 0; i < vertices.length; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(vertices[i].x, vertices[i].y);
+        ctx.stroke();
+      }
+      
+      // Draw connections between vertices
+      for (let i = 0; i < vertices.length; i++) {
+        ctx.beginPath();
+        ctx.moveTo(vertices[i].x, vertices[i].y);
+        ctx.lineTo(vertices[(i + 2) % vertices.length].x, vertices[(i + 2) % vertices.length].y);
+        ctx.stroke();
+      }
+    }
+
+    function drawCrystalLattice(ctx, centerX, centerY, size, rotation) {
+      // Draw crystal lattice pattern
+      const layers = 3;
+      
+      for (let layer = 0; layer < layers; layer++) {
+        const layerRadius = size * (0.3 + layer * 0.3);
+        const points = 6 + layer * 2;
+        
+        for (let i = 0; i < points; i++) {
+          const angle = (i / points) * Math.PI * 2 + rotation;
+          const x = centerX + Math.cos(angle) * layerRadius;
+          const y = centerY + Math.sin(angle) * layerRadius;
+          
+          // Draw connection to center
+          ctx.beginPath();
+          ctx.moveTo(centerX, centerY);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+          
+          // Draw connections to adjacent points
+          for (let j = 1; j <= 2; j++) {
+            const nextAngle = ((i + j) / points) * Math.PI * 2 + rotation;
+            const nextX = centerX + Math.cos(nextAngle) * layerRadius;
+            const nextY = centerY + Math.sin(nextAngle) * layerRadius;
+            
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(nextX, nextY);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function drawTessellation(ctx, x, y, size, rotation) {
+      // Draw tessellated pattern
+      const sides = 4;
+      const radius = size;
+      
+      // Draw hexagonal tessellation pattern
+      for (let i = 0; i < 6; i++) {
+        const angle = (i / 6) * Math.PI * 2 + rotation;
+        const hx = x + Math.cos(angle) * radius * 0.8;
+        const hy = y + Math.sin(angle) * radius * 0.8;
+        
+        drawPolygon(ctx, hx, hy, 6, radius * 0.4, rotation + angle);
+        ctx.stroke();
+      }
+      
+      // Draw central shape
+      drawPolygon(ctx, x, y, 6, radius * 0.6, rotation);
+      ctx.stroke();
+    }
+
+    function drawOrbitalMesh(ctx, centerX, centerY, size, rotation) {
+      // Draw orbital mesh with rotating elements
+      const orbitCount = 5;
+      
+      for (let i = 0; i < orbitCount; i++) {
+        const orbitRadius = size * (0.3 + i * 0.2);
+        const orbitSpeed = 0.5 + i * 0.2;
+        
+        // Draw orbit path
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, orbitRadius, 0, Math.PI * 2);
+        ctx.setLineDash([5, 5]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // Draw orbiting element
+        const elementAngle = rotation * orbitSpeed + (i * Math.PI * 2 / orbitCount);
+        const elementX = centerX + Math.cos(elementAngle) * orbitRadius;
+        const elementY = centerY + Math.sin(elementAngle) * orbitRadius;
+        
+        ctx.beginPath();
+        ctx.arc(elementX, elementY, size * 0.1, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Draw connections
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(elementX, elementY);
+        ctx.stroke();
+      }
+    }
+
+    function drawMesh() {
+      // Fade effect for trails
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+      const colors = getColors();
+
+      // Draw connecting lines between shapes
+      ctx.strokeStyle = colors[0];
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.3;
+      
+      for (let i = 0; i < shapes.length; i++) {
+        for (let j = i + 1; j < Math.min(i + config.density + 1, shapes.length); j++) {
+          const dx = shapes[j].x - shapes[i].x;
+          const dy = shapes[j].y - shapes[i].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < maxRadius * 0.8) {
+            ctx.beginPath();
+            ctx.moveTo(shapes[i].x, shapes[i].y);
+            ctx.lineTo(shapes[j].x, shapes[j].y);
+            ctx.strokeStyle = colors[(i + j) % colors.length];
+            ctx.stroke();
+          }
+        }
+      }
+      
+      ctx.globalAlpha = 1.0;
+
+      // Draw shapes
+      for (let i = 0; i < shapes.length; i++) {
+        const shape = shapes[i];
+        const color = colors[i % colors.length];
+        
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2;
+        
+        // Apply oscillation effect
+        const oscillation = Math.sin(time * shape.oscillation + i) * 5;
+        const currentX = shape.originalX + Math.cos(angle * 0.5 + i) * oscillation;
+        const currentY = shape.originalY + Math.sin(angle * 0.5 + i) * oscillation;
+        
+        switch(config.pattern) {
+          case 'polygons':
+            drawPolygon(ctx, currentX, currentY, 5 + i % 4, shape.size, shape.rotation + angle);
+            ctx.stroke();
+            break;
+          case 'polyhedra':
+            drawPolyhedron(ctx, currentX, currentY, shape.size, shape.rotation + angle);
+            break;
+          case 'crystals':
+            drawCrystalLattice(ctx, currentX, currentY, shape.size, shape.rotation + angle);
+            break;
+          case 'tessellation':
+            drawTessellation(ctx, currentX, currentY, shape.size, shape.rotation + angle);
+            break;
+          case 'orbital':
+            drawOrbitalMesh(ctx, currentX, currentY, shape.size, shape.rotation + angle);
+            break;
+        }
+      }
+    }
+
+    function updateShapes() {
+      shapes = [];
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.35;
+      
+      for (let i = 0; i < config.count; i++) {
+        const angle = (i / config.count) * Math.PI * 2;
+        const distance = maxRadius * (0.3 + 0.7 * (i % 3) / 2);
+        const x = centerX + Math.cos(angle) * distance;
+        const y = centerY + Math.sin(angle) * distance;
+        const size = 20 + (i % 5) * 10;
+        const rotation = angle;
+        
+        shapes.push(createShape('polygon', x, y, size, rotation));
+      }
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.01 * config.speed;
+        angle += 0.005 * config.speed;
+        drawMesh();
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function randomize() {
+      config.count = Math.floor(Math.random() * 10 + 6) * 2; // Even numbers
+      config.speed = Math.random() * 2 + 0.5;
+      config.density = Math.floor(Math.random() * 8 + 2);
+      const patterns = ['polygons', 'polyhedra', 'crystals', 'tessellation', 'orbital'];
+      config.pattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      document.getElementById('countSlider').value = config.count;
+      document.getElementById('countValue').textContent = config.count;
+      document.getElementById('speedSlider').value = config.speed.toFixed(1);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+      document.getElementById('densitySlider').value = config.density;
+      document.getElementById('densityValue').textContent = config.density;
+      document.getElementById('patternSelect').value = config.pattern;
+      
+      updateShapes();
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('countSlider').addEventListener('input', e => {
+      config.count = parseInt(e.target.value);
+      document.getElementById('countValue').textContent = config.count;
+      updateShapes();
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('densitySlider').addEventListener('input', e => {
+      config.density = parseInt(e.target.value);
+      document.getElementById('densityValue').textContent = config.density;
+    });
+
+    document.getElementById('patternSelect').addEventListener('change', e => {
+      config.pattern = e.target.value;
+      updateShapes();
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        randomize();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['mesh', 'wireframe', 'neon', 'electric', 'quantum'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    updateShapes();
+    animate();
+  </script>
+</body>
+</html>

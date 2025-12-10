@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Noise Static Cursor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #111;
+            cursor: none;
+            overflow: hidden;
+        }
+
+        .info {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            z-index: 100;
+        }
+
+        .content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #fff;
+        }
+
+        h1 {
+            font-size: 4rem;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .cursor-dot {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 100;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">JaZeR Noise Static</div>
+
+    <div class="content">
+        <h1>JaZeR TV</h1>
+    </div>
+
+    <canvas id="canvas"></canvas>
+    <div class="cursor-dot" id="cursor"></div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const cursor = document.getElementById('cursor');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let mouseX = 0, mouseY = 0;
+        const radius = 80;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        function generateNoise() {
+            const imageData = ctx.createImageData(radius * 2, radius * 2);
+            const data = imageData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                const value = Math.random() * 255;
+                data[i] = value;     // R
+                data[i + 1] = value; // G
+                data[i + 2] = value; // B
+                data[i + 3] = 200;   // A
+            }
+
+            return imageData;
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw circular noise zone
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(mouseX, mouseY, radius, 0, Math.PI * 2);
+            ctx.clip();
+
+            const noise = generateNoise();
+            ctx.putImageData(noise, mouseX - radius, mouseY - radius);
+
+            ctx.restore();
+
+            // Add scanlines
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            for (let y = mouseY - radius; y < mouseY + radius; y += 3) {
+                ctx.beginPath();
+                ctx.moveTo(mouseX - radius, y);
+                ctx.lineTo(mouseX + radius, y);
+                ctx.stroke();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+
+</html>

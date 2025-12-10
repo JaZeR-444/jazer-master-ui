@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chromatic Orbital System - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+
+    .hero p {
+      color: var(--text-gray);
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-keys {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .key-hint {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: var(--text-gray);
+      font-size: 0.75rem;
+    }
+
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .color-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .color-btn.active {
+      border-color: #fff;
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    .color-btn[data-color="chromatic"] {
+      background: linear-gradient(45deg, #ff00cc, #333399);
+    }
+
+    .color-btn[data-color="orbital"] {
+      background: linear-gradient(45deg, #00ff9d, #00ffff);
+    }
+
+    .color-btn[data-color="solar"] {
+      background: linear-gradient(45deg, #ff512f, #f09819);
+    }
+
+    .color-btn[data-color="atomic"] {
+      background: linear-gradient(45deg, #00ff00, #008800);
+    }
+
+    .color-btn[data-color="cosmic"] {
+      background: linear-gradient(45deg, #5433ff, #20bdff);
+    }
+
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+
+    .pattern-select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-light);
+      font-family: var(--font-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .orbital-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(ellipse at center, #0a0a1a 0%, #000 100%);
+      overflow: hidden;
+    }
+
+    #orbitalCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.1));
+    }
+
+    .action-buttons {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      z-index: 100;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .action-btn {
+      padding: 0.5rem 0.75rem;
+      background: rgba(10, 10, 15, 0.9);
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      color: var(--text-gray);
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .action-btn:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+    }
+
+    .fps-display {
+      position: fixed;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.7rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.6);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+
+    .status.paused {
+      color: var(--jazer-pink);
+    }
+
+    body.fullscreen .hero,
+    body.fullscreen .controls,
+    body.fullscreen .back-button,
+    body.fullscreen .status {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    body.fullscreen:hover .hero,
+    body.fullscreen:hover .controls,
+    body.fullscreen:hover .back-button,
+    body.fullscreen:hover .status {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    @media (max-width: 768px) {
+      .hero {
+        padding: 0.75rem 1rem;
+        max-width: 280px;
+      }
+
+      .hero h1 {
+        font-size: 1.2rem;
+      }
+
+      .hero p {
+        font-size: 0.8rem;
+      }
+
+      .controls {
+        top: auto;
+        bottom: 5rem;
+        right: 1rem;
+        min-width: 140px;
+      }
+
+      .action-buttons {
+        bottom: 3.5rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Chromatic Orbital System</h1>
+    <p>Orbiting chromatic spheres system</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Randomize</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+      <span class="key-hint"><kbd>F</kbd> Fullscreen</span>
+      <span class="key-hint"><kbd>S</kbd> Screenshot</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="chromatic" title="Chromatic"></button>
+      <button class="color-btn" data-color="orbital" title="Orbital"></button>
+      <button class="color-btn" data-color="solar" title="Solar"></button>
+      <button class="color-btn" data-color="atomic" title="Atomic"></button>
+      <button class="color-btn" data-color="cosmic" title="Cosmic"></button>
+    </div>
+    <div class="slider-group">
+      <label>Orbital Count: <span class="slider-value" id="countValue">12</span></label>
+      <input type="range" id="countSlider" min="6" max="24" step="1" value="12">
+    </div>
+    <div class="slider-group">
+      <label>Rotation Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Orbit Complexity: <span class="slider-value" id="complexityValue">5</span></label>
+      <input type="range" id="complexitySlider" min="1" max="10" step="1" value="5">
+    </div>
+    <label>Pattern</label>
+    <select class="pattern-select" id="patternSelect">
+      <option value="circular">Circular Orbits</option>
+      <option value="elliptical">Elliptical Orbits</option>
+      <option value="nested">Nested Orbits</option>
+      <option value="solar">Solar System</option>
+      <option value="atomic">Atomic Model</option>
+    </select>
+  </div>
+
+  <div class="orbital-container">
+    <canvas id="orbitalCanvas"></canvas>
+  </div>
+  <div class="status" id="status">Playing</div>
+  <div class="fps-display" id="fpsDisplay">60 FPS</div>
+  <div class="action-buttons">
+    <button class="action-btn" id="fullscreenBtn" title="Toggle Fullscreen (F)">⛶ Fullscreen</button>
+    <button class="action-btn" id="screenshotBtn" title="Take Screenshot (S)">📷 Screenshot</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('orbitalCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      count: 12,
+      speed: 1.0,
+      complexity: 5,
+      pattern: 'circular',
+      colorScheme: 'chromatic',
+      paused: false
+    };
+
+    const colorSchemes = {
+      chromatic: [
+        'rgba(255, 0, 204, 0.8)',
+        'rgba(51, 51, 153, 0.7)',
+        'rgba(200, 0, 180, 0.6)',
+        'rgba(100, 0, 150, 0.5)',
+        'rgba(255, 0, 150, 0.4)',
+        'rgba(150, 0, 100, 0.6)'
+      ],
+      orbital: [
+        'rgba(0, 255, 157, 0.8)',
+        'rgba(0, 255, 255, 0.7)',
+        'rgba(0, 200, 150, 0.6)',
+        'rgba(0, 200, 255, 0.5)',
+        'rgba(0, 180, 180, 0.4)',
+        'rgba(0, 150, 200, 0.6)'
+      ],
+      solar: [
+        'rgba(255, 81, 47, 0.8)',
+        'rgba(240, 152, 25, 0.7)',
+        'rgba(220, 120, 20, 0.6)',
+        'rgba(255, 100, 50, 0.5)',
+        'rgba(200, 80, 30, 0.4)',
+        'rgba(245, 130, 40, 0.6)'
+      ],
+      atomic: [
+        'rgba(0, 255, 0, 0.8)',
+        'rgba(0, 200, 0, 0.7)',
+        'rgba(0, 180, 0, 0.6)',
+        'rgba(0, 150, 0, 0.5)',
+        'rgba(0, 120, 0, 0.4)',
+        'rgba(0, 100, 0, 0.6)'
+      ],
+      cosmic: [
+        'rgba(84, 51, 255, 0.8)',
+        'rgba(32, 189, 255, 0.7)',
+        'rgba(100, 80, 220, 0.6)',
+        'rgba(60, 150, 240, 0.5)',
+        'rgba(40, 120, 200, 0.4)',
+        'rgba(70, 100, 220, 0.6)'
+      ]
+    };
+
+    let time = 0;
+    let animationId;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function getColors() {
+      return colorSchemes[config.colorScheme];
+    }
+
+    function drawCircularOrbits() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+
+      // Draw orbit paths
+      for (let i = 0; i < config.count; i++) {
+        const radius = maxRadius * (0.2 + 0.8 * (i / config.count));
+        const color = colors[i % colors.length];
+
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = color.replace('0.8', '0.2');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Draw orbiting sphere
+        const angle = (i / config.count) * Math.PI * 2 + time * 0.02 * config.speed * (i + 1);
+        const x = centerX + Math.cos(angle) * radius;
+        const y = centerY + Math.sin(angle) * radius;
+
+        // Create gradient for the sphere
+        const gradient = ctx.createRadialGradient(
+          x - 3, y - 3, 0,
+          x, y, 8
+        );
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.7, color.replace('0.8', '0.6'));
+        gradient.addColorStop(1, color.replace('0.8', '0.2'));
+
+        ctx.beginPath();
+        ctx.arc(x, y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Draw sphere glow
+        ctx.beginPath();
+        ctx.arc(x, y, 12, 0, Math.PI * 2);
+        ctx.fillStyle = color.replace('0.8', '0.1');
+        ctx.fill();
+      }
+    }
+
+    function drawEllipticalOrbits() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+
+      // Draw elliptical orbits
+      for (let i = 0; i < config.count; i++) {
+        const semiMajor = maxRadius * (0.3 + 0.7 * (i / config.count));
+        const semiMinor = semiMajor * (0.5 + 0.3 * Math.sin(i));
+        const color = colors[i % colors.length];
+        const angle = (i / config.count) * Math.PI * 2;
+
+        // Draw elliptical path
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(angle);
+
+        ctx.beginPath();
+        for (let t = 0; t <= Math.PI * 2; t += 0.05) {
+          const x = Math.cos(t) * semiMajor;
+          const y = Math.sin(t) * semiMinor;
+          if (t === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+
+        ctx.strokeStyle = color.replace('0.8', '0.2');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
+
+        // Draw orbiting sphere
+        const orbitAngle = (i / config.count) * Math.PI * 2 + time * 0.02 * config.speed * (i + 1);
+        const x = centerX + Math.cos(orbitAngle) * semiMajor * Math.cos(angle) - Math.sin(orbitAngle) * semiMinor * Math.sin(angle);
+        const y = centerY + Math.sin(orbitAngle) * semiMajor * Math.cos(angle) + Math.cos(orbitAngle) * semiMinor * Math.sin(angle);
+
+        // Create gradient for the sphere
+        const gradient = ctx.createRadialGradient(
+          x - 3, y - 3, 0,
+          x, y, 8
+        );
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.7, color.replace('0.8', '0.6'));
+        gradient.addColorStop(1, color.replace('0.8', '0.2'));
+
+        ctx.beginPath();
+        ctx.arc(x, y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Draw sphere glow
+        ctx.beginPath();
+        ctx.arc(x, y, 12, 0, Math.PI * 2);
+        ctx.fillStyle = color.replace('0.8', '0.1');
+        ctx.fill();
+      }
+    }
+
+    function drawNestedOrbits() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.3;
+
+      // Draw nested orbital system
+      for (let level = 0; level < config.complexity; level++) {
+        const levelRadius = maxRadius * (0.3 + 0.7 * (level / config.complexity));
+
+        for (let i = 0; i < Math.floor(config.count / config.complexity) * (level + 1); i++) {
+          const angle = (i / (Math.floor(config.count / config.complexity) * (level + 1))) * Math.PI * 2 +
+            time * 0.02 * config.speed * (level + 1);
+          const color = colors[(level * 3 + i) % colors.length];
+
+          // Calculate position based on level
+          const x = centerX + Math.cos(angle) * levelRadius;
+          const y = centerY + Math.sin(angle) * levelRadius;
+
+          // Draw orbit path
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, levelRadius, 0, Math.PI * 2);
+          ctx.strokeStyle = color.replace('0.8', '0.1');
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+
+          // Draw orbiting sphere
+          const gradient = ctx.createRadialGradient(
+            x - 2, y - 2, 0,
+            x, y, 6
+          );
+          gradient.addColorStop(0, color);
+          gradient.addColorStop(0.7, color.replace('0.8', '0.5'));
+          gradient.addColorStop(1, color.replace('0.8', '0.1'));
+
+          ctx.beginPath();
+          ctx.arc(x, y, 6, 0, Math.PI * 2);
+          ctx.fillStyle = gradient;
+          ctx.fill();
+
+          // Draw sphere glow
+          ctx.beginPath();
+          ctx.arc(x, y, 10, 0, Math.PI * 2);
+          ctx.fillStyle = color.replace('0.8', '0.05');
+          ctx.fill();
+        }
+      }
+    }
+
+    function drawSolarSystem() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+
+      // Draw central "sun"
+      const sunGradient = ctx.createRadialGradient(
+        centerX - 10, centerY - 10, 0,
+        centerX, centerY, 20
+      );
+      sunGradient.addColorStop(0, colors[0]);
+      sunGradient.addColorStop(0.7, colors[1]);
+      sunGradient.addColorStop(1, colors[2]);
+
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 20, 0, Math.PI * 2);
+      ctx.fillStyle = sunGradient;
+      ctx.fill();
+
+      // Draw "planets" in orbits
+      for (let i = 0; i < config.count; i++) {
+        const distance = maxRadius * (0.2 + 0.8 * (i / config.count));
+        const angle = (i / config.count) * Math.PI * 2 + time * 0.01 * config.speed * (i + 1);
+        const color = colors[i % colors.length];
+        const size = 5 + (i % 3) * 2; // Different sizes for variety
+
+        // Draw orbit path
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, distance, 0, Math.PI * 2);
+        ctx.strokeStyle = color.replace('0.8', '0.1');
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+
+        // Calculate planet position
+        const x = centerX + Math.cos(angle) * distance;
+        const y = centerY + Math.sin(angle) * distance;
+
+        // Create gradient for the planet
+        const gradient = ctx.createRadialGradient(
+          x - size / 2, y - size / 2, 0,
+          x, y, size
+        );
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.7, color.replace('0.8', '0.6'));
+        gradient.addColorStop(1, color.replace('0.8', '0.2'));
+
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Draw planet glow
+        ctx.beginPath();
+        ctx.arc(x, y, size * 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = color.replace('0.8', '0.1');
+        ctx.fill();
+      }
+    }
+
+    function drawAtomicModel() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.3;
+
+      // Draw central "nucleus"
+      const nucleusGradient = ctx.createRadialGradient(
+        centerX, centerY, 0,
+        centerX, centerY, 15
+      );
+      nucleusGradient.addColorStop(0, colors[0]);
+      nucleusGradient.addColorStop(0.7, colors[1]);
+      nucleusGradient.addColorStop(1, colors[2]);
+
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 15, 0, Math.PI * 2);
+      ctx.fillStyle = nucleusGradient;
+      ctx.fill();
+
+      // Draw electron orbitals
+      for (let shell = 0; shell < config.complexity; shell++) {
+        const shellRadius = maxRadius * 0.2 * (shell + 1);
+
+        // Draw orbital path
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, shellRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = colors[shell % colors.length].replace('0.8', '0.2');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Draw electrons in this shell
+        const electronCount = Math.min(8, Math.pow(2, shell + 1)); // Simplified electron shell model
+
+        for (let e = 0; e < electronCount; e++) {
+          const angle = (e / electronCount) * Math.PI * 2 + time * 0.03 * config.speed * (shell + 1);
+          const color = colors[(shell * 3 + e) % colors.length];
+
+          const x = centerX + Math.cos(angle) * shellRadius;
+          const y = centerY + Math.sin(angle) * shellRadius;
+
+          // Draw electron as a small sphere
+          const electronGradient = ctx.createRadialGradient(
+            x - 2, y - 2, 0,
+            x, y, 4
+          );
+          electronGradient.addColorStop(0, color);
+          electronGradient.addColorStop(0.7, color.replace('0.8', '0.6'));
+          electronGradient.addColorStop(1, color.replace('0.8', '0.2'));
+
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = electronGradient;
+          ctx.fill();
+
+          // Draw electron glow
+          ctx.beginPath();
+          ctx.arc(x, y, 8, 0, Math.PI * 2);
+          ctx.fillStyle = color.replace('0.8', '0.1');
+          ctx.fill();
+        }
+      }
+    }
+
+    function drawOrbital() {
+      // Clear with subtle fade effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      switch (config.pattern) {
+        case 'circular':
+          drawCircularOrbits();
+          break;
+        case 'elliptical':
+          drawEllipticalOrbits();
+          break;
+        case 'nested':
+          drawNestedOrbits();
+          break;
+        case 'solar':
+          drawSolarSystem();
+          break;
+        case 'atomic':
+          drawAtomicModel();
+          break;
+      }
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.01 * config.speed;
+        drawOrbital();
+      }
+      animationId = requestAnimationFrame(animate);
+
+      // FPS monitoring
+      frameCount++;
+      const now = performance.now();
+      if (now - lastFpsUpdate >= 1000) {
+        currentFps = Math.round(frameCount * 1000 / (now - lastFpsUpdate));
+        fpsDisplay.textContent = currentFps + ' FPS';
+        frameCount = 0;
+        lastFpsUpdate = now;
+      }
+    }
+
+    function randomize() {
+      config.count = Math.floor(Math.random() * 12 + 8);
+      config.speed = Math.random() * 2 + 0.5;
+      config.complexity = Math.floor(Math.random() * 8 + 2);
+      const patterns = ['circular', 'elliptical', 'nested', 'solar', 'atomic'];
+      config.pattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      document.getElementById('countSlider').value = config.count;
+      document.getElementById('countValue').textContent = config.count;
+      document.getElementById('speedSlider').value = config.speed.toFixed(1);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+      document.getElementById('complexitySlider').value = config.complexity;
+      document.getElementById('complexityValue').textContent = config.complexity;
+      document.getElementById('patternSelect').value = config.pattern;
+    }
+
+    // FPS tracking
+    const fpsDisplay = document.getElementById('fpsDisplay');
+    let frameCount = 0, lastFpsUpdate = performance.now(), currentFps = 60;
+
+    // Mouse interaction - affects animation
+    let mouseX = canvas.width / 2, mouseY = canvas.height / 2;
+    canvas.addEventListener('mousemove', e => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      // Speed boost when mouse moves quickly
+      const dx = Math.abs(e.movementX), dy = Math.abs(e.movementY);
+      if (dx > 5 || dy > 5) {
+        config.speed = Math.min(3, config.speed + 0.01);
+      }
+    });
+    canvas.addEventListener('click', e => {
+      // Click to create pulse effect
+      const pulseEffect = { x: e.clientX, y: e.clientY, r: 0, o: 1 };
+      function drawPulse() {
+        if (pulseEffect.o <= 0) return;
+        ctx.beginPath();
+        ctx.arc(pulseEffect.x, pulseEffect.y, pulseEffect.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255,255,255,${pulseEffect.o})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        pulseEffect.r += 5;
+        pulseEffect.o -= 0.02;
+        requestAnimationFrame(drawPulse);
+      }
+      drawPulse();
+    });
+
+    // Fullscreen toggle
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+        document.body.classList.add('fullscreen');
+      } else {
+        document.exitFullscreen();
+        document.body.classList.remove('fullscreen');
+      }
+    }
+
+    // Screenshot function
+    function takeScreenshot() {
+      const link = document.createElement('a');
+      link.download = 'chromatic-orbital-' + Date.now() + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // Action buttons
+    document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+    document.getElementById('screenshotBtn').addEventListener('click', takeScreenshot);
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('countSlider').addEventListener('input', e => {
+      config.count = parseInt(e.target.value);
+      document.getElementById('countValue').textContent = config.count;
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('complexitySlider').addEventListener('input', e => {
+      config.complexity = parseInt(e.target.value);
+      document.getElementById('complexityValue').textContent = config.complexity;
+    });
+
+    document.getElementById('patternSelect').addEventListener('change', e => {
+      config.pattern = e.target.value;
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        randomize();
+      }
+      if (e.code === 'KeyF') {
+        toggleFullscreen();
+      }
+      if (e.code === 'KeyS') {
+        takeScreenshot();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['chromatic', 'orbital', 'solar', 'atomic', 'cosmic'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Fullscreen change listener
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) {
+        document.body.classList.remove('fullscreen');
+      }
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    animate();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beat-Synchronized Fractals</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .info {
+            position: relative;
+            z-index: 2;
+            color: white;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0,0,0,0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h1>Beat-Synchronized Fractals</h1>
+        <p>Fractal patterns that evolve with the beat of music</p>
+    </div>
+    
+    <canvas id="fractalCanvas"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('fractalCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas to full window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Beat-synced fractal node
+        class BeatFractalNode {
+            constructor(x, y, size, depth, parent = null, angle = 0) {
+                this.x = x;
+                this.y = y;
+                this.size = size;
+                this.depth = depth;
+                this.parent = parent;
+                this.angle = angle;
+                
+                // Visual properties
+                this.hue = (depth * 45 + Date.now() * 0.1) % 360;
+                this.saturation = 80;
+                this.lightness = 50 + Math.sin(Date.now() * 0.001 + depth) * 20;
+                
+                // Beat synchronization properties
+                this.beatPhase = Math.random() * Math.PI * 2;
+                this.beatSensitivity = 0.2 + (depth / 6) * 0.8; // Deeper levels more responsive
+                this.rotationSpeed = 0.001 * (7 - depth);
+                this.pulseSpeed = 0.002 * (7 - depth);
+                
+                // Children properties
+                this.children = [];
+                this.maxChildren = 3; // Max children per node
+                this.generationTimer = 0;
+                
+                // Create children if not at max depth
+                if (depth < 5) {
+                    this.generateChildren();
+                }
+            }
+            
+            generateChildren() {
+                if (this.depth >= 5) return;
+                
+                for (let i = 0; i < this.maxChildren; i++) {
+                    if (Math.random() < 0.8) { // Not every potential child gets created
+                        // Calculate position relative to parent
+                        const childAngle = this.angle + (i * (Math.PI * 2 / this.maxChildren));
+                        const distance = this.size * 1.2;
+                        const childX = this.x + Math.cos(childAngle) * distance;
+                        const childY = this.y + Math.sin(childAngle) * distance;
+                        
+                        const childSize = this.size * 0.7;
+                        this.children.push(new BeatFractalNode(childX, childY, childSize, this.depth + 1, this, childAngle));
+                    }
+                }
+            }
+            
+            update() {
+                // Simulate audio input with beats
+                const time = Date.now() * 0.001;
+                const bassBeat = Math.sin(time * 0.5) > 0.9 ? 1.8 : 1;
+                const snareBeat = Math.sin(time * 1.2) > 0.95 ? 1.5 : 1;
+                const hiHatBeat = Math.sin(time * 2.5) > 0.98 ? 1.2 : 1;
+                
+                // Combined beat effect
+                const beatEffect = bassBeat * snareBeat * hiHatBeat;
+                
+                // Apply beat effect to size
+                this.size = this.size * (0.95 + 0.05 * beatEffect * this.beatSensitivity);
+                
+                // Rotate the node
+                this.angle += this.rotationSpeed * beatEffect;
+                
+                // Update children
+                this.children.forEach(child => child.update());
+                
+                // Occasionally spawn new children or regenerate
+                if (Math.random() < 0.005 && this.children.length < this.maxChildren && this.depth < 5) {
+                    // Calculate position for new child
+                    const childAngle = Math.random() * Math.PI * 2;
+                    const distance = this.size * 1.2;
+                    const childX = this.x + Math.cos(childAngle) * distance;
+                    const childY = this.y + Math.sin(childAngle) * distance;
+                    const childSize = this.size * 0.7;
+                    
+                    this.children.push(new BeatFractalNode(childX, childY, childSize, this.depth + 1, this, childAngle));
+                }
+            }
+            
+            draw() {
+                // Save context
+                ctx.save();
+                
+                // Move to node position
+                ctx.translate(this.x, this.y);
+                
+                // Apply rotation
+                ctx.rotate(this.angle);
+                
+                // Calculate beat effect for pulsing
+                const time = Date.now() * 0.001;
+                const beatEffect = Math.sin(time * 3 + this.beatPhase) * 0.2 + 1;
+                const pulseSize = this.size * beatEffect;
+                
+                // Create gradient for the node
+                const gradient = ctx.createRadialGradient(
+                    0, 0, 0,
+                    0, 0, pulseSize
+                );
+                
+                gradient.addColorStop(0, `hsla(${this.hue}, ${this.saturation}%, ${this.lightness}%, 1)`);
+                gradient.addColorStop(0.7, `hsla(${this.hue + 30}, ${this.saturation * 0.7}%, ${this.lightness * 0.7}%, 0.7)`);
+                gradient.addColorStop(1, `hsla(${this.hue + 60}, ${this.saturation * 0.5}%, ${this.lightness * 0.5}%, 0)`);
+                
+                ctx.fillStyle = gradient;
+                
+                // Draw a shape based on depth
+                ctx.beginPath();
+                
+                if (this.depth === 0) {
+                    // Center node - draw a star-like shape
+                    const points = 8;
+                    for (let i = 0; i < points * 2; i++) {
+                        const angle = (i / (points * 2)) * Math.PI * 2;
+                        const radius = i % 2 === 0 ? pulseSize : pulseSize * 0.5;
+                        const x = Math.cos(angle) * radius;
+                        const y = Math.sin(angle) * radius;
+                        
+                        if (i === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                    ctx.closePath();
+                } else if (this.depth === 1) {
+                    // First level - draw hexagon
+                    for (let i = 0; i < 6; i++) {
+                        const angle = (i / 6) * Math.PI * 2;
+                        const x = Math.cos(angle) * pulseSize;
+                        const y = Math.sin(angle) * pulseSize;
+                        
+                        if (i === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                    ctx.closePath();
+                } else {
+                    // Other levels - draw circle
+                    ctx.arc(0, 0, pulseSize, 0, Math.PI * 2);
+                }
+                
+                ctx.fill();
+                
+                // Draw connections to children
+                this.children.forEach(child => {
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    
+                    // Calculate relative position with offset
+                    const relX = (child.x - this.x) * 0.8;
+                    const relY = (child.y - this.y) * 0.8;
+                    
+                    ctx.lineTo(relX, relY);
+                    
+                    // Create gradient for connection
+                    const connGradient = ctx.createLinearGradient(0, 0, relX, relY);
+                    connGradient.addColorStop(0, `hsla(${this.hue}, ${this.saturation}%, 70%, 0.5)`);
+                    connGradient.addColorStop(1, `hsla(${child.hue}, ${child.saturation}%, 70%, 0.5)`);
+                    
+                    ctx.strokeStyle = connGradient;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    
+                    // Draw child
+                    child.draw();
+                });
+                
+                // Restore context
+                ctx.restore();
+            }
+        }
+        
+        // Beat detector class
+        class BeatDetector {
+            constructor() {
+                this.beatHistory = [];
+                this.historyLength = 30;
+                this.beatThreshold = 0.8;
+                this.isBeating = false;
+                this.beatCooldown = 0;
+                this.beatCooldownMax = 10;
+            }
+            
+            update() {
+                // Simulate audio input
+                const time = Date.now() * 0.001;
+                
+                // Create rhythmic pattern
+                const bassLevel = Math.abs(Math.sin(time * 0.5)) * 0.8 + Math.random() * 0.2;
+                const trebleLevel = Math.abs(Math.sin(time * 2.3)) * 0.6 + Math.random() * 0.3;
+                
+                // Calculate average level
+                const avgLevel = (bassLevel + trebleLevel) / 2;
+                
+                // Add to history
+                this.beatHistory.push(avgLevel);
+                if (this.beatHistory.length > this.historyLength) {
+                    this.beatHistory.shift();
+                }
+                
+                // Detect beat
+                this.isBeating = false;
+                if (this.beatCooldown <= 0 && avgLevel > this.beatThreshold) {
+                    this.isBeating = true;
+                    this.beatCooldown = this.beatCooldownMax;
+                }
+                
+                if (this.beatCooldown > 0) {
+                    this.beatCooldown--;
+                }
+            }
+            
+            getBeatStrength() {
+                // Calculate average of recent levels to determine beat strength
+                if (this.beatHistory.length === 0) return 0;
+                
+                let sum = 0;
+                for (let level of this.beatHistory) {
+                    sum += level;
+                }
+                return sum / this.beatHistory.length;
+            }
+        }
+        
+        // Create the fractal root
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const rootSize = Math.min(canvas.width, canvas.height) * 0.03;
+        
+        const fractalRoot = new BeatFractalNode(centerX, centerY, rootSize, 0);
+        
+        // Create beat detector
+        const beatDetector = new BeatDetector();
+        
+        // Draw background with beat-synced effects
+        function drawBeatBackground() {
+            const beatStrength = beatDetector.getBeatStrength();
+            const time = Date.now() * 0.0005;
+            
+            // Create radial gradient background
+            const gradient = ctx.createRadialGradient(
+                centerX, centerY, 0,
+                centerX, centerY, Math.max(canvas.width, canvas.height) * 0.6
+            );
+            
+            const hueShift = beatDetector.isBeating ? 30 : 0;
+            const alpha = 0.1 + beatStrength * 0.2;
+            
+            gradient.addColorStop(0, `hsla(${120 + hueShift + Math.sin(time) * 30}, 70%, 30%, ${alpha})`);
+            gradient.addColorStop(0.5, `hsla(${240 + hueShift + Math.sin(time * 0.7) * 20}, 60%, 20%, ${alpha * 0.7})`);
+            gradient.addColorStop(1, `hsla(${300 + hueShift + Math.sin(time * 0.5) * 10}, 50%, 10%, ${alpha * 0.4})`);
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        // Animation loop
+        function animate() {
+            // Clear with fade effect
+            ctx.fillStyle = 'rgba(0, 5, 15, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Update beat detector
+            beatDetector.update();
+            
+            // Draw beat-synced background
+            drawBeatBackground();
+            
+            // Update and draw fractal
+            fractalRoot.update();
+            fractalRoot.draw();
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>

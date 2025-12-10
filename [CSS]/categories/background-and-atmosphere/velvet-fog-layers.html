@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velvet Fog Layers</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: linear-gradient(180deg, #1a1a2e 0%, #2d2d44 50%, #1a1a2e 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .info {
+            position: relative;
+            z-index: 2;
+            color: #c8c8d8;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(200, 200, 216, 0.4);
+        }
+
+        .info h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 0.5em;
+        }
+
+        .info p {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">
+        <h1>VELVET FOG</h1>
+        <p>Drifting layers of mist</p>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class FogLayer {
+            constructor(y, speed, opacity, color) {
+                this.baseY = y;
+                this.speed = speed;
+                this.opacity = opacity;
+                this.color = color;
+                this.offset = Math.random() * 1000;
+            }
+
+            draw(time) {
+                const points = [];
+                const segments = 50;
+
+                for (let i = 0; i <= segments; i++) {
+                    const x = (i / segments) * (canvas.width + 200) - 100;
+                    const noise1 = Math.sin((x + time * this.speed + this.offset) * 0.003) * 50;
+                    const noise2 = Math.sin((x * 0.67 + time * this.speed * 0.7 + this.offset) * 0.005) * 30;
+                    points.push({ x, y: this.baseY + noise1 + noise2 });
+                }
+
+                ctx.beginPath();
+                ctx.moveTo(-100, canvas.height);
+                points.forEach((p, i) => {
+                    if (i === 0) ctx.lineTo(p.x, p.y);
+                    else {
+                        const prev = points[i - 1];
+                        ctx.quadraticCurveTo(prev.x, prev.y, (prev.x + p.x) / 2, (prev.y + p.y) / 2);
+                    }
+                });
+                ctx.lineTo(canvas.width + 100, canvas.height);
+                ctx.closePath();
+
+                const gradient = ctx.createLinearGradient(0, this.baseY - 100, 0, this.baseY + 200);
+                gradient.addColorStop(0, 'transparent');
+                gradient.addColorStop(0.3, this.color.replace(')', `, ${this.opacity})`).replace('rgb', 'rgba'));
+                gradient.addColorStop(0.7, this.color.replace(')', `, ${this.opacity * 0.5})`).replace('rgb', 'rgba'));
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+            }
+        }
+
+        const fogLayers = [
+            new FogLayer(canvas.height * 0.3, 10, 0.15, 'rgb(80, 80, 120)'),
+            new FogLayer(canvas.height * 0.45, 15, 0.2, 'rgb(100, 100, 140)'),
+            new FogLayer(canvas.height * 0.55, 8, 0.25, 'rgb(90, 90, 130)'),
+            new FogLayer(canvas.height * 0.7, 20, 0.3, 'rgb(70, 70, 110)'),
+            new FogLayer(canvas.height * 0.85, 12, 0.2, 'rgb(60, 60, 100)'),
+        ];
+
+        let time = 0;
+        function animate() {
+            time++;
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#1a1a2e');
+            gradient.addColorStop(0.5, '#2d2d44');
+            gradient.addColorStop(1, '#1a1a2e');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            fogLayers.forEach(layer => layer.draw(time));
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plasma Field</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .info {
+            position: relative;
+            z-index: 2;
+            color: white;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0,0,0,0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h1>Plasma Field</h1>
+        <p>Ionic plasma with dynamic energy flows</p>
+    </div>
+    
+    <canvas id="plasmaCanvas"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('plasmaCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas to full window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Plasma particle class
+        class PlasmaParticle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                
+                // Physics properties
+                this.vx = (Math.random() - 0.5) * 1.5;
+                this.vy = (Math.random() - 0.5) * 1.5;
+                
+                // Visual properties
+                this.size = 2 + Math.random() * 6;
+                this.originalSize = this.size;
+                
+                // Color properties (plasma colors: purples, blues, pinks)
+                this.hue = 280 + Math.random() * 100; // Purple to pink to blue range
+                if (this.hue > 360) this.hue -= 360;
+                
+                this.saturation = 80 + Math.random() * 20;
+                this.lightness = 50 + Math.random() * 30;
+                this.alpha = 0.2 + Math.random() * 0.6;
+                
+                // Pulsation properties
+                this.pulseSpeed = 0.02 + Math.random() * 0.04;
+                this.pulsePhase = Math.random() * Math.PI * 2;
+                
+                // Energy properties
+                this.energyLevel = 0.5 + Math.random() * 0.5;
+                this.temp = 0.3 + Math.random() * 0.7;
+            }
+            
+            update() {
+                // Update position
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Apply some physics-based movement
+                const time = Date.now() * 0.001;
+                
+                // Add swirling motion
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const dx = this.x - centerX;
+                const dy = this.y - centerY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 0) {
+                    // Apply rotational force
+                    const angle = Math.atan2(dy, dx);
+                    const newAngle = angle + 0.01 * this.energyLevel;
+                    const newDistance = distance * 0.999; // Slow spiral
+                    
+                    this.x = centerX + Math.cos(newAngle) * newDistance;
+                    this.y = centerY + Math.sin(newAngle) * newDistance;
+                }
+                
+                // Add some random movement
+                if (Math.random() < 0.01) {
+                    this.vx += (Math.random() - 0.5) * 0.2;
+                    this.vy += (Math.random() - 0.5) * 0.2;
+                }
+                
+                // Boundary wrap-around
+                if (this.x < -20) this.x = canvas.width + 20;
+                if (this.x > canvas.width + 20) this.x = -20;
+                if (this.y < -20) this.y = canvas.height + 20;
+                if (this.y > canvas.height + 20) this.y = -20;
+                
+                // Update size with pulsation
+                this.size = this.originalSize * (0.8 + 0.2 * Math.sin(time * this.pulseSpeed + this.pulsePhase));
+            }
+            
+            draw() {
+                // Create radial gradient for plasma particle
+                const gradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, this.size * 3
+                );
+                
+                gradient.addColorStop(0, `hsla(${this.hue}, ${this.saturation}%, ${this.lightness}%, ${this.alpha})`);
+                gradient.addColorStop(0.5, `hsla(${this.hue}, ${this.saturation * 0.8}%, ${this.lightness * 0.7}%, ${this.alpha * 0.7})`);
+                gradient.addColorStop(1, `hsla(${this.hue}, ${this.saturation * 0.5}%, ${this.lightness * 0.5}%, 0)`);
+                
+                ctx.fillStyle = gradient;
+                
+                // Draw plasma particle
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw energy trails occasionally
+                if (Math.random() < 0.05) {
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(this.x - this.vx * 10, this.y - this.vy * 10);
+                    ctx.strokeStyle = `hsla(${this.hue}, ${this.saturation}%, ${this.lightness}%, ${this.alpha * 0.5})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            }
+        }
+        
+        // Create plasma particles
+        const particles = [];
+        const particleCount = Math.min(400, Math.floor((canvas.width * canvas.height) / 400)); // Adaptive to screen size
+        
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new PlasmaParticle());
+        }
+        
+        // Draw plasma field background
+        function drawPlasmaField() {
+            const time = Date.now() * 0.0005;
+            const gradient = ctx.createRadialGradient(
+                canvas.width/2, canvas.height/2, 0,
+                canvas.width/2, canvas.height/2, Math.max(canvas.width, canvas.height) * 0.8
+            );
+            
+            gradient.addColorStop(0, `hsla(${280 + Math.sin(time) * 20}, 80%, 40%, 0.1)`);
+            gradient.addColorStop(0.5, `hsla(${300 + Math.sin(time * 0.7) * 15}, 70%, 30%, 0.05)`);
+            gradient.addColorStop(1, `hsla(${320 + Math.sin(time * 0.5) * 10}, 60%, 20%, 0)`);
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        // Animation loop
+        function animate() {
+            // Fade out previous frame to create plasma decay effect
+            ctx.fillStyle = 'rgba(10, 0, 20, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw plasma field background
+            drawPlasmaField();
+            
+            // Update and draw particles
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Fire Ember Cursor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #1a0505 0%, #2c0a0a 100%);
+            cursor: none;
+            overflow: hidden;
+        }
+
+        .info {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #f39c12;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            z-index: 100;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle, #f1c40f, #e74c3c);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9999;
+            box-shadow: 0 0 15px #e74c3c;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">JaZeR Fire Embers</div>
+    <canvas id="canvas"></canvas>
+    <div class="cursor-dot" id="cursor"></div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const cursorDot = document.getElementById('cursor');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const embers = [];
+
+        class Ember {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 4 + 2;
+                this.speedX = (Math.random() - 0.5) * 2;
+                this.speedY = -Math.random() * 3 - 1;
+                this.life = 1;
+                this.decay = Math.random() * 0.02 + 0.01;
+                this.hue = Math.random() * 30 + 10; // orange to yellow
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.speedX *= 0.99;
+                this.speedY += 0.02; // slight gravity counteract
+                this.life -= this.decay;
+                this.size *= 0.98;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${this.hue}, 100%, ${50 + this.life * 30}%, ${this.life})`;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = `hsl(${this.hue}, 100%, 50%)`;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        let lastX = 0, lastY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            cursorDot.style.left = e.clientX + 'px';
+            cursorDot.style.top = e.clientY + 'px';
+
+            const dx = e.clientX - lastX;
+            const dy = e.clientY - lastY;
+            const speed = Math.sqrt(dx * dx + dy * dy);
+
+            if (speed > 3) {
+                for (let i = 0; i < 3; i++) {
+                    embers.push(new Ember(e.clientX + (Math.random() - 0.5) * 10, e.clientY + (Math.random() - 0.5) * 10));
+                }
+            }
+
+            lastX = e.clientX;
+            lastY = e.clientY;
+        });
+
+        function animate() {
+            ctx.fillStyle = 'rgba(26, 5, 5, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = embers.length - 1; i >= 0; i--) {
+                embers[i].update();
+                embers[i].draw();
+
+                if (embers[i].life <= 0) {
+                    embers.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+
+</html>

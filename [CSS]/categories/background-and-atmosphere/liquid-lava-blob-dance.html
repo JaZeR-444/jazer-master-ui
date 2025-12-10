@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liquid Lava Blob Dance - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="lava"] { background: linear-gradient(45deg, #ff512f, #f09819); }
+    .color-btn[data-color="magma"] { background: linear-gradient(45deg, #ff0000, #8b0000); }
+    .color-btn[data-color="volcano"] { background: linear-gradient(45deg, #ff4500, #ff8c00); }
+    .color-btn[data-color="igneous"] { background: linear-gradient(45deg, #8b0000, #ff4500); }
+    .color-btn[data-color="crimson"] { background: linear-gradient(45deg, #dc143c, #b22222); }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .pattern-select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-light);
+      font-family: var(--font-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .blob-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    #blobCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 280px; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .controls { top: auto; bottom: 5rem; right: 1rem; min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Liquid Lava Blob Dance</h1>
+    <p>Dancing liquid lava blobs with morphing shapes</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Randomize</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="lava" title="Lava"></button>
+      <button class="color-btn" data-color="magma" title="Magma"></button>
+      <button class="color-btn" data-color="volcano" title="Volcano"></button>
+      <button class="color-btn" data-color="igneous" title="Igneous"></button>
+      <button class="color-btn" data-color="crimson" title="Crimson"></button>
+    </div>
+    <div class="slider-group">
+      <label>Blob Count: <span class="slider-value" id="countValue">15</span></label>
+      <input type="range" id="countSlider" min="5" max="30" step="1" value="15">
+    </div>
+    <div class="slider-group">
+      <label>Dance Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Morph Intensity: <span class="slider-value" id="intensityValue">6</span></label>
+      <input type="range" id="intensitySlider" min="1" max="10" step="1" value="6">
+    </div>
+    <label>Pattern</label>
+    <select class="pattern-select" id="patternSelect">
+      <option value="flow">Flowing Bubbles</option>
+      <option value="merge">Merging Blobs</option>
+      <option value="drip">Dripping Lava</option>
+      <option value="swirl">Swirling Magma</option>
+      <option value="explode">Exploding Globules</option>
+    </select>
+  </div>
+
+  <div class="blob-container">
+    <canvas id="blobCanvas"></canvas>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const canvas = document.getElementById('blobCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      count: 15,
+      speed: 1.0,
+      intensity: 6,
+      pattern: 'flow',
+      colorScheme: 'lava',
+      paused: false
+    };
+
+    const colorSchemes = {
+      lava: [
+        'rgba(255, 81, 47, 0.8)',
+        'rgba(240, 152, 25, 0.7)',
+        'rgba(220, 120, 20, 0.6)',
+        'rgba(255, 100, 50, 0.5)',
+        'rgba(200, 80, 30, 0.4)',
+        'rgba(245, 130, 40, 0.6)'
+      ],
+      magma: [
+        'rgba(255, 0, 0, 0.8)',
+        'rgba(139, 0, 0, 0.7)',
+        'rgba(200, 0, 0, 0.6)',
+        'rgba(180, 0, 0, 0.5)',
+        'rgba(150, 0, 0, 0.4)',
+        'rgba(220, 0, 0, 0.6)'
+      ],
+      volcano: [
+        'rgba(255, 69, 0, 0.8)',
+        'rgba(255, 140, 0, 0.7)',
+        'rgba(230, 80, 0, 0.6)',
+        'rgba(240, 100, 0, 0.5)',
+        'rgba(220, 60, 0, 0.4)',
+        'rgba(250, 120, 0, 0.6)'
+      ],
+      igneous: [
+        'rgba(139, 0, 0, 0.8)',
+        'rgba(255, 69, 0, 0.7)',
+        'rgba(180, 0, 0, 0.6)',
+        'rgba(240, 80, 0, 0.5)',
+        'rgba(160, 0, 0, 0.4)',
+        'rgba(245, 60, 0, 0.6)'
+      ],
+      crimson: [
+        'rgba(220, 20, 60, 0.8)',
+        'rgba(178, 34, 34, 0.7)',
+        'rgba(200, 40, 60, 0.6)',
+        'rgba(180, 20, 40, 0.5)',
+        'rgba(160, 0, 30, 0.4)',
+        'rgba(210, 30, 50, 0.6)'
+      ]
+    };
+
+    let time = 0;
+    let animationId;
+    let blobs = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function getColors() {
+      return colorSchemes[config.colorScheme];
+    }
+
+    function createBlob(x, y, size) {
+      return {
+        x,
+        y,
+        size,
+        originalX: x,
+        originalY: y,
+        originalSize: size,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        phase: Math.random() * Math.PI * 2,
+        oscillation: Math.random() * 0.02 + 0.01,
+        morphPhase: Math.random() * Math.PI * 2,
+        morphSpeed: Math.random() * 0.01 + 0.005,
+        colorIndex: Math.floor(Math.random() * 6)
+      };
+    }
+
+    function updateBlobs() {
+      blobs = [];
+      for (let i = 0; i < config.count; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const size = 20 + Math.random() * 40;
+        blobs.push(createBlob(x, y, size));
+      }
+    }
+
+    function drawFlowingBubbles() {
+      const colors = getColors();
+      
+      for (let i = 0; i < blobs.length; i++) {
+        const blob = blobs[i];
+        const color = colors[blob.colorIndex % colors.length];
+        
+        // Update position with boundaries
+        blob.x += blob.vx * config.speed * 0.5;
+        blob.y += blob.vy * config.speed * 0.5;
+        
+        if (blob.x < 0 || blob.x > canvas.width) blob.vx *= -1;
+        if (blob.y < 0 || blob.y > canvas.height) blob.vy *= -1;
+        
+        blob.x = Math.max(blob.size/2, Math.min(canvas.width - blob.size/2, blob.x));
+        blob.y = Math.max(blob.size/2, Math.min(canvas.height - blob.size/2, blob.y));
+        
+        // Calculate size oscillation
+        const sizeOscillation = Math.sin(time * blob.oscillation * config.speed + blob.phase) * config.intensity * 0.3;
+        const currentSize = blob.originalSize + sizeOscillation;
+        
+        // Calculate morphing effect
+        const morphFactor = Math.sin(time * blob.morphSpeed * config.speed + blob.morphPhase) * config.intensity * 0.2;
+        
+        // Create radial gradient for the blob
+        const gradient = ctx.createRadialGradient(
+          blob.x, blob.y, 0,
+          blob.x, blob.y, currentSize
+        );
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.7, color.replace('0.8', '0.6'));
+        gradient.addColorStop(1, color.replace('0.8', '0.0'));
+        
+        // Draw the blob with morphing effect
+        ctx.beginPath();
+        ctx.ellipse(
+          blob.x, 
+          blob.y, 
+          currentSize + morphFactor, 
+          currentSize - morphFactor * 0.5, 
+          Math.sin(time * 0.01 * config.speed + i) * Math.PI / 4, 
+          0, 
+          Math.PI * 2
+        );
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Draw inner glow
+        ctx.beginPath();
+        ctx.arc(blob.x, blob.y, currentSize * 0.6, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        
+        // Draw highlights
+        ctx.beginPath();
+        ctx.arc(
+          blob.x - currentSize * 0.3, 
+          blob.y - currentSize * 0.3, 
+          currentSize * 0.2, 
+          0, 
+          Math.PI * 2
+        );
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.fill();
+      }
+    }
+
+    function drawMergingBlobs() {
+      const colors = getColors();
+      
+      // Draw connections between nearby blobs
+      for (let i = 0; i < blobs.length; i++) {
+        for (let j = i + 1; j < blobs.length; j++) {
+          const dx = blobs[j].x - blobs[i].x;
+          const dy = blobs[j].y - blobs[i].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < 150) {
+            const alpha = 1 - distance / 150;
+            const color = colors[(i + j) % colors.length];
+            
+            // Draw connection
+            ctx.beginPath();
+            ctx.moveTo(blobs[i].x, blobs[i].y);
+            ctx.lineTo(blobs[j].x, blobs[j].y);
+            ctx.strokeStyle = color.replace('0.8', alpha * 0.5);
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+        }
+      }
+      
+      // Draw blobs
+      for (let i = 0; i < blobs.length; i++) {
+        const blob = blobs[i];
+        const color = colors[blob.colorIndex % colors.length];
+        
+        // Update position
+        blob.x += blob.vx * config.speed * 0.3;
+        blob.y += blob.vy * config.speed * 0.3;
+        
+        if (blob.x < 0 || blob.x > canvas.width) blob.vx *= -1;
+        if (blob.y < 0 || blob.y > canvas.height) blob.vy *= -1;
+        
+        blob.x = Math.max(blob.size/2, Math.min(canvas.width - blob.size/2, blob.x));
+        blob.y = Math.max(blob.size/2, Math.min(canvas.height - blob.size/2, blob.y));
+        
+        // Calculate size with merging effect
+        let currentSize = blob.originalSize;
+        for (let j = 0; j < blobs.length; j++) {
+          if (i !== j) {
+            const dx = blobs[j].x - blob.x;
+            const dy = blobs[j].y - blob.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < 80) {
+              currentSize += (80 - distance) * 0.05;
+            }
+          }
+        }
+        
+        // Apply oscillation
+        const sizeOscillation = Math.sin(time * blob.oscillation * config.speed + blob.phase) * config.intensity * 0.3;
+        currentSize += sizeOscillation;
+        
+        // Create gradient
+        const gradient = ctx.createRadialGradient(
+          blob.x, blob.y, 0,
+          blob.x, blob.y, currentSize
+        );
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.7, color.replace('0.8', '0.6'));
+        gradient.addColorStop(1, color.replace('0.8', '0.0'));
+        
+        ctx.beginPath();
+        ctx.arc(blob.x, blob.y, currentSize, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Draw inner glow
+        ctx.beginPath();
+        ctx.arc(blob.x, blob.y, currentSize * 0.7, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+      }
+    }
+
+    function drawDrippingLava() {
+      const colors = getColors();
+      
+      for (let i = 0; i < blobs.length; i++) {
+        const blob = blobs[i];
+        const color = colors[blob.colorIndex % colors.length];
+        
+        // Simulate dripping effect - move downward with gravity
+        blob.vy += 0.05;
+        blob.x += blob.vx * config.speed * 0.2;
+        blob.y += blob.vy * config.speed * 0.5;
+        
+        // Reset blob if it goes off screen
+        if (blob.y > canvas.height + 100) {
+          blob.y = -50;
+          blob.x = Math.random() * canvas.width;
+          blob.vy = 0;
+        }
+        
+        // Bounce off sides
+        if (blob.x < 0 || blob.x > canvas.width) {
+          blob.vx *= -1;
+          blob.x = Math.max(0, Math.min(canvas.width, blob.x));
+        }
+        
+        // Calculate size with dripping effect
+        const sizeOscillation = Math.sin(time * blob.oscillation * config.speed + blob.phase) * config.intensity * 0.2;
+        const currentSize = blob.originalSize + sizeOscillation;
+        
+        // Create gradient for dripping effect
+        const gradient = ctx.createRadialGradient(
+          blob.x, blob.y, 0,
+          blob.x, blob.y, currentSize
+        );
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.7, color.replace('0.8', '0.6'));
+        gradient.addColorStop(1, color.replace('0.8', '0.0'));
+        
+        // Draw the blob
+        ctx.beginPath();
+        ctx.arc(blob.x, blob.y, currentSize, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Draw trailing effect
+        ctx.beginPath();
+        ctx.ellipse(
+          blob.x, 
+          blob.y + currentSize * 0.5, 
+          currentSize * 0.3, 
+          currentSize * 0.7, 
+          0, 
+          0, 
+          Math.PI * 2
+        );
+        ctx.fillStyle = color.replace('0.8', '0.4');
+        ctx.fill();
+        
+        // Draw inner glow
+        ctx.beginPath();
+        ctx.arc(blob.x, blob.y, currentSize * 0.6, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+      }
+    }
+
+    function drawSwirlingMagma() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      
+      for (let i = 0; i < blobs.length; i++) {
+        const blob = blobs[i];
+        const color = colors[blob.colorIndex % colors.length];
+        
+        // Calculate swirling position
+        const distance = Math.sqrt(
+          Math.pow(blob.originalX - centerX, 2) + 
+          Math.pow(blob.originalY - centerY, 2)
+        );
+        
+        const angle = Math.atan2(blob.originalY - centerY, blob.originalX - centerX);
+        const newAngle = angle + time * 0.01 * config.speed + i * 0.05;
+        
+        blob.x = centerX + Math.cos(newAngle) * distance;
+        blob.y = centerY + Math.sin(newAngle) * distance;
+        
+        // Add radial movement
+        const radialFactor = Math.sin(time * 0.02 * config.speed + i) * 0.3;
+        blob.x = centerX + Math.cos(newAngle) * (distance * (0.7 + radialFactor));
+        blob.y = centerY + Math.sin(newAngle) * (distance * (0.7 + radialFactor));
+        
+        // Calculate size with swirling effect
+        const sizeOscillation = Math.sin(time * blob.oscillation * config.speed + blob.phase + i) * config.intensity * 0.3;
+        const currentSize = blob.originalSize + sizeOscillation;
+        
+        // Create gradient for swirling effect
+        const gradient = ctx.createRadialGradient(
+          blob.x, blob.y, 0,
+          blob.x, blob.y, currentSize
+        );
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.7, color.replace('0.8', '0.6'));
+        gradient.addColorStop(1, color.replace('0.8', '0.0'));
+        
+        // Draw the blob with morphing effect
+        ctx.beginPath();
+        ctx.ellipse(
+          blob.x, 
+          blob.y, 
+          currentSize * (1 + Math.sin(time * 0.03 * config.speed + i) * 0.2), 
+          currentSize * (1 - Math.sin(time * 0.03 * config.speed + i) * 0.2), 
+          newAngle, 
+          0, 
+          Math.PI * 2
+        );
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Draw inner glow
+        ctx.beginPath();
+        ctx.arc(blob.x, blob.y, currentSize * 0.6, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        
+        // Draw swirling trail
+        for (let j = 1; j <= 3; j++) {
+          const trailX = blob.x - Math.cos(newAngle) * j * 5;
+          const trailY = blob.y - Math.sin(newAngle) * j * 5;
+          const trailSize = currentSize * (1 - j * 0.2);
+          
+          ctx.beginPath();
+          ctx.arc(trailX, trailY, trailSize, 0, Math.PI * 2);
+          ctx.fillStyle = color.replace('0.8', '0.3');
+          ctx.fill();
+        }
+      }
+    }
+
+    function drawExplodingGlobules() {
+      const colors = getColors();
+      
+      for (let i = 0; i < blobs.length; i++) {
+        const blob = blobs[i];
+        const color = colors[blob.colorIndex % colors.length];
+        
+        // Calculate explosion effect
+        const explosionFactor = Math.sin(time * 0.02 * config.speed + i) * config.intensity * 0.5;
+        const currentSize = blob.originalSize + explosionFactor;
+        
+        // Move blob slightly with explosion effect
+        blob.x = blob.originalX + Math.sin(time * 0.01 * config.speed + i) * 20;
+        blob.y = blob.originalY + Math.cos(time * 0.01 * config.speed + i) * 20;
+        
+        // Create gradient for explosive effect
+        const gradient = ctx.createRadialGradient(
+          blob.x, blob.y, 0,
+          blob.x, blob.y, currentSize
+        );
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.7, color.replace('0.8', '0.6'));
+        gradient.addColorStop(1, color.replace('0.8', '0.0'));
+        
+        // Draw the blob with explosion effect
+        ctx.beginPath();
+        ctx.ellipse(
+          blob.x, 
+          blob.y, 
+          currentSize * (1 + Math.sin(time * 0.05 * config.speed + i) * 0.3), 
+          currentSize * (1 - Math.sin(time * 0.05 * config.speed + i) * 0.3), 
+          Math.sin(time * 0.02 * config.speed + i) * Math.PI / 4, 
+          0, 
+          Math.PI * 2
+        );
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Draw inner glow
+        ctx.beginPath();
+        ctx.arc(blob.x, blob.y, currentSize * 0.6, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        
+        // Draw explosion particles
+        for (let j = 0; j < 5; j++) {
+          const particleAngle = (j / 5) * Math.PI * 2 + time * 0.03 * config.speed;
+          const particleDistance = currentSize * (1.5 + Math.sin(time * 0.04 * config.speed + j) * 0.5);
+          const particleX = blob.x + Math.cos(particleAngle) * particleDistance;
+          const particleY = blob.y + Math.sin(particleAngle) * particleDistance;
+          const particleSize = currentSize * 0.2 * (0.5 + Math.random() * 0.5);
+          
+          ctx.beginPath();
+          ctx.arc(particleX, particleY, particleSize, 0, Math.PI * 2);
+          ctx.fillStyle = color.replace('0.8', '0.4');
+          ctx.fill();
+        }
+      }
+    }
+
+    function drawBlob() {
+      // Clear with subtle fade effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      switch(config.pattern) {
+        case 'flow':
+          drawFlowingBubbles();
+          break;
+        case 'merge':
+          drawMergingBlobs();
+          break;
+        case 'drip':
+          drawDrippingLava();
+          break;
+        case 'swirl':
+          drawSwirlingMagma();
+          break;
+        case 'explode':
+          drawExplodingGlobules();
+          break;
+      }
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.01 * config.speed;
+        drawBlob();
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function randomize() {
+      config.count = Math.floor(Math.random() * 20 + 10);
+      config.speed = Math.random() * 2 + 0.5;
+      config.intensity = Math.floor(Math.random() * 8 + 3);
+      const patterns = ['flow', 'merge', 'drip', 'swirl', 'explode'];
+      config.pattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      document.getElementById('countSlider').value = config.count;
+      document.getElementById('countValue').textContent = config.count;
+      document.getElementById('speedSlider').value = config.speed.toFixed(1);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+      document.getElementById('intensitySlider').value = config.intensity;
+      document.getElementById('intensityValue').textContent = config.intensity;
+      document.getElementById('patternSelect').value = config.pattern;
+      
+      updateBlobs();
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('countSlider').addEventListener('input', e => {
+      config.count = parseInt(e.target.value);
+      document.getElementById('countValue').textContent = config.count;
+      updateBlobs();
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('intensitySlider').addEventListener('input', e => {
+      config.intensity = parseInt(e.target.value);
+      document.getElementById('intensityValue').textContent = config.intensity;
+    });
+
+    document.getElementById('patternSelect').addEventListener('change', e => {
+      config.pattern = e.target.value;
+      updateBlobs();
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        randomize();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['lava', 'magma', 'volcano', 'igneous', 'crimson'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    updateBlobs();
+    animate();
+  </script>
+</body>
+</html>

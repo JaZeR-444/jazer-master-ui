@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Magnet Collect Cursor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #1a1a2e;
+            cursor: none;
+            overflow: hidden;
+        }
+
+        .info {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            z-index: 100;
+        }
+
+        .score {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #f1c40f;
+            font-size: 1.5rem;
+            z-index: 100;
+        }
+
+        .magnet {
+            position: fixed;
+            font-size: 40px;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .coin {
+            position: fixed;
+            font-size: 25px;
+            pointer-events: none;
+            transition: transform 0.1s;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">JaZeR Magnet - Collect the coins!</div>
+    <div class="score" id="score">Score: 0</div>
+    <div class="magnet" id="cursor">🧲</div>
+
+    <script>
+        const magnet = document.getElementById('cursor');
+        const scoreEl = document.getElementById('score');
+
+        let mouseX = 0, mouseY = 0;
+        let score = 0;
+        const coins = [];
+
+        // Create coins
+        function createCoin() {
+            const coin = document.createElement('div');
+            coin.className = 'coin';
+            coin.textContent = '🪙';
+            coin.style.left = Math.random() * (window.innerWidth - 50) + 'px';
+            coin.style.top = Math.random() * (window.innerHeight - 50) + 'px';
+            document.body.appendChild(coin);
+
+            coins.push({
+                el: coin,
+                x: parseFloat(coin.style.left),
+                y: parseFloat(coin.style.top),
+                collected: false
+            });
+        }
+
+        for (let i = 0; i < 20; i++) {
+            createCoin();
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            magnet.style.left = e.clientX + 'px';
+            magnet.style.top = e.clientY + 'px';
+        });
+
+        function animate() {
+            coins.forEach((coin, index) => {
+                if (coin.collected) return;
+
+                const dx = mouseX - coin.x;
+                const dy = mouseY - coin.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < 100) {
+                    // Attract
+                    const force = (100 - dist) / 100;
+                    coin.x += dx * force * 0.15;
+                    coin.y += dy * force * 0.15;
+                    coin.el.style.left = coin.x + 'px';
+                    coin.el.style.top = coin.y + 'px';
+
+                    if (dist < 20) {
+                        // Collected
+                        coin.collected = true;
+                        coin.el.style.transform = 'scale(0)';
+                        score++;
+                        scoreEl.textContent = `Score: ${score}`;
+
+                        setTimeout(() => {
+                            coin.el.remove();
+                            // Respawn
+                            createCoin();
+                        }, 200);
+                    }
+                }
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

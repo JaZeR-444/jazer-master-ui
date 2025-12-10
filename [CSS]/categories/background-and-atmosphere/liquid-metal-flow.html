@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liquid Metal Flow - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="mercury"] { background: linear-gradient(45deg, #cccccc, #999999, #666666); }
+    .color-btn[data-color="gold"] { background: linear-gradient(45deg, #ffd700, #daa520, #b8860b); }
+    .color-btn[data-color="copper"] { background: linear-gradient(45deg, #b87333, #cd7f32, #e97451); }
+    .color-btn[data-color="chrome"] { background: linear-gradient(45deg, #e5e5e5, #c0c0c0, #a9a9a9); }
+    .color-btn[data-color="platinum"] { background: linear-gradient(45deg, #e5e4e2, #dcdcdc, #c0c0c0); }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .pattern-select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-light);
+      font-family: var(--font-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .metal-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    #metalCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 280px; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .controls { top: auto; bottom: 5rem; right: 1rem; min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Liquid Metal Flow</h1>
+    <p>Flowing metallic liquid with reflections and undulating motion</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Randomize</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="mercury" title="Mercury"></button>
+      <button class="color-btn" data-color="gold" title="Gold"></button>
+      <button class="color-btn" data-color="copper" title="Copper"></button>
+      <button class="color-btn" data-color="chrome" title="Chrome"></button>
+      <button class="color-btn" data-color="platinum" title="Platinum"></button>
+    </div>
+    <div class="slider-group">
+      <label>Flow Intensity: <span class="slider-value" id="intensityValue">5</span></label>
+      <input type="range" id="intensitySlider" min="1" max="10" step="1" value="5">
+    </div>
+    <div class="slider-group">
+      <label>Reflections: <span class="slider-value" id="reflectionValue">3</span></label>
+      <input type="range" id="reflectionSlider" min="1" max="8" step="1" value="3">
+    </div>
+    <div class="slider-group">
+      <label>Flow Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+    </div>
+    <label>Pattern</label>
+    <select class="pattern-select" id="patternSelect">
+      <option value="waves">Flowing Waves</option>
+      <option value="drops">Dripping Drops</option>
+      <option value="swirls">Swirling Patterns</option>
+      <option value="streams">Flowing Streams</option>
+      <option value="pool">Pooled Liquid</option>
+    </select>
+  </div>
+
+  <div class="metal-container">
+    <canvas id="metalCanvas"></canvas>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const canvas = document.getElementById('metalCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      intensity: 5,
+      reflections: 3,
+      speed: 1.0,
+      pattern: 'waves',
+      colorScheme: 'mercury',
+      paused: false
+    };
+
+    const colorSchemes = {
+      mercury: [
+        'rgba(204, 204, 204, 0.9)',
+        'rgba(153, 153, 153, 0.8)',
+        'rgba(102, 102, 102, 0.7)',
+        'rgba(180, 180, 180, 0.6)',
+        'rgba(130, 130, 130, 0.5)',
+        'rgba(160, 160, 160, 0.7)'
+      ],
+      gold: [
+        'rgba(255, 215, 0, 0.9)',
+        'rgba(218, 165, 32, 0.8)',
+        'rgba(184, 134, 11, 0.7)',
+        'rgba(230, 190, 50, 0.6)',
+        'rgba(200, 150, 20, 0.5)',
+        'rgba(240, 200, 40, 0.7)'
+      ],
+      copper: [
+        'rgba(184, 115, 51, 0.9)',
+        'rgba(205, 127, 50, 0.8)',
+        'rgba(233, 116, 81, 0.7)',
+        'rgba(190, 100, 60, 0.6)',
+        'rgba(170, 80, 40, 0.5)',
+        'rgba(210, 120, 70, 0.7)'
+      ],
+      chrome: [
+        'rgba(229, 229, 229, 0.9)',
+        'rgba(192, 192, 192, 0.8)',
+        'rgba(169, 169, 169, 0.7)',
+        'rgba(210, 210, 210, 0.6)',
+        'rgba(180, 180, 180, 0.5)',
+        'rgba(200, 200, 200, 0.7)'
+      ],
+      platinum: [
+        'rgba(229, 228, 226, 0.9)',
+        'rgba(220, 220, 220, 0.8)',
+        'rgba(192, 192, 192, 0.7)',
+        'rgba(230, 230, 230, 0.6)',
+        'rgba(210, 210, 210, 0.5)',
+        'rgba(240, 240, 240, 0.7)'
+      ]
+    };
+
+    let time = 0;
+    let animationId;
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function getColors() {
+      return colorSchemes[config.colorScheme];
+    }
+
+    function createParticle(x, y, size, velocityX, velocityY) {
+      return {
+        x,
+        y,
+        size,
+        originalX: x,
+        originalY: y,
+        velocityX,
+        velocityY,
+        phase: Math.random() * Math.PI * 2,
+        oscillation: Math.random() * 0.1 + 0.05
+      };
+    }
+
+    function drawMetalWave(ctx, x, y, width, height, amplitude, frequency, phase, color) {
+      ctx.beginPath();
+      ctx.moveTo(x, y + height / 2);
+      
+      for (let i = 0; i <= width; i += 5) {
+        const waveX = x + i;
+        const waveY = y + height / 2 + Math.sin((i / width) * frequency * Math.PI * 2 + phase + time * 0.02 * config.speed) * amplitude;
+        ctx.lineTo(waveX, waveY);
+      }
+      
+      ctx.lineTo(x + width, y + height);
+      ctx.lineTo(x, y + height);
+      ctx.closePath();
+      
+      // Create gradient for metallic effect
+      const gradient = ctx.createLinearGradient(x, y, x, y + height);
+      gradient.addColorStop(0, color);
+      gradient.addColorStop(0.5, color.replace('0.9', '0.7'));
+      gradient.addColorStop(1, color.replace('0.9', '0.5'));
+      
+      ctx.fillStyle = gradient;
+      ctx.fill();
+      
+      // Add highlights for metallic shine
+      ctx.beginPath();
+      ctx.moveTo(x, y + height / 2);
+      for (let i = 0; i <= width; i += 5) {
+        const waveX = x + i;
+        const waveY = y + height / 2 + Math.sin((i / width) * frequency * Math.PI * 2 + phase + time * 0.02 * config.speed) * amplitude * 0.7;
+        ctx.lineTo(waveX, waveY);
+      }
+      
+      const highlightGradient = ctx.createLinearGradient(x, y, x, y + height / 2);
+      highlightGradient.addColorStop(0, color.replace('0.9', '0.3'));
+      highlightGradient.addColorStop(1, color.replace('0.9', '0.1'));
+      
+      ctx.fillStyle = highlightGradient;
+      ctx.fill();
+    }
+
+    function drawMetalDrop(ctx, x, y, size, color) {
+      // Create a metallic drop with gradient
+      const gradient = ctx.createRadialGradient(
+        x - size * 0.2, y - size * 0.2, size * 0.1,
+        x, y, size
+      );
+      gradient.addColorStop(0, color);
+      gradient.addColorStop(0.7, color.replace('0.9', '0.6'));
+      gradient.addColorStop(1, color.replace('0.9', '0.3'));
+      
+      ctx.beginPath();
+      ctx.ellipse(x, y, size, size * 0.8, 0, 0, Math.PI * 2);
+      ctx.fillStyle = gradient;
+      ctx.fill();
+      
+      // Add metallic highlight
+      ctx.beginPath();
+      ctx.ellipse(x - size * 0.3, y - size * 0.3, size * 0.3, size * 0.2, 0, 0, Math.PI * 2);
+      ctx.fillStyle = color.replace('0.9', '0.8');
+      ctx.fill();
+    }
+
+    function drawMetalSwirl(ctx, centerX, centerY, radius, rotation, color) {
+      ctx.beginPath();
+      
+      for (let i = 0; i < 100; i++) {
+        const t = i / 100;
+        const angle = t * Math.PI * 8 + rotation + time * 0.01 * config.speed;
+        const r = radius * t;
+        const x = centerX + Math.cos(angle) * r;
+        const y = centerY + Math.sin(angle) * r;
+        
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      
+      // Add secondary swirl
+      ctx.beginPath();
+      for (let i = 0; i < 80; i++) {
+        const t = i / 80;
+        const angle = t * Math.PI * 6 - rotation - time * 0.008 * config.speed;
+        const r = radius * 0.7 * t;
+        const x = centerX + Math.cos(angle) * r;
+        const y = centerY + Math.sin(angle) * r;
+        
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      
+      ctx.strokeStyle = color.replace('0.9', '0.6');
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function drawMetalStream(ctx, startX, startY, points, color) {
+      ctx.beginPath();
+      
+      for (let i = 0; i < points.length; i++) {
+        const point = points[i];
+        const x = point.x + Math.sin(time * 0.02 * config.speed + i * 0.3) * config.intensity * 0.5;
+        const y = point.y + Math.cos(time * 0.015 * config.speed + i * 0.4) * config.intensity * 0.5;
+        
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      
+      // Create gradient for stream
+      const gradient = ctx.createLinearGradient(startX, startY, startX + 200, startY + 200);
+      gradient.addColorStop(0, color);
+      gradient.addColorStop(0.5, color.replace('0.9', '0.7'));
+      gradient.addColorStop(1, color.replace('0.9', '0.4'));
+      
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 8;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      
+      // Add reflections
+      ctx.beginPath();
+      for (let i = 0; i < points.length; i += 2) {
+        const point = points[i];
+        const x = point.x + Math.sin(time * 0.02 * config.speed + i * 0.3) * config.intensity * 0.5;
+        const y = point.y + Math.cos(time * 0.015 * config.speed + i * 0.4) * config.intensity * 0.5;
+        
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      
+      ctx.strokeStyle = color.replace('0.9', '0.3');
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function drawMetalPool(ctx, centerX, centerY, radius, color) {
+      // Create a pool of liquid metal
+      const gradient = ctx.createRadialGradient(
+        centerX - radius * 0.3, centerY - radius * 0.3, radius * 0.1,
+        centerX, centerY, radius
+      );
+      gradient.addColorStop(0, color);
+      gradient.addColorStop(0.7, color.replace('0.9', '0.6'));
+      gradient.addColorStop(1, color.replace('0.9', '0.3'));
+      
+      ctx.beginPath();
+      ctx.ellipse(centerX, centerY, radius, radius * 0.8, 0, 0, Math.PI * 2);
+      ctx.fillStyle = gradient;
+      ctx.fill();
+      
+      // Add ripples
+      for (let i = 0; i < 5; i++) {
+        const rippleRadius = radius * (0.3 + i * 0.15);
+        const ripplePhase = time * 0.02 * config.speed + i * 0.5;
+        
+        ctx.beginPath();
+        for (let j = 0; j < 50; j++) {
+          const angle = (j / 50) * Math.PI * 2;
+          const rippleX = centerX + Math.cos(angle) * rippleRadius;
+          const rippleY = centerY + Math.sin(angle) * rippleRadius * 0.8 + Math.sin(ripplePhase + j * 0.2) * 3;
+          if (j === 0) ctx.moveTo(rippleX, rippleY);
+          else ctx.lineTo(rippleX, rippleY);
+        }
+        ctx.closePath();
+        
+        ctx.strokeStyle = color.replace('0.9', '0.4');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    function drawLiquidMetal() {
+      // Clear with subtle fade effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const colors = getColors();
+      const baseColor = colors[0];
+
+      switch(config.pattern) {
+        case 'waves':
+          // Draw flowing metal waves
+          for (let i = 0; i < 5; i++) {
+            const y = (canvas.height / 6) * i;
+            const amplitude = 30 + Math.sin(time * 0.01 + i) * 20;
+            const frequency = 2 + i;
+            const phase = i * Math.PI / 4;
+            
+            drawMetalWave(
+              ctx, 
+              0, 
+              y, 
+              canvas.width, 
+              canvas.height / 8, 
+              amplitude, 
+              frequency, 
+              phase, 
+              colors[i % colors.length]
+            );
+          }
+          break;
+          
+        case 'drops':
+          // Draw dripping metal drops
+          for (let i = 0; i < 20; i++) {
+            const x = (canvas.width / 20) * i + Math.sin(time * 0.01 * config.speed + i) * 20;
+            const y = (Math.sin(time * 0.02 * config.speed + i) * 50) + (canvas.height / 2) + (i * 30);
+            const size = 10 + Math.sin(time * 0.03 + i) * 5;
+            
+            drawMetalDrop(
+              ctx, 
+              x, 
+              y, 
+              size, 
+              colors[i % colors.length]
+            );
+          }
+          break;
+          
+        case 'swirls':
+          // Draw swirling metal patterns
+          const centerX = canvas.width / 2;
+          const centerY = canvas.height / 2;
+          
+          for (let i = 0; i < 3; i++) {
+            const radius = 100 + i * 80;
+            const rotation = (i / 3) * Math.PI * 2;
+            
+            drawMetalSwirl(
+              ctx, 
+              centerX + Math.cos(rotation) * 50, 
+              centerY + Math.sin(rotation) * 50, 
+              radius, 
+              rotation, 
+              colors[i % colors.length]
+            );
+          }
+          break;
+          
+        case 'streams':
+          // Draw flowing metal streams
+          for (let i = 0; i < 3; i++) {
+            const points = [];
+            const startX = 50 + i * 100;
+            const startY = 50 + i * 100;
+            
+            for (let j = 0; j < 20; j++) {
+              points.push({
+                x: startX + j * 30,
+                y: startY + Math.sin(j * 0.3 + time * 0.01 * config.speed) * 40
+              });
+            }
+            
+            drawMetalStream(
+              ctx, 
+              startX, 
+              startY, 
+              points, 
+              colors[i % colors.length]
+            );
+          }
+          break;
+          
+        case 'pool':
+          // Draw pooled liquid metal
+          drawMetalPool(
+            ctx, 
+            canvas.width / 2, 
+            canvas.height / 2, 
+            Math.min(canvas.width, canvas.height) * 0.3, 
+            baseColor
+          );
+          break;
+      }
+      
+      // Add reflections based on configuration
+      for (let i = 0; i < config.reflections; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const size = 5 + Math.random() * 15;
+        
+        ctx.beginPath();
+        ctx.ellipse(x, y, size, size * 0.6, 0, 0, Math.PI * 2);
+        ctx.fillStyle = baseColor.replace('0.9', '0.2');
+        ctx.fill();
+      }
+    }
+
+    function updateParticles() {
+      particles = [];
+      
+      for (let i = 0; i < 30; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const size = 2 + Math.random() * 6;
+        const velocityX = (Math.random() - 0.5) * 0.5;
+        const velocityY = (Math.random() - 0.5) * 0.5;
+        
+        particles.push(createParticle(x, y, size, velocityX, velocityY));
+      }
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.01 * config.speed;
+        drawLiquidMetal();
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function randomize() {
+      config.intensity = Math.floor(Math.random() * 8 + 2);
+      config.reflections = Math.floor(Math.random() * 6 + 2);
+      config.speed = Math.random() * 2 + 0.5;
+      const patterns = ['waves', 'drops', 'swirls', 'streams', 'pool'];
+      config.pattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      document.getElementById('intensitySlider').value = config.intensity;
+      document.getElementById('intensityValue').textContent = config.intensity;
+      document.getElementById('reflectionSlider').value = config.reflections;
+      document.getElementById('reflectionValue').textContent = config.reflections;
+      document.getElementById('speedSlider').value = config.speed.toFixed(1);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+      document.getElementById('patternSelect').value = config.pattern;
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('intensitySlider').addEventListener('input', e => {
+      config.intensity = parseInt(e.target.value);
+      document.getElementById('intensityValue').textContent = config.intensity;
+    });
+
+    document.getElementById('reflectionSlider').addEventListener('input', e => {
+      config.reflections = parseInt(e.target.value);
+      document.getElementById('reflectionValue').textContent = config.reflections;
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('patternSelect').addEventListener('change', e => {
+      config.pattern = e.target.value;
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        randomize();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['mercury', 'gold', 'copper', 'chrome', 'platinum'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    updateParticles();
+    animate();
+  </script>
+</body>
+</html>

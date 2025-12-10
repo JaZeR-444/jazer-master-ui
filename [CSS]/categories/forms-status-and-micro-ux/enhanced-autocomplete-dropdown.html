@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Autocomplete Dropdown - JaZeR Forms</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .back-button {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            background: rgba(0, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        .back-button:hover { background: var(--jazer-cyan); color: #0a0a0a; transform: translateX(-5px); }
+        .demo-container {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+        h1 { color: var(--jazer-cyan); text-align: center; margin-bottom: 2rem; font-family: var(--font-primary); }
+        .autocomplete-wrapper { position: relative; }
+        .autocomplete-input {
+            width: 100%;
+            padding: 0.875rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .autocomplete-input:focus {
+            outline: none;
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+        .autocomplete-input.loading {
+            background: rgba(255, 255, 255, 0.05) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%2300d9ff' d='M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z' opacity='.25'/%3E%3Cpath fill='%2300d9ff' d='M12,4a8,8,0,0,1,7.89,6.7A1.53,1.53,0,0,0,21.38,12h0a1.5,1.5,0,0,0,1.48-1.75,11,11,0,0,0-21.72,0A1.5,1.5,0,0,0,2.62,12h0a1.53,1.53,0,0,0,1.49-1.3A8,8,0,0,1,12,4Z'%3E%3CanimateTransform attributeName='transform' dur='0.75s' repeatCount='indefinite' type='rotate' values='0 12 12;360 12 12'/%3E%3C/path%3E%3C/svg%3E") no-repeat right 1rem center;
+            background-size: 20px 20px;
+        }
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 0.5rem;
+            background: rgba(10, 10, 10, 0.95);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+        .autocomplete-dropdown.show { display: block; animation: slideDown 0.3s ease; }
+        .autocomplete-item {
+            padding: 0.875rem;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .autocomplete-item:last-child { border-bottom: none; }
+        .autocomplete-item:hover {
+            background: rgba(0, 255, 255, 0.1);
+            color: var(--jazer-cyan);
+            transform: translateX(5px);
+        }
+        .autocomplete-item.active {
+            background: rgba(0, 255, 255, 0.2);
+            color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+        }
+        .highlight { color: var(--jazer-cyan); font-weight: 600; }
+        .item-icon {
+            color: var(--jazer-cyan);
+            font-size: 1.1rem;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .empty-state {
+            padding: 1.5rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .empty-state-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .skeleton-item {
+            padding: 0.875rem;
+            margin-bottom: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            height: 42px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-radius: 4px;
+        }
+        .skeleton-icon {
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        .skeleton-text {
+            flex: 1;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        .skeleton-text:nth-child(1) {
+            width: 70%;
+        }
+        .skeleton-text:nth-child(2) {
+            width: 50%;
+        }
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .autocomplete-input,
+            .autocomplete-dropdown {
+                border: 2px solid;
+            }
+            .autocomplete-item {
+                border-bottom: 1px solid;
+            }
+        }
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            .autocomplete-input,
+            .autocomplete-item,
+            .autocomplete-dropdown {
+                transition: none;
+                animation: none;
+            }
+            .autocomplete-item:hover {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back</a>
+    <div class="demo-container">
+        <h1>Enhanced Autocomplete Dropdown</h1>
+        <div class="autocomplete-wrapper">
+            <input type="text" class="autocomplete-input" id="autocomplete" placeholder="Type a country name...">
+            <div class="autocomplete-dropdown" id="dropdown"></div>
+        </div>
+    </div>
+    <script>
+        const countries = [
+            { name: 'Afghanistan', code: 'AF', flag: '🇦🇫' },
+            { name: 'Albania', code: 'AL', flag: '🇦🇱' },
+            { name: 'Algeria', code: 'DZ', flag: '🇩🇿' },
+            { name: 'Argentina', code: 'AR', flag: '🇦🇷' },
+            { name: 'Australia', code: 'AU', flag: '🇦🇺' },
+            { name: 'Austria', code: 'AT', flag: '🇦🇹' },
+            { name: 'Belgium', code: 'BE', flag: '🇧🇪' },
+            { name: 'Brazil', code: 'BR', flag: '🇧🇷' },
+            { name: 'Canada', code: 'CA', flag: '🇨🇦' },
+            { name: 'China', code: 'CN', flag: '🇨🇳' },
+            { name: 'Denmark', code: 'DK', flag: '🇩🇰' },
+            { name: 'Egypt', code: 'EG', flag: '🇪🇬' },
+            { name: 'Finland', code: 'FI', flag: '🇫🇮' },
+            { name: 'France', code: 'FR', flag: '🇫🇷' },
+            { name: 'Germany', code: 'DE', flag: '🇩🇪' },
+            { name: 'Greece', code: 'GR', flag: '🇬🇷' },
+            { name: 'India', code: 'IN', flag: '🇮🇳' },
+            { name: 'Indonesia', code: 'ID', flag: '🇮🇩' },
+            { name: 'Ireland', code: 'IE', flag: '🇮🇪' },
+            { name: 'Italy', code: 'IT', flag: '🇮🇹' },
+            { name: 'Japan', code: 'JP', flag: '🇯🇵' },
+            { name: 'Mexico', code: 'MX', flag: '🇲🇽' },
+            { name: 'Netherlands', code: 'NL', flag: '🇳🇱' },
+            { name: 'New Zealand', code: 'NZ', flag: '🇳🇿' },
+            { name: 'Norway', code: 'NO', flag: '🇳🇴' },
+            { name: 'Poland', code: 'PL', flag: '🇵🇱' },
+            { name: 'Portugal', code: 'PT', flag: '🇵🇹' },
+            { name: 'Russia', code: 'RU', flag: '🇷🇺' },
+            { name: 'Spain', code: 'ES', flag: '🇪🇸' },
+            { name: 'Sweden', code: 'SE', flag: '🇸🇪' },
+            { name: 'Switzerland', code: 'CH', flag: '🇨🇭' },
+            { name: 'Thailand', code: 'TH', flag: '🇹🇭' },
+            { name: 'Turkey', code: 'TR', flag: '🇹🇷' },
+            { name: 'United Kingdom', code: 'GB', flag: '🇬🇧' },
+            { name: 'United States', code: 'US', flag: '🇺🇸' },
+            { name: 'Vietnam', code: 'VN', flag: '🇻🇳' }
+        ];
+
+        const input = document.getElementById('autocomplete');
+        const dropdown = document.getElementById('dropdown');
+        let activeIndex = -1;
+        let searchTimeout = null;
+
+        input.addEventListener('input', function() {
+            const value = this.value.toLowerCase();
+            
+            // Clear previous timeout
+            clearTimeout(searchTimeout);
+            
+            // Show loading state
+            this.classList.add('loading');
+            
+            // Debounce search
+            searchTimeout = setTimeout(() => {
+                dropdown.innerHTML = '';
+
+                if (!value) {
+                    dropdown.classList.remove('show');
+                    this.classList.remove('loading');
+                    return;
+                }
+
+                const matches = countries.filter(country =>
+                    country.name.toLowerCase().includes(value) ||
+                    country.code.toLowerCase().includes(value)
+                );
+
+                if (matches.length === 0) {
+                    dropdown.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🔍</div>
+                            <div>No countries found</div>
+                            <div class="result-description">Try a different search term</div>
+                        </div>
+                    `;
+                    dropdown.classList.add('show');
+                    activeIndex = -1;
+                    this.classList.remove('loading');
+                    return;
+                }
+
+                matches.forEach((match, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.setAttribute('role', 'option');
+                    item.setAttribute('aria-selected', index === activeIndex);
+                    item.innerHTML = `
+                        <span class="item-icon">${match.flag}</span>
+                        <span>${highlightMatch(match.name, value)} <span style="opacity: 0.7; font-size: 0.9em;">(${match.code})</span></span>
+                    `;
+                    item.addEventListener('click', () => selectItem(match));
+                    item.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            selectItem(match);
+                        }
+                    });
+                    dropdown.appendChild(item);
+                });
+
+                dropdown.classList.add('show');
+                activeIndex = -1;
+                
+                // Remove loading state
+                this.classList.remove('loading');
+            }, 300);
+        });
+
+        input.addEventListener('keydown', function(e) {
+            const items = dropdown.querySelectorAll('.autocomplete-item');
+            if (!items.length) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeIndex = (activeIndex + 1) % items.length;
+                updateActive(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeIndex = activeIndex <= 0 ? items.length - 1 : activeIndex - 1;
+                updateActive(items);
+            } else if (e.key === 'Enter' && activeIndex >= 0) {
+                e.preventDefault();
+                items[activeIndex].click();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                dropdown.classList.remove('show');
+                activeIndex = -1;
+            } else if (e.key === 'Tab' && activeIndex >= 0) {
+                items[activeIndex].click();
+            }
+        });
+
+        function highlightMatch(text, query) {
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        function selectItem(value) {
+            input.value = value.name;
+            dropdown.classList.remove('show');
+            activeIndex = -1;
+        }
+
+        function updateActive(items) {
+            items.forEach((item, index) => {
+                item.classList.toggle('active', index === activeIndex);
+                item.setAttribute('aria-selected', index === activeIndex);
+                
+                if (index === activeIndex) {
+                    item.scrollIntoView({ block: 'nearest' });
+                }
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.autocomplete-wrapper')) {
+                dropdown.classList.remove('show');
+                activeIndex = -1;
+            }
+        });
+    </script>
+</body>
+</html>

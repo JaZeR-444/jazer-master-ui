@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Smoke Vapor</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #111;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .smoke-container {
+            position: relative;
+        }
+
+        button {
+            position: relative;
+            z-index: 2;
+            padding: 15px 40px;
+            background: #222;
+            color: #ddd;
+            border: 1px solid #444;
+            font-size: 1.5rem;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            color: #fff;
+            background: #333;
+            border-color: #666;
+        }
+
+        canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="smoke-container">
+        <canvas id="smokeCanvas"></canvas>
+        <button id="btn">JaZeR</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('smokeCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 400;
+        canvas.height = 300;
+
+        const particles = [];
+        let emittings = false;
+
+        document.getElementById('btn').addEventListener('mouseenter', () => emittings = true);
+        document.getElementById('btn').addEventListener('mouseleave', () => emittings = false);
+
+        class Smoke {
+            constructor() {
+                this.x = canvas.width / 2 + (Math.random() - 0.5) * 100; // Emit from full width
+                this.y = canvas.height / 2 + 20;
+                this.vx = (Math.random() - 0.5) * 1;
+                this.vy = -1 - Math.random();
+                this.size = 5 + Math.random() * 10;
+                this.life = 1;
+                this.decay = 0.01 + Math.random() * 0.01;
+                this.rotation = Math.random() * Math.PI * 2;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vx += (Math.random() - 0.5) * 0.1; // turbulence
+                this.size += 0.5; // expand
+                this.life -= this.decay;
+                this.rotation += 0.05;
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.globalAlpha = this.life * 0.3;
+                // Draw smoke puff (circle approximation)
+                ctx.fillStyle = '#aaa';
+                ctx.beginPath();
+                ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (emittings) {
+                // Emit more when hovering
+                for (let i = 0; i < 3; i++) particles.push(new Smoke());
+            }
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.update();
+                p.draw();
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+
+</html>

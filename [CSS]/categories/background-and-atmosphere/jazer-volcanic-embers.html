@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Volcano</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #200000;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .bg-text {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            font-size: 20vw;
+            font-weight: 900;
+            color: #300;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-text">JaZeR</div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let w, h;
+        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Ember {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * w;
+                this.y = h + Math.random() * 50;
+                this.vy = -1 - Math.random() * 3;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.size = 1 + Math.random() * 3;
+                this.life = 1;
+                this.decay = 0.005 + Math.random() * 0.01;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+
+                // Turbulence
+                this.x += Math.sin(this.y * 0.05) * 0.5;
+
+                if (this.life <= 0) this.reset();
+            }
+            draw() {
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = `hsl(${0 + Math.random() * 40}, 100%, 50%)`; // Red-Orange-Yellow
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        const embers = Array.from({ length: 200 }, () => new Ember());
+
+        function animate() {
+            // Heat haze effect using faint transparency clear
+            ctx.fillStyle = 'rgba(20, 0, 0, 0.2)';
+            ctx.fillRect(0, 0, w, h);
+
+            ctx.globalCompositeOperation = 'lighter';
+            embers.forEach(e => {
+                e.update();
+                e.draw();
+            });
+            ctx.globalCompositeOperation = 'source-over';
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+
+</html>

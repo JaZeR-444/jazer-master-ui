@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Rain</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: monospace;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .info {
+            position: relative;
+            z-index: 2;
+            color: #0f0;
+            text-align: center;
+            text-shadow: 0 0 10px #0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h1>Digital Rain</h1>
+        <p>Matrix-style code rain with realistic effects</p>
+    </div>
+    
+    <canvas id="rainCanvas"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('rainCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas to full window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Character set for the digital rain
+        const chars = "アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        
+        // Create drops for each column
+        const drops = [];
+        for (let i = 0; i < columns; i++) {
+            drops[i] = {
+                y: Math.random() * -canvas.height, // Start at random position above screen
+                speed: 2 + Math.random() * 5, // Random speed
+                length: 5 + Math.floor(Math.random() * 20), // Random trail length
+                chars: [],
+                intensity: 0.1 + Math.random() * 0.9 // Random intensity
+            };
+            
+            // Initialize character trail
+            for (let j = 0; j < drops[i].length; j++) {
+                drops[i].chars.push(chars[Math.floor(Math.random() * chars.length)]);
+            }
+        }
+        
+        // Draw function
+        function draw() {
+            // Semi-transparent overlay to create fade effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.font = `${fontSize}px monospace`;
+            
+            for (let i = 0; i < drops.length; i++) {
+                const drop = drops[i];
+                
+                // Draw the trail of characters
+                for (let j = 0; j < drop.chars.length; j++) {
+                    const yPos = drop.y - j * fontSize;
+                    
+                    // Only draw if the character is on screen
+                    if (yPos > 0 && yPos < canvas.height) {
+                        let char = drop.chars[j];
+                        
+                        // The first character (head) is brighter
+                        if (j === 0) {
+                            ctx.fillStyle = '#fff'; // Bright white for head
+                        } else {
+                            // Fade based on position in trail
+                            const opacity = 1 - (j / drop.chars.length);
+                            // Green gradient with varying intensity
+                            ctx.fillStyle = `rgba(0, ${150 + Math.floor(105 * opacity)}, 0, ${opacity * drop.intensity})`;
+                        }
+                        
+                        ctx.fillText(char, i * fontSize, yPos);
+                    }
+                }
+                
+                // Move drop down
+                drop.y += drop.speed;
+                
+                // Reset drop if it reaches the bottom
+                if (drop.y > canvas.height + drop.length * fontSize) {
+                    drop.y = Math.random() * -100; // Start at random position above
+                    drop.speed = 2 + Math.random() * 5;
+                    drop.length = 5 + Math.floor(Math.random() * 20);
+                    drop.intensity = 0.1 + Math.random() * 0.9;
+                    
+                    // Refresh characters
+                    for (let j = 0; j < drop.chars.length; j++) {
+                        drop.chars[j] = chars[Math.floor(Math.random() * chars.length)];
+                    }
+                }
+                
+                // Randomly change characters to create the "live" effect
+                if (Math.random() > 0.7) {
+                    // Randomly change one character in the trail
+                    const changeIndex = Math.floor(Math.random() * drop.chars.length);
+                    drop.chars[changeIndex] = chars[Math.floor(Math.random() * chars.length)];
+                }
+                
+                // Occasionally start a new trail
+                if (Math.random() < 0.001) {
+                    // Find an empty column or reset an existing one
+                    const randomCol = Math.floor(Math.random() * drops.length);
+                    drops[randomCol].y = Math.random() * -100;
+                    drops[randomCol].speed = 2 + Math.random() * 5;
+                    drops[randomCol].length = 5 + Math.floor(Math.random() * 20);
+                    drops[randomCol].intensity = 0.1 + Math.random() * 0.9;
+                    
+                    for (let j = 0; j < drops[randomCol].chars.length; j++) {
+                        drops[randomCol].chars[j] = chars[Math.floor(Math.random() * chars.length)];
+                    }
+                }
+            }
+        }
+        
+        // Animation loop
+        function animate() {
+            draw();
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>

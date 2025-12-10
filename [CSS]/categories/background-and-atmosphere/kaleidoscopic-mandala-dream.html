@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kaleidoscopic Mandala Dream - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="cyan"] { background: var(--jazer-cyan); }
+    .color-btn[data-color="purple"] { background: var(--jazer-purple); }
+    .color-btn[data-color="pink"] { background: var(--jazer-pink); }
+    .color-btn[data-color="rainbow"] { background: conic-gradient(#0ff, #f0f, #ff0, #0ff); }
+    .color-btn[data-color="gold"] { background: linear-gradient(45deg, gold, orange); }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .pattern-select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-light);
+      font-family: var(--font-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .mandala-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    #mandalaCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 280px; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .controls { top: auto; bottom: 5rem; right: 1rem; min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Kaleidoscopic Mandala Dream</h1>
+    <p>Infinite mandala with kaleidoscopic reflections and mesmerizing patterns</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Randomize</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="cyan" title="Cyan"></button>
+      <button class="color-btn" data-color="purple" title="Purple"></button>
+      <button class="color-btn" data-color="pink" title="Pink"></button>
+      <button class="color-btn" data-color="rainbow" title="Rainbow"></button>
+      <button class="color-btn" data-color="gold" title="Gold"></button>
+    </div>
+    <div class="slider-group">
+      <label>Segments: <span class="slider-value" id="segmentsValue">12</span></label>
+      <input type="range" id="segmentsSlider" min="4" max="32" step="2" value="12">
+    </div>
+    <div class="slider-group">
+      <label>Layers: <span class="slider-value" id="layersValue">5</span></label>
+      <input type="range" id="layersSlider" min="2" max="10" step="1" value="5">
+    </div>
+    <div class="slider-group">
+      <label>Rotation Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+    </div>
+    <label>Pattern</label>
+    <select class="pattern-select" id="patternSelect">
+      <option value="lotus">Lotus Petals</option>
+      <option value="flower">Flower of Life</option>
+      <option value="fractal">Fractal Circles</option>
+      <option value="spiral">Sacred Spiral</option>
+      <option value="polygon">Polygon Layers</option>
+    </select>
+  </div>
+
+  <div class="mandala-container">
+    <canvas id="mandalaCanvas"></canvas>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const canvas = document.getElementById('mandalaCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      segments: 12,
+      layers: 5,
+      speed: 1.0,
+      pattern: 'lotus',
+      colorScheme: 'cyan',
+      paused: false
+    };
+
+    const colorSchemes = {
+      cyan: [
+        'rgba(0, 242, 234, 0.7)',
+        'rgba(0, 180, 200, 0.6)',
+        'rgba(0, 220, 220, 0.5)',
+        'rgba(0, 200, 190, 0.4)',
+        'rgba(0, 242, 234, 0.3)',
+        'rgba(0, 150, 200, 0.5)'
+      ],
+      purple: [
+        'rgba(147, 51, 234, 0.7)',
+        'rgba(120, 80, 200, 0.6)',
+        'rgba(168, 85, 247, 0.5)',
+        'rgba(130, 60, 220, 0.4)',
+        'rgba(147, 51, 234, 0.3)',
+        'rgba(180, 100, 255, 0.5)'
+      ],
+      pink: [
+        'rgba(255, 0, 110, 0.7)',
+        'rgba(255, 80, 150, 0.6)',
+        'rgba(236, 72, 153, 0.5)',
+        'rgba(255, 50, 130, 0.4)',
+        'rgba(255, 0, 110, 0.3)',
+        'rgba(255, 120, 180, 0.5)'
+      ],
+      rainbow: [
+        'rgba(0, 242, 234, 0.7)',
+        'rgba(147, 51, 234, 0.6)',
+        'rgba(255, 0, 110, 0.5)',
+        'rgba(255, 200, 0, 0.4)',
+        'rgba(0, 255, 100, 0.3)',
+        'rgba(255, 100, 255, 0.5)'
+      ],
+      gold: [
+        'rgba(255, 215, 0, 0.7)',
+        'rgba(255, 200, 50, 0.6)',
+        'rgba(255, 180, 0, 0.5)',
+        'rgba(255, 230, 100, 0.4)',
+        'rgba(255, 190, 0, 0.3)',
+        'rgba(255, 240, 50, 0.5)'
+      ]
+    };
+
+    let angle = 0;
+    let time = 0;
+    let animationId;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function getColors() {
+      return colorSchemes[config.colorScheme];
+    }
+
+    function drawPattern(ctx, radius, layerIndex, time) {
+      const colors = getColors();
+      const color = colors[layerIndex % colors.length];
+      
+      switch(config.pattern) {
+        case 'lotus':
+          // Draw lotus petal pattern
+          const petalCount = 8 + layerIndex * 2;
+          const petalSize = radius * 0.2;
+          
+          ctx.fillStyle = color;
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = color;
+          
+          for (let i = 0; i < petalCount; i++) {
+            const a = (Math.PI * 2 * i) / petalCount + time * 0.1;
+            const distance = radius * 0.6;
+            
+            ctx.save();
+            ctx.translate(Math.cos(a) * distance, Math.sin(a) * distance);
+            ctx.rotate(a);
+            
+            // Draw petal shape
+            ctx.beginPath();
+            ctx.ellipse(0, 0, petalSize * 0.5, petalSize, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+          }
+          break;
+
+        case 'flower':
+          // Draw flower of life pattern
+          const circlesPerLayer = 6 + layerIndex * 2;
+          
+          for (let i = 0; i < circlesPerLayer; i++) {
+            const a = (Math.PI * 2 * i) / circlesPerLayer + time * 0.05;
+            const distance = radius * 0.3 * (0.8 + Math.sin(time + layerIndex) * 0.2);
+            
+            ctx.beginPath();
+            ctx.arc(Math.cos(a) * distance, Math.sin(a) * distance, radius * 0.15, 0, Math.PI * 2);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+          
+          // Center circle
+          ctx.beginPath();
+          ctx.arc(0, 0, radius * 0.1, 0, Math.PI * 2);
+          ctx.strokeStyle = colors[(layerIndex + 2) % colors.length];
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          break;
+
+        case 'fractal':
+          // Draw fractal circle pattern
+          const subCircles = 4 + layerIndex;
+          const subRadius = radius * 0.3;
+          
+          for (let i = 0; i < subCircles; i++) {
+            const a = (Math.PI * 2 * i) / subCircles + time * 0.08;
+            const distance = radius * 0.5;
+            
+            ctx.beginPath();
+            ctx.arc(Math.cos(a) * distance, Math.sin(a) * distance, subRadius, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.globalAlpha = 0.6;
+            ctx.fill();
+            
+            // Recursive smaller circles
+            ctx.save();
+            ctx.translate(Math.cos(a) * distance, Math.sin(a) * distance);
+            for (let j = 0; j < 3; j++) {
+              const subA = (Math.PI * 2 * j) / 3 + time * 0.1;
+              const subDistance = subRadius * 0.6;
+              ctx.beginPath();
+              ctx.arc(Math.cos(subA) * subDistance, Math.sin(subA) * subDistance, subRadius * 0.3, 0, Math.PI * 2);
+              ctx.fillStyle = colors[(layerIndex + j) % colors.length];
+              ctx.globalAlpha = 0.4;
+              ctx.fill();
+            }
+            ctx.restore();
+          }
+          break;
+
+        case 'spiral':
+          // Draw sacred spiral
+          ctx.beginPath();
+          for (let i = 0; i < 100; i++) {
+            const ratio = i / 100;
+            const angle = ratio * Math.PI * 8 + time * 0.1;
+            const spiralRadius = ratio * radius * 0.8;
+            const x = Math.cos(angle) * spiralRadius;
+            const y = Math.sin(angle) * spiralRadius;
+            
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          break;
+
+        case 'polygon':
+          // Draw polygon layers
+          const sides = 5 + layerIndex;
+          const polyRadius = radius * 0.7;
+          
+          ctx.beginPath();
+          for (let i = 0; i <= sides; i++) {
+            const a = (Math.PI * 2 * i) / sides + time * 0.05;
+            const x = Math.cos(a) * polyRadius;
+            const y = Math.sin(a) * polyRadius;
+            
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          
+          ctx.closePath();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 3;
+          ctx.stroke();
+          
+          // Inner pattern
+          ctx.beginPath();
+          for (let i = 0; i <= sides; i++) {
+            const a = (Math.PI * 2 * i) / sides + time * 0.05 + Math.PI/sides;
+            const x = Math.cos(a) * polyRadius * 0.6;
+            const y = Math.sin(a) * polyRadius * 0.6;
+            
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          
+          ctx.closePath();
+          ctx.strokeStyle = colors[(layerIndex + 1) % colors.length];
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          break;
+      }
+      
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1.0;
+    }
+
+    function drawMandala() {
+      // Fade effect for trails
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const size = Math.min(canvas.width, canvas.height) * 0.4;
+
+      ctx.save();
+      ctx.translate(centerX, centerY);
+
+      const segmentAngle = (Math.PI * 2) / config.segments;
+
+      for (let i = 0; i < config.segments; i++) {
+        ctx.save();
+        ctx.rotate(segmentAngle * i + angle);
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, size, 0, segmentAngle);
+        ctx.closePath();
+        ctx.clip();
+
+        if (i % 2 === 1) {
+          ctx.scale(-1, 1);
+        }
+
+        // Draw multiple layers of patterns
+        for (let layer = 0; layer < config.layers; layer++) {
+          const layerRadius = size * (0.2 + (layer / config.layers) * 0.7);
+          drawPattern(ctx, layerRadius, layer, time + layer * 0.5);
+        }
+        
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.01 * config.speed;
+        angle += 0.005 * config.speed;
+        drawMandala();
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function randomize() {
+      config.segments = Math.floor(Math.random() * 8 + 6) * 2; // Even numbers
+      config.layers = Math.floor(Math.random() * 6 + 3);
+      const patterns = ['lotus', 'flower', 'fractal', 'spiral', 'polygon'];
+      config.pattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      document.getElementById('segmentsSlider').value = config.segments;
+      document.getElementById('segmentsValue').textContent = config.segments;
+      document.getElementById('layersSlider').value = config.layers;
+      document.getElementById('layersValue').textContent = config.layers;
+      document.getElementById('patternSelect').value = config.pattern;
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('segmentsSlider').addEventListener('input', e => {
+      config.segments = parseInt(e.target.value);
+      document.getElementById('segmentsValue').textContent = config.segments;
+    });
+
+    document.getElementById('layersSlider').addEventListener('input', e => {
+      config.layers = parseInt(e.target.value);
+      document.getElementById('layersValue').textContent = config.layers;
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('patternSelect').addEventListener('change', e => {
+      config.pattern = e.target.value;
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        randomize();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['cyan', 'purple', 'pink', 'rainbow', 'gold'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    animate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Undo Redo Buttons - Utilities - JaZeR Library</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../../jazer-brand.css">
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        .site-header {
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            border: 2px solid var(--border-cyan);
+            border-radius: 0 0 24px 24px;
+            padding: 1.25rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0, 242, 234, 0.2);
+            margin: 0 auto;
+            max-width: calc(100% - 4rem);
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .site-logo {
+            font-size: 1.75rem;
+            font-weight: 900;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        .breadcrumb {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: var(--jazer-cyan);
+            text-decoration: none;
+        }
+
+        .site-footer {
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid var(--border-cyan);
+            border-radius: 24px 24px 0 0;
+            padding: 2rem 0;
+            margin: 4rem auto 0;
+            max-width: calc(100% - 4rem);
+        }
+
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            text-align: center;
+        }
+
+        .copyright {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-brand {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .footer-tagline {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .page-header {
+            text-align: center;
+            padding: 3rem 2rem 2rem;
+            background: linear-gradient(180deg, rgba(0, 242, 234, 0.05) 0%, transparent 100%);
+        }
+
+        .page-header h1 {
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.75rem;
+        }
+
+        .page-header .subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .component-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .component-display {
+            background: var(--bg-card);
+            border: 2px solid var(--border-cyan);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-cyan);
+        }
+
+        .display-inner {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+            min-height: 500px;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+
+            .site-header,
+            .site-footer {
+                max-width: calc(100% - 1rem);
+            }
+
+            .header-container {
+                flex-direction: column;
+                gap: 0.75rem;
+                padding: 0 1rem;
+            }
+
+            .display-inner {
+                padding: 1.5rem;
+            }
+        }
+
+        /* ===== UNDO REDO STYLES ===== */
+        .demo-section {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .demo-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #666;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        /* Toolbar Variant */
+        .toolbar {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .toolbar-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1rem;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toolbar-btn:hover:not(:disabled) {
+            background: #e0e0e0;
+        }
+
+        .toolbar-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .toolbar-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .toolbar-divider {
+            width: 1px;
+            background: #ddd;
+            margin: 0 0.5rem;
+        }
+
+        /* Floating Variant */
+        .floating-toolbar {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 0.75rem;
+            border-radius: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .floating-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: #fff;
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .floating-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .floating-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .floating-counter {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75rem;
+            align-self: center;
+            padding: 0 0.5rem;
+        }
+
+        /* Demo Drawing Area */
+        .drawing-area {
+            height: 200px;
+            background: #fafafa;
+            border: 2px dashed #ddd;
+            border-radius: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 1rem;
+            align-content: flex-start;
+        }
+
+        .color-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+            animation: pop-in 0.3s ease-out;
+        }
+
+        .color-dot:hover {
+            transform: scale(1.1);
+        }
+
+        @keyframes pop-in {
+            from {
+                transform: scale(0);
+            }
+
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .add-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .add-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .add-btn--red {
+            background: #e74c3c;
+            color: #fff;
+        }
+
+        .add-btn--blue {
+            background: #3498db;
+            color: #fff;
+        }
+
+        .add-btn--green {
+            background: #2ecc71;
+            color: #fff;
+        }
+
+        .add-btn--yellow {
+            background: #f1c40f;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-container">
+            <a href="../../../index.html" class="site-logo">JaZeR Library</a>
+            <div class="breadcrumb">
+                <a href="../../../index.html">Home</a>
+                <span class="breadcrumb-separator">/</span>
+                <a href="./utilities.html">Utilities</a>
+                <span class="breadcrumb-separator">/</span>
+                <span>Undo Redo Buttons</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="page-header">
+        <h1>Undo / Redo Buttons</h1>
+        <div class="subtitle">UTILITIES-undo-redo-buttons.html</div>
+    </div>
+
+    <div class="component-container">
+        <div class="component-display">
+            <div class="display-inner">
+
+                <div class="demo-section">
+                    <h3 class="demo-title">📝 Toolbar Style</h3>
+                    <div class="toolbar">
+                        <button class="toolbar-btn" id="undoBtn" disabled onclick="undo()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                            </svg>
+                            Undo
+                        </button>
+                        <button class="toolbar-btn" id="redoBtn" disabled onclick="redo()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" />
+                            </svg>
+                            Redo
+                        </button>
+                        <div class="toolbar-divider"></div>
+                        <button class="toolbar-btn" onclick="clearAll()">🗑️ Clear</button>
+                    </div>
+
+                    <div class="drawing-area" id="drawingArea"></div>
+
+                    <div class="add-buttons">
+                        <button class="add-btn add-btn--red" onclick="addDot('#e74c3c')">+ Red</button>
+                        <button class="add-btn add-btn--blue" onclick="addDot('#3498db')">+ Blue</button>
+                        <button class="add-btn add-btn--green" onclick="addDot('#2ecc71')">+ Green</button>
+                        <button class="add-btn add-btn--yellow" onclick="addDot('#f1c40f')">+ Yellow</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Toolbar -->
+    <div class="floating-toolbar">
+        <button class="floating-btn" id="floatUndo" disabled onclick="undo()">↶</button>
+        <span class="floating-counter" id="historyCount">0 / 0</span>
+        <button class="floating-btn" id="floatRedo" disabled onclick="redo()">↷</button>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="copyright">© 2025 <span class="footer-brand">JaZeR Ventures</span>. All rights reserved.</div>
+            <div class="footer-tagline">Crafted with passion. Built with code.</div>
+        </div>
+    </footer>
+
+    <script>
+        let history = [];
+        let historyIndex = -1;
+
+        function saveState() {
+            // Remove any redo states
+            history = history.slice(0, historyIndex + 1);
+            // Save current state
+            history.push(document.getElementById('drawingArea').innerHTML);
+            historyIndex++;
+            updateButtons();
+        }
+
+        function undo() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                document.getElementById('drawingArea').innerHTML = history[historyIndex];
+                updateButtons();
+            }
+        }
+
+        function redo() {
+            if (historyIndex < history.length - 1) {
+                historyIndex++;
+                document.getElementById('drawingArea').innerHTML = history[historyIndex];
+                updateButtons();
+            }
+        }
+
+        function updateButtons() {
+            const canUndo = historyIndex > 0;
+            const canRedo = historyIndex < history.length - 1;
+
+            document.getElementById('undoBtn').disabled = !canUndo;
+            document.getElementById('redoBtn').disabled = !canRedo;
+            document.getElementById('floatUndo').disabled = !canUndo;
+            document.getElementById('floatRedo').disabled = !canRedo;
+            document.getElementById('historyCount').textContent = `${historyIndex + 1} / ${history.length}`;
+        }
+
+        function addDot(color) {
+            const dot = document.createElement('div');
+            dot.className = 'color-dot';
+            dot.style.backgroundColor = color;
+            dot.onclick = () => { dot.remove(); saveState(); };
+            document.getElementById('drawingArea').appendChild(dot);
+            saveState();
+        }
+
+        function clearAll() {
+            document.getElementById('drawingArea').innerHTML = '';
+            saveState();
+        }
+
+        // Initialize
+        saveState();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Thermal Vision Cursor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #111;
+            cursor: none;
+            overflow: hidden;
+        }
+
+        .info {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #0f0;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            z-index: 100;
+            font-family: monospace;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #ff0;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 100;
+            box-shadow: 0 0 20px #ff0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">JaZeR THERMAL VISION</div>
+
+    <canvas id="canvas"></canvas>
+    <div class="cursor-dot" id="cursor"></div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const cursor = document.getElementById('cursor');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let mouseX = canvas.width / 2;
+        let mouseY = canvas.height / 2;
+
+        const heatSources = [];
+
+        // Create some "heat sources"
+        for (let i = 0; i < 5; i++) {
+            heatSources.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 100 + 50,
+                temp: Math.random() * 100 + 100
+            });
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        // Thermal color gradient
+        function getThermalColor(temp) {
+            if (temp < 50) return `rgb(0, 0, ${temp * 5})`;
+            if (temp < 100) return `rgb(${(temp - 50) * 5}, 0, 255)`;
+            if (temp < 150) return `rgb(255, ${(temp - 100) * 5}, ${255 - (temp - 100) * 5})`;
+            if (temp < 200) return `rgb(255, 255, ${(temp - 150) * 5})`;
+            return `rgb(255, 255, 255)`;
+        }
+
+        function animate() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw thermal zone around cursor
+            const viewRadius = 150;
+
+            // Draw heat sources within view
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(mouseX, mouseY, viewRadius, 0, Math.PI * 2);
+            ctx.clip();
+
+            // Background cold
+            const bgGrad = ctx.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, viewRadius);
+            bgGrad.addColorStop(0, '#001');
+            bgGrad.addColorStop(1, '#000');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(mouseX - viewRadius, mouseY - viewRadius, viewRadius * 2, viewRadius * 2);
+
+            // Draw heat sources
+            heatSources.forEach(source => {
+                const dist = Math.hypot(source.x - mouseX, source.y - mouseY);
+                if (dist < viewRadius + source.radius) {
+                    const gradient = ctx.createRadialGradient(source.x, source.y, 0, source.x, source.y, source.radius);
+                    gradient.addColorStop(0, getThermalColor(source.temp + 100));
+                    gradient.addColorStop(0.5, getThermalColor(source.temp));
+                    gradient.addColorStop(1, 'transparent');
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(source.x, source.y, source.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+
+            // Cursor heat
+            const cursorGrad = ctx.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, 30);
+            cursorGrad.addColorStop(0, '#fff');
+            cursorGrad.addColorStop(0.5, '#ff0');
+            cursorGrad.addColorStop(1, 'transparent');
+            ctx.fillStyle = cursorGrad;
+            ctx.beginPath();
+            ctx.arc(mouseX, mouseY, 30, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+
+            // Border
+            ctx.strokeStyle = '#0f0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(mouseX, mouseY, viewRadius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+
+</html>

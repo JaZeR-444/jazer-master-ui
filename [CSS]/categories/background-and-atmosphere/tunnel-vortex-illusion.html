@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tunnel Vortex Illusion - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="tunnel"] { background: linear-gradient(45deg, #000000, #4a00e0, #8e2de2); }
+    .color-btn[data-color="vortex"] { background: linear-gradient(45deg, #000000, #f7971e, #ffd200); }
+    .color-btn[data-color="cosmic"] { background: linear-gradient(45deg, #000000, #5433ff, #20bdff); }
+    .color-btn[data-color="neon"] { background: linear-gradient(45deg, #000000, #ff00cc, #333399); }
+    .color-btn[data-color="ocean"] { background: linear-gradient(45deg, #000000, #00c9ff, #92fe9d); }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .pattern-select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-light);
+      font-family: var(--font-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .tunnel-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    #tunnelCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 280px; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .controls { top: auto; bottom: 5rem; right: 1rem; min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Tunnel Vortex Illusion</h1>
+    <p>Hypnotic tunnel effect with depth perception and swirling vortex</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Randomize</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="tunnel" title="Tunnel"></button>
+      <button class="color-btn" data-color="vortex" title="Vortex"></button>
+      <button class="color-btn" data-color="cosmic" title="Cosmic"></button>
+      <button class="color-btn" data-color="neon" title="Neon"></button>
+      <button class="color-btn" data-color="ocean" title="Ocean"></button>
+    </div>
+    <div class="slider-group">
+      <label>Tunnel Depth: <span class="slider-value" id="depthValue">20</span></label>
+      <input type="range" id="depthSlider" min="10" max="50" step="1" value="20">
+    </div>
+    <div class="slider-group">
+      <label>Vortex Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Intensity: <span class="slider-value" id="intensityValue">5</span></label>
+      <input type="range" id="intensitySlider" min="1" max="10" step="1" value="5">
+    </div>
+    <label>Pattern</label>
+    <select class="pattern-select" id="patternSelect">
+      <option value="spiral">Spiral Vortex</option>
+      <option value="tunnel">Classic Tunnel</option>
+      <option value="fractal">Fractal Tunnel</option>
+      <option value="grid">Grid Tunnel</option>
+      <option value="wave">Wave Tunnel</option>
+    </select>
+  </div>
+
+  <div class="tunnel-container">
+    <canvas id="tunnelCanvas"></canvas>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const canvas = document.getElementById('tunnelCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      depth: 20,
+      speed: 1.0,
+      intensity: 5,
+      pattern: 'spiral',
+      colorScheme: 'tunnel',
+      paused: false
+    };
+
+    const colorSchemes = {
+      tunnel: [
+        'rgba(74, 0, 224, 0.8)',  // Deep purple
+        'rgba(142, 45, 226, 0.7)', // Purple
+        'rgba(100, 10, 180, 0.6)', // Dark purple
+        'rgba(50, 5, 120, 0.5)',   // Darker purple
+        'rgba(20, 0, 80, 0.4)'     // Darkest purple
+      ],
+      vortex: [
+        'rgba(247, 151, 30, 0.8)', // Orange
+        'rgba(255, 210, 0, 0.7)',  // Yellow
+        'rgba(220, 120, 0, 0.6)',  // Darker orange
+        'rgba(180, 90, 0, 0.5)',   // Even darker
+        'rgba(140, 60, 0, 0.4)'    // Darkest
+      ],
+      cosmic: [
+        'rgba(84, 51, 255, 0.8)',  // Deep blue
+        'rgba(32, 189, 255, 0.7)', // Light blue
+        'rgba(60, 80, 200, 0.6)',  // Dark blue
+        'rgba(40, 60, 150, 0.5)',  // Darker blue
+        'rgba(20, 40, 100, 0.4)'   // Darkest blue
+      ],
+      neon: [
+        'rgba(255, 0, 204, 0.8)',  // Pink
+        'rgba(51, 51, 153, 0.7)',  // Purple
+        'rgba(200, 0, 180, 0.6)',  // Magenta
+        'rgba(100, 0, 150, 0.5)',  // Dark purple
+        'rgba(50, 0, 100, 0.4)'    // Darkest purple
+      ],
+      ocean: [
+        'rgba(0, 201, 255, 0.8)',  // Sky blue
+        'rgba(146, 254, 157, 0.7)',// Light green
+        'rgba(0, 180, 220, 0.6)',  // Lighter blue
+        'rgba(0, 150, 180, 0.5)',  // Medium blue
+        'rgba(0, 100, 140, 0.4)'   // Darker blue
+      ]
+    };
+
+    let angle = 0;
+    let time = 0;
+    let animationId;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function getColors() {
+      return colorSchemes[config.colorScheme];
+    }
+
+    function drawSpiralTunnel() {
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.8;
+      
+      const colors = getColors();
+      
+      // Draw the tunnel rings
+      for (let i = 0; i < config.depth; i++) {
+        const depthFactor = i / config.depth;
+        const radius = maxRadius * (1 - depthFactor * 0.8);
+        const rotation = angle * (1 + depthFactor * 2) + time * 0.05 * config.speed;
+        const intensity = Math.min(1, config.intensity / 10 + depthFactor * 0.5);
+        
+        ctx.beginPath();
+        for (let j = 0; j < 30; j++) {
+          const a = (j / 30) * Math.PI * 2 + rotation;
+          const x = centerX + Math.cos(a) * radius;
+          const y = centerY + Math.sin(a) * radius;
+          
+          if (j === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        
+        const colorIndex = Math.floor(depthFactor * colors.length) % colors.length;
+        ctx.strokeStyle = colors[colorIndex];
+        ctx.lineWidth = 2 + depthFactor * 4 * intensity;
+        ctx.stroke();
+      }
+      
+      // Draw the center vortex
+      const vortexRadius = maxRadius * 0.1;
+      const vortexColor = colors[0];
+      
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, vortexRadius, 0, Math.PI * 2);
+      ctx.fillStyle = vortexColor;
+      ctx.shadowBlur = 30;
+      ctx.shadowColor = vortexColor;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      // Draw spiral arms
+      for (let arm = 0; arm < 8; arm++) {
+        const armAngle = (arm / 8) * Math.PI * 2 + time * 0.02 * config.speed;
+        
+        ctx.beginPath();
+        for (let i = 0; i < 100; i++) {
+          const t = i / 100;
+          const spiralAngle = armAngle + t * Math.PI * 6 + time * 0.01 * config.speed;
+          const spiralRadius = vortexRadius + t * maxRadius * 0.3;
+          const x = centerX + Math.cos(spiralAngle) * spiralRadius;
+          const y = centerY + Math.sin(spiralAngle) * spiralRadius;
+          
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        
+        ctx.strokeStyle = colors[arm % colors.length];
+        ctx.lineWidth = 1 + (arm % 3);
+        ctx.stroke();
+      }
+    }
+
+    function drawClassicTunnel() {
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.8;
+      
+      const colors = getColors();
+      
+      // Draw concentric circles for tunnel effect
+      for (let i = 0; i < config.depth; i++) {
+        const depthFactor = i / config.depth;
+        const radius = maxRadius * (1 - depthFactor * 0.9);
+        const rotation = angle * (0.5 + depthFactor) + time * 0.02 * config.speed;
+        const intensity = Math.min(1, config.intensity / 10 + depthFactor * 0.3);
+        
+        ctx.beginPath();
+        for (let j = 0; j < 50; j++) {
+          const a = (j / 50) * Math.PI * 2 + rotation;
+          const x = centerX + Math.cos(a) * radius;
+          const y = centerY + Math.sin(a) * radius;
+          
+          if (j === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        
+        const colorIndex = Math.floor(depthFactor * colors.length) % colors.length;
+        ctx.strokeStyle = colors[colorIndex];
+        ctx.lineWidth = 1 + depthFactor * 3 * intensity;
+        ctx.stroke();
+      }
+      
+      // Draw radial lines for depth effect
+      for (let i = 0; i < 16; i++) {
+        const a = (i / 16) * Math.PI * 2 + time * 0.01 * config.speed;
+        const innerRadius = maxRadius * 0.1;
+        const outerRadius = maxRadius;
+        
+        ctx.beginPath();
+        ctx.moveTo(
+          centerX + Math.cos(a) * innerRadius,
+          centerY + Math.sin(a) * innerRadius
+        );
+        ctx.lineTo(
+          centerX + Math.cos(a) * outerRadius,
+          centerY + Math.sin(a) * outerRadius
+        );
+        
+        const depthFactor = 0.7;
+        const colorIndex = Math.floor(depthFactor * colors.length) % colors.length;
+        ctx.strokeStyle = colors[colorIndex];
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    function drawFractalTunnel() {
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.8;
+      
+      const colors = getColors();
+      
+      function drawFractalCircle(x, y, radius, depth, rotation) {
+        if (depth <= 0) return;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = colors[depth % colors.length];
+        ctx.lineWidth = 1 + depth * 0.5;
+        ctx.stroke();
+        
+        // Draw recursive circles
+        if (depth > 1) {
+          const nextRadius = radius * 0.6;
+          const angleOffset = rotation + time * 0.005 * config.speed;
+          
+          for (let i = 0; i < 4; i++) {
+            const a = (i / 4) * Math.PI * 2 + angleOffset;
+            const nextX = x + Math.cos(a) * radius * 0.7;
+            const nextY = y + Math.sin(a) * radius * 0.7;
+            
+            drawFractalCircle(nextX, nextY, nextRadius, depth - 1, rotation + 0.2);
+          }
+        }
+      }
+      
+      // Draw main tunnel with fractal elements
+      for (let i = 0; i < config.depth; i++) {
+        const depthFactor = i / config.depth;
+        const radius = maxRadius * (0.2 + 0.7 * (1 - depthFactor));
+        const rotation = angle * (1 + depthFactor * 2) + time * 0.01 * config.speed;
+        
+        drawFractalCircle(centerX, centerY, radius * 0.1, Math.max(1, Math.floor(depthFactor * 4)), rotation);
+      }
+    }
+
+    function drawGridTunnel() {
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.8;
+      
+      const colors = getColors();
+      
+      // Draw grid tunnel
+      for (let i = 0; i < config.depth; i++) {
+        const depthFactor = i / config.depth;
+        const radius = maxRadius * (1 - depthFactor * 0.8);
+        const rotation = angle * (1 + depthFactor) + time * 0.01 * config.speed;
+        const intensity = Math.min(1, config.intensity / 10 + depthFactor * 0.4);
+        
+        // Draw grid pattern
+        const gridSize = 12 + Math.floor(depthFactor * 8);
+        
+        for (let j = 0; j < gridSize; j++) {
+          const a = (j / gridSize) * Math.PI * 2 + rotation;
+          
+          // Radial lines
+          ctx.beginPath();
+          ctx.moveTo(centerX, centerY);
+          ctx.lineTo(
+            centerX + Math.cos(a) * radius,
+            centerY + Math.sin(a) * radius
+          );
+          
+          const colorIndex = Math.floor(depthFactor * colors.length) % colors.length;
+          ctx.strokeStyle = colors[colorIndex];
+          ctx.lineWidth = 0.5 + depthFactor * 2 * intensity;
+          ctx.stroke();
+          
+          // Circular grid lines
+          for (let k = 1; k <= 5; k++) {
+            const gridRadius = radius * (k / 5);
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, gridRadius, a, a + (1 / gridSize) * Math.PI * 2);
+            ctx.strokeStyle = colors[(colorIndex + 1) % colors.length];
+            ctx.lineWidth = 0.3 + depthFactor * 1.5 * intensity;
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function drawWaveTunnel() {
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.8;
+      
+      const colors = getColors();
+      
+      // Draw wave tunnel effect
+      for (let i = 0; i < config.depth; i++) {
+        const depthFactor = i / config.depth;
+        const baseRadius = maxRadius * (1 - depthFactor * 0.8);
+        const waveAmplitude = baseRadius * 0.1 * (1 - depthFactor);
+        const rotation = angle * (1 + depthFactor) + time * 0.02 * config.speed;
+        const intensity = Math.min(1, config.intensity / 10 + depthFactor * 0.5);
+        
+        ctx.beginPath();
+        for (let j = 0; j < 100; j++) {
+          const a = (j / 100) * Math.PI * 2 + rotation;
+          const waveOffset = Math.sin(a * 8 + time * 0.05) * waveAmplitude;
+          const radius = baseRadius + waveOffset;
+          const x = centerX + Math.cos(a) * radius;
+          const y = centerY + Math.sin(a) * radius;
+          
+          if (j === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        
+        const colorIndex = Math.floor(depthFactor * colors.length) % colors.length;
+        ctx.strokeStyle = colors[colorIndex];
+        ctx.lineWidth = 2 + depthFactor * 4 * intensity;
+        ctx.stroke();
+      }
+    }
+
+    function drawTunnel() {
+      // Fade effect for trails
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      switch(config.pattern) {
+        case 'spiral':
+          drawSpiralTunnel();
+          break;
+        case 'tunnel':
+          drawClassicTunnel();
+          break;
+        case 'fractal':
+          drawFractalTunnel();
+          break;
+        case 'grid':
+          drawGridTunnel();
+          break;
+        case 'wave':
+          drawWaveTunnel();
+          break;
+      }
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.01 * config.speed;
+        angle += 0.005 * config.speed;
+        drawTunnel();
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function randomize() {
+      config.depth = Math.floor(Math.random() * 30 + 15);
+      config.speed = Math.random() * 2 + 0.5;
+      config.intensity = Math.floor(Math.random() * 8 + 2);
+      const patterns = ['spiral', 'tunnel', 'fractal', 'grid', 'wave'];
+      config.pattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      document.getElementById('depthSlider').value = config.depth;
+      document.getElementById('depthValue').textContent = config.depth;
+      document.getElementById('speedSlider').value = config.speed.toFixed(1);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+      document.getElementById('intensitySlider').value = config.intensity;
+      document.getElementById('intensityValue').textContent = config.intensity;
+      document.getElementById('patternSelect').value = config.pattern;
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('depthSlider').addEventListener('input', e => {
+      config.depth = parseInt(e.target.value);
+      document.getElementById('depthValue').textContent = config.depth;
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('intensitySlider').addEventListener('input', e => {
+      config.intensity = parseInt(e.target.value);
+      document.getElementById('intensityValue').textContent = config.intensity;
+    });
+
+    document.getElementById('patternSelect').addEventListener('change', e => {
+      config.pattern = e.target.value;
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        randomize();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['tunnel', 'vortex', 'cosmic', 'neon', 'ocean'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    animate();
+  </script>
+</body>
+</html>

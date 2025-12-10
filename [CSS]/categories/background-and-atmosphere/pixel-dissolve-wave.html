@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Dissolve Wave</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #0a0a15;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .info {
+            position: relative;
+            z-index: 2;
+            color: #80c0ff;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(128, 192, 255, 0.6);
+        }
+
+        .info h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+        }
+
+        .info p {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">
+        <h1>PIXEL WAVE</h1>
+        <p>Digital dissolution</p>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            createPixels();
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const pixelSize = 10;
+        let pixels = [];
+
+        function createPixels() {
+            pixels = [];
+            const cols = Math.ceil(canvas.width / pixelSize);
+            const rows = Math.ceil(canvas.height / pixelSize);
+
+            for (let col = 0; col < cols; col++) {
+                for (let row = 0; row < rows; row++) {
+                    pixels.push({
+                        x: col * pixelSize,
+                        y: row * pixelSize,
+                        col, row,
+                        hue: Math.random() * 60 + 180,
+                        active: false,
+                        alpha: 0
+                    });
+                }
+            }
+        }
+
+        let time = 0;
+        function animate() {
+            time++;
+            ctx.fillStyle = 'rgba(10, 10, 21, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const waveX = (Math.sin(time * 0.01) * 0.5 + 0.5) * canvas.width;
+            const waveY = (Math.cos(time * 0.015) * 0.5 + 0.5) * canvas.height;
+
+            pixels.forEach(p => {
+                const distX = Math.abs(p.x - waveX);
+                const distY = Math.abs(p.y - waveY);
+                const dist = Math.sqrt(distX * distX + distY * distY);
+                const wave = Math.sin(dist * 0.02 - time * 0.05);
+
+                if (wave > 0.5) {
+                    p.alpha = Math.min(1, p.alpha + 0.1);
+                } else {
+                    p.alpha = Math.max(0, p.alpha - 0.05);
+                }
+
+                if (p.alpha > 0.1) {
+                    ctx.fillStyle = `hsla(${p.hue + dist * 0.1}, 80%, 60%, ${p.alpha * 0.8})`;
+                    ctx.fillRect(p.x, p.y, pixelSize - 1, pixelSize - 1);
+                }
+            });
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+
+</html>

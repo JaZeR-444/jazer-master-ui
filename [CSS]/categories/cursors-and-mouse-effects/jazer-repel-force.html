@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Repel Force Cursor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0a0a15;
+            cursor: none;
+            overflow: hidden;
+        }
+
+        .info {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            z-index: 100;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        .cursor-dot {
+            position: fixed;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle, rgba(231, 76, 60, 0.3) 0%, transparent 70%);
+            border: 2px solid #e74c3c;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9999;
+            box-shadow: 0 0 20px #e74c3c;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">JaZeR Repel Force - Elements push away from cursor</div>
+    <canvas id="canvas"></canvas>
+    <div class="cursor-dot" id="cursor"></div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const cursorDot = document.getElementById('cursor');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let mouseX = -100;
+        let mouseY = -100;
+
+        const particles = [];
+        const numParticles = 150;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 5 + 2;
+                this.baseX = this.x;
+                this.baseY = this.y;
+                this.vx = 0;
+                this.vy = 0;
+                this.color = `hsl(${Math.random() * 30}, 80%, 55%)`;
+            }
+
+            update() {
+                const dx = this.x - mouseX;
+                const dy = this.y - mouseY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < 100) {
+                    const force = (100 - dist) / 100;
+                    const angle = Math.atan2(dy, dx);
+                    this.vx += Math.cos(angle) * force * 2;
+                    this.vy += Math.sin(angle) * force * 2;
+                }
+
+                // Spring back to base
+                this.vx += (this.baseX - this.x) * 0.02;
+                this.vy += (this.baseY - this.y) * 0.02;
+
+                // Friction
+                this.vx *= 0.92;
+                this.vy *= 0.92;
+
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < numParticles; i++) {
+            particles.push(new Particle());
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            cursorDot.style.left = e.clientX + 'px';
+            cursorDot.style.top = e.clientY + 'px';
+        });
+
+        function animate() {
+            ctx.fillStyle = 'rgba(10, 10, 21, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+
+</html>

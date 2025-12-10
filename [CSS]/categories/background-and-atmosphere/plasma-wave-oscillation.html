@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plasma Wave Oscillation - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="plasma"] { background: linear-gradient(45deg, #ff00cc, #333399); }
+    .color-btn[data-color="electric"] { background: linear-gradient(45deg, #00ff9d, #00ffff); }
+    .color-btn[data-color="fire"] { background: linear-gradient(45deg, #ff512f, #f09819); }
+    .color-btn[data-color="ocean"] { background: linear-gradient(45deg, #00c9ff, #92fe9d); }
+    .color-btn[data-color="cosmic"] { background: linear-gradient(45deg, #5433ff, #20bdff); }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .pattern-select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-light);
+      font-family: var(--font-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .plasma-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    #plasmaCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 280px; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .controls { top: auto; bottom: 5rem; right: 1rem; min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Plasma Wave Oscillation</h1>
+    <p>Undulating plasma waves with color shifts and harmonic resonance</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Randomize</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="plasma" title="Plasma"></button>
+      <button class="color-btn" data-color="electric" title="Electric"></button>
+      <button class="color-btn" data-color="fire" title="Fire"></button>
+      <button class="color-btn" data-color="ocean" title="Ocean"></button>
+      <button class="color-btn" data-color="cosmic" title="Cosmic"></button>
+    </div>
+    <div class="slider-group">
+      <label>Wave Density: <span class="slider-value" id="densityValue">10</span></label>
+      <input type="range" id="densitySlider" min="5" max="20" step="1" value="10">
+    </div>
+    <div class="slider-group">
+      <label>Oscillation Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Harmonic Depth: <span class="slider-value" id="depthValue">5</span></label>
+      <input type="range" id="depthSlider" min="1" max="10" step="1" value="5">
+    </div>
+    <label>Pattern</label>
+    <select class="pattern-select" id="patternSelect">
+      <option value="sine">Sine Wave Plasma</option>
+      <option value="harmonic">Harmonic Overtones</option>
+      <option value="interference">Wave Interference</option>
+      <option value="vortex">Plasma Vortex</option>
+      <option value="grid">Plasma Grid</option>
+    </select>
+  </div>
+
+  <div class="plasma-container">
+    <canvas id="plasmaCanvas"></canvas>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const canvas = document.getElementById('plasmaCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      density: 10,
+      speed: 1.0,
+      depth: 5,
+      pattern: 'sine',
+      colorScheme: 'plasma',
+      paused: false
+    };
+
+    const colorSchemes = {
+      plasma: [
+        'rgba(255, 0, 204, 0.9)',
+        'rgba(51, 51, 153, 0.8)',
+        'rgba(200, 0, 180, 0.7)',
+        'rgba(100, 0, 150, 0.6)',
+        'rgba(255, 0, 150, 0.5)',
+        'rgba(150, 0, 100, 0.7)'
+      ],
+      electric: [
+        'rgba(0, 255, 157, 0.9)',
+        'rgba(0, 255, 255, 0.8)',
+        'rgba(0, 200, 150, 0.7)',
+        'rgba(0, 200, 255, 0.6)',
+        'rgba(0, 180, 180, 0.5)',
+        'rgba(0, 150, 200, 0.7)'
+      ],
+      fire: [
+        'rgba(255, 81, 47, 0.9)',
+        'rgba(240, 152, 25, 0.8)',
+        'rgba(220, 120, 20, 0.7)',
+        'rgba(255, 100, 50, 0.6)',
+        'rgba(200, 80, 30, 0.5)',
+        'rgba(245, 130, 40, 0.7)'
+      ],
+      ocean: [
+        'rgba(0, 201, 255, 0.9)',
+        'rgba(146, 254, 157, 0.8)',
+        'rgba(0, 180, 220, 0.7)',
+        'rgba(100, 230, 180, 0.6)',
+        'rgba(0, 150, 200, 0.5)',
+        'rgba(80, 220, 180, 0.7)'
+      ],
+      cosmic: [
+        'rgba(84, 51, 255, 0.9)',
+        'rgba(32, 189, 255, 0.8)',
+        'rgba(100, 80, 220, 0.7)',
+        'rgba(60, 150, 240, 0.6)',
+        'rgba(40, 120, 200, 0.5)',
+        'rgba(70, 100, 220, 0.7)'
+      ]
+    };
+
+    let time = 0;
+    let animationId;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function getColors() {
+      return colorSchemes[config.colorScheme];
+    }
+
+    function drawPlasmaSineWaves() {
+      const colors = getColors();
+      const waveHeight = canvas.height / (config.density + 2);
+      
+      for (let i = 0; i < config.density; i++) {
+        const y = (canvas.height / config.density) * i + waveHeight / 2;
+        const color = colors[i % colors.length];
+        const frequency = 0.01 + i * 0.005;
+        const amplitude = 30 + Math.sin(time * 0.01 + i) * 20;
+        
+        ctx.beginPath();
+        
+        for (let x = 0; x <= canvas.width; x += 5) {
+          const waveY = y + Math.sin(x * frequency + time * 0.02 * config.speed) * amplitude;
+          if (x === 0) ctx.moveTo(x, waveY);
+          else ctx.lineTo(x, waveY);
+        }
+        
+        // Create gradient for plasma effect
+        const gradient = ctx.createLinearGradient(0, y - amplitude, 0, y + amplitude);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color.replace('0.9', '0.6'));
+        gradient.addColorStop(1, color.replace('0.9', '0.3'));
+        
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        
+        // Add harmonic overtones
+        for (let h = 2; h <= config.depth; h++) {
+          ctx.beginPath();
+          
+          for (let x = 0; x <= canvas.width; x += 5) {
+            const harmonicY = y + Math.sin(x * frequency * h + time * 0.02 * config.speed * h) * (amplitude / h);
+            if (x === 0) ctx.moveTo(x, harmonicY);
+            else ctx.lineTo(x, harmonicY);
+          }
+          
+          ctx.strokeStyle = color.replace('0.9', '0.3');
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+
+    function drawPlasmaHarmonicOvertones() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+      
+      // Draw radial harmonic patterns
+      for (let i = 0; i < config.density; i++) {
+        const radius = maxRadius * (0.2 + 0.7 * (i / config.density));
+        const color = colors[i % colors.length];
+        const frequency = 0.02 + i * 0.01;
+        
+        ctx.beginPath();
+        
+        for (let a = 0; a <= Math.PI * 2; a += 0.05) {
+          const waveOffset = Math.sin(a * 5 + time * 0.02 * config.speed) * 20;
+          const currentRadius = radius + waveOffset;
+          const x = centerX + Math.cos(a) * currentRadius;
+          const y = centerY + Math.sin(a) * currentRadius;
+          
+          if (a === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        
+        ctx.closePath();
+        
+        // Create radial gradient
+        const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.7, color.replace('0.9', '0.6'));
+        gradient.addColorStop(1, color.replace('0.9', '0.3'));
+        
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Draw harmonic overtones
+        for (let h = 2; h <= config.depth; h++) {
+          ctx.beginPath();
+          
+          for (let a = 0; a <= Math.PI * 2; a += 0.05) {
+            const harmonicOffset = Math.sin(a * 5 * h + time * 0.02 * config.speed * h) * (20 / h);
+            const currentRadius = radius + harmonicOffset;
+            const x = centerX + Math.cos(a) * currentRadius;
+            const y = centerY + Math.sin(a) * currentRadius;
+            
+            if (a === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          
+          ctx.closePath();
+          ctx.strokeStyle = color.replace('0.9', '0.2');
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+
+    function drawPlasmaWaveInterference() {
+      const colors = getColors();
+      
+      // Create interference pattern
+      const imageData = ctx.createImageData(canvas.width, canvas.height);
+      const data = imageData.data;
+      
+      for (let x = 0; x < canvas.width; x++) {
+        for (let y = 0; y < canvas.height; y++) {
+          let value = 0;
+          
+          // Multiple wave sources
+          for (let i = 0; i < 3; i++) {
+            const sourceX = canvas.width * (0.25 + i * 0.25);
+            const sourceY = canvas.height * 0.5;
+            const dx = x - sourceX;
+            const dy = y - sourceY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            value += Math.sin(distance * 0.05 - time * 0.03 * config.speed + i * Math.PI / 3) * 0.5;
+          }
+          
+          // Add second set of waves
+          for (let i = 0; i < 2; i++) {
+            const sourceX = canvas.width * 0.5;
+            const sourceY = canvas.height * (0.25 + i * 0.5);
+            const dx = x - sourceX;
+            const dy = y - sourceY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            value += Math.sin(distance * 0.04 - time * 0.02 * config.speed + i * Math.PI / 2) * 0.5;
+          }
+          
+          // Normalize and map to color
+          value = (value + 2) / 4; // Normalize to 0-1 range
+          const colorIndex = Math.floor(value * (config.depth - 1));
+          const color = colors[colorIndex % colors.length];
+          
+          // Parse color for RGB values
+          const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+          if (match) {
+            const r = parseInt(match[1]);
+            const g = parseInt(match[2]);
+            const b = parseInt(match[3]);
+            const a = match[4] ? parseFloat(match[4]) : 1;
+            
+            const idx = (y * canvas.width + x) * 4;
+            data[idx] = r;
+            data[idx + 1] = g;
+            data[idx + 2] = b;
+            data[idx + 3] = a * 255 * value;
+          }
+        }
+      }
+      
+      ctx.putImageData(imageData, 0, 0);
+    }
+
+    function drawPlasmaVortex() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+      
+      // Draw spiral plasma vortex
+      for (let i = 0; i < config.density * 2; i++) {
+        const color = colors[i % colors.length];
+        const rotationSpeed = 0.01 + i * 0.002;
+        const radiusFactor = 0.3 + (i % 3) * 0.2;
+        
+        ctx.beginPath();
+        
+        for (let t = 0; t < Math.PI * 8; t += 0.1) {
+          const radius = (t / (Math.PI * 8)) * maxRadius * radiusFactor;
+          const angle = t * 3 + time * rotationSpeed * config.speed;
+          const x = centerX + Math.cos(angle) * radius;
+          const y = centerY + Math.sin(angle) * radius;
+          
+          if (t === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        
+        // Create gradient for spiral
+        const gradient = ctx.createLinearGradient(centerX, centerY, centerX + maxRadius, centerY);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color.replace('0.9', '0.6'));
+        gradient.addColorStop(1, color.replace('0.9', '0.3'));
+        
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Draw harmonic spirals
+        for (let h = 2; h <= config.depth; h++) {
+          ctx.beginPath();
+          
+          for (let t = 0; t < Math.PI * 6; t += 0.1) {
+            const radius = (t / (Math.PI * 6)) * maxRadius * radiusFactor * 0.7;
+            const angle = t * 3 * h + time * rotationSpeed * config.speed * h;
+            const x = centerX + Math.cos(angle) * radius;
+            const y = centerY + Math.sin(angle) * radius;
+            
+            if (t === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          
+          ctx.strokeStyle = color.replace('0.9', '0.2');
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+
+    function drawPlasmaGrid() {
+      const colors = getColors();
+      const cellSize = Math.min(canvas.width, canvas.height) / config.density;
+      
+      for (let x = 0; x < canvas.width; x += cellSize) {
+        for (let y = 0; y < canvas.height; y += cellSize) {
+          const colorIndex = Math.floor(
+            (Math.sin(x * 0.01 + time * 0.02 * config.speed) + 
+             Math.cos(y * 0.01 + time * 0.02 * config.speed)) * config.depth
+          ) % colors.length;
+          
+          const color = colors[colorIndex];
+          const size = cellSize * 0.8 * (0.7 + 0.3 * Math.sin(time * 0.01 + x * 0.005 + y * 0.005));
+          
+          // Create gradient for each cell
+          const gradient = ctx.createRadialGradient(
+            x + cellSize/2, y + cellSize/2, 0,
+            x + cellSize/2, y + cellSize/2, size/2
+          );
+          gradient.addColorStop(0, color);
+          gradient.addColorStop(0.7, color.replace('0.9', '0.6'));
+          gradient.addColorStop(1, color.replace('0.9', '0.3'));
+          
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.ellipse(x + cellSize/2, y + cellSize/2, size/2, size/2, 0, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Draw harmonic grid lines
+          if (Math.floor(x / cellSize) % 2 === 0 && Math.floor(y / cellSize) % 2 === 0) {
+            ctx.beginPath();
+            ctx.moveTo(x, y + cellSize/2);
+            ctx.lineTo(x + cellSize, y + cellSize/2);
+            ctx.moveTo(x + cellSize/2, y);
+            ctx.lineTo(x + cellSize/2, y + cellSize);
+            ctx.strokeStyle = color.replace('0.9', '0.3');
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function drawPlasma() {
+      // Clear with subtle fade effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      switch(config.pattern) {
+        case 'sine':
+          drawPlasmaSineWaves();
+          break;
+        case 'harmonic':
+          drawPlasmaHarmonicOvertones();
+          break;
+        case 'interference':
+          drawPlasmaWaveInterference();
+          break;
+        case 'vortex':
+          drawPlasmaVortex();
+          break;
+        case 'grid':
+          drawPlasmaGrid();
+          break;
+      }
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.01 * config.speed;
+        drawPlasma();
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function randomize() {
+      config.density = Math.floor(Math.random() * 10 + 6);
+      config.speed = Math.random() * 2 + 0.5;
+      config.depth = Math.floor(Math.random() * 8 + 2);
+      const patterns = ['sine', 'harmonic', 'interference', 'vortex', 'grid'];
+      config.pattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      document.getElementById('densitySlider').value = config.density;
+      document.getElementById('densityValue').textContent = config.density;
+      document.getElementById('speedSlider').value = config.speed.toFixed(1);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+      document.getElementById('depthSlider').value = config.depth;
+      document.getElementById('depthValue').textContent = config.depth;
+      document.getElementById('patternSelect').value = config.pattern;
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('densitySlider').addEventListener('input', e => {
+      config.density = parseInt(e.target.value);
+      document.getElementById('densityValue').textContent = config.density;
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('depthSlider').addEventListener('input', e => {
+      config.depth = parseInt(e.target.value);
+      document.getElementById('depthValue').textContent = config.depth;
+    });
+
+    document.getElementById('patternSelect').addEventListener('change', e => {
+      config.pattern = e.target.value;
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        randomize();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['plasma', 'electric', 'fire', 'ocean', 'cosmic'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    animate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fractal Energy Fields</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .info {
+            position: relative;
+            z-index: 2;
+            color: white;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0,0,0,0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h1>Fractal Energy Fields</h1>
+        <p>Self-similar patterns of energy creating fractal formations</p>
+    </div>
+    
+    <canvas id="fractalCanvas"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('fractalCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas to full window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Fractal Node class
+        class FractalNode {
+            constructor(x, y, size, depth, parent = null) {
+                this.x = x;
+                this.y = y;
+                this.size = size;
+                this.depth = depth;
+                this.parent = parent;
+                
+                // Visual properties
+                this.hue = (depth * 30) % 360;
+                this.saturation = 70 + Math.sin(depth) * 20;
+                this.lightness = 50 + Math.cos(depth * 0.7) * 20;
+                this.alpha = 0.3 + Math.sin(Date.now() * 0.001 + depth) * 0.2;
+                
+                // Movement properties
+                this.angle = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.01;
+                this.wobbleSpeed = 0.002 + Math.random() * 0.004;
+                this.wobblePhase = Math.random() * Math.PI * 2;
+                this.wobbleOffset = Math.random() * Math.PI * 2;
+                
+                // Children properties
+                this.children = [];
+                this.maxChildren = 4 - depth; // Fewer children at deeper levels
+                this.generationTimer = 0;
+                this.generationDelay = 100 + Math.random() * 100; // Staggered generation
+                
+                // Create children if not at max depth
+                if (depth < 4) {
+                    this.generateChildren();
+                }
+            }
+            
+            generateChildren() {
+                if (this.depth >= 4) return;
+                
+                for (let i = 0; i < this.maxChildren; i++) {
+                    if (Math.random() < 0.8) { // Not every potential child gets created
+                        // Calculate position relative to parent
+                        const angle = (i / this.maxChildren) * Math.PI * 2 + this.wobblePhase;
+                        const distance = this.size * 0.8;
+                        const childX = this.x + Math.cos(angle) * distance;
+                        const childY = this.y + Math.sin(angle) * distance;
+                        
+                        const childSize = this.size * 0.6;
+                        this.children.push(new FractalNode(childX, childY, childSize, this.depth + 1, this));
+                    }
+                }
+            }
+            
+            update() {
+                // Rotate the node
+                this.angle += this.rotationSpeed;
+                
+                // Update children
+                this.children.forEach(child => child.update());
+                
+                // Occasionally spawn new children or regenerate
+                if (Math.random() < 0.001 && this.children.length < this.maxChildren && this.depth < 4) {
+                    // Calculate position for new child
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = this.size * 0.8;
+                    const childX = this.x + Math.cos(angle) * distance;
+                    const childY = this.y + Math.sin(angle) * distance;
+                    const childSize = this.size * 0.6;
+                    
+                    this.children.push(new FractalNode(childX, childY, childSize, this.depth + 1, this));
+                }
+            }
+            
+            draw() {
+                // Save context
+                ctx.save();
+                
+                // Move to node position
+                ctx.translate(this.x, this.y);
+                
+                // Apply rotation
+                ctx.rotate(this.angle);
+                
+                // Create wobble effect
+                const wobble = Math.sin(Date.now() * 0.001 * this.wobbleSpeed + this.wobbleOffset) * 5;
+                
+                // Draw the node as a glowing shape
+                const gradient = ctx.createRadialGradient(
+                    0, 0, 0,
+                    0, 0, this.size + wobble
+                );
+                
+                gradient.addColorStop(0, `hsla(${this.hue}, ${this.saturation}%, ${this.lightness}%, ${this.alpha})`);
+                gradient.addColorStop(0.5, `hsla(${this.hue + 20}, ${this.saturation * 0.8}%, ${this.lightness * 0.7}%, ${this.alpha * 0.7})`);
+                gradient.addColorStop(1, `hsla(${this.hue + 40}, ${this.saturation * 0.6}%, ${this.lightness * 0.5}%, 0)`);
+                
+                ctx.fillStyle = gradient;
+                
+                // Draw a complex shape based on depth
+                ctx.beginPath();
+                
+                if (this.depth === 0) {
+                    // Center node - draw a more complex shape
+                    for (let i = 0; i < 8; i++) {
+                        const angle = (i / 8) * Math.PI * 2;
+                        const radius = this.size + (i % 2 === 0 ? wobble : -wobble);
+                        const x = Math.cos(angle) * radius;
+                        const y = Math.sin(angle) * radius;
+                        
+                        if (i === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                    ctx.closePath();
+                } else {
+                    // Child nodes - draw simpler shapes
+                    ctx.arc(0, 0, this.size + wobble, 0, Math.PI * 2);
+                }
+                
+                ctx.fill();
+                
+                // Draw connections to children
+                this.children.forEach(child => {
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    
+                    // Calculate relative position
+                    const relX = child.x - this.x;
+                    const relY = child.y - this.y;
+                    
+                    ctx.lineTo(relX, relY);
+                    
+                    // Create gradient for connection
+                    const connGradient = ctx.createLinearGradient(0, 0, relX, relY);
+                    connGradient.addColorStop(0, `hsla(${this.hue}, ${this.saturation}%, ${this.lightness}%, 0.2)`);
+                    connGradient.addColorStop(1, `hsla(${child.hue}, ${child.saturation}%, ${child.lightness}%, 0.2)`);
+                    
+                    ctx.strokeStyle = connGradient;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    
+                    // Draw child
+                    child.draw();
+                });
+                
+                // Restore context
+                ctx.restore();
+            }
+        }
+        
+        // Create the fractal root
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const rootSize = Math.min(canvas.width, canvas.height) * 0.05;
+        
+        const fractalRoot = new FractalNode(centerX, centerY, rootSize, 0);
+        
+        // Draw energy field background
+        function drawEnergyField() {
+            const time = Date.now() * 0.0005;
+            const gradient = ctx.createRadialGradient(
+                centerX, centerY, 0,
+                centerX, centerY, Math.max(canvas.width, canvas.height) * 0.7
+            );
+            
+            gradient.addColorStop(0, `hsla(${Math.sin(time) * 60 + 180}, 70%, 30%, 0.1)`);
+            gradient.addColorStop(0.5, `hsla(${Math.sin(time * 0.7) * 40 + 200}, 60%, 20%, 0.05)`);
+            gradient.addColorStop(1, `hsla(${Math.sin(time * 0.5) * 30 + 220}, 50%, 10%, 0)`);
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        // Animation loop
+        function animate() {
+            // Clear with dark background
+            ctx.fillStyle = 'rgba(0, 5, 15, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw energy field background
+            drawEnergyField();
+            
+            // Update and draw fractal
+            fractalRoot.update();
+            fractalRoot.draw();
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>

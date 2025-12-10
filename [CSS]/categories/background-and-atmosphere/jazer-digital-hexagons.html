@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Digital Hexagons</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #111;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .jazer-logo {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            user-select: none;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 2rem;
+            border: 2px solid #ffaa00;
+            box-shadow: 0 0 30px rgba(255, 170, 0, 0.2);
+        }
+
+        .jazer-logo h1 {
+            font-size: 5rem;
+            font-weight: 700;
+            color: #ffaa00;
+            text-shadow: 0 0 10px #ffaa00;
+            letter-spacing: 5px;
+        }
+
+        .jazer-logo p {
+            font-size: 1rem;
+            letter-spacing: 0.5em;
+            color: #fff;
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="jazer-logo">
+        <h1>JaZeR HEXADATA</h1>
+        <p>HIVE MIND CONNECTED</p>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const hexSize = 30;
+        const hexHeight = hexSize * 2;
+        const hexWidth = Math.sqrt(3) * hexSize;
+
+        let time = 0;
+
+        function drawHex(x, y, active) {
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = (Math.PI / 3) * i;
+                const hx = x + hexSize * Math.cos(angle);
+                const hy = y + hexSize * Math.sin(angle);
+                if (i === 0) ctx.moveTo(hx, hy);
+                else ctx.lineTo(hx, hy);
+            }
+            ctx.closePath();
+
+            if (active) {
+                ctx.fillStyle = `rgba(255, 170, 0, ${0.5 + Math.sin(time * 0.1) * 0.4})`;
+                ctx.fill();
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#ffaa00';
+            } else {
+                ctx.strokeStyle = '#222';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        // Active cells map
+        const activeCells = new Map();
+
+        function updateActiveCells() {
+            // Randomly add
+            if (Math.random() > 0.5) {
+                const k = `${Math.floor(Math.random() * 50)},${Math.floor(Math.random() * 50)}`;
+                activeCells.set(k, { life: 1.0 });
+            }
+
+            // Decay
+            for (const [key, val] of activeCells.entries()) {
+                val.life -= 0.02;
+                if (val.life <= 0) activeCells.delete(key);
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const rows = Math.ceil(canvas.height / (hexHeight * 0.75)) + 1;
+            const cols = Math.ceil(canvas.width / hexWidth) + 1;
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const x = c * hexWidth + (r % 2 === 1 ? hexWidth / 2 : 0);
+                    const y = r * (hexHeight * 0.75);
+
+                    // Check if active (simulated with random hashing visual for now to keep it simple self-contained)
+                    // Or actually use our map
+                    // Let's use coordinate based noise for pattern
+
+                    const noise = Math.sin(c * 0.2 + time * 0.05) * Math.cos(r * 0.2 + time * 0.03);
+                    const isActive = noise > 0.8;
+
+                    // Different color styles maybe?
+                    if (isActive) {
+                        ctx.fillStyle = `rgba(255, 170, 0, ${noise})`;
+                        // Draw filled hex
+                        ctx.beginPath();
+                        for (let i = 0; i < 6; i++) {
+                            const angle = (Math.PI / 3) * i + Math.PI / 6; // Rotate 30deg to hav flat top? standard usually flat top 
+                            // Standard implementation: 
+                            // x = R * cos(a), y = R * sin(a)
+                            // 0 deg is right point.
+                            const hx = x + hexSize * 0.95 * Math.cos(angle);
+                            const hy = y + hexSize * 0.95 * Math.sin(angle);
+                            if (i === 0) ctx.moveTo(hx, hy);
+                            else ctx.lineTo(hx, hy);
+                        }
+                        ctx.closePath();
+                        ctx.fill();
+
+                        // Glow
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = '#ffaa00';
+                        ctx.stroke();
+                        ctx.shadowBlur = 0; // reset
+                    } else {
+                        // Outline
+                        ctx.strokeStyle = '#1a1a1a';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        for (let i = 0; i < 6; i++) {
+                            const angle = (Math.PI / 3) * i + Math.PI / 6;
+                            const hx = x + hexSize * Math.cos(angle);
+                            const hy = y + hexSize * Math.sin(angle);
+                            if (i === 0) ctx.moveTo(hx, hy);
+                            else ctx.lineTo(hx, hy);
+                        }
+                        ctx.closePath();
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            time++;
+            draw();
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+
+</html>

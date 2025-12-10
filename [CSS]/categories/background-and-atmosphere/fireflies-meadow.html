@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fireflies Meadow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: linear-gradient(180deg, #0a1628 0%, #1a2f4a 30%, #0d1f35 70%, #051020 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .info {
+            position: relative;
+            z-index: 2;
+            color: #ffffaa;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(255, 255, 100, 0.5);
+        }
+
+        .info h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 0.4em;
+        }
+
+        .info p {
+            opacity: 0.7;
+            color: #ccddaa;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">
+        <h1>FIREFLIES</h1>
+        <p>Dancing lights in the meadow</p>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Firefly {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height * 0.3 + Math.random() * canvas.height * 0.6;
+                this.size = 2 + Math.random() * 3;
+                this.glowSize = 10 + Math.random() * 20;
+                this.phase = Math.random() * Math.PI * 2;
+                this.blinkSpeed = 0.02 + Math.random() * 0.04;
+                this.vx = (Math.random() - 0.5) * 0.8;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.targetX = this.x;
+                this.targetY = this.y;
+                this.changeTime = 0;
+                this.hue = 50 + Math.random() * 20; // Yellow-green range
+            }
+
+            update(time) {
+                this.phase += this.blinkSpeed;
+
+                // Change direction periodically
+                this.changeTime++;
+                if (this.changeTime > 100 + Math.random() * 200) {
+                    this.targetX = this.x + (Math.random() - 0.5) * 200;
+                    this.targetY = this.y + (Math.random() - 0.5) * 150;
+
+                    // Keep in bounds
+                    this.targetX = Math.max(50, Math.min(canvas.width - 50, this.targetX));
+                    this.targetY = Math.max(canvas.height * 0.2, Math.min(canvas.height * 0.9, this.targetY));
+
+                    this.changeTime = 0;
+                }
+
+                // Move toward target
+                this.vx += (this.targetX - this.x) * 0.001;
+                this.vy += (this.targetY - this.y) * 0.001;
+
+                // Damping
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+
+            draw() {
+                const brightness = Math.max(0, Math.sin(this.phase));
+                const alpha = brightness * 0.9;
+
+                if (brightness > 0.1) {
+                    // Outer glow
+                    const gradient = ctx.createRadialGradient(
+                        this.x, this.y, 0,
+                        this.x, this.y, this.glowSize * brightness
+                    );
+                    gradient.addColorStop(0, `hsla(${this.hue}, 100%, 70%, ${alpha})`);
+                    gradient.addColorStop(0.3, `hsla(${this.hue}, 100%, 60%, ${alpha * 0.5})`);
+                    gradient.addColorStop(1, 'transparent');
+
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.glowSize * brightness, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Core
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * brightness, 0, Math.PI * 2);
+                    ctx.fillStyle = `hsla(${this.hue}, 100%, 90%, ${alpha})`;
+                    ctx.fill();
+                }
+            }
+        }
+
+        // Grass silhouettes
+        class GrassBlade {
+            constructor(x) {
+                this.x = x;
+                this.height = 30 + Math.random() * 80;
+                this.width = 2 + Math.random() * 3;
+                this.curve = (Math.random() - 0.5) * 0.5;
+                this.phase = Math.random() * Math.PI * 2;
+            }
+
+            draw(time) {
+                const sway = Math.sin(time * 0.001 + this.phase) * 10;
+
+                ctx.beginPath();
+                ctx.moveTo(this.x, canvas.height);
+                ctx.quadraticCurveTo(
+                    this.x + sway + this.curve * this.height,
+                    canvas.height - this.height * 0.6,
+                    this.x + sway * 1.5,
+                    canvas.height - this.height
+                );
+
+                ctx.strokeStyle = `rgba(15, 40, 25, 0.8)`;
+                ctx.lineWidth = this.width;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+            }
+        }
+
+        const fireflies = Array.from({ length: 60 }, () => new Firefly());
+        const grass = [];
+
+        function createGrass() {
+            grass.length = 0;
+            for (let x = 0; x < canvas.width; x += 3 + Math.random() * 8) {
+                grass.push(new GrassBlade(x));
+            }
+        }
+        createGrass();
+        window.addEventListener('resize', createGrass);
+
+        // Stars
+        const stars = [];
+        for (let i = 0; i < 100; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height * 0.4,
+                size: Math.random() * 1.5,
+                twinkle: Math.random() * Math.PI * 2
+            });
+        }
+
+        let time = 0;
+        function animate() {
+            time++;
+
+            // Night sky gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#0a1628');
+            gradient.addColorStop(0.3, '#1a2f4a');
+            gradient.addColorStop(0.7, '#0d1f35');
+            gradient.addColorStop(1, '#051020');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Stars
+            stars.forEach(star => {
+                const twinkle = Math.sin(time * 0.02 + star.twinkle) * 0.5 + 0.5;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size * twinkle, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + twinkle * 0.5})`;
+                ctx.fill();
+            });
+
+            // Grass
+            grass.forEach(blade => blade.draw(time));
+
+            // Fireflies
+            fireflies.forEach(fly => {
+                fly.update(time);
+                fly.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

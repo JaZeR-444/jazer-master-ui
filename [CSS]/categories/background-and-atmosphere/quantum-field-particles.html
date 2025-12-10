@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quantum Field Particles - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="quantum"] { background: linear-gradient(45deg, #ff00cc, #333399); }
+    .color-btn[data-color="electron"] { background: linear-gradient(45deg, #00ffff, #0088ff); }
+    .color-btn[data-color="photon"] { background: linear-gradient(45deg, #ffff00, #ff9900); }
+    .color-btn[data-color="neutrino"] { background: linear-gradient(45deg, #00ff9d, #00ffff); }
+    .color-btn[data-color="boson"] { background: linear-gradient(45deg, #ff00cc, #ff9900); }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .pattern-select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-light);
+      font-family: var(--font-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .quantum-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    #quantumCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 280px; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .controls { top: auto; bottom: 5rem; right: 1rem; min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Quantum Field Particles</h1>
+    <p>Quantum particle field with wave effects and probability clouds</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Randomize</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="quantum" title="Quantum"></button>
+      <button class="color-btn" data-color="electron" title="Electron"></button>
+      <button class="color-btn" data-color="photon" title="Photon"></button>
+      <button class="color-btn" data-color="neutrino" title="Neutrino"></button>
+      <button class="color-btn" data-color="boson" title="Boson"></button>
+    </div>
+    <div class="slider-group">
+      <label>Particle Count: <span class="slider-value" id="countValue">100</span></label>
+      <input type="range" id="countSlider" min="50" max="300" step="10" value="100">
+    </div>
+    <div class="slider-group">
+      <label>Quantum Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Wave Intensity: <span class="slider-value" id="intensityValue">5</span></label>
+      <input type="range" id="intensitySlider" min="1" max="10" step="1" value="5">
+    </div>
+    <label>Pattern</label>
+    <select class="pattern-select" id="patternSelect">
+      <option value="field">Quantum Field</option>
+      <option value="wave">Wave Function</option>
+      <option value="probability">Probability Cloud</option>
+      <option value="entangle">Quantum Entanglement</option>
+      <option value="tunnel">Quantum Tunneling</option>
+    </select>
+  </div>
+
+  <div class="quantum-container">
+    <canvas id="quantumCanvas"></canvas>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const canvas = document.getElementById('quantumCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      count: 100,
+      speed: 1.0,
+      intensity: 5,
+      pattern: 'field',
+      colorScheme: 'quantum',
+      paused: false
+    };
+
+    const colorSchemes = {
+      quantum: [
+        'rgba(255, 0, 204, 0.8)',
+        'rgba(51, 51, 153, 0.7)',
+        'rgba(200, 0, 180, 0.6)',
+        'rgba(100, 0, 150, 0.5)',
+        'rgba(255, 0, 150, 0.4)',
+        'rgba(150, 0, 100, 0.6)'
+      ],
+      electron: [
+        'rgba(0, 255, 255, 0.8)',
+        'rgba(0, 136, 255, 0.7)',
+        'rgba(0, 200, 255, 0.6)',
+        'rgba(0, 100, 200, 0.5)',
+        'rgba(0, 180, 255, 0.4)',
+        'rgba(0, 80, 200, 0.6)'
+      ],
+      photon: [
+        'rgba(255, 255, 0, 0.8)',
+        'rgba(255, 153, 0, 0.7)',
+        'rgba(255, 200, 0, 0.6)',
+        'rgba(255, 180, 0, 0.5)',
+        'rgba(255, 220, 0, 0.4)',
+        'rgba(255, 160, 0, 0.6)'
+      ],
+      neutrino: [
+        'rgba(0, 255, 157, 0.8)',
+        'rgba(0, 255, 255, 0.7)',
+        'rgba(0, 200, 150, 0.6)',
+        'rgba(0, 200, 255, 0.5)',
+        'rgba(0, 180, 180, 0.4)',
+        'rgba(0, 150, 200, 0.6)'
+      ],
+      boson: [
+        'rgba(255, 0, 204, 0.8)',
+        'rgba(255, 153, 0, 0.7)',
+        'rgba(255, 50, 150, 0.6)',
+        'rgba(255, 100, 0, 0.5)',
+        'rgba(255, 80, 120, 0.4)',
+        'rgba(255, 120, 80, 0.6)'
+      ]
+    };
+
+    let time = 0;
+    let animationId;
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function getColors() {
+      return colorSchemes[config.colorScheme];
+    }
+
+    function createParticle() {
+      return {
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: 2 + Math.random() * 6,
+        velocityX: (Math.random() - 0.5) * 2,
+        velocityY: (Math.random() - 0.5) * 2,
+        phase: Math.random() * Math.PI * 2,
+        oscillation: Math.random() * 0.02 + 0.01,
+        colorIndex: Math.floor(Math.random() * 6)
+      };
+    }
+
+    function updateParticles() {
+      particles = [];
+      for (let i = 0; i < config.count; i++) {
+        particles.push(createParticle());
+      }
+    }
+
+    function drawQuantumField() {
+      // Fade effect for trails
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const colors = getColors();
+
+      // Draw connections between nearby particles
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[j].x - particles[i].x;
+          const dy = particles[j].y - particles[i].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < 100) {
+            const alpha = 1 - distance / 100;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = colors[(i + j) % colors.length].replace('0.8', alpha * 0.3);
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Draw particles with quantum effects
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        const color = colors[p.colorIndex % colors.length];
+        
+        // Update position
+        p.x += p.velocityX * config.speed;
+        p.y += p.velocityY * config.speed;
+        
+        // Bounce off edges
+        if (p.x < 0 || p.x > canvas.width) p.velocityX *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.velocityY *= -1;
+        
+        // Keep within bounds
+        p.x = Math.max(0, Math.min(canvas.width, p.x));
+        p.y = Math.max(0, Math.min(canvas.height, p.y));
+        
+        // Quantum oscillation effect
+        const oscillation = Math.sin(time * p.oscillation * config.speed + p.phase) * config.intensity;
+        const currentSize = p.size + oscillation;
+        
+        // Draw particle with glow
+        const gradient = ctx.createRadialGradient(
+          p.x, p.y, 0,
+          p.x, p.y, currentSize * 2
+        );
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.7, color.replace('0.8', '0.3'));
+        gradient.addColorStop(1, color.replace('0.8', '0.0'));
+        
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, currentSize, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Draw quantum probability cloud
+        ctx.beginPath();
+        for (let a = 0; a < Math.PI * 2; a += 0.1) {
+          const radius = currentSize * 3 * (0.8 + 0.2 * Math.sin(a * 5 + time * 0.02 * config.speed));
+          const px = p.x + Math.cos(a) * radius;
+          const py = p.y + Math.sin(a) * radius;
+          if (a === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        
+        ctx.strokeStyle = color.replace('0.8', '0.1');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    function drawWaveFunction() {
+      // Fade effect for trails
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const colors = getColors();
+      const centerY = canvas.height / 2;
+
+      // Draw wave functions
+      for (let i = 0; i < 5; i++) {
+        const color = colors[i % colors.length];
+        const frequency = 0.01 + i * 0.005;
+        const amplitude = 50 + Math.sin(time * 0.01 + i) * 30;
+        const yOffset = (i - 2) * 40;
+
+        ctx.beginPath();
+        for (let x = 0; x <= canvas.width; x += 2) {
+          const waveY = centerY + yOffset + Math.sin(x * frequency + time * 0.02 * config.speed) * amplitude;
+          const waveY2 = centerY + yOffset + Math.cos(x * frequency * 1.5 + time * 0.015 * config.speed) * amplitude * 0.7;
+          
+          if (x === 0) ctx.moveTo(x, waveY);
+          else ctx.lineTo(x, waveY);
+        }
+        
+        // Create gradient for wave
+        const gradient = ctx.createLinearGradient(0, centerY - amplitude, 0, centerY + amplitude);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color.replace('0.8', '0.5'));
+        gradient.addColorStop(1, color.replace('0.8', '0.2'));
+        
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Draw probability density
+        ctx.beginPath();
+        for (let x = 0; x <= canvas.width; x += 2) {
+          const waveY = centerY + yOffset + Math.sin(x * frequency + time * 0.02 * config.speed) * amplitude;
+          const probY = waveY + amplitude * 0.5 * Math.pow(Math.sin(x * frequency + time * 0.02 * config.speed), 2);
+          
+          if (x === 0) ctx.moveTo(x, waveY);
+          else ctx.lineTo(x, probY);
+        }
+        
+        ctx.strokeStyle = color.replace('0.8', '0.3');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    function drawProbabilityCloud() {
+      // Clear with subtle fade
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      // Draw multiple probability clouds
+      for (let i = 0; i < 3; i++) {
+        const color = colors[i % colors.length];
+        const maxRadius = Math.min(canvas.width, canvas.height) * 0.3 * (0.7 + i * 0.2);
+        
+        // Draw electron probability cloud
+        for (let a = 0; a < Math.PI * 2; a += 0.05) {
+          for (let r = 0; r < maxRadius; r += 5) {
+            // Quantum probability function (simplified)
+            const prob = Math.pow(Math.sin(r / maxRadius * Math.PI), 2) * 
+                        Math.pow(Math.cos(a * (2 + i)), 2) * 
+                        (1 - r / maxRadius);
+            
+            if (prob > 0.1) {
+              const x = centerX + Math.cos(a) * r;
+              const y = centerY + Math.sin(a) * r;
+              const size = prob * 2;
+              
+              if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
+                const alpha = prob * 0.5;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fillStyle = color.replace('0.8', alpha);
+                ctx.fill();
+              }
+            }
+          }
+        }
+        
+        // Draw quantum orbitals
+        for (let j = 0; j < 8; j++) {
+          const orbitalAngle = (j / 8) * Math.PI * 2 + time * 0.005 * config.speed;
+          const orbitalRadius = maxRadius * 0.6;
+          const orbitalX = centerX + Math.cos(orbitalAngle) * orbitalRadius;
+          const orbitalY = centerY + Math.sin(orbitalAngle) * orbitalRadius;
+          
+          ctx.beginPath();
+          ctx.arc(orbitalX, orbitalY, 5, 0, Math.PI * 2);
+          ctx.fillStyle = color.replace('0.8', '0.7');
+          ctx.fill();
+        }
+      }
+    }
+
+    function drawQuantumEntanglement() {
+      // Fade effect for trails
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      
+      // Draw entangled particle pairs
+      for (let i = 0; i < 5; i++) {
+        const angle = (i / 5) * Math.PI * 2 + time * 0.01 * config.speed;
+        const distance = 100 + Math.sin(time * 0.02 + i) * 50;
+        
+        const x1 = centerX + Math.cos(angle) * distance;
+        const y1 = centerY + Math.sin(angle) * distance;
+        const x2 = centerX + Math.cos(angle + Math.PI) * distance;
+        const y2 = centerY + Math.sin(angle + Math.PI) * distance;
+        
+        const color = colors[i % colors.length];
+        
+        // Draw entangled particles
+        ctx.beginPath();
+        ctx.arc(x1, y1, 8, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        
+        ctx.beginPath();
+        ctx.arc(x2, y2, 8, 0, Math.PI * 2);
+        ctx.fillStyle = color.replace('0.8', '0.6');
+        ctx.fill();
+        
+        // Draw entanglement connection
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = color.replace('0.8', '0.4');
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Draw quantum field fluctuations
+        for (let j = 0; j < 20; j++) {
+          const fluctuationAngle = angle + (j / 20) * Math.PI;
+          const fluctuationDistance = distance + Math.sin(time * 0.03 * config.speed + j) * 10;
+          const fx = centerX + Math.cos(fluctuationAngle) * fluctuationDistance;
+          const fy = centerY + Math.sin(fluctuationAngle) * fluctuationDistance;
+          
+          ctx.beginPath();
+          ctx.arc(fx, fy, 2, 0, Math.PI * 2);
+          ctx.fillStyle = color.replace('0.8', '0.2');
+          ctx.fill();
+        }
+      }
+    }
+
+    function drawQuantumTunneling() {
+      // Fade effect for trails
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const colors = getColors();
+      
+      // Draw potential barrier
+      const barrierX = canvas.width / 2;
+      const barrierWidth = 50;
+      const barrierHeight = canvas.height * 0.6;
+      
+      // Draw barrier with quantum effects
+      const gradient = ctx.createLinearGradient(barrierX - barrierWidth/2, 0, barrierX + barrierWidth/2, 0);
+      gradient.addColorStop(0, 'rgba(100, 100, 100, 0.1)');
+      gradient.addColorStop(0.5, 'rgba(150, 150, 150, 0.3)');
+      gradient.addColorStop(1, 'rgba(100, 100, 100, 0.1)');
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(barrierX - barrierWidth/2, (canvas.height - barrierHeight)/2, barrierWidth, barrierHeight);
+      
+      // Draw quantum particles tunneling through barrier
+      for (let i = 0; i < 20; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const velocityX = (Math.random() * 2 + 1) * (Math.random() > 0.5 ? 1 : -1);
+        const size = 3 + Math.random() * 5;
+        
+        // Update position
+        let newX = x + velocityX * config.speed * 0.5;
+        
+        // Check if particle is near barrier
+        if (Math.abs(newX - barrierX) < barrierWidth/2 + size) {
+          // Quantum tunneling effect - some particles pass through
+          if (Math.random() > 0.7) { // 30% tunneling probability
+            newX = x + velocityX * config.speed * 0.5; // Continue as normal
+          } else {
+            // Particle bounces back
+            newX = x - velocityX * config.speed * 0.5;
+          }
+        }
+        
+        // Wrap around screen
+        if (newX < 0) newX = canvas.width;
+        if (newX > canvas.width) newX = 0;
+        
+        const color = colors[i % colors.length];
+        
+        // Draw particle with glow
+        const particleGradient = ctx.createRadialGradient(newX, y, 0, newX, y, size * 2);
+        particleGradient.addColorStop(0, color);
+        particleGradient.addColorStop(0.7, color.replace('0.8', '0.3'));
+        particleGradient.addColorStop(1, color.replace('0.8', '0.0'));
+        
+        ctx.beginPath();
+        ctx.arc(newX, y, size, 0, Math.PI * 2);
+        ctx.fillStyle = particleGradient;
+        ctx.fill();
+        
+        // Draw tunneling probability waves
+        if (Math.abs(newX - barrierX) < barrierWidth + 50) {
+          ctx.beginPath();
+          for (let a = 0; a < Math.PI * 2; a += 0.1) {
+            const waveRadius = size * 3 * (0.8 + 0.2 * Math.sin(a * 5 + time * 0.05 * config.speed));
+            const px = newX + Math.cos(a) * waveRadius;
+            const py = y + Math.sin(a) * waveRadius;
+            if (a === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          
+          ctx.strokeStyle = color.replace('0.8', '0.1');
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+
+    function drawQuantum() {
+      switch(config.pattern) {
+        case 'field':
+          drawQuantumField();
+          break;
+        case 'wave':
+          drawWaveFunction();
+          break;
+        case 'probability':
+          drawProbabilityCloud();
+          break;
+        case 'entangle':
+          drawQuantumEntanglement();
+          break;
+        case 'tunnel':
+          drawQuantumTunneling();
+          break;
+      }
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.01 * config.speed;
+        drawQuantum();
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function randomize() {
+      config.count = Math.floor(Math.random() * 200 + 50);
+      config.speed = Math.random() * 2 + 0.5;
+      config.intensity = Math.floor(Math.random() * 8 + 2);
+      const patterns = ['field', 'wave', 'probability', 'entangle', 'tunnel'];
+      config.pattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      document.getElementById('countSlider').value = config.count;
+      document.getElementById('countValue').textContent = config.count;
+      document.getElementById('speedSlider').value = config.speed.toFixed(1);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+      document.getElementById('intensitySlider').value = config.intensity;
+      document.getElementById('intensityValue').textContent = config.intensity;
+      document.getElementById('patternSelect').value = config.pattern;
+      
+      updateParticles();
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('countSlider').addEventListener('input', e => {
+      config.count = parseInt(e.target.value);
+      document.getElementById('countValue').textContent = config.count;
+      updateParticles();
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('intensitySlider').addEventListener('input', e => {
+      config.intensity = parseInt(e.target.value);
+      document.getElementById('intensityValue').textContent = config.intensity;
+    });
+
+    document.getElementById('patternSelect').addEventListener('change', e => {
+      config.pattern = e.target.value;
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        randomize();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['quantum', 'electron', 'photon', 'neutrino', 'boson'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    updateParticles();
+    animate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cosmic Nebula Swirl - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="orion"] { background: linear-gradient(45deg, #4a00e0, #8e2de2); }
+    .color-btn[data-color="andromeda"] { background: linear-gradient(45deg, #00c9ff, #92fe9d); }
+    .color-btn[data-color="crab"] { background: linear-gradient(45deg, #ff512f, #f09819); }
+    .color-btn[data-color="helix"] { background: linear-gradient(45deg, #56ab2f, #a8e063); }
+    .color-btn[data-color="trifid"] { background: linear-gradient(45deg, #f46b45, #eea849); }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .pattern-select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-light);
+      font-family: var(--font-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .cosmic-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    #cosmicCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 280px; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .controls { top: auto; bottom: 5rem; right: 1rem; min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Cosmic Nebula Swirl</h1>
+    <p>Swirling cosmic nebula with color gradients</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Randomize</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="orion" title="Orion"></button>
+      <button class="color-btn" data-color="andromeda" title="Andromeda"></button>
+      <button class="color-btn" data-color="crab" title="Crab"></button>
+      <button class="color-btn" data-color="helix" title="Helix"></button>
+      <button class="color-btn" data-color="trifid" title="Trifid"></button>
+    </div>
+    <div class="slider-group">
+      <label>Swirl Density: <span class="slider-value" id="densityValue">7</span></label>
+      <input type="range" id="densitySlider" min="3" max="12" step="1" value="7">
+    </div>
+    <div class="slider-group">
+      <label>Rotation Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Color Intensity: <span class="slider-value" id="intensityValue">5</span></label>
+      <input type="range" id="intensitySlider" min="1" max="10" step="1" value="5">
+    </div>
+    <label>Pattern</label>
+    <select class="pattern-select" id="patternSelect">
+      <option value="spiral">Spiral Galaxy</option>
+      <option value="swirl">Swirling Nebula</option>
+      <option value="vortex">Cosmic Vortex</option>
+      <option value="dual">Dual Nebula</option>
+      <option value="cluster">Star Cluster</option>
+    </select>
+  </div>
+
+  <div class="cosmic-container">
+    <canvas id="cosmicCanvas"></canvas>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const canvas = document.getElementById('cosmicCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      density: 7,
+      speed: 1.0,
+      intensity: 5,
+      pattern: 'spiral',
+      colorScheme: 'orion',
+      paused: false
+    };
+
+    const colorSchemes = {
+      orion: [
+        'rgba(74, 0, 224, 0.7)',
+        'rgba(142, 45, 226, 0.6)',
+        'rgba(100, 10, 180, 0.5)',
+        'rgba(50, 5, 120, 0.4)',
+        'rgba(20, 0, 80, 0.3)',
+        'rgba(150, 50, 200, 0.6)'
+      ],
+      andromeda: [
+        'rgba(0, 201, 255, 0.7)',
+        'rgba(146, 254, 157, 0.6)',
+        'rgba(0, 180, 220, 0.5)',
+        'rgba(100, 230, 180, 0.4)',
+        'rgba(0, 150, 200, 0.3)',
+        'rgba(80, 220, 180, 0.6)'
+      ],
+      crab: [
+        'rgba(255, 81, 47, 0.7)',
+        'rgba(240, 152, 25, 0.6)',
+        'rgba(220, 120, 20, 0.5)',
+        'rgba(255, 100, 50, 0.4)',
+        'rgba(200, 80, 30, 0.3)',
+        'rgba(245, 130, 40, 0.6)'
+      ],
+      helix: [
+        'rgba(86, 171, 47, 0.7)',
+        'rgba(168, 224, 99, 0.6)',
+        'rgba(60, 150, 40, 0.5)',
+        'rgba(120, 200, 70, 0.4)',
+        'rgba(40, 120, 30, 0.3)',
+        'rgba(100, 180, 60, 0.6)'
+      ],
+      trifid: [
+        'rgba(244, 107, 69, 0.7)',
+        'rgba(238, 168, 73, 0.6)',
+        'rgba(200, 90, 50, 0.5)',
+        'rgba(220, 140, 60, 0.4)',
+        'rgba(180, 70, 40, 0.3)',
+        'rgba(230, 120, 55, 0.6)'
+      ]
+    };
+
+    let time = 0;
+    let animationId;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function getColors() {
+      return colorSchemes[config.colorScheme];
+    }
+
+    function drawSpiralGalaxy() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+      
+      // Draw spiral arms
+      for (let arm = 0; arm < 4; arm++) {
+        const armOffset = (arm / 4) * Math.PI * 2;
+        
+        for (let i = 0; i < 200; i++) {
+          const t = i / 200;
+          const angle = armOffset + t * Math.PI * 6 + time * 0.01 * config.speed;
+          const radius = t * maxRadius;
+          
+          const x = centerX + Math.cos(angle) * radius;
+          const y = centerY + Math.sin(angle) * radius;
+          
+          // Calculate color based on position
+          const colorIndex = Math.floor((t * config.density) % colors.length);
+          const color = colors[colorIndex];
+          
+          // Calculate size based on distance from center
+          const size = 1 + (1 - t) * 4 * (config.intensity / 5);
+          
+          // Create glow effect
+          const gradient = ctx.createRadialGradient(x, y, 0, x, y, size * 2);
+          gradient.addColorStop(0, color);
+          gradient.addColorStop(0.7, color.replace('0.7', '0.3'));
+          gradient.addColorStop(1, color.replace('0.7', '0.0'));
+          
+          ctx.beginPath();
+          ctx.arc(x, y, size, 0, Math.PI * 2);
+          ctx.fillStyle = gradient;
+          ctx.fill();
+        }
+      }
+      
+      // Draw central bulge
+      const bulgeGradient = ctx.createRadialGradient(
+        centerX, centerY, 0,
+        centerX, centerY, maxRadius * 0.2
+      );
+      bulgeGradient.addColorStop(0, colors[0]);
+      bulgeGradient.addColorStop(0.7, colors[1]);
+      bulgeGradient.addColorStop(1, colors[2]);
+      
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, maxRadius * 0.2, 0, Math.PI * 2);
+      ctx.fillStyle = bulgeGradient;
+      ctx.fill();
+    }
+
+    function drawSwirlingNebula() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+      
+      // Draw multiple swirling layers
+      for (let layer = 0; layer < config.density; layer++) {
+        const layerRadius = maxRadius * (0.3 + 0.7 * (layer / config.density));
+        const layerColor = colors[layer % colors.length];
+        const rotation = time * 0.005 * config.speed * (layer + 1);
+        
+        // Draw swirling pattern
+        for (let i = 0; i < 100; i++) {
+          const t = i / 100;
+          const angle = t * Math.PI * 8 + rotation;
+          const radius = t * layerRadius * (0.8 + 0.2 * Math.sin(t * 10 + time * 0.02));
+          
+          const x = centerX + Math.cos(angle) * radius;
+          const y = centerY + Math.sin(angle) * radius;
+          
+          // Calculate size based on position
+          const size = 1 + Math.sin(t * 20 + time) * 2 * (config.intensity / 5);
+          
+          // Create gradient
+          const gradient = ctx.createRadialGradient(x, y, 0, x, y, size * 2);
+          gradient.addColorStop(0, layerColor);
+          gradient.addColorStop(0.7, layerColor.replace('0.7', '0.3'));
+          gradient.addColorStop(1, layerColor.replace('0.7', '0.0'));
+          
+          ctx.beginPath();
+          ctx.arc(x, y, size, 0, Math.PI * 2);
+          ctx.fillStyle = gradient;
+          ctx.fill();
+        }
+      }
+    }
+
+    function drawCosmicVortex() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+      
+      // Draw vortex pattern
+      for (let i = 0; i < 300; i++) {
+        const t = i / 300;
+        const angle = t * Math.PI * 12 + time * 0.02 * config.speed;
+        const radius = t * maxRadius;
+        
+        // Create spiral effect
+        const spiralX = centerX + Math.cos(angle) * radius;
+        const spiralY = centerY + Math.sin(angle) * radius;
+        
+        // Add secondary spiral
+        const secondaryAngle = angle + Math.PI;
+        const secondaryX = centerX + Math.cos(secondaryAngle) * radius * 0.7;
+        const secondaryY = centerY + Math.sin(secondaryAngle) * radius * 0.7;
+        
+        // Calculate color
+        const colorIndex = Math.floor((t * config.density) % colors.length);
+        const color = colors[colorIndex];
+        
+        // Draw primary spiral
+        const size = 1 + (1 - t) * 3 * (config.intensity / 5);
+        
+        const gradient = ctx.createRadialGradient(spiralX, spiralY, 0, spiralX, spiralY, size * 2);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.7, color.replace('0.7', '0.3'));
+        gradient.addColorStop(1, color.replace('0.7', '0.0'));
+        
+        ctx.beginPath();
+        ctx.arc(spiralX, spiralY, size, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Draw secondary spiral
+        const secondaryColor = colors[(colorIndex + 2) % colors.length];
+        const secondaryGradient = ctx.createRadialGradient(secondaryX, secondaryY, 0, secondaryX, secondaryY, size * 1.5);
+        secondaryGradient.addColorStop(0, secondaryColor);
+        secondaryGradient.addColorStop(0.7, secondaryColor.replace('0.7', '0.3'));
+        secondaryGradient.addColorStop(1, secondaryColor.replace('0.7', '0.0'));
+        
+        ctx.beginPath();
+        ctx.arc(secondaryX, secondaryY, size * 0.8, 0, Math.PI * 2);
+        ctx.fillStyle = secondaryGradient;
+        ctx.fill();
+      }
+    }
+
+    function drawDualNebula() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.3;
+      
+      // Draw two connected nebulae
+      for (let nebula = 0; nebula < 2; nebula++) {
+        const offsetX = (nebula === 0 ? -1 : 1) * maxRadius * 0.7;
+        const rotation = time * 0.01 * config.speed * (nebula === 0 ? 1 : -1);
+        
+        // Draw swirling pattern for each nebula
+        for (let arm = 0; arm < 3; arm++) {
+          const armOffset = (arm / 3) * Math.PI * 2 + rotation;
+          
+          for (let i = 0; i < 150; i++) {
+            const t = i / 150;
+            const angle = armOffset + t * Math.PI * 4;
+            const radius = t * maxRadius;
+            
+            const x = centerX + offsetX + Math.cos(angle) * radius;
+            const y = centerY + Math.sin(angle) * radius;
+            
+            const colorIndex = Math.floor((t * config.density + nebula * 3) % colors.length);
+            const color = colors[colorIndex];
+            
+            const size = 1 + (1 - t) * 3 * (config.intensity / 5);
+            
+            const gradient = ctx.createRadialGradient(x, y, 0, x, y, size * 2);
+            gradient.addColorStop(0, color);
+            gradient.addColorStop(0.7, color.replace('0.7', '0.3'));
+            gradient.addColorStop(1, color.replace('0.7', '0.0'));
+            
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+          }
+        }
+      }
+      
+      // Draw connection between nebulae
+      const connectionPoints = 20;
+      for (let i = 0; i < connectionPoints; i++) {
+        const t = i / connectionPoints;
+        const x = centerX + (t - 0.5) * maxRadius * 1.4;
+        const y = centerY + Math.sin(t * Math.PI * 4 + time * 0.02 * config.speed) * 20;
+        
+        const color = colors[0];
+        const size = 1 + Math.sin(t * Math.PI * 8) * 1 * (config.intensity / 5);
+        
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, size * 2);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.7, color.replace('0.7', '0.3'));
+        gradient.addColorStop(1, color.replace('0.7', '0.0'));
+        
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      }
+    }
+
+    function drawStarCluster() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+      
+      // Draw star cluster with swirling motion
+      for (let i = 0; i < 200; i++) {
+        const angle = (i / 200) * Math.PI * 2 * 3 + time * 0.01 * config.speed;
+        const radius = (i % 100) / 100 * maxRadius;
+        const spiralOffset = (i / 200) * Math.PI * 4;
+        
+        const x = centerX + Math.cos(angle + spiralOffset) * radius;
+        const y = centerY + Math.sin(angle + spiralOffset) * radius;
+        
+        // Add some randomness
+        const randX = x + (Math.random() - 0.5) * 30;
+        const randY = y + (Math.random() - 0.5) * 30;
+        
+        const colorIndex = Math.floor((i / 20) % colors.length);
+        const color = colors[colorIndex];
+        
+        const size = 1 + Math.random() * 3 * (config.intensity / 5);
+        
+        // Create star glow
+        const gradient = ctx.createRadialGradient(randX, randY, 0, randX, randY, size * 3);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color.replace('0.7', '0.4'));
+        gradient.addColorStop(1, color.replace('0.7', '0.0'));
+        
+        ctx.beginPath();
+        ctx.arc(randX, randY, size, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Draw occasional brighter stars
+        if (Math.random() > 0.8) {
+          ctx.beginPath();
+          ctx.arc(randX, randY, size * 1.5, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.fill();
+        }
+      }
+    }
+
+    function drawCosmicNebula() {
+      // Clear with subtle fade effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      switch(config.pattern) {
+        case 'spiral':
+          drawSpiralGalaxy();
+          break;
+        case 'swirl':
+          drawSwirlingNebula();
+          break;
+        case 'vortex':
+          drawCosmicVortex();
+          break;
+        case 'dual':
+          drawDualNebula();
+          break;
+        case 'cluster':
+          drawStarCluster();
+          break;
+      }
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.01 * config.speed;
+        drawCosmicNebula();
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function randomize() {
+      config.density = Math.floor(Math.random() * 8 + 4);
+      config.speed = Math.random() * 2 + 0.5;
+      config.intensity = Math.floor(Math.random() * 8 + 2);
+      const patterns = ['spiral', 'swirl', 'vortex', 'dual', 'cluster'];
+      config.pattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      document.getElementById('densitySlider').value = config.density;
+      document.getElementById('densityValue').textContent = config.density;
+      document.getElementById('speedSlider').value = config.speed.toFixed(1);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+      document.getElementById('intensitySlider').value = config.intensity;
+      document.getElementById('intensityValue').textContent = config.intensity;
+      document.getElementById('patternSelect').value = config.pattern;
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('densitySlider').addEventListener('input', e => {
+      config.density = parseInt(e.target.value);
+      document.getElementById('densityValue').textContent = config.density;
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('intensitySlider').addEventListener('input', e => {
+      config.intensity = parseInt(e.target.value);
+      document.getElementById('intensityValue').textContent = config.intensity;
+    });
+
+    document.getElementById('patternSelect').addEventListener('change', e => {
+      config.pattern = e.target.value;
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        randomize();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['orion', 'andromeda', 'crab', 'helix', 'trifid'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    animate();
+  </script>
+</body>
+</html>

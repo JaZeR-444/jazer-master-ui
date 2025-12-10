@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Circuit</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #002200;
+            font-family: monospace;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .cpu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            background: #111;
+            border: 4px solid #gold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 20px #0f0;
+            z-index: 10;
+        }
+
+        .cpu span {
+            color: #0f0;
+            font-size: 3rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px #0f0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="cpu"><span>JaZeR</span></div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let w, h;
+        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Electron {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                // Start from center or edge
+                if (Math.random() > 0.5) {
+                    this.x = w / 2; this.y = h / 2;
+                    this.dir = Math.floor(Math.random() * 4); // 0:up, 1:right, 2:down, 3:left
+                } else {
+                    this.x = Math.random() * w; this.y = Math.random() * h;
+                    this.dir = Math.floor(Math.random() * 4);
+                }
+                this.life = 100 + Math.random() * 100;
+                this.path = [];
+            }
+            update() {
+                this.life--;
+                if (this.life <= 0) this.reset();
+
+                // Move in grid lines
+                const speed = 5;
+                if (this.dir === 0) this.y -= speed;
+                if (this.dir === 1) this.x += speed;
+                if (this.dir === 2) this.y += speed;
+                if (this.dir === 3) this.x -= speed;
+
+                // Random turn
+                if (Math.random() > 0.95) {
+                    this.dir = (this.dir + (Math.random() > 0.5 ? 1 : 3)) % 4;
+                }
+
+                this.path.push({ x: this.x, y: this.y });
+                if (this.path.length > 20) this.path.shift();
+            }
+            draw() {
+                ctx.beginPath();
+                if (this.path.length > 0) ctx.moveTo(this.path[0].x, this.path[0].y);
+                for (let p of this.path) ctx.lineTo(p.x, p.y);
+                ctx.strokeStyle = '#0f0';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Head
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(this.x - 2, this.y - 2, 4, 4);
+            }
+        }
+
+        const electrons = Array.from({ length: 50 }, () => new Electron());
+
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 34, 0, 0.1)';
+            ctx.fillRect(0, 0, w, h);
+
+            electrons.forEach(e => {
+                e.update();
+                e.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+
+</html>

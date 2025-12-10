@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR City</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #87CEEB;
+        }
+
+        canvas {
+            display: block;
+            filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.2));
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let w, h;
+        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Simple Isometric drawing
+        function drawBlock(x, y, z, width, depth, height, color) {
+            // Isometric projection
+            // x_screen = (x - y) * cos(30)
+            // y_screen = (x + y) * sin(30) - z
+
+            const isoX = (x - y) * Math.cos(Math.PI / 6);
+            const isoY = (x + y) * Math.sin(Math.PI / 6) - z;
+
+            const size = 20; // scaling factor
+
+            const sx = w / 2 + isoX * size;
+            const sy = h / 2 + isoY * size;
+
+            // Draw top face
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(sx, sy - height * size);
+            ctx.lineTo(sx + size, sy + size / 2 - height * size);
+            ctx.lineTo(sx, sy + size - height * size);
+            ctx.lineTo(sx - size, sy + size / 2 - height * size);
+            ctx.closePath();
+            ctx.fill();
+
+            // Sides would need perspective shading
+            // This is complex for a simple file.
+            // Let's stick to 2D "stacks" or simpler isometric art
+
+            ctx.fillStyle = 'rgba(0,0,0,0.2)'; // side shadow
+            ctx.beginPath();
+            ctx.moveTo(sx - size, sy + size / 2 - height * size);
+            ctx.lineTo(sx, sy + size - height * size);
+            ctx.lineTo(sx, sy + size);
+            ctx.lineTo(sx - size, sy + size / 2);
+            ctx.fill();
+
+            ctx.fillStyle = 'rgba(0,0,0,0.4)'; // other side
+            ctx.beginPath();
+            ctx.moveTo(sx, sy + size - height * size);
+            ctx.lineTo(sx + size, sy + size / 2 - height * size);
+            ctx.lineTo(sx + size, sy + size / 2);
+            ctx.lineTo(sx, sy + size);
+            ctx.fill();
+        }
+
+        let time = 0;
+        function animate() {
+            ctx.fillStyle = '#d0e7f9';
+            ctx.fillRect(0, 0, w, h);
+
+            time += 0.05;
+
+            // Draw grid of blocks
+            for (let x = -5; x < 5; x++) {
+                for (let y = -5; y < 5; y++) {
+                    const dist = Math.sqrt(x * x + y * y);
+                    const h = Math.abs(Math.sin(dist - time)) * 5;
+
+                    let color = '#fff';
+                    // JaZeR logo as center blocks
+                    if (Math.abs(x) < 2 && Math.abs(y) < 2) color = '#ff0055';
+
+                    drawBlock(x, y, 0, 1, 1, h, color);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Split-Flap</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #222;
+            font-family: 'Courier New', monospace;
+        }
+
+        .flap-container {
+            display: flex;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .flap-char {
+            position: relative;
+            width: 40px;
+            height: 60px;
+            background: #111;
+            color: #ddd;
+            border-radius: 4px;
+            font-size: 2rem;
+            line-height: 60px;
+            text-align: center;
+            font-weight: bold;
+            perspective: 400px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .flap-char::after {
+            /* Split line */
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        /* Top Half (static back) */
+        .top,
+        .bottom {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            overflow: hidden;
+            background: #333;
+        }
+
+        .top {
+            top: 0;
+            border-radius: 4px 4px 0 0;
+            z-index: 1;
+        }
+
+        .bottom {
+            bottom: 0;
+            border-radius: 0 0 4px 4px;
+            z-index: 0;
+            line-height: 0;
+            /* Align text up */
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        /* Flipping part */
+        .flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: #333;
+            transform-origin: bottom;
+            border-radius: 4px 4px 0 0;
+            z-index: 2;
+            backface-visibility: hidden;
+            transition: transform 0.15s ease-in;
+            overflow: hidden;
+        }
+
+        .flap.flip {
+            transform: rotateX(-180deg);
+        }
+
+        /* Reset state logic is complex for pure CSS, simplified JS simulation here */
+        .char-inner {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="flap-container" id="board">
+        <!-- JS will populate -->
+    </div>
+
+    <script>
+        const board = document.getElementById('board');
+        const targetWord = "JaZeR";
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ";
+
+        // Build structure
+        targetWord.split('').forEach((char, index) => {
+            const el = document.createElement('div');
+            el.className = 'flap-char';
+            el.innerHTML = `
+                <div class="top">${char}</div>
+                <div class="bottom">${char}</div>
+                <div class="flap">${char}</div>
+            `;
+            board.appendChild(el);
+
+            // Randomize start
+            randomizeFlip(el, char);
+        });
+
+        function randomizeFlip(el, targetChar) {
+            let current = chars[Math.floor(Math.random() * chars.length)];
+            let cycles = 10 + Math.floor(Math.random() * 20);
+
+            // Function to step through animation
+            let step = 0;
+            function flip() {
+                if (step >= cycles) {
+                    // Set final
+                    updateChar(el, targetChar);
+                    return;
+                }
+
+                // Random char
+                const nextChar = chars[Math.floor(Math.random() * chars.length)];
+                updateChar(el, nextChar);
+
+                step++;
+                setTimeout(flip, 50 + Math.random() * 50);
+            }
+
+            // Start on click
+            board.addEventListener('click', () => {
+                step = 0;
+                flip();
+            });
+        }
+
+        function updateChar(el, char) {
+            el.querySelector('.top').innerText = char;
+            el.querySelector('.bottom').innerText = char;
+            el.querySelector('.flap').innerText = char;
+
+            // Trigger visual flip class (simple toggle for visual pop)
+            const flap = el.querySelector('.flap');
+            flap.classList.remove('flip');
+            void flap.offsetWidth;
+            flap.classList.add('flip');
+        }
+
+        // Initial Trigger
+        setTimeout(() => board.click(), 1000);
+
+    </script>
+
+</body>
+
+</html>

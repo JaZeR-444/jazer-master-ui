@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glowing Ember Storm</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: linear-gradient(180deg, #1a0a0a 0%, #2d1515 50%, #0a0505 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .info {
+            position: relative;
+            z-index: 2;
+            color: #ff6030;
+            text-align: center;
+            text-shadow: 0 0 30px rgba(255, 96, 48, 0.8);
+        }
+
+        .info h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 0.4em;
+        }
+
+        .info p {
+            opacity: 0.6;
+            color: #ffa060;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">
+        <h1>EMBER STORM</h1>
+        <p>Rising flames</p>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Ember {
+            constructor() { this.reset(); }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + 20;
+                this.size = 2 + Math.random() * 6;
+                this.speedY = 1 + Math.random() * 3;
+                this.speedX = (Math.random() - 0.5) * 2;
+                this.wobble = Math.random() * Math.PI * 2;
+                this.wobbleSpeed = 0.05 + Math.random() * 0.1;
+                this.hue = 20 + Math.random() * 30;
+                this.brightness = 50 + Math.random() * 30;
+                this.alpha = 0.8 + Math.random() * 0.2;
+                this.decay = 0.002 + Math.random() * 0.005;
+            }
+
+            update() {
+                this.y -= this.speedY;
+                this.wobble += this.wobbleSpeed;
+                this.x += this.speedX + Math.sin(this.wobble) * 0.5;
+                this.alpha -= this.decay;
+                this.size *= 0.998;
+
+                if (this.alpha <= 0 || this.y < -20) this.reset();
+            }
+
+            draw() {
+                // Outer glow
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 4);
+                gradient.addColorStop(0, `hsla(${this.hue}, 100%, ${this.brightness}%, ${this.alpha})`);
+                gradient.addColorStop(0.3, `hsla(${this.hue - 10}, 100%, ${this.brightness - 20}%, ${this.alpha * 0.5})`);
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Core
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${this.hue + 20}, 100%, ${this.brightness + 20}%, ${this.alpha})`;
+                ctx.fill();
+            }
+        }
+
+        // Heat distortion lines
+        class HeatWave {
+            constructor(y) {
+                this.y = y;
+                this.offset = Math.random() * 1000;
+            }
+
+            draw(time) {
+                ctx.beginPath();
+                for (let x = 0; x <= canvas.width; x += 10) {
+                    const wave = Math.sin((x + time) * 0.02 + this.offset) * 3;
+                    if (x === 0) ctx.moveTo(x, this.y + wave);
+                    else ctx.lineTo(x, this.y + wave);
+                }
+                ctx.strokeStyle = 'rgba(255, 100, 50, 0.05)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+
+        const embers = Array.from({ length: 100 }, () => new Ember());
+        const heatWaves = [];
+        for (let y = canvas.height * 0.3; y < canvas.height; y += 30) {
+            heatWaves.push(new HeatWave(y));
+        }
+
+        let time = 0;
+        function animate() {
+            time++;
+
+            const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            bg.addColorStop(0, '#1a0a0a');
+            bg.addColorStop(0.5, '#2d1515');
+            bg.addColorStop(1, '#0a0505');
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            heatWaves.forEach(w => w.draw(time));
+            embers.forEach(e => { e.update(); e.draw(); });
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+
+</html>

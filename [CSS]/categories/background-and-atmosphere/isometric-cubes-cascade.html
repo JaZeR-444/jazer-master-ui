@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Isometric Cubes Cascade</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .info {
+            position: relative;
+            z-index: 2;
+            color: white;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(100, 150, 255, 0.6);
+        }
+
+        .info h1 {
+            font-size: 2.2rem;
+            font-weight: 300;
+            letter-spacing: 0.4em;
+        }
+
+        .info p {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">
+        <h1>ISOMETRIC</h1>
+        <p>Cascading cubic dimensions</p>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const cos30 = Math.cos(Math.PI / 6);
+        const sin30 = Math.sin(Math.PI / 6);
+
+        function isoProject(x, y, z) {
+            return {
+                x: (x - y) * cos30,
+                y: (x + y) * sin30 - z
+            };
+        }
+
+        class Cube {
+            constructor(gridX, gridY) {
+                this.gridX = gridX;
+                this.gridY = gridY;
+                this.z = 0;
+                this.targetZ = 0;
+                this.size = 30;
+                this.hue = (gridX * 20 + gridY * 20) % 360;
+                this.phase = Math.random() * Math.PI * 2;
+            }
+
+            update(time) {
+                // Wave pattern
+                const wave = Math.sin(time * 0.002 + this.gridX * 0.2 + this.gridY * 0.2 + this.phase);
+                this.targetZ = wave * 40 + 40;
+                this.z += (this.targetZ - this.z) * 0.1;
+                this.hue = (time * 0.02 + this.gridX * 15 + this.gridY * 15) % 360;
+            }
+
+            draw(offsetX, offsetY) {
+                const s = this.size;
+                const x = this.gridX * s * 1.5;
+                const y = this.gridY * s * 1.5;
+                const z = this.z;
+
+                // Calculate cube vertices
+                const vertices = [
+                    isoProject(x, y, z),
+                    isoProject(x + s, y, z),
+                    isoProject(x + s, y + s, z),
+                    isoProject(x, y + s, z),
+                    isoProject(x, y, z + s),
+                    isoProject(x + s, y, z + s),
+                    isoProject(x + s, y + s, z + s),
+                    isoProject(x, y + s, z + s)
+                ];
+
+                // Offset to center
+                vertices.forEach(v => {
+                    v.x += offsetX;
+                    v.y += offsetY;
+                });
+
+                // Top face
+                ctx.beginPath();
+                ctx.moveTo(vertices[4].x, vertices[4].y);
+                ctx.lineTo(vertices[5].x, vertices[5].y);
+                ctx.lineTo(vertices[6].x, vertices[6].y);
+                ctx.lineTo(vertices[7].x, vertices[7].y);
+                ctx.closePath();
+                ctx.fillStyle = `hsla(${this.hue}, 70%, 60%, 0.8)`;
+                ctx.fill();
+                ctx.strokeStyle = `hsla(${this.hue}, 80%, 80%, 0.9)`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Left face
+                ctx.beginPath();
+                ctx.moveTo(vertices[0].x, vertices[0].y);
+                ctx.lineTo(vertices[4].x, vertices[4].y);
+                ctx.lineTo(vertices[7].x, vertices[7].y);
+                ctx.lineTo(vertices[3].x, vertices[3].y);
+                ctx.closePath();
+                ctx.fillStyle = `hsla(${this.hue}, 70%, 45%, 0.8)`;
+                ctx.fill();
+                ctx.stroke();
+
+                // Right face
+                ctx.beginPath();
+                ctx.moveTo(vertices[1].x, vertices[1].y);
+                ctx.lineTo(vertices[5].x, vertices[5].y);
+                ctx.lineTo(vertices[6].x, vertices[6].y);
+                ctx.lineTo(vertices[2].x, vertices[2].y);
+                ctx.closePath();
+                ctx.fillStyle = `hsla(${this.hue}, 70%, 35%, 0.8)`;
+                ctx.fill();
+                ctx.stroke();
+            }
+        }
+
+        const cubes = [];
+        const gridSize = 10;
+
+        for (let x = -gridSize; x < gridSize; x++) {
+            for (let y = -gridSize; y < gridSize; y++) {
+                cubes.push(new Cube(x, y));
+            }
+        }
+
+        // Sort by draw order
+        cubes.sort((a, b) => (a.gridX + a.gridY) - (b.gridX + b.gridY));
+
+        let time = 0;
+        function animate() {
+            time++;
+
+            ctx.fillStyle = 'rgba(15, 15, 35, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const offsetX = canvas.width / 2;
+            const offsetY = canvas.height / 2;
+
+            cubes.forEach(cube => {
+                cube.update(time);
+                cube.draw(offsetX, offsetY);
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

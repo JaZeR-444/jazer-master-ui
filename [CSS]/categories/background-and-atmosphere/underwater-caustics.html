@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Underwater Caustics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: linear-gradient(180deg, #001f3f 0%, #003366 30%, #004466 60%, #002233 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .info {
+            position: relative;
+            z-index: 2;
+            color: #7fdbff;
+            text-align: center;
+            text-shadow: 0 0 30px rgba(127, 219, 255, 0.5);
+        }
+
+        .info h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 0.4em;
+        }
+
+        .info p {
+            opacity: 0.7;
+            color: #aaddff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">
+        <h1>UNDERWATER</h1>
+        <p>Light dancing through water</p>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Caustics pattern
+        class Caustic {
+            constructor() {
+                this.points = [];
+                this.generatePoints();
+            }
+
+            generatePoints() {
+                const count = 15;
+                for (let i = 0; i < count; i++) {
+                    this.points.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        vx: (Math.random() - 0.5) * 0.5,
+                        vy: (Math.random() - 0.5) * 0.5,
+                        radius: 100 + Math.random() * 200
+                    });
+                }
+            }
+
+            update() {
+                this.points.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.x < -p.radius) p.x = canvas.width + p.radius;
+                    if (p.x > canvas.width + p.radius) p.x = -p.radius;
+                    if (p.y < -p.radius) p.y = canvas.height + p.radius;
+                    if (p.y > canvas.height + p.radius) p.y = -p.radius;
+                });
+            }
+
+            draw(time) {
+                // Draw caustic light patterns
+                this.points.forEach((p, i) => {
+                    const wave = Math.sin(time * 0.002 + i) * 0.3 + 0.7;
+                    const gradient = ctx.createRadialGradient(
+                        p.x, p.y, 0,
+                        p.x, p.y, p.radius * wave
+                    );
+                    gradient.addColorStop(0, `rgba(127, 219, 255, ${0.15 * wave})`);
+                    gradient.addColorStop(0.5, `rgba(0, 150, 200, ${0.08 * wave})`);
+                    gradient.addColorStop(1, 'transparent');
+
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                });
+
+                // Draw light web connections
+                ctx.beginPath();
+                for (let i = 0; i < this.points.length; i++) {
+                    for (let j = i + 1; j < this.points.length; j++) {
+                        const p1 = this.points[i];
+                        const p2 = this.points[j];
+                        const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+
+                        if (dist < 400) {
+                            ctx.moveTo(p1.x, p1.y);
+
+                            // Curved light beam
+                            const midX = (p1.x + p2.x) / 2;
+                            const midY = (p1.y + p2.y) / 2;
+                            const wave = Math.sin(time * 0.003 + i + j) * 30;
+
+                            ctx.quadraticCurveTo(midX + wave, midY + wave, p2.x, p2.y);
+                        }
+                    }
+                }
+                ctx.strokeStyle = `rgba(127, 219, 255, 0.15)`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+
+        // Floating particles (bubbles/debris)
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + 20;
+                this.size = 2 + Math.random() * 4;
+                this.speed = 0.3 + Math.random() * 0.7;
+                this.wobble = Math.random() * Math.PI * 2;
+            }
+
+            update() {
+                this.y -= this.speed;
+                this.wobble += 0.03;
+                this.x += Math.sin(this.wobble) * 0.5;
+
+                if (this.y < -20) this.reset();
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(200, 240, 255, ${0.3 + this.size / 10})`;
+                ctx.fill();
+
+                // Highlight
+                ctx.beginPath();
+                ctx.arc(this.x - this.size * 0.3, this.y - this.size * 0.3, this.size * 0.3, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, 0.6)`;
+                ctx.fill();
+            }
+        }
+
+        // Light rays from surface
+        class LightRay {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.width = 20 + Math.random() * 60;
+                this.alpha = 0.02 + Math.random() * 0.05;
+                this.angle = -0.1 + Math.random() * 0.2;
+            }
+
+            draw(time) {
+                const wobble = Math.sin(time * 0.001 + this.x * 0.01) * 20;
+
+                ctx.save();
+                ctx.translate(this.x + wobble, 0);
+                ctx.rotate(this.angle);
+
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, `rgba(200, 240, 255, ${this.alpha * 2})`);
+                gradient.addColorStop(0.5, `rgba(127, 219, 255, ${this.alpha})`);
+                gradient.addColorStop(1, 'transparent');
+
+                ctx.fillStyle = gradient;
+                ctx.fillRect(-this.width / 2, 0, this.width, canvas.height);
+
+                ctx.restore();
+            }
+        }
+
+        const caustic = new Caustic();
+        const particles = Array.from({ length: 50 }, () => new Particle());
+        const lightRays = Array.from({ length: 8 }, () => new LightRay());
+
+        let time = 0;
+        function animate() {
+            time++;
+
+            // Background gradient
+            const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            bgGradient.addColorStop(0, '#001f3f');
+            bgGradient.addColorStop(0.3, '#003366');
+            bgGradient.addColorStop(0.6, '#004466');
+            bgGradient.addColorStop(1, '#002233');
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Light rays
+            lightRays.forEach(ray => ray.draw(time));
+
+            // Caustics
+            caustic.update();
+            caustic.draw(time);
+
+            // Particles
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

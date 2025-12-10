@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Radar</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #001100;
+            font-family: monospace;
+            color: #0f0;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .hud {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            text-align: right;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="hud">
+        SYSTEM: ONLINE<br>
+        TARGET: JaZeR<br>
+        SCANNING...
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let w, h;
+        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
+
+        let angle = 0;
+        const blips = [];
+
+        function drawRadar() {
+            ctx.fillStyle = 'rgba(0, 17, 0, 0.1)';
+            ctx.fillRect(0, 0, w, h);
+
+            const cx = w / 2, cy = h / 2;
+            const r = Math.min(w, h) * 0.4;
+
+            // Rings
+            ctx.strokeStyle = '#003300';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(cx, cy, r * 0.6, 0, Math.PI * 2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(cx, cy, r * 0.2, 0, Math.PI * 2); ctx.stroke();
+
+            // Crosshairs
+            ctx.beginPath(); ctx.moveTo(cx - r, cy); ctx.lineTo(cx + r, cy); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx, cy - r); ctx.lineTo(cx, cy + r); ctx.stroke();
+
+            // Sweep
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(angle);
+
+            const grad = ctx.createLinearGradient(0, 0, r, 0);
+            grad.addColorStop(0, 'rgba(0, 255, 0, 0)');
+            grad.addColorStop(1, 'rgba(0, 255, 0, 0.5)');
+
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.arc(0, 0, r, 0, 0.5); // Pie slice ish
+            ctx.lineTo(0, 0);
+            ctx.fill();
+
+            // Line
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(r, 0); ctx.strokeStyle = '#0f0'; ctx.stroke();
+
+            ctx.restore();
+
+            // Blips (JaZeR letters?)
+            ctx.fillStyle = '#0f0';
+            ctx.font = '20px monospace';
+
+            // Random blips
+            if (Math.random() > 0.95) blips.push({ x: cx + (Math.random() - 0.5) * r * 2, y: cy + (Math.random() - 0.5) * r * 2, life: 1 });
+
+            blips.forEach((b, i) => {
+                b.life -= 0.01;
+                ctx.globalAlpha = b.life;
+                ctx.fillRect(b.x, b.y, 5, 5);
+                ctx.globalAlpha = 1;
+                if (b.life <= 0) blips.splice(i, 1);
+            });
+
+            // JaZeR center
+            ctx.font = '30px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = `rgba(0, 255, 0, ${Math.abs(Math.sin(angle))})`;
+            ctx.fillText('JaZeR', cx, cy - r - 20);
+
+            angle += 0.05;
+        }
+
+        function animate() {
+            drawRadar();
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+
+</html>

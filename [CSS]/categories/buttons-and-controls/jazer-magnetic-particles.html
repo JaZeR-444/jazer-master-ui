@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Magnetic Particles</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            font-family: 'Arial', sans-serif;
+            cursor: none;
+        }
+
+        .cursor-dot {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 999;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: difference;
+        }
+
+        button {
+            position: relative;
+            padding: 20px 60px;
+            color: white;
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            cursor: none;
+            z-index: 10;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="cursor-dot" id="cursor"></div>
+    <canvas id="canvas"></canvas>
+
+    <button id="btn">JaZeR</button>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const btn = document.getElementById('btn');
+        const cursor = document.getElementById('cursor');
+
+        let w, h;
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        let mx = -100, my = -100;
+        document.addEventListener('mousemove', e => {
+            mx = e.clientX;
+            my = e.clientY;
+            cursor.style.top = my + 'px';
+            cursor.style.left = mx + 'px';
+        });
+
+        // Get button rect
+        let br = btn.getBoundingClientRect();
+        window.addEventListener('resize', () => br = btn.getBoundingClientRect());
+
+        const particles = [];
+        const numParticles = 200;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * w;
+                this.y = Math.random() * h;
+                this.baseX = this.x;
+                this.baseY = this.y;
+                this.size = Math.random() * 2;
+                this.density = (Math.random() * 30) + 1;
+            }
+            update() {
+                // Attract to mouse
+                let dx = mx - this.x;
+                let dy = my - this.y;
+                let dist = Math.sqrt(dx * dx + dy * dy);
+                let forceDirectionX = dx / dist;
+                let forceDirectionY = dy / dist;
+
+                // If close to button center, snap to it for "Magnetic" feel when hovering button
+                const btnCx = br.left + br.width / 2;
+                const btnCy = br.top + br.height / 2;
+
+                // Button Hover Logic
+                if (mx > br.left && mx < br.right && my > br.top && my < br.bottom) {
+                    // Strong attraction to button border
+                    // For simplicity, just high turbulence
+                }
+
+                const maxDist = 150;
+                let force = (maxDist - dist) / maxDist;
+                if (force < 0) force = 0;
+
+                if (dist < maxDist) {
+                    this.x += forceDirectionX * force * this.density;
+                    this.y += forceDirectionY * force * this.density;
+                } else {
+                    if (this.x !== this.baseX) {
+                        let dx = this.x - this.baseX;
+                        this.x -= dx / 10;
+                    }
+                    if (this.y !== this.baseY) {
+                        let dy = this.y - this.baseY;
+                        this.y -= dy / 10;
+                    }
+                }
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Populate swarm near button specifically
+        for (let i = 0; i < numParticles; i++) {
+            // Random start
+            const p = new Particle();
+            // Override base to be around button
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 50 + Math.random() * 100;
+            p.baseX = (window.innerWidth / 2) + Math.cos(angle) * dist;
+            p.baseY = (window.innerHeight / 2) + Math.sin(angle) * dist;
+            p.x = p.baseX; p.y = p.baseY;
+            particles.push(p);
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, w, h);
+
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // Button attraction effect
+        // Just purely visual particles is nice.
+    </script>
+</body>
+
+</html>

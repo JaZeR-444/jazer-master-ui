@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Soundwave Harmonics Field - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+
+    .hero p {
+      color: var(--text-gray);
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-keys {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .key-hint {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: var(--text-gray);
+      font-size: 0.75rem;
+    }
+
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .color-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .color-btn.active {
+      border-color: #fff;
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    .color-btn[data-color="audio"] {
+      background: linear-gradient(45deg, #00ffff, #0088ff);
+    }
+
+    .color-btn[data-color="bass"] {
+      background: linear-gradient(45deg, #ff00cc, #333399);
+    }
+
+    .color-btn[data-color="treble"] {
+      background: linear-gradient(45deg, #00ff9d, #00ffff);
+    }
+
+    .color-btn[data-color="mid"] {
+      background: linear-gradient(45deg, #ff512f, #f09819);
+    }
+
+    .color-btn[data-color="spectrum"] {
+      background: linear-gradient(45deg, #5433ff, #20bdff);
+    }
+
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+
+    .pattern-select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-light);
+      font-family: var(--font-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .soundwave-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(ellipse at center, #0a0a1a 0%, #000 100%);
+      overflow: hidden;
+    }
+
+    #soundwaveCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      filter: drop-shadow(0 0 2px rgba(0, 255, 255, 0.1));
+    }
+
+    .action-buttons {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      z-index: 100;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .action-btn {
+      padding: 0.5rem 0.75rem;
+      background: rgba(10, 10, 15, 0.9);
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      color: var(--text-gray);
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .action-btn:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+    }
+
+    .fps-display {
+      position: fixed;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.7rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.6);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+
+    .status.paused {
+      color: var(--jazer-pink);
+    }
+
+    body.fullscreen .hero,
+    body.fullscreen .controls,
+    body.fullscreen .back-button,
+    body.fullscreen .status {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    body.fullscreen:hover .hero,
+    body.fullscreen:hover .controls,
+    body.fullscreen:hover .back-button,
+    body.fullscreen:hover .status {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    @media (max-width: 768px) {
+      .hero {
+        padding: 0.75rem 1rem;
+        max-width: 280px;
+      }
+
+      .hero h1 {
+        font-size: 1.2rem;
+      }
+
+      .hero p {
+        font-size: 0.8rem;
+      }
+
+      .controls {
+        top: auto;
+        bottom: 5rem;
+        right: 1rem;
+        min-width: 140px;
+      }
+
+      .action-buttons {
+        bottom: 3.5rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Soundwave Harmonics Field</h1>
+    <p>Visualized soundwave harmonics field</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Randomize</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+      <span class="key-hint"><kbd>F</kbd> Fullscreen</span>
+      <span class="key-hint"><kbd>S</kbd> Screenshot</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="audio" title="Audio"></button>
+      <button class="color-btn" data-color="bass" title="Bass"></button>
+      <button class="color-btn" data-color="treble" title="Treble"></button>
+      <button class="color-btn" data-color="mid" title="Mid"></button>
+      <button class="color-btn" data-color="spectrum" title="Spectrum"></button>
+    </div>
+    <div class="slider-group">
+      <label>Harmonics Count: <span class="slider-value" id="harmonicsValue">8</span></label>
+      <input type="range" id="harmonicsSlider" min="4" max="16" step="1" value="8">
+    </div>
+    <div class="slider-group">
+      <label>Wave Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Amplitude: <span class="slider-value" id="amplitudeValue">5</span></label>
+      <input type="range" id="amplitudeSlider" min="1" max="10" step="1" value="5">
+    </div>
+    <label>Pattern</label>
+    <select class="pattern-select" id="patternSelect">
+      <option value="sine">Sine Waves</option>
+      <option value="square">Square Waves</option>
+      <option value="sawtooth">Sawtooth Waves</option>
+      <option value="triangle">Triangle Waves</option>
+      <option value="complex">Complex Harmonics</option>
+    </select>
+  </div>
+
+  <div class="soundwave-container">
+    <canvas id="soundwaveCanvas"></canvas>
+  </div>
+  <div class="status" id="status">Playing</div>
+  <div class="fps-display" id="fpsDisplay">60 FPS</div>
+  <div class="action-buttons">
+    <button class="action-btn" id="fullscreenBtn" title="Toggle Fullscreen (F)">⛶ Fullscreen</button>
+    <button class="action-btn" id="screenshotBtn" title="Take Screenshot (S)">📷 Screenshot</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('soundwaveCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      harmonics: 8,
+      speed: 1.0,
+      amplitude: 5,
+      pattern: 'sine',
+      colorScheme: 'audio',
+      paused: false
+    };
+
+    const colorSchemes = {
+      audio: [
+        'rgba(0, 255, 255, 0.8)',
+        'rgba(0, 136, 255, 0.7)',
+        'rgba(0, 200, 255, 0.6)',
+        'rgba(0, 100, 200, 0.5)',
+        'rgba(0, 180, 255, 0.4)',
+        'rgba(0, 80, 200, 0.6)'
+      ],
+      bass: [
+        'rgba(255, 0, 204, 0.8)',
+        'rgba(51, 51, 153, 0.7)',
+        'rgba(200, 0, 180, 0.6)',
+        'rgba(100, 0, 150, 0.5)',
+        'rgba(255, 0, 150, 0.4)',
+        'rgba(150, 0, 100, 0.6)'
+      ],
+      treble: [
+        'rgba(0, 255, 157, 0.8)',
+        'rgba(0, 255, 255, 0.7)',
+        'rgba(0, 200, 150, 0.6)',
+        'rgba(0, 200, 255, 0.5)',
+        'rgba(0, 180, 180, 0.4)',
+        'rgba(0, 150, 200, 0.6)'
+      ],
+      mid: [
+        'rgba(255, 81, 47, 0.8)',
+        'rgba(240, 152, 25, 0.7)',
+        'rgba(220, 120, 20, 0.6)',
+        'rgba(255, 100, 50, 0.5)',
+        'rgba(200, 80, 30, 0.4)',
+        'rgba(245, 130, 40, 0.6)'
+      ],
+      spectrum: [
+        'rgba(84, 51, 255, 0.8)',
+        'rgba(32, 189, 255, 0.7)',
+        'rgba(100, 80, 220, 0.6)',
+        'rgba(60, 150, 240, 0.5)',
+        'rgba(40, 120, 200, 0.4)',
+        'rgba(70, 100, 220, 0.6)'
+      ]
+    };
+
+    let time = 0;
+    let animationId;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function getColors() {
+      return colorSchemes[config.colorScheme];
+    }
+
+    function drawSineWaves() {
+      const colors = getColors();
+      const centerY = canvas.height / 2;
+      const waveHeight = canvas.height / (config.harmonics + 2);
+
+      for (let i = 0; i < config.harmonics; i++) {
+        const y = (canvas.height / config.harmonics) * i + waveHeight / 2;
+        const color = colors[i % colors.length];
+        const frequency = 0.01 + i * 0.005;
+        const amplitude = 30 + Math.sin(time * 0.01 + i) * 20;
+
+        ctx.beginPath();
+
+        for (let x = 0; x <= canvas.width; x += 2) {
+          const waveY = y + Math.sin(x * frequency + time * 0.02 * config.speed) * amplitude * (config.amplitude / 5);
+          if (x === 0) ctx.moveTo(x, waveY);
+          else ctx.lineTo(x, waveY);
+        }
+
+        // Create gradient for the wave
+        const gradient = ctx.createLinearGradient(0, y - amplitude, 0, y + amplitude);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color.replace('0.8', '0.5'));
+        gradient.addColorStop(1, color.replace('0.8', '0.2'));
+
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Draw harmonics
+        for (let h = 2; h <= 4; h++) {
+          ctx.beginPath();
+
+          for (let x = 0; x <= canvas.width; x += 2) {
+            const harmonicY = y + Math.sin(x * frequency * h + time * 0.02 * config.speed * h) * (amplitude / h) * (config.amplitude / 5);
+            if (x === 0) ctx.moveTo(x, harmonicY);
+            else ctx.lineTo(x, harmonicY);
+          }
+
+          ctx.strokeStyle = color.replace('0.8', '0.3');
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+
+    function drawSquareWaves() {
+      const colors = getColors();
+      const centerY = canvas.height / 2;
+      const waveHeight = canvas.height / (config.harmonics + 2);
+
+      for (let i = 0; i < config.harmonics; i++) {
+        const y = (canvas.height / config.harmonics) * i + waveHeight / 2;
+        const color = colors[i % colors.length];
+        const frequency = 0.01 + i * 0.005;
+        const amplitude = 30 + Math.sin(time * 0.01 + i) * 20;
+
+        ctx.beginPath();
+
+        for (let x = 0; x <= canvas.width; x += 5) {
+          const phase = (x * frequency + time * 0.02 * config.speed) % (Math.PI * 2);
+          const waveY = y + (phase < Math.PI ? 1 : -1) * amplitude * (config.amplitude / 5);
+          if (x === 0) ctx.moveTo(x, waveY);
+          else ctx.lineTo(x, waveY);
+        }
+
+        // Create gradient for the wave
+        const gradient = ctx.createLinearGradient(0, y - amplitude, 0, y + amplitude);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color.replace('0.8', '0.5'));
+        gradient.addColorStop(1, color.replace('0.8', '0.2'));
+
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Draw harmonics approximation
+        for (let h = 1; h <= 5; h += 2) { // Only odd harmonics for square waves
+          const harmonicAmplitude = amplitude / h;
+          ctx.beginPath();
+
+          for (let x = 0; x <= canvas.width; x += 5) {
+            const phase = (x * frequency * h + time * 0.02 * config.speed * h) % (Math.PI * 2);
+            const harmonicY = y + (phase < Math.PI ? 1 : -1) * harmonicAmplitude * (config.amplitude / 5);
+            if (x === 0) ctx.moveTo(x, harmonicY);
+            else ctx.lineTo(x, harmonicY);
+          }
+
+          ctx.strokeStyle = color.replace('0.8', '0.3');
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+
+    function drawSawtoothWaves() {
+      const colors = getColors();
+      const centerY = canvas.height / 2;
+      const waveHeight = canvas.height / (config.harmonics + 2);
+
+      for (let i = 0; i < config.harmonics; i++) {
+        const y = (canvas.height / config.harmonics) * i + waveHeight / 2;
+        const color = colors[i % colors.length];
+        const frequency = 0.01 + i * 0.005;
+        const amplitude = 30 + Math.sin(time * 0.01 + i) * 20;
+
+        ctx.beginPath();
+
+        for (let x = 0; x <= canvas.width; x += 5) {
+          const phase = (x * frequency + time * 0.02 * config.speed) % (Math.PI * 2);
+          const waveY = y + (phase / (Math.PI * 2) - 0.5) * 2 * amplitude * (config.amplitude / 5);
+          if (x === 0) ctx.moveTo(x, waveY);
+          else ctx.lineTo(x, waveY);
+        }
+
+        // Create gradient for the wave
+        const gradient = ctx.createLinearGradient(0, y - amplitude, 0, y + amplitude);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color.replace('0.8', '0.5'));
+        gradient.addColorStop(1, color.replace('0.8', '0.2'));
+
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Draw harmonics approximation
+        for (let h = 1; h <= 5; h++) {
+          const harmonicAmplitude = amplitude / h;
+          ctx.beginPath();
+
+          for (let x = 0; x <= canvas.width; x += 5) {
+            const phase = (x * frequency * h + time * 0.02 * config.speed * h) % (Math.PI * 2);
+            const harmonicY = y + (phase / (Math.PI * 2) - 0.5) * 2 * harmonicAmplitude * (config.amplitude / 5);
+            if (x === 0) ctx.moveTo(x, harmonicY);
+            else ctx.lineTo(x, harmonicY);
+          }
+
+          ctx.strokeStyle = color.replace('0.8', '0.3');
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+
+    function drawTriangleWaves() {
+      const colors = getColors();
+      const centerY = canvas.height / 2;
+      const waveHeight = canvas.height / (config.harmonics + 2);
+
+      for (let i = 0; i < config.harmonics; i++) {
+        const y = (canvas.height / config.harmonics) * i + waveHeight / 2;
+        const color = colors[i % colors.length];
+        const frequency = 0.01 + i * 0.005;
+        const amplitude = 30 + Math.sin(time * 0.01 + i) * 20;
+
+        ctx.beginPath();
+
+        for (let x = 0; x <= canvas.width; x += 5) {
+          const phase = (x * frequency + time * 0.02 * config.speed) % (Math.PI * 2);
+          let waveY;
+
+          if (phase < Math.PI / 2) {
+            waveY = y + (phase / (Math.PI / 2)) * amplitude * (config.amplitude / 5);
+          } else if (phase < Math.PI * 3 / 2) {
+            waveY = y + (2 - phase / (Math.PI / 2)) * amplitude * (config.amplitude / 5);
+          } else {
+            waveY = y + (phase / (Math.PI / 2) - 4) * amplitude * (config.amplitude / 5);
+          }
+
+          if (x === 0) ctx.moveTo(x, waveY);
+          else ctx.lineTo(x, waveY);
+        }
+
+        // Create gradient for the wave
+        const gradient = ctx.createLinearGradient(0, y - amplitude, 0, y + amplitude);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color.replace('0.8', '0.5'));
+        gradient.addColorStop(1, color.replace('0.8', '0.2'));
+
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Draw harmonics (only odd harmonics with alternating signs)
+        for (let h = 1; h <= 7; h += 2) {
+          const harmonicAmplitude = amplitude / (h * h);
+          ctx.beginPath();
+
+          for (let x = 0; x <= canvas.width; x += 5) {
+            const phase = (x * frequency * h + time * 0.02 * config.speed * h) % (Math.PI * 2);
+            let harmonicY;
+
+            if (phase < Math.PI / 2) {
+              harmonicY = y + (phase / (Math.PI / 2)) * harmonicAmplitude * (config.amplitude / 5);
+            } else if (phase < Math.PI * 3 / 2) {
+              harmonicY = y + (2 - phase / (Math.PI / 2)) * harmonicAmplitude * (config.amplitude / 5);
+            } else {
+              harmonicY = y + (phase / (Math.PI / 2) - 4) * harmonicAmplitude * (config.amplitude / 5);
+            }
+
+            if (x === 0) ctx.moveTo(x, harmonicY);
+            else ctx.lineTo(x, harmonicY);
+          }
+
+          ctx.strokeStyle = color.replace('0.8', '0.3');
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+
+    function drawComplexHarmonics() {
+      const colors = getColors();
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+
+      // Draw radial sound waves
+      for (let i = 0; i < config.harmonics; i++) {
+        const color = colors[i % colors.length];
+        const angleStep = (Math.PI * 2) / config.harmonics;
+        const frequency = 0.02 + i * 0.01;
+        const amplitude = 20 + Math.sin(time * 0.01 + i) * 15;
+
+        ctx.beginPath();
+
+        for (let a = 0; a <= Math.PI * 2; a += 0.05) {
+          const waveRadius = maxRadius + Math.sin(a * 5 + time * 0.02 * config.speed) * amplitude * (config.amplitude / 5);
+          const x = centerX + Math.cos(a) * waveRadius;
+          const y = centerY + Math.sin(a) * waveRadius;
+
+          if (a === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+
+        ctx.closePath();
+
+        // Create radial gradient
+        const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, maxRadius);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color.replace('0.8', '0.5'));
+        gradient.addColorStop(1, color.replace('0.8', '0.2'));
+
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Draw harmonics
+        for (let h = 2; h <= 4; h++) {
+          ctx.beginPath();
+
+          for (let a = 0; a <= Math.PI * 2; a += 0.05) {
+            const harmonicRadius = maxRadius + Math.sin(a * 5 * h + time * 0.02 * config.speed * h) * (amplitude / h) * (config.amplitude / 5);
+            const x = centerX + Math.cos(a) * harmonicRadius;
+            const y = centerY + Math.sin(a) * harmonicRadius;
+
+            if (a === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+
+          ctx.closePath();
+          ctx.strokeStyle = color.replace('0.8', '0.3');
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+
+      // Draw concentric circles for additional harmonic effect
+      for (let i = 1; i <= 5; i++) {
+        const radius = maxRadius * 0.2 * i + Math.sin(time * 0.03 * config.speed + i) * 10;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = colors[i % colors.length].replace('0.8', '0.4');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    function drawSoundwave() {
+      // Clear with subtle fade effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      switch (config.pattern) {
+        case 'sine':
+          drawSineWaves();
+          break;
+        case 'square':
+          drawSquareWaves();
+          break;
+        case 'sawtooth':
+          drawSawtoothWaves();
+          break;
+        case 'triangle':
+          drawTriangleWaves();
+          break;
+        case 'complex':
+          drawComplexHarmonics();
+          break;
+      }
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.01 * config.speed;
+        drawSoundwave();
+      }
+      animationId = requestAnimationFrame(animate);
+
+      // FPS monitoring
+      frameCount++;
+      const now = performance.now();
+      if (now - lastFpsUpdate >= 1000) {
+        currentFps = Math.round(frameCount * 1000 / (now - lastFpsUpdate));
+        fpsDisplay.textContent = currentFps + ' FPS';
+        frameCount = 0;
+        lastFpsUpdate = now;
+      }
+    }
+
+    function randomize() {
+      config.harmonics = Math.floor(Math.random() * 10 + 6);
+      config.speed = Math.random() * 2 + 0.5;
+      config.amplitude = Math.floor(Math.random() * 8 + 2);
+      const patterns = ['sine', 'square', 'sawtooth', 'triangle', 'complex'];
+      config.pattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      document.getElementById('harmonicsSlider').value = config.harmonics;
+      document.getElementById('harmonicsValue').textContent = config.harmonics;
+      document.getElementById('speedSlider').value = config.speed.toFixed(1);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+      document.getElementById('amplitudeSlider').value = config.amplitude;
+      document.getElementById('amplitudeValue').textContent = config.amplitude;
+      document.getElementById('patternSelect').value = config.pattern;
+    }
+
+    // FPS tracking
+    const fpsDisplay = document.getElementById('fpsDisplay');
+    let frameCount = 0, lastFpsUpdate = performance.now(), currentFps = 60;
+
+    // Mouse interaction
+    canvas.addEventListener('mousemove', e => {
+      const dx = Math.abs(e.movementX), dy = Math.abs(e.movementY);
+      if (dx > 5 || dy > 5) {
+        config.amplitude = Math.min(10, config.amplitude + 0.1);
+      }
+    });
+    canvas.addEventListener('click', e => {
+      const pulseEffect = { x: e.clientX, y: e.clientY, r: 0, o: 1 };
+      function drawPulse() {
+        if (pulseEffect.o <= 0) return;
+        ctx.beginPath();
+        ctx.arc(pulseEffect.x, pulseEffect.y, pulseEffect.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(0,255,255,${pulseEffect.o})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        pulseEffect.r += 5;
+        pulseEffect.o -= 0.02;
+        requestAnimationFrame(drawPulse);
+      }
+      drawPulse();
+    });
+
+    // Fullscreen toggle
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+        document.body.classList.add('fullscreen');
+      } else {
+        document.exitFullscreen();
+        document.body.classList.remove('fullscreen');
+      }
+    }
+
+    // Screenshot function
+    function takeScreenshot() {
+      const link = document.createElement('a');
+      link.download = 'soundwave-harmonics-' + Date.now() + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // Action buttons
+    document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+    document.getElementById('screenshotBtn').addEventListener('click', takeScreenshot);
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('harmonicsSlider').addEventListener('input', e => {
+      config.harmonics = parseInt(e.target.value);
+      document.getElementById('harmonicsValue').textContent = config.harmonics;
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('amplitudeSlider').addEventListener('input', e => {
+      config.amplitude = parseInt(e.target.value);
+      document.getElementById('amplitudeValue').textContent = config.amplitude;
+    });
+
+    document.getElementById('patternSelect').addEventListener('change', e => {
+      config.pattern = e.target.value;
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') randomize();
+      if (e.code === 'KeyF') toggleFullscreen();
+      if (e.code === 'KeyS') takeScreenshot();
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['audio', 'bass', 'treble', 'mid', 'spectrum'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) document.body.classList.remove('fullscreen');
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    animate();
+  </script>
+</body>
+
+</html>

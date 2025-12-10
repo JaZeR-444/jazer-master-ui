@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Ferrofluid Button</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #e0e0e0;
+            font-family: sans-serif;
+        }
+
+        canvas {
+            cursor: pointer;
+            filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.5));
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="ferroCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('ferroCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = 200;
+        const height = 80;
+        canvas.width = width + 100; // Padding for spikes
+        canvas.height = height + 100;
+
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+
+        let mouseX = -100;
+        let mouseY = -100;
+
+        canvas.addEventListener('mousemove', e => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            mouseX = -100; mouseY = -100;
+        });
+
+        const points = [];
+        const numPoints = 60;
+
+        // Init Points around a rounded rect
+        for (let i = 0; i < numPoints; i++) {
+            const angle = (Math.PI * 2 / numPoints) * i;
+            // Approximate rounded rect
+            let rx = Math.cos(angle) * (width / 2);
+            let ry = Math.sin(angle) * (height / 2);
+
+            // Clamp for boxier shape (simple approximation)
+            if (Math.abs(rx) > width / 2 - 20) rx = Math.sign(rx) * (width / 2 - 20) + Math.cos(angle) * 20;
+            else rx = rx / Math.cos(angle) * Math.cos(angle); // keep ellipse logic mostly for simplicity but stretch
+
+            // Actually, simplest is just ellipse for "ferrofluid pool" look
+            points.push({
+                baseX: Math.cos(angle) * (width / 2),
+                baseY: Math.sin(angle) * (height / 2),
+                currX: Math.cos(angle) * (width / 2),
+                currY: Math.sin(angle) * (height / 2),
+                angle: angle
+            });
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#111';
+            ctx.strokeStyle = '#222';
+
+            ctx.beginPath();
+
+            for (let i = 0; i < points.length; i++) {
+                const p = points[i];
+
+                // Interaction: Attract to mouse if close
+                const px = cx + p.baseX;
+                const py = cy + p.baseY;
+
+                const dx = mouseX - px;
+                const dy = mouseY - py;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                // Spike effect towards mouse
+                let spike = 0;
+                if (dist < 100) {
+                    spike = (100 - dist) * 0.5;
+                }
+
+                // Noise / Waviness
+                const time = Date.now() * 0.005;
+                const noise = Math.sin(p.angle * 5 + time) * 3;
+
+                const dirX = Math.cos(p.angle);
+                const dirY = Math.sin(p.angle);
+
+                // Attract logic vector
+                const pullX = (dx / dist) * spike;
+                const pullY = (dy / dist) * spike;
+
+                p.currX = p.baseX + (dirX * noise) + pullX;
+                p.currY = p.baseY + (dirY * noise) + pullY;
+
+                const finalX = cx + p.currX;
+                const finalY = cy + p.currY;
+
+                if (i === 0) ctx.moveTo(finalX, finalY);
+                else ctx.lineTo(finalX, finalY);
+            }
+
+            ctx.closePath();
+            ctx.fill();
+
+            // Text
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('JaZeR', cx, cy);
+
+            // Shine
+            /* ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            ctx.beginPath();
+            ctx.ellipse(cx - 30, cy - 15, 30, 10, -0.2, 0, Math.PI*2);
+            ctx.fill(); */
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+
+</html>

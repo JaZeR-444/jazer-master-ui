@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Multi Select Dropdown - Forms, Status & Micro UX - JaZeR</title>
+    <link rel="stylesheet" href="../../../jazer-brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #ffffff;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            color: var(--jazer-cyan);
+            text-decoration: none;
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .back-button:hover,
+        .back-button:focus {
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            outline: 2px solid var(--jazer-cyan);
+            outline-offset: 3px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-family: var(--font-primary);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .description {
+            color: #a0a0a0;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .demo-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .multi-select-wrapper {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .multi-select-label {
+            display: block;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--jazer-cyan);
+            margin-bottom: 0.5rem;
+        }
+
+        .multi-select-trigger {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 3rem;
+            outline: none;
+        }
+
+        .multi-select-trigger:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(0, 255, 255, 0.5);
+        }
+
+        .multi-select-trigger:focus {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            outline: 2px solid var(--jazer-cyan);
+            outline-offset: 3px;
+        }
+
+        .multi-select-trigger.active {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .selected-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .selected-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background: var(--jazer-cyan);
+            color: #0a0a0a;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            animation: tagAppear 0.3s ease;
+        }
+
+        @keyframes tagAppear {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .tag-remove {
+            background: none;
+            border: none;
+            color: #0a0a0a;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            transition: transform 0.2s, background 0.2s;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            justify-content: center;
+        }
+
+        .tag-remove:hover {
+            transform: rotate(90deg) scale(1.2);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .tag-remove:focus {
+            outline: 2px solid #0a0a0a;
+            outline-offset: 2px;
+        }
+
+        .placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .select-arrow {
+            color: var(--jazer-cyan);
+            transition: transform 0.3s ease;
+            margin-left: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .multi-select-trigger.active .select-arrow {
+            transform: rotate(180deg);
+        }
+
+        .multi-select-dropdown {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 10, 0.95);
+            border: 2px solid var(--jazer-cyan);
+            border-radius: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.2);
+        }
+
+        .multi-select-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-search {
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            position: sticky;
+            top: 0;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .dropdown-search input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            color: #ffffff;
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-search input:focus {
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+            outline: 2px solid var(--jazer-cyan);
+            outline-offset: 2px;
+        }
+
+        .multi-select-option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.05);
+            outline: none;
+        }
+
+        .multi-select-option:last-child {
+            border-bottom: none;
+        }
+
+        .multi-select-option:hover,
+        .multi-select-option:focus {
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 6px;
+        }
+
+        .multi-select-option.selected {
+            background: rgba(0, 255, 255, 0.2);
+        }
+
+        .option-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(0, 255, 255, 0.5);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .multi-select-option.selected .option-checkbox {
+            background: var(--jazer-cyan);
+            border-color: var(--jazer-cyan);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .option-checkbox::after {
+            content: '✓';
+            color: #0a0a0a;
+            font-weight: bold;
+            font-size: 0.75rem;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s ease;
+        }
+
+        .multi-select-option.selected .option-checkbox::after {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .option-count {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 0.5rem;
+        }
+
+        .dropdown-footer {
+            padding: 0.75rem;
+            border-top: 1px solid rgba(0, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 10, 10, 0.95);
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+        }
+
+        .clear-button {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 51, 102, 0.2);
+            border: 1px solid #ff3366;
+            color: #ff3366;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .clear-button:hover,
+        .clear-button:focus {
+            background: #ff3366;
+            color: #0a0a0a;
+            box-shadow: 0 0 15px rgba(255, 51, 102, 0.4);
+        }
+
+        .no-results {
+            padding: 1rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-style: italic;
+        }
+
+        .keyboard-hint {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+            padding: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .multi-select-dropdown {
+                max-height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-button">← Back</a>
+
+        <h1>Enhanced Multi Select Dropdown</h1>
+        <p class="description">
+            Select multiple options with checkboxes, search filtering, and tag display.
+            Perfect for skills, interests, categories, and any multi-choice selection.
+            Features improved accessibility, keyboard navigation, and glass morphism design.
+        </p>
+
+        <div class="demo-card">
+            <!-- Skills Selector -->
+            <div class="multi-select-wrapper">
+                <label class="multi-select-label" for="skillsSelect">Skills & Technologies</label>
+                <div class="multi-select" data-name="skills" role="combobox" aria-expanded="false" aria-owns="skills-options" aria-haspopup="listbox">
+                    <div class="multi-select-trigger" id="skillsSelect" role="button" aria-haspopup="listbox" tabindex="0">
+                        <div class="selected-tags" id="skills-tags" role="list" aria-label="Selected skills">
+                            <span class="placeholder">Select skills...</span>
+                        </div>
+                        <span class="select-arrow" aria-hidden="true">▼</span>
+                    </div>
+                    <div class="multi-select-dropdown" id="skills-options" role="listbox" aria-label="Skills options">
+                        <div class="dropdown-search">
+                            <input
+                                type="text"
+                                placeholder="Search skills..."
+                                class="search-input"
+                                aria-label="Search skills"
+                                role="searchbox"
+                                autocomplete="off"
+                            >
+                            <div class="keyboard-hint">↑↓ to navigate • Enter to select</div>
+                        </div>
+                        <div class="options-container" role="group">
+                            <div class="multi-select-option" data-value="javascript" role="option" aria-selected="false">
+                                <div class="option-checkbox" aria-hidden="true"></div>
+                                <span>JavaScript</span>
+                            </div>
+                            <div class="multi-select-option" data-value="python" role="option" aria-selected="false">
+                                <div class="option-checkbox" aria-hidden="true"></div>
+                                <span>Python</span>
+                            </div>
+                            <div class="multi-select-option" data-value="react" role="option" aria-selected="false">
+                                <div class="option-checkbox" aria-hidden="true"></div>
+                                <span>React</span>
+                            </div>
+                            <div class="multi-select-option" data-value="nodejs" role="option" aria-selected="false">
+                                <div class="option-checkbox" aria-hidden="true"></div>
+                                <span>Node.js</span>
+                            </div>
+                            <div class="multi-select-option" data-value="typescript" role="option" aria-selected="false">
+                                <div class="option-checkbox" aria-hidden="true"></div>
+                                <span>TypeScript</span>
+                            </div>
+                            <div class="multi-select-option" data-value="vue" role="option" aria-selected="false">
+                                <div class="option-checkbox" aria-hidden="true"></div>
+                                <span>Vue.js</span>
+                            </div>
+                            <div class="multi-select-option" data-value="angular" role="option" aria-selected="false">
+                                <div class="option-checkbox" aria-hidden="true"></div>
+                                <span>Angular</span>
+                            </div>
+                            <div class="multi-select-option" data-value="docker" role="option" aria-selected="false">
+                                <div class="option-checkbox" aria-hidden="true"></div>
+                                <span>Docker</span>
+                            </div>
+                            <div class="multi-select-option" data-value="kubernetes" role="option" aria-selected="false">
+                                <div class="option-checkbox" aria-hidden="true"></div>
+                                <span>Kubernetes</span>
+                            </div>
+                            <div class="multi-select-option" data-value="aws" role="option" aria-selected="false">
+                                <div class="option-checkbox" aria-hidden="true"></div>
+                                <span>AWS</span>
+                            </div>
+                        </div>
+                        <div class="dropdown-footer">
+                            <span class="option-count" id="skills-count">0 selected</span>
+                            <button class="clear-button" type="button" aria-label="Clear all selected options">Clear All</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class EnhancedMultiSelect {
+            constructor(element) {
+                this.element = element;
+                this.name = element.dataset.name;
+                this.trigger = element.querySelector('.multi-select-trigger');
+                this.dropdown = element.querySelector('.multi-select-dropdown');
+                this.tagsContainer = element.querySelector('.selected-tags');
+                this.options = element.querySelectorAll('.multi-select-option');
+                this.searchInput = element.querySelector('.search-input');
+                this.countDisplay = element.querySelector('.option-count');
+                this.clearButton = element.querySelector('.clear-button');
+                this.selectedValues = new Set();
+                this.isOpen = false;
+                this.selectedOptionIndex = -1; // For keyboard navigation
+
+                this.init();
+            }
+
+            init() {
+                // Add ARIA attributes
+                this.trigger.setAttribute('aria-expanded', 'false');
+
+                // Event listeners
+                this.trigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.toggle();
+                });
+
+                this.trigger.addEventListener('keydown', (e) => {
+                    this.handleTriggerKeydown(e);
+                });
+
+                this.options.forEach((option, index) => {
+                    option.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.toggleOption(option);
+                    });
+
+                    option.addEventListener('keydown', (e) => {
+                        this.handleOptionKeydown(e, index);
+                    });
+                });
+
+                this.searchInput.addEventListener('input', (e) => {
+                    this.filterOptions(e.target.value);
+                    this.resetOptionSelection(); // Reset keyboard navigation when filtering
+                });
+
+                this.searchInput.addEventListener('keydown', (e) => {
+                    this.handleSearchKeydown(e);
+                });
+
+                this.clearButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.clearAll();
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!this.element.contains(e.target)) {
+                        this.close();
+                    }
+                });
+            }
+
+            toggle() {
+                this.isOpen ? this.close() : this.open();
+            }
+
+            open() {
+                this.isOpen = true;
+                this.trigger.classList.add('active');
+                this.dropdown.classList.add('active');
+                this.trigger.setAttribute('aria-expanded', 'true');
+                this.searchInput.focus();
+            }
+
+            close() {
+                this.isOpen = false;
+                this.trigger.classList.remove('active');
+                this.dropdown.classList.remove('active');
+                this.trigger.setAttribute('aria-expanded', 'false');
+                this.selectedOptionIndex = -1;
+                this.updateOptionSelection(); // Clear visual selection
+            }
+
+            toggleOption(option) {
+                const value = option.dataset.value;
+                const text = option.textContent.trim();
+
+                if (this.selectedValues.has(value)) {
+                    this.selectedValues.delete(value);
+                    option.classList.remove('selected');
+                    option.setAttribute('aria-selected', 'false');
+                } else {
+                    this.selectedValues.add(value);
+                    option.classList.add('selected');
+                    option.setAttribute('aria-selected', 'true');
+                }
+
+                this.updateDisplay();
+            }
+
+            updateDisplay() {
+                this.tagsContainer.innerHTML = '';
+
+                if (this.selectedValues.size === 0) {
+                    const placeholder = document.createElement('span');
+                    placeholder.className = 'placeholder';
+                    placeholder.textContent = 'Select skills...';
+                    placeholder.setAttribute('aria-hidden', 'true');
+                    this.tagsContainer.appendChild(placeholder);
+                } else {
+                    this.selectedValues.forEach(value => {
+                        const option = Array.from(this.options).find(opt => opt.dataset.value === value);
+                        if (option) {
+                            const tag = document.createElement('div');
+                            tag.className = 'selected-tag';
+                            tag.setAttribute('role', 'listitem');
+                            tag.innerHTML = `
+                                <span>${option.textContent.trim()}</span>
+                                <button
+                                    class="tag-remove"
+                                    data-value="${value}"
+                                    type="button"
+                                    aria-label="Remove ${option.textContent.trim()}"
+                                >×</button>
+                            `;
+
+                            tag.querySelector('.tag-remove').addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                this.toggleOption(option);
+                            });
+
+                            this.tagsContainer.appendChild(tag);
+                        }
+                    });
+                }
+
+                this.countDisplay.textContent = `${this.selectedValues.size} selected`;
+            }
+
+            filterOptions(searchTerm) {
+                const term = searchTerm.toLowerCase();
+                let hasVisibleOptions = false;
+
+                this.options.forEach(option => {
+                    const text = option.textContent.toLowerCase();
+                    if (text.includes(term)) {
+                        option.style.display = 'flex';
+                        hasVisibleOptions = true;
+                    } else {
+                        option.style.display = 'none';
+                    }
+                });
+
+                // Show no results message if needed
+                const noResultsEl = this.dropdown.querySelector('.no-results');
+                if (!hasVisibleOptions && searchTerm.trim() !== '') {
+                    if (!noResultsEl) {
+                        const noResults = document.createElement('div');
+                        noResults.className = 'no-results';
+                        noResults.textContent = 'No skills found';
+                        noResults.setAttribute('role', 'option');
+                        this.options[0].parentElement.appendChild(noResults);
+                    }
+                } else if (noResultsEl) {
+                    noResultsEl.remove();
+                }
+            }
+
+            clearAll() {
+                this.selectedValues.clear();
+                this.options.forEach(option => {
+                    option.classList.remove('selected');
+                    option.setAttribute('aria-selected', 'false');
+                });
+                this.updateDisplay();
+            }
+
+            // Keyboard navigation for trigger
+            handleTriggerKeydown(e) {
+                switch(e.key) {
+                    case 'Enter':
+                    case ' ':
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        this.open();
+                        this.selectedOptionIndex = 0;
+                        this.updateOptionSelection();
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        this.open();
+                        this.selectedOptionIndex = this.options.length - 1;
+                        this.updateOptionSelection();
+                        break;
+                }
+            }
+
+            // Keyboard navigation for options
+            handleOptionKeydown(e, index) {
+                switch(e.key) {
+                    case 'Enter':
+                    case ' ':
+                        e.preventDefault();
+                        this.toggleOption(this.options[index]);
+                        break;
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        this.selectedOptionIndex = (index + 1) % this.options.length;
+                        this.updateOptionSelection();
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        this.selectedOptionIndex = (index - 1 + this.options.length) % this.options.length;
+                        this.updateOptionSelection();
+                        break;
+                    case 'Escape':
+                        e.preventDefault();
+                        this.close();
+                        this.trigger.focus();
+                        break;
+                }
+            }
+
+            // Keyboard navigation for search input
+            handleSearchKeydown(e) {
+                switch(e.key) {
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        this.selectedOptionIndex = 0;
+                        this.updateOptionSelection();
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        this.selectedOptionIndex = this.options.length - 1;
+                        this.updateOptionSelection();
+                        break;
+                    case 'Escape':
+                        e.preventDefault();
+                        this.close();
+                        this.trigger.focus();
+                        break;
+                }
+            }
+
+            resetOptionSelection() {
+                this.selectedOptionIndex = -1;
+                this.updateOptionSelection();
+            }
+
+            updateOptionSelection() {
+                this.options.forEach((option, index) => {
+                    if (index === this.selectedOptionIndex && option.style.display !== 'none') {
+                        option.classList.add('focus');
+                        option.setAttribute('aria-selected', 'true');
+                    } else {
+                        option.classList.remove('focus');
+                        // Only reset aria-selected if not actually selected
+                        if (!this.selectedValues.has(option.dataset.value)) {
+                            option.setAttribute('aria-selected', 'false');
+                        }
+                    }
+                });
+            }
+        }
+
+        // Initialize
+        document.querySelectorAll('.multi-select').forEach(element => {
+            new EnhancedMultiSelect(element);
+        });
+    </script>
+</body>
+</html>

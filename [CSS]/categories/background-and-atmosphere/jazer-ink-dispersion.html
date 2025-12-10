@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaZeR Ink Dispersion</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #fff;
+            font-family: 'Cinzel', serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8rem;
+            font-weight: 700;
+            color: #fff;
+            /* White text to start, reveled by ink? or Ink is the background */
+            mix-blend-mode: difference;
+            pointer-events: none;
+            user-select: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="logo">JaZeR</div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        const inks = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class InkDrop {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.r = 0;
+                this.maxR = 100 + Math.random() * 300;
+                this.color = `hsl(${Math.random() * 360}, 50%, 50%)`;
+                this.alpha = 1;
+                this.speed = 2 + Math.random() * 2;
+            }
+            update() {
+                if (this.r < this.maxR) {
+                    this.r += this.speed;
+                    this.speed *= 0.98; // Slow down
+                } else {
+                    this.alpha -= 0.005;
+                }
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.globalCompositeOperation = 'multiply';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+
+                // Jagged edges simulation (simple noise)
+                // Real ink is complex, we just do circles for performance in vanilla 2d
+                ctx.restore();
+            }
+        }
+
+        function animate() {
+            // No clearRect to allow buildup, but we want to fade old ones?
+            // Actually ink dispersion usually covers canvas.
+
+            if (Math.random() > 0.95) inks.push(new InkDrop());
+
+            inks.forEach((ink, i) => {
+                ink.update();
+                ink.draw();
+                if (ink.alpha <= 0) inks.splice(i, 1);
+            });
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aurora Kaleidoscope - JaZeR Background Effects</title>
+  <link rel="stylesheet" href="../../../jazer-brand.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .back-button {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border-default);
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      border-color: var(--jazer-cyan);
+      color: var(--jazer-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+    .hero {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      text-align: center;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+    }
+    .hero h1 {
+      font-family: var(--font-primary);
+      font-size: 1.5rem;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .hero p { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .hero-keys { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .key-hint { display: flex; align-items: center; gap: 0.35rem; color: var(--text-gray); font-size: 0.75rem; }
+    .key-hint kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-family: var(--font-secondary);
+      color: var(--jazer-cyan);
+      font-size: 0.7rem;
+    }
+    .controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 160px;
+    }
+    .controls label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+    .color-btn[data-color="aurora"] { background: linear-gradient(45deg, #00ff9d, #00ffff); }
+    .color-btn[data-color="polar"] { background: linear-gradient(45deg, #00c9ff, #92fe9d); }
+    .color-btn[data-color="borealis"] { background: linear-gradient(45deg, #00ff00, #008800); }
+    .color-btn[data-color="sunset"] { background: linear-gradient(45deg, #ff512f, #f09819); }
+    .color-btn[data-color="cosmic"] { background: linear-gradient(45deg, #5433ff, #20bdff); }
+    .slider-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--jazer-cyan);
+    }
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--jazer-cyan);
+      text-align: right;
+    }
+    .pattern-select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-light);
+      font-family: var(--font-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .kaleidoscope-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    #kaleidoscopeCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 100;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      background: rgba(10, 10, 15, 0.8);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    .status.paused { color: var(--jazer-pink); }
+    @media (max-width: 768px) {
+      .hero { padding: 0.75rem 1rem; max-width: 280px; }
+      .hero h1 { font-size: 1.2rem; }
+      .hero p { font-size: 0.8rem; }
+      .controls { top: auto; bottom: 5rem; right: 1rem; min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">← Back</a>
+
+  <div class="hero">
+    <h1>Aurora Kaleidoscope</h1>
+    <p>Aurora effects in kaleidoscope pattern</p>
+    <div class="hero-keys">
+      <span class="key-hint"><kbd>Space</kbd> Pause</span>
+      <span class="key-hint"><kbd>R</kbd> Randomize</span>
+      <span class="key-hint"><kbd>1-5</kbd> Colors</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Color Theme</label>
+    <div class="color-buttons">
+      <button class="color-btn active" data-color="aurora" title="Aurora"></button>
+      <button class="color-btn" data-color="polar" title="Polar"></button>
+      <button class="color-btn" data-color="borealis" title="Borealis"></button>
+      <button class="color-btn" data-color="sunset" title="Sunset"></button>
+      <button class="color-btn" data-color="cosmic" title="Cosmic"></button>
+    </div>
+    <div class="slider-group">
+      <label>Segments: <span class="slider-value" id="segmentsValue">12</span></label>
+      <input type="range" id="segmentsSlider" min="6" max="24" step="2" value="12">
+    </div>
+    <div class="slider-group">
+      <label>Rotation Speed: <span class="slider-value" id="speedValue">1.0</span></label>
+      <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1">
+    </div>
+    <div class="slider-group">
+      <label>Aurora Intensity: <span class="slider-value" id="intensityValue">6</span></label>
+      <input type="range" id="intensitySlider" min="1" max="10" step="1" value="6">
+    </div>
+    <label>Pattern</label>
+    <select class="pattern-select" id="patternSelect">
+      <option value="curtains">Aurora Curtains</option>
+      <option value="waves">Aurora Waves</option>
+      <option value="ribbons">Aurora Ribbons</option>
+      <option value="vortex">Aurora Vortex</option>
+      <option value="cascade">Aurora Cascade</option>
+    </select>
+  </div>
+
+  <div class="kaleidoscope-container">
+    <canvas id="kaleidoscopeCanvas"></canvas>
+  </div>
+  <div class="status" id="status">Playing</div>
+
+  <script>
+    const canvas = document.getElementById('kaleidoscopeCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    let config = {
+      segments: 12,
+      speed: 1.0,
+      intensity: 6,
+      pattern: 'curtains',
+      colorScheme: 'aurora',
+      paused: false
+    };
+
+    const colorSchemes = {
+      aurora: [
+        'rgba(0, 255, 157, 0.8)',
+        'rgba(0, 255, 255, 0.7)',
+        'rgba(0, 200, 150, 0.6)',
+        'rgba(0, 200, 255, 0.5)',
+        'rgba(0, 180, 180, 0.4)',
+        'rgba(0, 150, 200, 0.6)'
+      ],
+      polar: [
+        'rgba(0, 201, 255, 0.8)',
+        'rgba(146, 254, 157, 0.7)',
+        'rgba(0, 180, 220, 0.6)',
+        'rgba(100, 230, 180, 0.5)',
+        'rgba(0, 150, 200, 0.4)',
+        'rgba(80, 220, 180, 0.6)'
+      ],
+      borealis: [
+        'rgba(0, 255, 0, 0.8)',
+        'rgba(0, 200, 0, 0.7)',
+        'rgba(0, 180, 0, 0.6)',
+        'rgba(0, 150, 0, 0.5)',
+        'rgba(0, 120, 0, 0.4)',
+        'rgba(0, 100, 0, 0.6)'
+      ],
+      sunset: [
+        'rgba(255, 81, 47, 0.8)',
+        'rgba(240, 152, 25, 0.7)',
+        'rgba(220, 120, 20, 0.6)',
+        'rgba(255, 100, 50, 0.5)',
+        'rgba(200, 80, 30, 0.4)',
+        'rgba(245, 130, 40, 0.6)'
+      ],
+      cosmic: [
+        'rgba(84, 51, 255, 0.8)',
+        'rgba(32, 189, 255, 0.7)',
+        'rgba(100, 80, 220, 0.6)',
+        'rgba(60, 150, 240, 0.5)',
+        'rgba(40, 120, 200, 0.4)',
+        'rgba(70, 100, 220, 0.6)'
+      ]
+    };
+
+    let time = 0;
+    let animationId;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function getColors() {
+      return colorSchemes[config.colorScheme];
+    }
+
+    function drawAuroraCurtains(x, y, size, rotation) {
+      const colors = getColors();
+      
+      // Draw aurora curtains pattern
+      for (let i = 0; i < 5; i++) {
+        const color = colors[i % colors.length];
+        const amplitude = size * 0.3 * (0.7 + 0.3 * Math.sin(time * 0.02 + i));
+        const frequency = 0.02 + i * 0.005;
+        
+        ctx.beginPath();
+        
+        // Draw upper curve
+        for (let px = 0; px <= size; px += 2) {
+          const waveY = y + Math.sin(px * frequency + time * 0.03 * config.speed) * amplitude;
+          if (px === 0) ctx.moveTo(x + px, waveY);
+          else ctx.lineTo(x + px, waveY);
+        }
+        
+        // Draw lower curve to create filled shape
+        for (let px = size; px >= 0; px -= 2) {
+          const waveY = y + Math.sin(px * frequency + time * 0.03 * config.speed) * amplitude * 0.5;
+          ctx.lineTo(x + px, waveY + size * 0.3);
+        }
+        
+        ctx.closePath();
+        
+        // Create gradient for aurora effect
+        const gradient = ctx.createLinearGradient(x, y - amplitude, x, y + amplitude);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color.replace('0.8', '0.5'));
+        gradient.addColorStop(1, color.replace('0.8', '0.2'));
+        
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      }
+    }
+
+    function drawAuroraWaves(x, y, size, rotation) {
+      const colors = getColors();
+      
+      // Draw aurora waves pattern
+      for (let i = 0; i < 4; i++) {
+        const color = colors[i % colors.length];
+        const amplitude = size * 0.25 * (0.8 + 0.2 * Math.sin(time * 0.01 + i));
+        const frequency = 0.015 + i * 0.003;
+        
+        ctx.beginPath();
+        
+        for (let px = 0; px <= size; px += 3) {
+          const waveY = y + Math.sin(px * frequency + time * 0.02 * config.speed) * amplitude +
+                       Math.sin(px * frequency * 2 + time * 0.03 * config.speed) * (amplitude * 0.5);
+          
+          if (px === 0) ctx.moveTo(x + px, waveY);
+          else ctx.lineTo(x + px, waveY);
+        }
+        
+        // Draw return path to create filled shape
+        for (let px = size; px >= 0; px -= 3) {
+          ctx.lineTo(x + px, y + size * 0.4);
+        }
+        
+        ctx.closePath();
+        
+        // Create gradient for the wave
+        const gradient = ctx.createLinearGradient(x, y - amplitude, x, y + amplitude);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color.replace('0.8', '0.6'));
+        gradient.addColorStop(1, color.replace('0.8', '0.3'));
+        
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Add glowing edge
+        ctx.beginPath();
+        for (let px = 0; px <= size; px += 2) {
+          const waveY = y + Math.sin(px * frequency + time * 0.02 * config.speed) * amplitude +
+                       Math.sin(px * frequency * 2 + time * 0.03 * config.speed) * (amplitude * 0.5);
+          
+          if (px === 0) ctx.moveTo(x + px, waveY);
+          else ctx.lineTo(x + px, waveY);
+        }
+        
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+
+    function drawAuroraRibbons(x, y, size, rotation) {
+      const colors = getColors();
+      
+      // Draw aurora ribbons pattern
+      for (let i = 0; i < 3; i++) {
+        const color = colors[i % colors.length];
+        const ribbonWidth = size * 0.15 * (1 + 0.5 * Math.sin(time * 0.01 + i));
+        const centerY = y + size * 0.2 * i;
+        
+        ctx.beginPath();
+        
+        for (let px = 0; px <= size; px += 5) {
+          const waveOffset = Math.sin(px * 0.02 + time * 0.03 * config.speed + i) * size * 0.1;
+          const py = centerY + waveOffset;
+          
+          if (px === 0) {
+            ctx.moveTo(x + px, py - ribbonWidth/2);
+          } else {
+            ctx.lineTo(x + px, py - ribbonWidth/2);
+          }
+        }
+        
+        // Draw the bottom of the ribbon
+        for (let px = size; px >= 0; px -= 5) {
+          const waveOffset = Math.sin(px * 0.02 + time * 0.03 * config.speed + i) * size * 0.1;
+          const py = centerY + waveOffset;
+          ctx.lineTo(x + px, py + ribbonWidth/2);
+        }
+        
+        ctx.closePath();
+        
+        // Create gradient for the ribbon
+        const gradient = ctx.createLinearGradient(x, centerY - ribbonWidth/2, x, centerY + ribbonWidth/2);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color.replace('0.8', '0.6'));
+        gradient.addColorStop(1, color.replace('0.8', '0.3'));
+        
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Add glowing edges
+        ctx.beginPath();
+        for (let px = 0; px <= size; px += 3) {
+          const waveOffset = Math.sin(px * 0.02 + time * 0.03 * config.speed + i) * size * 0.1;
+          const py = centerY + waveOffset;
+          
+          if (px === 0) {
+            ctx.moveTo(x + px, py - ribbonWidth/2);
+          } else {
+            ctx.lineTo(x + px, py - ribbonWidth/2);
+          }
+        }
+        
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    function drawAuroraVortex(x, y, size, rotation) {
+      const colors = getColors();
+      
+      // Draw spiral aurora vortex
+      for (let i = 0; i < 8; i++) {
+        const color = colors[i % colors.length];
+        const rotationSpeed = 0.01 + i * 0.002;
+        
+        ctx.beginPath();
+        
+        for (let t = 0; t < Math.PI * 4; t += 0.1) {
+          const radius = (t / (Math.PI * 4)) * size * 0.4;
+          const angle = t * 3 + time * rotationSpeed * config.speed;
+          const px = x + Math.cos(angle) * radius;
+          const py = y + Math.sin(angle) * radius;
+          
+          if (t === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        
+        // Create gradient for the spiral
+        const gradient = ctx.createLinearGradient(x, y, x + size * 0.4, y);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color.replace('0.8', '0.5'));
+        gradient.addColorStop(1, color.replace('0.8', '0.2'));
+        
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Draw secondary spiral
+        ctx.beginPath();
+        for (let t = 0; t < Math.PI * 3; t += 0.1) {
+          const radius = (t / (Math.PI * 3)) * size * 0.3;
+          const angle = t * 4 - time * rotationSpeed * config.speed;
+          const px = x + Math.cos(angle) * radius;
+          const py = y + Math.sin(angle) * radius;
+          
+          if (t === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        
+        ctx.strokeStyle = color.replace('0.8', '0.3');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    function drawAuroraCascade(x, y, size, rotation) {
+      const colors = getColors();
+      
+      // Draw cascading aurora effect
+      for (let i = 0; i < 5; i++) {
+        const color = colors[i % colors.length];
+        const startY = y + (size / 5) * i;
+        const endY = y + (size / 5) * (i + 1);
+        
+        // Create vertical gradient
+        const gradient = ctx.createLinearGradient(x, startY, x, endY);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, color.replace('0.8', '0.1'));
+        
+        // Draw wave pattern across the section
+        ctx.beginPath();
+        for (let px = 0; px <= size; px += 5) {
+          const waveOffset = Math.sin(px * 0.03 + time * 0.04 * config.speed + i) * size * 0.05;
+          const py = startY + (endY - startY) / 2 + waveOffset;
+          
+          if (px === 0) ctx.moveTo(x + px, py);
+          else ctx.lineTo(x + px, py);
+        }
+        
+        // Draw return path
+        for (let px = size; px >= 0; px -= 5) {
+          const py = endY;
+          ctx.lineTo(x + px, py);
+        }
+        
+        ctx.closePath();
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Add secondary wave
+        ctx.beginPath();
+        for (let px = 0; px <= size; px += 5) {
+          const waveOffset = Math.sin(px * 0.04 + time * 0.05 * config.speed + i) * size * 0.04;
+          const py = startY + (endY - startY) * 0.7 + waveOffset;
+          
+          if (px === 0) ctx.moveTo(x + px, py);
+          else ctx.lineTo(x, py);
+        }
+        
+        ctx.strokeStyle = color.replace('0.8', '0.4');
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+
+    function drawKaleidoscope() {
+      // Clear with subtle fade effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const size = Math.min(canvas.width, canvas.height) * 0.4;
+      const segmentAngle = (Math.PI * 2) / config.segments;
+
+      // Draw the base pattern in one segment
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.rotate(time * 0.005 * config.speed);
+
+      // Draw the aurora pattern in the first segment
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, size, 0, segmentAngle);
+      ctx.closePath();
+      ctx.clip();
+
+      switch(config.pattern) {
+        case 'curtains':
+          drawAuroraCurtains(-size/2, -size/2, size, 0);
+          break;
+        case 'waves':
+          drawAuroraWaves(-size/2, -size/2, size, 0);
+          break;
+        case 'ribbons':
+          drawAuroraRibbons(-size/2, -size/2, size, 0);
+          break;
+        case 'vortex':
+          drawAuroraVortex(0, 0, size, 0);
+          break;
+        case 'cascade':
+          drawAuroraCascade(-size/2, -size/2, size, 0);
+          break;
+      }
+
+      ctx.restore();
+
+      // Reflect the pattern across the kaleidoscope segments
+      for (let i = 1; i < config.segments; i++) {
+        ctx.rotate(segmentAngle);
+        
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, size, 0, segmentAngle);
+        ctx.closePath();
+        ctx.clip();
+        
+        // Mirror the pattern for kaleidoscope effect
+        if (i % 2 === 1) {
+          ctx.scale(-1, 1); // Flip horizontally for alternating segments
+        }
+        
+        switch(config.pattern) {
+          case 'curtains':
+            drawAuroraCurtains(-size/2, -size/2, size, i * segmentAngle);
+            break;
+          case 'waves':
+            drawAuroraWaves(-size/2, -size/2, size, i * segmentAngle);
+            break;
+          case 'ribbons':
+            drawAuroraRibbons(-size/2, -size/2, size, i * segmentAngle);
+            break;
+          case 'vortex':
+            drawAuroraVortex(0, 0, size, i * segmentAngle);
+            break;
+          case 'cascade':
+            drawAuroraCascade(-size/2, -size/2, size, i * segmentAngle);
+            break;
+        }
+        
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    function animate() {
+      if (!config.paused) {
+        time += 0.01 * config.speed;
+        drawKaleidoscope();
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function randomize() {
+      config.segments = Math.floor(Math.random() * 10 + 8) * 2; // Even numbers
+      config.speed = Math.random() * 2 + 0.5;
+      config.intensity = Math.floor(Math.random() * 8 + 3);
+      const patterns = ['curtains', 'waves', 'ribbons', 'vortex', 'cascade'];
+      config.pattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      document.getElementById('segmentsSlider').value = config.segments;
+      document.getElementById('segmentsValue').textContent = config.segments;
+      document.getElementById('speedSlider').value = config.speed.toFixed(1);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+      document.getElementById('intensitySlider').value = config.intensity;
+      document.getElementById('intensityValue').textContent = config.intensity;
+      document.getElementById('patternSelect').value = config.pattern;
+    }
+
+    // Color buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        config.colorScheme = btn.dataset.color;
+      });
+    });
+
+    // Sliders
+    document.getElementById('segmentsSlider').addEventListener('input', e => {
+      config.segments = parseInt(e.target.value);
+      document.getElementById('segmentsValue').textContent = config.segments;
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', e => {
+      config.speed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = config.speed.toFixed(1);
+    });
+
+    document.getElementById('intensitySlider').addEventListener('input', e => {
+      config.intensity = parseInt(e.target.value);
+      document.getElementById('intensityValue').textContent = config.intensity;
+    });
+
+    document.getElementById('patternSelect').addEventListener('change', e => {
+      config.pattern = e.target.value;
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        config.paused = !config.paused;
+        status.textContent = config.paused ? 'Paused' : 'Playing';
+        status.classList.toggle('paused', config.paused);
+      }
+      if (e.code === 'KeyR') {
+        randomize();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        const colorKeys = ['aurora', 'polar', 'borealis', 'sunset', 'cosmic'];
+        const idx = parseInt(e.key) - 1;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-color="${colorKeys[idx]}"]`).classList.add('active');
+        config.colorScheme = colorKeys[idx];
+      }
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    animate();
+  </script>
+</body>
+</html>
