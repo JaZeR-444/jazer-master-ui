@@ -13,8 +13,20 @@ export interface RegistryEntry {
  * approach of scraping HTML for a search index — structured data with platform metadata.
  */
 export const REGISTRY: RegistryEntry[] = [
-  { id: 'button', title: 'Button', platform: 'web', href: '/web#button', tags: ['btn', 'action', 'cta', 'component'] },
-  { id: 'web', title: 'Web components', platform: 'web', href: '/web', tags: ['react', 'showcase', 'ui'] },
+  {
+    id: 'button',
+    title: 'Button',
+    platform: 'web',
+    href: '/web#button',
+    tags: ['btn', 'action', 'cta', 'component'],
+  },
+  {
+    id: 'web',
+    title: 'Web components',
+    platform: 'web',
+    href: '/web',
+    tags: ['react', 'showcase', 'ui'],
+  },
   {
     id: 'foundations',
     title: 'Foundations (legacy library)',
@@ -22,8 +34,26 @@ export const REGISTRY: RegistryEntry[] = [
     href: '/foundations',
     tags: ['html', 'css', 'js', 'vanilla', 'legacy'],
   },
-  { id: 'flutter', title: 'Flutter pillar', platform: 'flutter', href: '/mobile#flutter', tags: ['dart', 'mobile', 'native'] },
-  { id: 'ios', title: 'SwiftUI pillar', platform: 'ios', href: '/mobile#ios', tags: ['swift', 'xcode', 'mobile', 'native'] },
-  { id: 'tokens', title: 'Design tokens', platform: 'docs', href: '/docs#tokens', tags: ['tokens', 'theme', 'color', 'style-dictionary'] },
+  {
+    id: 'flutter',
+    title: 'Flutter pillar',
+    platform: 'flutter',
+    href: '/mobile#flutter',
+    tags: ['dart', 'mobile', 'native'],
+  },
+  {
+    id: 'ios',
+    title: 'SwiftUI pillar',
+    platform: 'ios',
+    href: '/mobile#ios',
+    tags: ['swift', 'xcode', 'mobile', 'native'],
+  },
+  {
+    id: 'tokens',
+    title: 'Design tokens',
+    platform: 'docs',
+    href: '/docs#tokens',
+    tags: ['tokens', 'theme', 'color', 'style-dictionary'],
+  },
   { id: 'docs', title: 'Docs', platform: 'docs', href: '/docs', tags: ['guide', 'usage'] },
 ];

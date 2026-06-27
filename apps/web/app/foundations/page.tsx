@@ -21,9 +21,9 @@ export default async function FoundationsPage() {
       <header className="stack">
         <h1>Foundations</h1>
         <p className="muted">
-          The original JaZeR vanilla library — {items.length.toLocaleString()} standalone HTML/CSS/JS
-          components, preserved and served verbatim. The framework-based design system grows from
-          here; nothing was thrown away.
+          The original JaZeR vanilla library — {items.length.toLocaleString()} standalone
+          HTML/CSS/JS components, preserved and served verbatim. The framework-based design system
+          grows from here; nothing was thrown away.
         </p>
       </header>
       {items.length > 0 ? (

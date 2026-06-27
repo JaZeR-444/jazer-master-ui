@@ -5,17 +5,23 @@ const port = process.env.PORT || 5173;
 
 const root = path.join(__dirname, '..', 'dist');
 
-http.createServer((req, res) => {
-  let filePath = path.join(root, req.url === '/' ? 'HOME.html' : req.url);
-  if (filePath.endsWith('/')) filePath += 'HOME.html';
-  if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-    res.statusCode = 404; res.end('Not found');
-    return;
-  }
-  const ext = path.extname(filePath).slice(1);
-  const contentType = {
-    html: 'text/html', css: 'text/css', js: 'application/javascript'
-  }[ext] || 'application/octet-stream';
-  res.setHeader('Content-Type', contentType + '; charset=utf-8');
-  fs.createReadStream(filePath).pipe(res);
-}).listen(port, () => console.log(`Server: http://localhost:${port}`));
+http
+  .createServer((req, res) => {
+    let filePath = path.join(root, req.url === '/' ? 'HOME.html' : req.url);
+    if (filePath.endsWith('/')) filePath += 'HOME.html';
+    if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+      res.statusCode = 404;
+      res.end('Not found');
+      return;
+    }
+    const ext = path.extname(filePath).slice(1);
+    const contentType =
+      {
+        html: 'text/html',
+        css: 'text/css',
+        js: 'application/javascript',
+      }[ext] || 'application/octet-stream';
+    res.setHeader('Content-Type', contentType + '; charset=utf-8');
+    fs.createReadStream(filePath).pipe(res);
+  })
+  .listen(port, () => console.log(`Server: http://localhost:${port}`));

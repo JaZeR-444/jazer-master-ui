@@ -45,7 +45,9 @@ async function main() {
 
   await fs.mkdir(path.dirname(manifestPath), { recursive: true });
   await fs.writeFile(manifestPath, JSON.stringify(entries));
-  console.log(`✓ legacy synced: ${entries.length} html files -> public/legacy + lib/legacy-manifest.json`);
+  console.log(
+    `✓ legacy synced: ${entries.length} html files -> public/legacy + lib/legacy-manifest.json`,
+  );
 }
 
 main().catch((err) => {

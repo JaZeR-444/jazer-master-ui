@@ -28,7 +28,10 @@ const preview: Preview = {
   decorators: [
     (Story, context) => {
       if (typeof document !== 'undefined') {
-        document.documentElement.setAttribute('data-theme', String(context.globals.theme ?? 'dark'));
+        document.documentElement.setAttribute(
+          'data-theme',
+          String(context.globals.theme ?? 'dark'),
+        );
       }
       return Story();
     },

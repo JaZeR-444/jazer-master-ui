@@ -93,7 +93,8 @@ StyleDictionary.registerFormat({
     const base = dictionary.allTokens.filter((t) => !isTheme(t));
     const theme = (name) => dictionary.allTokens.filter((t) => isTheme(t) && themeOf(t) === name);
     const baseLines = base.map((t) => `  --${baseName(t)}: ${t.value};`).join('\n');
-    const themeLines = (toks) => toks.map((t) => `  --theme-${themeKey(t)}: ${t.value};`).join('\n');
+    const themeLines = (toks) =>
+      toks.map((t) => `  --theme-${themeKey(t)}: ${t.value};`).join('\n');
     return [
       HEADER,
       ':root {',
@@ -149,7 +150,9 @@ StyleDictionary.registerFormat({
       .filter(Boolean)
       .join('\n');
 
-    const keys = dictionary.allTokens.filter((t) => isTheme(t) && themeOf(t) === 'dark').map(themeKey);
+    const keys = dictionary.allTokens
+      .filter((t) => isTheme(t) && themeOf(t) === 'dark')
+      .map(themeKey);
     const fields = keys.map((k) => `    public let ${camel(k)}: Color`).join('\n');
     const initParams = keys.map((k) => `${camel(k)}: Color`).join(', ');
     const initBody = keys.map((k) => `        self.${camel(k)} = ${camel(k)}`).join('\n');
@@ -166,7 +169,9 @@ StyleDictionary.registerFormat({
         .filter((t) => t.path[0] === prefix)
         .map((t) => {
           const px = parsePx(t.value);
-          return px == null ? null : `    public static let ${nativeIdent(t.path[1])}: CGFloat = ${dbl(px)}`;
+          return px == null
+            ? null
+            : `    public static let ${nativeIdent(t.path[1])}: CGFloat = ${dbl(px)}`;
         })
         .filter(Boolean)
         .join('\n');
@@ -213,7 +218,9 @@ StyleDictionary.registerFormat({
       .filter(Boolean)
       .join('\n');
 
-    const keys = dictionary.allTokens.filter((t) => isTheme(t) && themeOf(t) === 'dark').map(themeKey);
+    const keys = dictionary.allTokens
+      .filter((t) => isTheme(t) && themeOf(t) === 'dark')
+      .map(themeKey);
     const fields = keys.map((k) => `  final Color ${camel(k)};`).join('\n');
     const ctorParams = keys.map((k) => `required this.${camel(k)}`).join(', ');
     const instance = (name) => {
@@ -229,7 +236,9 @@ StyleDictionary.registerFormat({
         .filter((t) => t.path[0] === prefix)
         .map((t) => {
           const px = parsePx(t.value);
-          return px == null ? null : `  static const double ${nativeIdent(t.path[1])} = ${dbl(px)};`;
+          return px == null
+            ? null
+            : `  static const double ${nativeIdent(t.path[1])} = ${dbl(px)};`;
         })
         .filter(Boolean)
         .join('\n');

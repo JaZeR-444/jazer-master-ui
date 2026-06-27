@@ -1,9 +1,24 @@
 import Link from 'next/link';
 
 const PILLARS = [
-  { href: '/web', title: 'Web', desc: 'Typed React components on the SCSS design system.', tag: 'React · Next.js' },
-  { href: '/foundations', title: 'Foundations', desc: 'The original ~2,000 vanilla components, preserved.', tag: 'HTML · CSS · JS' },
-  { href: '/mobile', title: 'Mobile', desc: 'Flutter & SwiftUI generated from the same tokens.', tag: 'Dart · Swift' },
+  {
+    href: '/web',
+    title: 'Web',
+    desc: 'Typed React components on the SCSS design system.',
+    tag: 'React · Next.js',
+  },
+  {
+    href: '/foundations',
+    title: 'Foundations',
+    desc: 'The original ~2,000 vanilla components, preserved.',
+    tag: 'HTML · CSS · JS',
+  },
+  {
+    href: '/mobile',
+    title: 'Mobile',
+    desc: 'Flutter & SwiftUI generated from the same tokens.',
+    tag: 'Dart · Swift',
+  },
   { href: '/docs', title: 'Docs', desc: 'Tokens, theming, and usage.', tag: 'Guide' },
 ];
 

@@ -14,8 +14,9 @@ export default function WebPage() {
       <header className="stack">
         <h1>Web components</h1>
         <p className="muted">
-          Typed React components from <code>@jazer/ui</code>, styled by the <code>@jazer/styles</code>{' '}
-          design system. One token source — switch the theme with the toggle above.
+          Typed React components from <code>@jazer/ui</code>, styled by the{' '}
+          <code>@jazer/styles</code> design system. One token source — switch the theme with the
+          toggle above.
         </p>
       </header>
 

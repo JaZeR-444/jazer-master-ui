@@ -23,8 +23,8 @@ export default function DocsPage() {
       <section id="styles" className="stack">
         <h2>Styling</h2>
         <p className="muted">
-          <code>@jazer/styles</code> is a global BEM bundle built with CSS cascade layers
-          (<code>reset · base · layout · components · utilities</code>) for a predictable cascade.{' '}
+          <code>@jazer/styles</code> is a global BEM bundle built with CSS cascade layers (
+          <code>reset · base · layout · components · utilities</code>) for a predictable cascade.{' '}
           <code>@jazer/ui</code> wraps the BEM classes in typed React components.
         </p>
       </section>

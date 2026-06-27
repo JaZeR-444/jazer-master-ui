@@ -9,12 +9,14 @@ The `jazer-brand.css` file is the central stylesheet that defines all brand styl
 ## CSS Architecture
 
 ### 1. jazer-brand.css (Main Source of Truth)
+
 - Contains all CSS variables for colors, fonts, spacing, etc.
 - Defines base component styles (buttons, cards, forms, etc.)
 - Includes utility classes for common styling needs
 - Provides responsive and accessibility features
 
 ### 2. component-extensions.css (Optional)
+
 - For component-specific styles that extend the base theme
 - Should only include styles that build upon the base brand
 - Avoid duplicating styles already in jazer-brand.css
@@ -26,18 +28,18 @@ All HTML files should include the brand CSS as follows:
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Your Component</title>
     <!-- JaZeR Brand Stylesheet - Main source of truth -->
-    <link rel="stylesheet" href="../jazer-brand.css">
+    <link rel="stylesheet" href="../jazer-brand.css" />
     <!-- Optional: Component-specific extensions -->
     <!-- <link rel="stylesheet" href="component-extensions.css"> -->
-</head>
-<body>
+  </head>
+  <body>
     <!-- Your content -->
-</body>
+  </body>
 </html>
 ```
 
@@ -46,6 +48,7 @@ All HTML files should include the brand CSS as follows:
 The brand CSS defines the following CSS variables:
 
 ### Colors
+
 - `--jazer-cyan`: #00f2ea
 - `--jazer-pink`: #ff006e
 - `--jazer-purple`: #9333ea
@@ -54,11 +57,13 @@ The brand CSS defines the following CSS variables:
 - And more...
 
 ### Gradients
+
 - `--gradient-primary`: linear-gradient(135deg, #00f2ea 0%, #ff006e 50%, #9333ea 100%)
 - `--gradient-accent`: linear-gradient(135deg, #ff006e 0%, #9333ea 100%)
 - And more...
 
 ### Spacing
+
 - `--spacing-xs`: 0.25rem
 - `--spacing-sm`: 0.5rem
 - `--spacing-md`: 1rem
@@ -66,6 +71,7 @@ The brand CSS defines the following CSS variables:
 - And more...
 
 ### Typography
+
 - `--font-primary`: 'Nunito', sans-serif
 - `--font-secondary`: 'Outfit', sans-serif
 - `--font-body`: 'DM Sans', sans-serif
@@ -93,6 +99,7 @@ The brand CSS provides utility classes for common styling patterns:
 ## Responsive Design
 
 The brand CSS includes responsive design considerations with breakpoints at:
+
 - Mobile: <= 480px
 - Tablet: <= 768px
 - Desktop: <= 1024px
@@ -100,6 +107,7 @@ The brand CSS includes responsive design considerations with breakpoints at:
 ## Accessibility
 
 The brand CSS includes accessibility features:
+
 - Focus states for interactive elements
 - Sufficient color contrast
 - Semantic HTML support

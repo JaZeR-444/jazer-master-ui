@@ -17,6 +17,7 @@ the next milestone until the current Checkpoint passes.
 **Goal:** turn the flat repo into a pnpm + Turborepo workspace; relocate legacy; shared config.
 
 **Tasks**
+
 - `0.1` `git checkout -b feat/v2-monorepo`
 - `0.2` Move legacy out of root (preserves history, stops bracket-glob interference):
   `git mv "[HTML]" legacy/[HTML]` · `git mv "[CSS]" legacy/[CSS]` · `git mv "[JS]" legacy/[JS]`
@@ -27,8 +28,8 @@ the next milestone until the current Checkpoint passes.
   - `pnpm-workspace.yaml`:
     ```yaml
     packages:
-      - "packages/*"
-      - "apps/*"
+      - 'packages/*'
+      - 'apps/*'
     ```
   - `turbo.json`:
     ```json
@@ -36,7 +37,8 @@ the next milestone until the current Checkpoint passes.
       "$schema": "https://turbo.build/schema.json",
       "tasks": {
         "build": { "dependsOn": ["^build"], "outputs": ["dist/**", ".next/**"] },
-        "lint": {}, "test": { "dependsOn": ["^build"] },
+        "lint": {},
+        "test": { "dependsOn": ["^build"] },
         "dev": { "cache": false, "persistent": true }
       }
     }
@@ -59,6 +61,7 @@ shows full pre-move history; root `node_modules` linked by pnpm.
 **Goal:** one token source → Style Dictionary → SCSS + CSS vars + `Theme.swift` + `jazer_theme.dart`.
 
 **Tasks**
+
 - `1.1` `packages/tokens` (`@jazer/tokens`): dep `style-dictionary@^4`; scripts `build`, `watch`,
   `check` (`build` then `git diff --exit-code` on generated outputs — the drift gate).
 - `1.2` Author the **tiered** source (DTCG format, `$value`/`$type`, aliases `{color.cyan}`):
@@ -71,8 +74,8 @@ shows full pre-move history; root `node_modules` linked by pnpm.
   spacing scale, radii, fonts, shadows). **No new colors invented.**
 - `1.3` `style-dictionary.config.mjs` with platforms:
   - `scss` → `_tokens.scss` (variables + deep maps) into `packages/styles/src/abstracts/`
-  - `css`  → `:root` custom properties + `[data-theme="dark"]` overrides
-  - `ios`  → custom format → `native/ios-swiftui/Sources/Generated/Theme.swift` (Color/Font ext.)
+  - `css` → `:root` custom properties + `[data-theme="dark"]` overrides
+  - `ios` → custom format → `native/ios-swiftui/Sources/Generated/Theme.swift` (Color/Font ext.)
   - `flutter` → custom format → `native/flutter/lib/generated/jazer_theme.dart` (`ThemeData`+`JazerColors`)
 - `1.4` Register the two custom formats (Swift, Dart) — small functions mapping token tree → source.
 - `1.5` `pnpm --filter @jazer/tokens build`; confirm all four outputs land in their consumers.
@@ -89,6 +92,7 @@ shows full pre-move history; root `node_modules` linked by pnpm.
 **Goal:** compile `jazer.css` from a layered Sass system; ship the `btn` BEM block.
 
 **Tasks**
+
 - `2.1` `packages/styles` (`@jazer/styles`): dep `sass`; scripts `build`
   (`sass src/main.scss dist/jazer.css --load-path=node_modules`), `watch`; exports `dist/jazer.css`
   and `./abstracts` partials (so `packages/ui` modules can `@use` mixins).
@@ -102,11 +106,20 @@ shows full pre-move history; root `node_modules` linked by pnpm.
 - `2.5` `main.scss` — declare layer order once, assign partials to layers:
   ```scss
   @layer reset, base, layout, components, utilities;
-  @use 'abstracts' as *;            // functions/mixins/vars — emit nothing
-  @layer reset    { @use 'base/reset'; }
-  @layer base     { @use 'base/root'; @use 'base/typography'; }
-  @layer components { @use 'components/button'; }
-  @layer utilities  { @use 'utilities/helpers'; }
+  @use 'abstracts' as *; // functions/mixins/vars — emit nothing
+  @layer reset {
+    @use 'base/reset';
+  }
+  @layer base {
+    @use 'base/root';
+    @use 'base/typography';
+  }
+  @layer components {
+    @use 'components/button';
+  }
+  @layer utilities {
+    @use 'utilities/helpers';
+  }
   ```
 - `2.6` Build → `dist/jazer.css`; stylelint passes.
 
@@ -123,6 +136,7 @@ declarations present in the compiled CSS.
 **Goal:** typed React `<Button>` applying BEM classes; Storybook catalog with a11y.
 
 **Tasks**
+
 - `3.1` `packages/ui` (`@jazer/ui`): peerDeps `react`/`react-dom`; dep `@jazer/styles` + `clsx`;
   build via `tsup` (esm+cjs+dts); tsconfig extends `@jazer/config`.
 - `3.2` `src/Button/Button.tsx` — `forwardRef`, props `{ variant?, size?, fullWidth?, ...ButtonHTMLAttributes }`
@@ -147,6 +161,7 @@ a11y addon reports no violations; `build` emits `.d.ts`.
 **Goal:** App-Router Hub renders `<Button>`, serves legacy, search/favorites skeleton, Vercel preview.
 
 **Tasks**
+
 - `4.1` `apps/web` via `create-next-app` (TS, App Router, **no Tailwind**). `next.config.js`:
   `transpilePackages: ['@jazer/ui', '@jazer/styles']`.
 - `4.2` Root `layout.tsx`: import `jazer.css`; inline no-flash theme script (port idea from
@@ -162,7 +177,7 @@ a11y addon reports no violations; `build` emits `.d.ts`.
   ```
 - `4.4` Legacy serving: `scripts/sync-legacy.mjs` copies root `legacy/` → `apps/web/public/legacy/`
   (gitignored), wired as `predev`/`prebuild`. Files open standalone at `/legacy/...`.
-  *(Verbatim re-skin via `jazer.css` swap = later refinement; pass-1 = serve + link + index.)*
+  _(Verbatim re-skin via `jazer.css` swap = later refinement; pass-1 = serve + link + index.)_
 - `4.5` `src/registry.ts` typed component registry (Button + sample legacy entries) → drives search;
   `CommandPalette` React component (port `global-search.js` UX, `/` hotkey); `useFavorites` hook
   (port `add-favorites.js`, localStorage).
@@ -181,6 +196,7 @@ Vercel preview URL live.
 **Goal:** prove the token pipeline reaches native — the same Button, themed from generated files.
 
 **Tasks**
+
 - `5.1` Flutter: `flutter create native/flutter`. Wire `lib/generated/jazer_theme.dart` (M1) into
   `ThemeData`; build a screen with a branded `JazerButton`; light/dark; `flutter analyze` clean +
   one widget test. (Runs on Windows: web/desktop/emulator.)
@@ -201,6 +217,7 @@ complete and self-consistent (CI will compile them).
 **Goal:** GitHub Actions verifying every pillar; the Windows constraint resolved by a macOS runner.
 
 **Tasks**
+
 - `6.1` `.github/workflows/web.yml`: pnpm+node setup → `turbo run lint build test` → upload Playwright report.
 - `6.2` `tokens` job: `pnpm --filter @jazer/tokens check` (build + `git diff --exit-code` = drift gate).
 - `6.3` `flutter.yml`: `subosito/flutter-action` → `flutter analyze` + `flutter test`.
@@ -228,6 +245,7 @@ M0 ──▶ M1 ──▶ M2 ──▶ M3 ──▶ M4 ─┐
                       └──────────┴──▶ M6
               M1 ──────────────▶ M5 ─┘   (native can start once tokens exist; CI lands last)
 ```
+
 M5 (native) only depends on M1 (tokens) — it can proceed in parallel with M3/M4 if desired.
 
 ## Risk checkpoints baked in

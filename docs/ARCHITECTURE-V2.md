@@ -20,7 +20,7 @@ considered), the **final architecture**, and the **first-pass build sequence**.
   of one repo, not four separate projects.
 - **Why:** Deliberately level up from "level 1" to "level 5–6" by practicing **senior full-stack /
   architect** skills, and to produce one cohesive, deployable, portfolio-grade artifact spanning
-  **web *and* mobile**.
+  **web _and_ mobile**.
 - **Who:** Primarily the author — as builder/learner and first consumer of the design system.
   Secondarily a public audience (portfolio viewers; developers who learn from / copy components).
 - **Platform pillars:** Web (React + Next.js + TypeScript), cross-platform mobile (Flutter/Dart),
@@ -49,34 +49,34 @@ considered), the **final architecture**, and the **first-pass build sequence**.
 
 ## 3. Non-Functional Requirements (proposed defaults)
 
-| Dimension | Target |
-|---|---|
-| **Performance** | Performance-conscious; good Lighthouse scores. Tokens/SCSS compiled at build; legacy served as static assets (zero render cost). Not tuned for extreme/high-traffic loads. |
-| **Scale** | Portfolio-scale traffic. Architected to scale (stateless web, CDN/static, managed services) but not provisioned for high load in pass 1. |
-| **Security / Privacy** | Minimal in pass 1 (static showcase, no user data). Real security work (authn/z, secrets, input validation, RLS) begins at the authenticated-product phase. |
-| **Reliability / Availability** | Vercel-grade hosting + preview deploys. Not mission-critical; no uptime SLA. |
-| **Maintenance / Ownership** | Solo developer. Favor managed services, strong CI, and DX-first tooling. Write-once token/style propagation minimizes cross-platform maintenance. |
+| Dimension                      | Target                                                                                                                                                                     |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Performance**                | Performance-conscious; good Lighthouse scores. Tokens/SCSS compiled at build; legacy served as static assets (zero render cost). Not tuned for extreme/high-traffic loads. |
+| **Scale**                      | Portfolio-scale traffic. Architected to scale (stateless web, CDN/static, managed services) but not provisioned for high load in pass 1.                                   |
+| **Security / Privacy**         | Minimal in pass 1 (static showcase, no user data). Real security work (authn/z, secrets, input validation, RLS) begins at the authenticated-product phase.                 |
+| **Reliability / Availability** | Vercel-grade hosting + preview deploys. Not mission-critical; no uptime SLA.                                                                                               |
+| **Maintenance / Ownership**    | Solo developer. Favor managed services, strong CI, and DX-first tooling. Write-once token/style propagation minimizes cross-platform maintenance.                          |
 
 ---
 
 ## 4. Decision Log
 
-| # | Decision | Alternatives considered | Why |
-|---|---|---|---|
-| D1 | North-star = **one monorepo** that is the *superset* of all four visions (design system + showcase + product + installable kit) | Pick a single vision | The four are folders, not competing projects; a monorepo design system contains all of them |
-| D2 | Core web stack = **React + Next.js + TypeScript** | Vue + Nuxt; Svelte + SvelteKit | Real native mobile code-share (via React ecosystem), dominant hiring market, first-class session tooling (Vercel/Next), preserves brand work |
-| D3 | **Polyglot multi-platform pillars**: Web (React/Next) + Flutter/Dart + SwiftUI (+ legacy tier), optional React Native, unified by **shared design tokens** | React-everywhere only | User is actively learning Swift/Xcode + Dart/Flutter and wants to showcase the *different* mobile resources, not one |
-| D4 | iOS = **authored on Windows, built on macOS CI** (GitHub Actions macOS runner) | Skip iOS; buy a Mac; cloud Mac (MacinCloud) | Windows-only now; macOS runners verify SwiftUI in CI without owning hardware |
-| D5 | Architecture approach **A** — token-spine monorepo, **depth-first architecture / narrow content** (thin vertical slice) | B (web-first, defer mobile); C (full polyglot now, breadth-first) | Nothing built is throwaway *and* the multi-platform thesis is proven on day one, without breadth-first stall |
-| D6 | Monorepo tooling = **pnpm + Turborepo + Changesets** (dormant) | npm/yarn workspaces; Nx | pnpm: strict + disk-efficient; Turbo: lightweight + Vercel-native (Nx = over-tooling); Changesets ready for later publish |
-| D7 | **Native boundary**: `packages/tokens` commits generated `Theme.swift` / `jazer_theme.dart` into the native folders; native apps never run the Node pipeline | Native runs the token build itself | Decouples three toolchains; each native app is self-sufficient (clone-and-build) |
-| D8 | **Tiered token source** (primitive → semantic → theme sets) in W3C Design-Tokens JSON, built by **Style Dictionary** to per-platform outputs; brand values lifted verbatim | Ad-hoc per-platform theming | Proper design-token architecture; re-theme by swapping semantic→primitive maps; one source → all platforms/themes |
-| D9 | **SCSS/Sass-first** web design system (replaces Tailwind/shadcn); modern `@use`/`@forward`, 7-1-style layout | Tailwind + shadcn | Plays to the author's CSS/BEM strength; legitimate senior approach (Bootstrap/Foundation-style); unifies the legacy library |
-| D10 | **Layered styling consumption**: global BEM bundle (`@jazer/styles` → `jazer.css`) built with **CSS `@layer`** cascade layers (ITCSS ordering); **typed React wrappers** apply BEM classes; **CSS Modules** (`*.module.scss`) only for app-local one-offs | Pure CSS Modules everywhere; pure global with no wrappers | Write-once/theme-everywhere (incl. legacy), typed DX, predictable cascade (no specificity wars), clean design-system ↔ application boundary |
-| D11 | Component catalog = **Storybook 8 + Vite builder** | Ladle | Industry standard; deep a11y/interaction/visual-regression (Chromatic) + MDX docs matching existing axe/Playwright rigor; CSF keeps it portable to Ladle later |
-| D12 | **Legacy** = `git mv` into `legacy/`, served statically from `apps/web/public/legacy/`, re-skinned by dropping in `jazer.css`, indexed into Hub search; not rewritten in pass 1 | Auto-convert; delete | Preserves history + a year of work, unifies the look for free, and the bracketed-dir glob problem disappears (static files, not glob targets) |
-| D13 | **Next.js App Router** with route groups `(hub)` / `(showcase)` / `(docs)`; search via a **typed component registry**; favorites in `localStorage` for pass 1 | Scrape HTML for search (current approach) | Structured, reliable search index with metadata (platform/category/tags); preserves the `/`-hotkey UX |
-| D14 | **CI/CD** = GitHub Actions: web (turbo lint/build/test → Vercel preview), token-drift check, flutter analyze/test, iOS `xcodebuild` on macOS runner, dormant Changesets publish | Single web-only pipeline | Each pillar verified independently; macOS runner resolves the Windows/iOS constraint |
+| #   | Decision                                                                                                                                                                                                                                                  | Alternatives considered                                           | Why                                                                                                                                                            |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | North-star = **one monorepo** that is the _superset_ of all four visions (design system + showcase + product + installable kit)                                                                                                                           | Pick a single vision                                              | The four are folders, not competing projects; a monorepo design system contains all of them                                                                    |
+| D2  | Core web stack = **React + Next.js + TypeScript**                                                                                                                                                                                                         | Vue + Nuxt; Svelte + SvelteKit                                    | Real native mobile code-share (via React ecosystem), dominant hiring market, first-class session tooling (Vercel/Next), preserves brand work                   |
+| D3  | **Polyglot multi-platform pillars**: Web (React/Next) + Flutter/Dart + SwiftUI (+ legacy tier), optional React Native, unified by **shared design tokens**                                                                                                | React-everywhere only                                             | User is actively learning Swift/Xcode + Dart/Flutter and wants to showcase the _different_ mobile resources, not one                                           |
+| D4  | iOS = **authored on Windows, built on macOS CI** (GitHub Actions macOS runner)                                                                                                                                                                            | Skip iOS; buy a Mac; cloud Mac (MacinCloud)                       | Windows-only now; macOS runners verify SwiftUI in CI without owning hardware                                                                                   |
+| D5  | Architecture approach **A** — token-spine monorepo, **depth-first architecture / narrow content** (thin vertical slice)                                                                                                                                   | B (web-first, defer mobile); C (full polyglot now, breadth-first) | Nothing built is throwaway _and_ the multi-platform thesis is proven on day one, without breadth-first stall                                                   |
+| D6  | Monorepo tooling = **pnpm + Turborepo + Changesets** (dormant)                                                                                                                                                                                            | npm/yarn workspaces; Nx                                           | pnpm: strict + disk-efficient; Turbo: lightweight + Vercel-native (Nx = over-tooling); Changesets ready for later publish                                      |
+| D7  | **Native boundary**: `packages/tokens` commits generated `Theme.swift` / `jazer_theme.dart` into the native folders; native apps never run the Node pipeline                                                                                              | Native runs the token build itself                                | Decouples three toolchains; each native app is self-sufficient (clone-and-build)                                                                               |
+| D8  | **Tiered token source** (primitive → semantic → theme sets) in W3C Design-Tokens JSON, built by **Style Dictionary** to per-platform outputs; brand values lifted verbatim                                                                                | Ad-hoc per-platform theming                                       | Proper design-token architecture; re-theme by swapping semantic→primitive maps; one source → all platforms/themes                                              |
+| D9  | **SCSS/Sass-first** web design system (replaces Tailwind/shadcn); modern `@use`/`@forward`, 7-1-style layout                                                                                                                                              | Tailwind + shadcn                                                 | Plays to the author's CSS/BEM strength; legitimate senior approach (Bootstrap/Foundation-style); unifies the legacy library                                    |
+| D10 | **Layered styling consumption**: global BEM bundle (`@jazer/styles` → `jazer.css`) built with **CSS `@layer`** cascade layers (ITCSS ordering); **typed React wrappers** apply BEM classes; **CSS Modules** (`*.module.scss`) only for app-local one-offs | Pure CSS Modules everywhere; pure global with no wrappers         | Write-once/theme-everywhere (incl. legacy), typed DX, predictable cascade (no specificity wars), clean design-system ↔ application boundary                    |
+| D11 | Component catalog = **Storybook 8 + Vite builder**                                                                                                                                                                                                        | Ladle                                                             | Industry standard; deep a11y/interaction/visual-regression (Chromatic) + MDX docs matching existing axe/Playwright rigor; CSF keeps it portable to Ladle later |
+| D12 | **Legacy** = `git mv` into `legacy/`, served statically from `apps/web/public/legacy/`, re-skinned by dropping in `jazer.css`, indexed into Hub search; not rewritten in pass 1                                                                           | Auto-convert; delete                                              | Preserves history + a year of work, unifies the look for free, and the bracketed-dir glob problem disappears (static files, not glob targets)                  |
+| D13 | **Next.js App Router** with route groups `(hub)` / `(showcase)` / `(docs)`; search via a **typed component registry**; favorites in `localStorage` for pass 1                                                                                             | Scrape HTML for search (current approach)                         | Structured, reliable search index with metadata (platform/category/tags); preserves the `/`-hotkey UX                                                          |
+| D14 | **CI/CD** = GitHub Actions: web (turbo lint/build/test → Vercel preview), token-drift check, flutter analyze/test, iOS `xcodebuild` on macOS runner, dormant Changesets publish                                                                           | Single web-only pipeline                                          | Each pillar verified independently; macOS runner resolves the Windows/iOS constraint                                                                           |
 
 ---
 
@@ -154,11 +154,11 @@ packages/styles/src/
 
 **Consumption model (the discipline):**
 
-| You're styling… | Use |
-|---|---|
+| You're styling…                            | Use                           |
+| ------------------------------------------ | ----------------------------- |
 | A reusable component (button, card, modal) | Global BEM in `@jazer/styles` |
-| A typed React API over that component | Wrapper in `packages/ui` |
-| A one-off layout only this page needs | `*.module.scss` in `apps/web` |
+| A typed React API over that component      | Wrapper in `packages/ui`      |
+| A one-off layout only this page needs      | `*.module.scss` in `apps/web` |
 
 - Global bundle = the portable design artifact (themes React + legacy + any HTML).
 - `packages/ui` React wrappers are ~thin typed components mapping props → BEM classes
@@ -235,13 +235,13 @@ steps 2→5 for the next component.
 
 ## 7. Risks & Mitigations
 
-| Risk | Mitigation |
-|---|---|
-| Front-loaded complexity (token pipeline + Turbo wiring is the hard 20%) | It's the *first* thing built (steps 0–1); everything after is repetition |
-| iOS only CI-verified, not interactively iterated (no local Mac) | Author small, lean on macOS-runner builds + snapshot tests; revisit if a Mac becomes available |
-| Scope creep / breadth-first stall | Discipline: thin vertical slice in pass 1; resist populating all platforms before the spine is proven |
-| Global CSS naming/specificity drift | BEM discipline + CSS `@layer` ordering; lint with stylelint |
-| Solo maintenance across many pillars | Write-once token/style propagation; managed services; strong CI gates |
+| Risk                                                                    | Mitigation                                                                                            |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Front-loaded complexity (token pipeline + Turbo wiring is the hard 20%) | It's the _first_ thing built (steps 0–1); everything after is repetition                              |
+| iOS only CI-verified, not interactively iterated (no local Mac)         | Author small, lean on macOS-runner builds + snapshot tests; revisit if a Mac becomes available        |
+| Scope creep / breadth-first stall                                       | Discipline: thin vertical slice in pass 1; resist populating all platforms before the spine is proven |
+| Global CSS naming/specificity drift                                     | BEM discipline + CSS `@layer` ordering; lint with stylelint                                           |
+| Solo maintenance across many pillars                                    | Write-once token/style propagation; managed services; strong CI gates                                 |
 
 ---
 

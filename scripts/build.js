@@ -5,7 +5,16 @@ const htmlMinifier = require('html-minifier-terser');
 const csso = require('csso');
 
 const srcDir = path.join(__dirname, '..');
-const EXCLUDED_DIRS = new Set(['node_modules', 'dist', '.git', '.github', '.qwen', '.vscode', 'docs', 'tests']);
+const EXCLUDED_DIRS = new Set([
+  'node_modules',
+  'dist',
+  '.git',
+  '.github',
+  '.qwen',
+  '.vscode',
+  'docs',
+  'tests',
+]);
 const pathExists = fs.existsSync(srcDir); // ensure repo root exists
 if (!pathExists) {
   console.error('Source directory not found');
