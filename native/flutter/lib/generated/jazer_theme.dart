@@ -1,7 +1,6 @@
-/**
- * JaZeR Design Tokens — GENERATED FILE. Do not edit by hand.
- * Source: packages/tokens/src/**   Rebuild: pnpm --filter @jazer/tokens build
- */
+// JaZeR Design Tokens — GENERATED FILE. Do not edit by hand.
+// Source: packages/tokens/src   Rebuild: pnpm --filter @jazer/tokens build
+// ignore_for_file: type=lint
 import 'package:flutter/material.dart';
 
 /// Raw brand palette.

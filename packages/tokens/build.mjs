@@ -7,10 +7,13 @@
  */
 import StyleDictionary from 'style-dictionary';
 
+// NOTE: keep this header free of any "/*" sequence. Swift block comments NEST, so text
+// like "src/**" inside a /* */ header opens an accidental nested comment and breaks the
+// Swift file ("unterminated '/*' comment"). Native headers below use // line comments.
 const HEADER = [
   '/**',
   ' * JaZeR Design Tokens — GENERATED FILE. Do not edit by hand.',
-  ' * Source: packages/tokens/src/**   Rebuild: pnpm --filter @jazer/tokens build',
+  ' * Source: packages/tokens/src   Rebuild: pnpm --filter @jazer/tokens build',
   ' */',
   '',
 ].join('\n');
@@ -178,8 +181,13 @@ StyleDictionary.registerFormat({
       return `public enum ${enumName} {\n${lines}\n}`;
     };
 
+    const swiftHeader = [
+      '// JaZeR Design Tokens — GENERATED FILE. Do not edit by hand.',
+      '// Source: packages/tokens/src   Rebuild: pnpm --filter @jazer/tokens build',
+      'import SwiftUI',
+    ].join('\n');
     return [
-      HEADER + 'import SwiftUI',
+      swiftHeader,
       '',
       '/// Raw brand palette.',
       'public enum JazerColor {',
@@ -245,8 +253,14 @@ StyleDictionary.registerFormat({
       return `class ${className} {\n  ${className}._();\n${lines}\n}`;
     };
 
+    const dartHeader = [
+      '// JaZeR Design Tokens — GENERATED FILE. Do not edit by hand.',
+      '// Source: packages/tokens/src   Rebuild: pnpm --filter @jazer/tokens build',
+      '// ignore_for_file: type=lint',
+      "import 'package:flutter/material.dart';",
+    ].join('\n');
     return [
-      HEADER + "import 'package:flutter/material.dart';",
+      dartHeader,
       '',
       '/// Raw brand palette.',
       'class JazerColors {',

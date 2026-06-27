@@ -1,7 +1,5 @@
-/**
- * JaZeR Design Tokens — GENERATED FILE. Do not edit by hand.
- * Source: packages/tokens/src/**   Rebuild: pnpm --filter @jazer/tokens build
- */
+// JaZeR Design Tokens — GENERATED FILE. Do not edit by hand.
+// Source: packages/tokens/src   Rebuild: pnpm --filter @jazer/tokens build
 import SwiftUI
 
 /// Raw brand palette.
