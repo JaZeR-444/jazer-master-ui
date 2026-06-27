@@ -37,7 +37,7 @@ class _JazerAppState extends State<JazerApp> {
           ],
         ),
         body: Padding(
-          padding: EdgeInsets.all(JazerSpace.lg),
+          padding: const EdgeInsets.all(JazerSpace.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -45,7 +45,7 @@ class _JazerAppState extends State<JazerApp> {
                 'Button',
                 style: TextStyle(color: t.text, fontSize: 28, fontWeight: FontWeight.w800),
               ),
-              SizedBox(height: JazerSpace.md),
+              const SizedBox(height: JazerSpace.md),
               Wrap(
                 spacing: JazerSpace.sm,
                 runSpacing: JazerSpace.sm,
@@ -96,7 +96,7 @@ class JazerButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(JazerRadius.md),
         onTap: onPressed ?? () {},
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: JazerSpace.lg, vertical: JazerSpace.sm),
+          padding: const EdgeInsets.symmetric(horizontal: JazerSpace.lg, vertical: JazerSpace.sm),
           child: Text(label, style: TextStyle(color: fg, fontWeight: FontWeight.w700)),
         ),
       ),
