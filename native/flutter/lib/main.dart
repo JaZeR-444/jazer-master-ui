@@ -36,7 +36,7 @@ class _JazerAppState extends State<JazerApp> {
             ),
           ],
         ),
-        body: Padding(
+        body: SingleChildScrollView(
           padding: const EdgeInsets.all(JazerSpace.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -54,6 +54,18 @@ class _JazerAppState extends State<JazerApp> {
                   JazerButton(label: 'Secondary', theme: t, variant: JazerButtonVariant.secondary),
                   JazerButton(label: 'Ghost', theme: t, variant: JazerButtonVariant.ghost),
                 ],
+              ),
+              const SizedBox(height: JazerSpace.xl),
+              Text(
+                'Card',
+                style: TextStyle(color: t.text, fontSize: 28, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: JazerSpace.md),
+              JazerCard(
+                title: 'Cyberpunk surface',
+                body: 'One token source themes this card — same brand as web and SwiftUI.',
+                theme: t,
+                elevated: true,
               ),
             ],
           ),
@@ -99,6 +111,48 @@ class JazerButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: JazerSpace.lg, vertical: JazerSpace.sm),
           child: Text(label, style: TextStyle(color: fg, fontWeight: FontWeight.w700)),
         ),
+      ),
+    );
+  }
+}
+
+/// A card styled from the generated JaZeR tokens — surface, border, and radius from the theme.
+class JazerCard extends StatelessWidget {
+  const JazerCard({
+    super.key,
+    required this.title,
+    required this.body,
+    required this.theme,
+    this.elevated = false,
+  });
+
+  final String title;
+  final String body;
+  final JazerTheme theme;
+  final bool elevated;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(JazerSpace.lg),
+      decoration: BoxDecoration(
+        color: theme.surface,
+        border: Border.all(color: theme.border),
+        borderRadius: BorderRadius.circular(JazerRadius.lg),
+        boxShadow: elevated
+            ? const [BoxShadow(color: Color(0x40000000), blurRadius: 25, offset: Offset(0, 10))]
+            : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(color: theme.text, fontSize: 20, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: JazerSpace.xs),
+          Text(body, style: TextStyle(color: theme.textMuted, height: 1.5)),
+        ],
       ),
     );
   }

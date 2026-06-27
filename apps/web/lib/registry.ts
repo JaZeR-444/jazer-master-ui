@@ -21,6 +21,13 @@ export const REGISTRY: RegistryEntry[] = [
     tags: ['btn', 'action', 'cta', 'component'],
   },
   {
+    id: 'card',
+    title: 'Card',
+    platform: 'web',
+    href: '/web#card',
+    tags: ['card', 'surface', 'panel', 'content', 'component'],
+  },
+  {
     id: 'web',
     title: 'Web components',
     platform: 'web',

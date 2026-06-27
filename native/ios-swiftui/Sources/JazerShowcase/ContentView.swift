@@ -25,6 +25,13 @@ public struct ContentView: View {
                 JazerButton("Secondary", variant: .secondary, theme: theme)
                 JazerButton("Ghost", variant: .ghost, theme: theme)
             }
+
+            JazerCard(
+                title: "Cyberpunk surface",
+                message: "One token source themes this card — same brand as web & Flutter.",
+                theme: theme,
+                elevated: true
+            )
         }
         .padding(JazerSpace.lg)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
