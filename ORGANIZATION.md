@@ -24,6 +24,7 @@ HTML-CSS-JS-Library/
 ## Purpose
 
 This organization allows for:
+
 - Clear separation between HTML, CSS, and JavaScript libraries at the root
 - Better navigation and discoverability of component categories
 - Logical grouping of related files with minimal nesting

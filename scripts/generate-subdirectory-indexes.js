@@ -7,42 +7,117 @@ const jsDir = path.join(rootDir, '[JS]');
 
 // Helper to format title from filename
 function formatTitle(filename) {
-  let name = filename.replace(/\.[^/.]+$/, ""); // Remove extension
-  return name.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  let name = filename.replace(/\.[^/.]+$/, ''); // Remove extension
+  return name
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }
 
 // Helper to format folder name to title
 function formatFolderTitle(folderName) {
-  return folderName.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  return folderName
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }
 
 // Extract keywords from filename for filtering
 function extractKeywords(filename) {
-  const name = filename.replace(/\.[^/.]+$/, "").toLowerCase();
+  const name = filename.replace(/\.[^/.]+$/, '').toLowerCase();
   const words = name.split('-');
   const categoryKeywords = [
-    'button', 'toggle', 'switch', 'input', 'form', 'modal', 'card', 'nav', 'menu',
-    'loader', 'spinner', 'progress', 'tooltip', 'dropdown', 'tabs', 'accordion',
-    'slider', 'carousel', 'animation', 'effect', 'hover', 'click', 'scroll',
-    'gradient', 'glow', 'neon', 'glass', 'morph', 'ripple', 'pulse', '3d',
-    'chart', 'graph', 'data', 'table', 'list', 'grid', 'layout',
-    'icon', 'image', 'media', 'video', 'audio', 'player',
-    'notification', 'alert', 'toast', 'badge', 'tag', 'chip',
-    'search', 'filter', 'sort', 'pagination', 'stepper',
-    'date', 'time', 'calendar', 'picker', 'select', 'multi',
-    'upload', 'download', 'file', 'drag', 'drop',
-    'theme', 'dark', 'light', 'color', 'palette',
-    'validation', 'error', 'success', 'warning', 'info',
-    'utils', 'helper', 'hook', 'module', 'component', 'template'
+    'button',
+    'toggle',
+    'switch',
+    'input',
+    'form',
+    'modal',
+    'card',
+    'nav',
+    'menu',
+    'loader',
+    'spinner',
+    'progress',
+    'tooltip',
+    'dropdown',
+    'tabs',
+    'accordion',
+    'slider',
+    'carousel',
+    'animation',
+    'effect',
+    'hover',
+    'click',
+    'scroll',
+    'gradient',
+    'glow',
+    'neon',
+    'glass',
+    'morph',
+    'ripple',
+    'pulse',
+    '3d',
+    'chart',
+    'graph',
+    'data',
+    'table',
+    'list',
+    'grid',
+    'layout',
+    'icon',
+    'image',
+    'media',
+    'video',
+    'audio',
+    'player',
+    'notification',
+    'alert',
+    'toast',
+    'badge',
+    'tag',
+    'chip',
+    'search',
+    'filter',
+    'sort',
+    'pagination',
+    'stepper',
+    'date',
+    'time',
+    'calendar',
+    'picker',
+    'select',
+    'multi',
+    'upload',
+    'download',
+    'file',
+    'drag',
+    'drop',
+    'theme',
+    'dark',
+    'light',
+    'color',
+    'palette',
+    'validation',
+    'error',
+    'success',
+    'warning',
+    'info',
+    'utils',
+    'helper',
+    'hook',
+    'module',
+    'component',
+    'template',
   ];
-  return words.filter(w => categoryKeywords.includes(w) || w.length > 3);
+  return words.filter((w) => categoryKeywords.includes(w) || w.length > 3);
 }
 
 // Generate subdirectory index page with favorites support
 function generateSubdirectoryIndex(dirPath, categoryName, backUrl, libraryType, cssPath) {
   const files = fs.readdirSync(dirPath);
-  const htmlFiles = files.filter(f => f.endsWith('.html') && f !== 'index.html');
-  const jsFiles = files.filter(f => f.endsWith('.js'));
+  const htmlFiles = files.filter((f) => f.endsWith('.html') && f !== 'index.html');
+  const jsFiles = files.filter((f) => f.endsWith('.js'));
 
   let componentFiles = libraryType === 'css' ? htmlFiles : jsFiles;
   const count = componentFiles.length;
@@ -52,8 +127,8 @@ function generateSubdirectoryIndex(dirPath, categoryName, backUrl, libraryType, 
 
   // Build keyword counts for filter pills
   const keywordCounts = new Map();
-  componentFiles.forEach(file => {
-    extractKeywords(file).forEach(kw => {
+  componentFiles.forEach((file) => {
+    extractKeywords(file).forEach((kw) => {
       keywordCounts.set(kw, (keywordCounts.get(kw) || 0) + 1);
     });
   });
@@ -62,24 +137,28 @@ function generateSubdirectoryIndex(dirPath, categoryName, backUrl, libraryType, 
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10);
 
-  const filterPillsHtml = topKeywords.map(([kw, count]) => {
-    const label = kw.charAt(0).toUpperCase() + kw.slice(1);
-    return `          <div class="filter-pill" data-filter="${kw}">${label}<span class="pill-count">${count}</span></div>`;
-  }).join('\n');
+  const filterPillsHtml = topKeywords
+    .map(([kw, count]) => {
+      const label = kw.charAt(0).toUpperCase() + kw.slice(1);
+      return `          <div class="filter-pill" data-filter="${kw}">${label}<span class="pill-count">${count}</span></div>`;
+    })
+    .join('\n');
 
   // Generate component cards with favorites button and copy button (same as HTML pages)
-  let componentCards = componentFiles.map(file => {
-    const name = formatTitle(file);
-    const keywords = extractKeywords(file).join(' ');
-    const favoriteId = `${libraryType}-${categoryName}-${file.replace(/\.[^/.]+$/, "")}`;
-    const filePath = `${categoryName}/${file}`;
-    return `        <a class="card card-interactive p-4" href="./${file}" data-keywords="${keywords}" data-component="${favoriteId}" data-path="${filePath}">
+  let componentCards = componentFiles
+    .map((file) => {
+      const name = formatTitle(file);
+      const keywords = extractKeywords(file).join(' ');
+      const favoriteId = `${libraryType}-${categoryName}-${file.replace(/\.[^/.]+$/, '')}`;
+      const filePath = `${categoryName}/${file}`;
+      return `        <a class="card card-interactive p-4" href="./${file}" data-keywords="${keywords}" data-component="${favoriteId}" data-path="${filePath}">
           <button class="favorite-btn" data-favorite="${favoriteId}"></button>
           <button class="copy-btn" data-copy="${filePath}">Get</button>
           <h3 class="font-bold text-lg mb-2">${name}</h3>
           <p class="text-sm text-gray">${libraryType === 'css' ? 'CSS Component' : 'JavaScript Module'}</p>
         </a>`;
-  }).join('\n');
+    })
+    .join('\n');
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -414,16 +493,22 @@ function processCSSDirectories() {
     return;
   }
 
-  const subdirs = fs.readdirSync(cssDir).filter(f => {
+  const subdirs = fs.readdirSync(cssDir).filter((f) => {
     const fullPath = path.join(cssDir, f);
     return fs.statSync(fullPath).isDirectory() && !f.startsWith('extra-');
   });
 
   let processed = 0;
-  subdirs.forEach(subdir => {
+  subdirs.forEach((subdir) => {
     const subdirPath = path.join(cssDir, subdir);
     const indexPath = path.join(subdirPath, 'index.html');
-    const html = generateSubdirectoryIndex(subdirPath, subdir, '../MASTER-INDEX.html', 'css', '../../jazer-brand.css');
+    const html = generateSubdirectoryIndex(
+      subdirPath,
+      subdir,
+      '../MASTER-INDEX.html',
+      'css',
+      '../../jazer-brand.css',
+    );
     fs.writeFileSync(indexPath, html);
     processed++;
     console.log(`  ✓ ${subdir}/index.html`);
@@ -441,16 +526,22 @@ function processJSDirectories() {
     return;
   }
 
-  const subdirs = fs.readdirSync(jsDir).filter(f => {
+  const subdirs = fs.readdirSync(jsDir).filter((f) => {
     const fullPath = path.join(jsDir, f);
     return fs.statSync(fullPath).isDirectory();
   });
 
   let processed = 0;
-  subdirs.forEach(subdir => {
+  subdirs.forEach((subdir) => {
     const subdirPath = path.join(jsDir, subdir);
     const indexPath = path.join(subdirPath, 'index.html');
-    const html = generateSubdirectoryIndex(subdirPath, subdir, '../all-components.html', 'js', '../../jazer-brand.css');
+    const html = generateSubdirectoryIndex(
+      subdirPath,
+      subdir,
+      '../all-components.html',
+      'js',
+      '../../jazer-brand.css',
+    );
     fs.writeFileSync(indexPath, html);
     processed++;
     console.log(`  ✓ ${subdir}/index.html`);

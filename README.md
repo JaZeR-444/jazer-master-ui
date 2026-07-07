@@ -11,8 +11,8 @@ A comprehensive, copy-paste-ready reference library of vanilla HTML, CSS, and Ja
 
 ## ✨ Key Features
 
-- **Vanilla-first approach** - Designed with minimal dependencies; *note: some "hook-like" patterns and CSS preprocessor syntax may be present, indicating potential hidden dependencies or build steps.*
-- **Copy-Paste Ready snippets** - Core component HTML, inline CSS, and JavaScript are designed for direct integration; *note: example files demonstrating components often link to `jazer-brand.css`.*
+- **Vanilla-first approach** - Designed with minimal dependencies; _note: some "hook-like" patterns and CSS preprocessor syntax may be present, indicating potential hidden dependencies or build steps._
+- **Copy-Paste Ready snippets** - Core component HTML, inline CSS, and JavaScript are designed for direct integration; _note: example files demonstrating components often link to `jazer-brand.css`._
 - **Fully Responsive** - Mobile-first, adapts to all screen sizes
 - **Accessible** - ARIA labels, semantic HTML, keyboard navigation
 - **Well Documented** - Clear comments throughout the code

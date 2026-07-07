@@ -46,4 +46,5 @@ Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
 ## Contact
 
 For commercial licensing or permissions beyond the scope of this license:
+
 - GitHub: [@JaZeR-444](https://github.com/JaZeR-444)

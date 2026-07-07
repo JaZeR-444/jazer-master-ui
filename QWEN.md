@@ -5,6 +5,7 @@
 The JaZeR Component Library is a comprehensive, copy-paste-ready reference library of vanilla HTML, CSS, and JavaScript components and patterns. It provides a unified component library system with 1,280+ components across three core libraries: HTML, CSS, and JavaScript.
 
 The library features:
+
 - 100% Vanilla components with no frameworks or dependencies
 - Copy-paste ready code that is self-contained and complete
 - Fully responsive, mobile-first design that adapts to all screen sizes
@@ -53,24 +54,27 @@ The library features:
 
 ## Library Statistics
 
-| Library | Type | Count |
-|---------|------|-------|
-| **HTML** | Components | 247+ |
-| **CSS** | Styles | 900+ |
-| **JavaScript** | Modules | 133+ |
-| **Total** | | **1,280+** |
+| Library        | Type       | Count      |
+| -------------- | ---------- | ---------- |
+| **HTML**       | Components | 247+       |
+| **CSS**        | Styles     | 900+       |
+| **JavaScript** | Modules    | 133+       |
+| **Total**      |            | **1,280+** |
 
 ## Building and Running
 
 ### Prerequisites
+
 - Node.js >= 20.11.0
 
 ### Installation
+
 ```bash
 npm install
 ```
 
 ### Development Commands
+
 ```bash
 # Start development server
 npm run dev
@@ -104,15 +108,19 @@ npm run create
 ```
 
 ### Serving the Library
+
 To serve the built library:
+
 ```bash
 npm run start
 ```
+
 This will serve the contents of the `dist` directory on port 5173.
 
 ## Development Conventions
 
 ### Component Structure
+
 - Each HTML component file is self-contained with all necessary HTML, CSS, and JS
 - CSS components use modern techniques (Flexbox, Grid, CSS variables)
 - JavaScript components are implemented as ES6 classes with consistent constructor patterns
@@ -120,12 +128,14 @@ This will serve the contents of the `dist` directory on port 5173.
 - Components follow a mobile-first responsive design approach
 
 ### Theming
+
 - The library supports both dark and light themes
 - Themes are managed through CSS custom properties in `jazer-brand.css`
 - Theme preference is stored in localStorage and persists across sessions
 - The theme system uses `data-theme` attributes to manage light/dark modes
 
 ### JavaScript Architecture
+
 - Components use ES6 classes with consistent constructor patterns
 - Auto-initialization happens when DOM is ready using data attributes
 - Components can be initialized programmatically or automatically via `data-*` attributes
@@ -133,6 +143,7 @@ This will serve the contents of the `dist` directory on port 5173.
 - Components include proper cleanup methods to prevent memory leaks
 
 ### CSS Architecture
+
 - CSS variables are defined in `jazer-brand.css` for consistent theming
 - The library uses a cyberpunk-inspired color palette with gradients and animations
 - Components are designed with a focus on visual aesthetics and modern UI patterns
@@ -164,24 +175,28 @@ node scripts/build-search-index.js
 ## Key Features
 
 ### Favorites System
+
 - Click the heart icon on any component to save it to your favorites
 - Favorites persist across sessions using localStorage
 - Click the "Favorites" button to filter and show only favorites
 - Separate favorites for HTML, CSS, and JS libraries
 
 ### Global Search
+
 - Search across all 3 libraries simultaneously from the hub page
 - Matches by title, filename, category, and keywords
 - Shows up to 15 results at a time
 - Color-coded badges indicate the library type
 
 ### Responsive Design
+
 - All components use a mobile-first approach
 - Fluid layouts that adapt to any screen size
 - Touch-friendly interactive elements
 - Optimized for both desktop and mobile viewing
 
 ### Accessibility
+
 - All components include proper ARIA attributes
 - Keyboard navigation support for all interactive elements
 - Semantic HTML structure
@@ -190,6 +205,7 @@ node scripts/build-search-index.js
 ## File Organization
 
 JavaScript components are organized into several categories:
+
 - **Components**: Interactive UI components (carousel, modal, etc.)
 - **Modules**: Core functionality modules (validation, formatter, etc.)
 - **Utils**: Utility functions for common tasks (DOM manipulation, etc.)
@@ -204,6 +220,7 @@ HTML components are organized by type in subdirectories under `[HTML]/` with 247
 ## Styling System
 
 The `jazer-brand.css` file serves as the main stylesheet and includes:
+
 - CSS variables for colors, fonts, spacing, and theming
 - Predefined animations and transitions
 - Typography styles and link styling
